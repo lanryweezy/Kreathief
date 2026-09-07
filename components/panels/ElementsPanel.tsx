@@ -38,7 +38,17 @@ const saveRecentShape = (name: string) => {
   localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
 };
 
-type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+type ShapeCategory =
+  | 'all'
+  | 'basic'
+  | 'frames'
+  | 'blobs'
+  | 'badges'
+  | 'geometric'
+  | 'decorative'
+  | 'ui'
+  | 'arrows'
+  | 'stars';
 type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons';
 
 interface ShapePreset {
@@ -437,29 +447,25 @@ export const ElementsPanel = () => {
     });
   }, [shapePresets, selectedCategory, searchQuery]);
 
-  // ⚡ Bolt Optimization: Pre-compute and categorize specific shape arrays to avoid inline .filter().map() chains during render
-  const { basicAndGeometricShapes, frameShapes, blobShapes } = useMemo(() => {
+  // ⚡ Bolt Optimization: Pre-categorize shapes with a single imperative loop,
+  // preventing intermediate array allocations caused by repeated .filter() calls in the render body.
+  const { basicShapes, frameShapes, blobShapes } = useMemo(() => {
     const basic: ShapePreset[] = [];
     const frames: ShapePreset[] = [];
     const blobs: ShapePreset[] = [];
-
-    for (const shape of shapePresets) {
-      if (shape.category === 'basic' || shape.category === 'geometric') {
+    for (let i = 0; i < shapePresets.length; i++) {
+      const s = shapePresets[i];
+      if (s.category === 'basic' || s.category === 'geometric') {
         if (basic.length < 10) {
-          basic.push(shape);
+          basic.push(s);
         }
-      } else if (shape.category === 'frames') {
-        frames.push(shape);
-      } else if (shape.category === 'blobs') {
-        blobs.push(shape);
+      } else if (s.category === 'frames') {
+        frames.push(s);
+      } else if (s.category === 'blobs') {
+        blobs.push(s);
       }
     }
-
-    return {
-      basicAndGeometricShapes: basic,
-      frameShapes: frames,
-      blobShapes: blobs,
-    };
+    return { basicShapes: basic, frameShapes: frames, blobShapes: blobs };
   }, [shapePresets]);
 
   const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
@@ -560,21 +566,32 @@ export const ElementsPanel = () => {
             {/* Shape Sub-category Pills if Shapes is active */}
             {activeFilter === 'shapes' && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                {(['all', 'basic', 'frames', 'blobs', 'badges', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
-                  (cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/5 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  )
-                )}
+                {(
+                  [
+                    'all',
+                    'basic',
+                    'frames',
+                    'blobs',
+                    'badges',
+                    'geometric',
+                    'stars',
+                    'arrows',
+                    'decorative',
+                    'ui',
+                  ] as ShapeCategory[]
+                ).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-white/20 text-white border border-white/30'
+                        : 'bg-white/5 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -671,7 +688,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {basicAndGeometricShapes.map((item, idx) => (
+                {basicShapes.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
