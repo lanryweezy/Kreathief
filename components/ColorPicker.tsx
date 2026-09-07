@@ -388,6 +388,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
                         <button
                           type="button"
                           aria-label="Toggle CMYK mode"
+                          aria-pressed={cmykMode}
                           onClick={() => setCmykMode(!cmykMode)}
                           className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded transition-colors ${
                             cmykMode ? 'bg-brand-600/20 text-brand-600' : 'bg-black/40 text-gray-500 hover:text-white'

@@ -952,6 +952,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   }}
                   className={`p-2 rounded-lg transition-all flex items-center justify-center ${showGrid ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title={showGrid ? 'Hide Grid' : 'Show Grid'}
+                  aria-pressed={showGrid}
                 >
                   <Icons.Grid className="w-4 h-4" />
                 </button>
@@ -962,6 +963,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   }}
                   className={`p-2 rounded-lg transition-all flex items-center justify-center ${showRulers ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
                   title="Toggle Rulers"
+                  aria-pressed={showRulers}
                 >
                   <Icons.Layout className="w-4 h-4" />
                 </button>
