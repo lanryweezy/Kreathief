@@ -38,7 +38,17 @@ const saveRecentShape = (name: string) => {
   localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
 };
 
-type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+type ShapeCategory =
+  | 'all'
+  | 'basic'
+  | 'frames'
+  | 'blobs'
+  | 'badges'
+  | 'geometric'
+  | 'decorative'
+  | 'ui'
+  | 'arrows'
+  | 'stars';
 type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons';
 
 interface ShapePreset {
@@ -475,7 +485,7 @@ export const ElementsPanel = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+    <div data-testid="elements-panel" className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
       <PanelHeader title="Elements" icon={<Icons.Shapes className="w-5 h-5 text-accent" />} />
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">
@@ -535,21 +545,32 @@ export const ElementsPanel = () => {
             {/* Shape Sub-category Pills if Shapes is active */}
             {activeFilter === 'shapes' && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                {(['all', 'basic', 'frames', 'blobs', 'badges', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
-                  (cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/5 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  )
-                )}
+                {(
+                  [
+                    'all',
+                    'basic',
+                    'frames',
+                    'blobs',
+                    'badges',
+                    'geometric',
+                    'stars',
+                    'arrows',
+                    'decorative',
+                    'ui',
+                  ] as ShapeCategory[]
+                ).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-white/20 text-white border border-white/30'
+                        : 'bg-white/5 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -646,36 +667,39 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'basic' || s.category === 'geometric').slice(0, 10).map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
-                    className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
-                    title={item.name}
-                  >
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      {item.type === 'path' ? (
-                        <svg
-                          viewBox={(item.props as any).viewBox || '0 0 100 100'}
-                          width="100%"
-                          height="100%"
-                          className="w-full h-full"
-                        >
-                          <path d={(item.props as any).pathData} fill={(item.props as any).color} />
-                        </svg>
-                      ) : (
-                        <div
-                          style={{
-                            width: '24px',
-                            height: '24px',
-                            backgroundColor: item.props.color || '#00c4cc',
-                            borderRadius: item.type === 'circle' ? '50%' : '3px',
-                          }}
-                        />
-                      )}
-                    </div>
-                  </button>
-                ))}
+                {shapePresets
+                  .filter((s) => s.category === 'basic' || s.category === 'geometric')
+                  .slice(0, 10)
+                  .map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                      className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
+                      title={item.name}
+                    >
+                      <div className="w-8 h-8 flex items-center justify-center">
+                        {item.type === 'path' ? (
+                          <svg
+                            viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                            width="100%"
+                            height="100%"
+                            className="w-full h-full"
+                          >
+                            <path d={(item.props as any).pathData} fill={(item.props as any).color} />
+                          </svg>
+                        ) : (
+                          <div
+                            style={{
+                              width: '24px',
+                              height: '24px',
+                              backgroundColor: item.props.color || '#00c4cc',
+                              borderRadius: item.type === 'circle' ? '50%' : '3px',
+                            }}
+                          />
+                        )}
+                      </div>
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -698,28 +722,30 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'frames').map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
-                    className="group relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-sky-500/20 hover:border-sky-400 rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
-                    title={`${item.name} — Drop any photo to fill`}
-                  >
-                    <div className="w-10 h-10 flex items-center justify-center">
-                      <svg
-                        viewBox={(item.props as any).viewBox || '0 0 100 100'}
-                        width="100%"
-                        height="100%"
-                        className="w-full h-full text-sky-400 fill-sky-400/20 stroke-sky-400 stroke-[2]"
-                      >
-                        <path d={(item.props as any).pathData} />
-                      </svg>
-                    </div>
-                    <span className="text-[8px] font-bold text-sky-300/80 group-hover:text-sky-200 truncate max-w-full mt-1">
-                      {item.name}
-                    </span>
-                  </button>
-                ))}
+                {shapePresets
+                  .filter((s) => s.category === 'frames')
+                  .map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                      className="group relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-sky-500/20 hover:border-sky-400 rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
+                      title={`${item.name} — Drop any photo to fill`}
+                    >
+                      <div className="w-10 h-10 flex items-center justify-center">
+                        <svg
+                          viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                          width="100%"
+                          height="100%"
+                          className="w-full h-full text-sky-400 fill-sky-400/20 stroke-sky-400 stroke-[2]"
+                        >
+                          <path d={(item.props as any).pathData} />
+                        </svg>
+                      </div>
+                      <span className="text-[8px] font-bold text-sky-300/80 group-hover:text-sky-200 truncate max-w-full mt-1">
+                        {item.name}
+                      </span>
+                    </button>
+                  ))}
               </div>
             </div>
 
@@ -742,25 +768,27 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'blobs').map((item, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
-                    className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-purple-500/20 hover:border-purple-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
-                    title={item.name}
-                  >
-                    <div className="w-9 h-9 flex items-center justify-center">
-                      <svg
-                        viewBox={(item.props as any).viewBox || '0 0 100 100'}
-                        width="100%"
-                        height="100%"
-                        className="w-full h-full text-purple-400 fill-purple-500/30 stroke-purple-400 stroke-[1.5]"
-                      >
-                        <path d={(item.props as any).pathData} />
-                      </svg>
-                    </div>
-                  </button>
-                ))}
+                {shapePresets
+                  .filter((s) => s.category === 'blobs')
+                  .map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                      className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-purple-500/20 hover:border-purple-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
+                      title={item.name}
+                    >
+                      <div className="w-9 h-9 flex items-center justify-center">
+                        <svg
+                          viewBox={(item.props as any).viewBox || '0 0 100 100'}
+                          width="100%"
+                          height="100%"
+                          className="w-full h-full text-purple-400 fill-purple-500/30 stroke-purple-400 stroke-[1.5]"
+                        >
+                          <path d={(item.props as any).pathData} />
+                        </svg>
+                      </div>
+                    </button>
+                  ))}
               </div>
             </div>
 

@@ -23,6 +23,8 @@ test.describe('Cross-Browser Compatibility', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
   });
 
@@ -36,8 +38,8 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should load editor correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/dashboard');
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Verify editor loads
@@ -46,8 +48,8 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should render canvas correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/dashboard');
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Check canvas is rendered
@@ -69,8 +71,8 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should handle text input correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/dashboard');
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Set project title
@@ -82,8 +84,8 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should handle keyboard shortcuts correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/dashboard');
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Test Ctrl/Cmd+S for save
@@ -101,8 +103,8 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should handle mouse interactions correctly', async ({ page }) => {
-    await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.goto('/dashboard');
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     // Test zoom controls
@@ -121,7 +123,7 @@ test.describe('Cross-Browser Compatibility', () => {
     // Simulate touch device
     await page.setViewportSize({ width: 375, height: 667 });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Test touch interactions
@@ -133,7 +135,7 @@ test.describe('Cross-Browser Compatibility', () => {
   });
 
   test('should maintain layout on resize', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Resize viewport
@@ -156,7 +158,7 @@ test.describe('Cross-Browser Compatibility', () => {
     // Set device scale factor for high DPI
     await page.setViewportSize({ width: 1920, height: 1080 });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Take screenshot to verify rendering
@@ -169,7 +171,7 @@ test.describe('Cross-Browser Compatibility', () => {
     // Test dark mode (if supported)
     await page.emulateMedia({ colorScheme: 'dark' });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Verify dark mode is applied
@@ -184,7 +186,7 @@ test.describe('Cross-Browser Compatibility', () => {
   test('should handle reduced motion preference', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Verify animations are reduced
@@ -206,7 +208,7 @@ test.describe('Cross-Browser Compatibility', () => {
   test('should handle forced colors mode', async ({ page }) => {
     await page.emulateMedia({ forcedColors: 'active' });
 
-    await page.goto('/');
+    await page.goto('/dashboard');
     await dashboard.verifyDashboardLoaded();
 
     // Verify forced colors mode is applied

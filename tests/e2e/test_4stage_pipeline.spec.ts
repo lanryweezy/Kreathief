@@ -6,7 +6,7 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
   const artifactDir = 'C:/Users/USER/.gemini/antigravity-ide/brain/18645210-f350-4e18-a0b7-258a86646446';
 
   // Capture ALL console logs to diagnose strategy response
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     const text = msg.text();
     console.log(`[BROWSER ${msg.type().toUpperCase()}] ${text}`);
   });
@@ -23,6 +23,8 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
       })
     );
     localStorage.setItem('kreathief_onboarding_seen', 'true');
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    localStorage.setItem('kreathief_editor_tour_seen', 'true');
   });
 
   console.log('Navigating to editor...');
@@ -33,7 +35,9 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
   // Close modals
   try {
     const skipBtn = page.getByRole('button', { name: /Skip/i }).first();
-    if (await skipBtn.isVisible({ timeout: 2000 })) await skipBtn.click();
+    if (await skipBtn.isVisible({ timeout: 2000 })) {
+      await skipBtn.click();
+    }
   } catch (e) {}
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
@@ -47,28 +51,36 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
     await page.waitForTimeout(1000);
   } else {
     const aiBtn = page.locator('button:has-text("AI")').first();
-    if (await aiBtn.isVisible()) await aiBtn.click();
+    if (await aiBtn.isVisible()) {
+      await aiBtn.click();
+    }
     await page.waitForTimeout(500);
     const tab2 = page.locator('button:has-text("Design Agent")').first();
-    if (await tab2.isVisible()) await tab2.click();
+    if (await tab2.isVisible()) {
+      await tab2.click();
+    }
     await page.waitForTimeout(500);
   }
 
   await page.screenshot({ path: `${artifactDir}/e2e_2_design_agent_panel.png` });
 
-  const prompt = "Luxury skincare brand launch poster — minimalist elegance for affluent women 35-55";
-  const textarea = page.locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe"], textarea').first();
+  const prompt = 'Luxury skincare brand launch poster — minimalist elegance for affluent women 35-55';
+  const textarea = page
+    .locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe"], textarea')
+    .first();
   await textarea.fill(prompt);
   await page.waitForTimeout(500);
 
-  const generateBtn = page.locator('button:has-text("Generate"), button[aria-label="Start AI Design Workflow"]').first();
+  const generateBtn = page
+    .locator('button:has-text("Generate"), button[aria-label="Start AI Design Workflow"]')
+    .first();
   const genStart = Date.now();
   await generateBtn.click();
   console.log('Pipeline started — monitoring stage transitions...');
 
   // Poll for stage transitions using actual CSS class / data attributes
   let lastStage = '';
-  let stagesDetected: string[] = [];
+  const stagesDetected: string[] = [];
 
   for (let i = 0; i < 25; i++) {
     await page.waitForTimeout(3000);
@@ -90,7 +102,9 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
       console.log(`[${elapsed}s] Stage transition: "${lastStage}" → "${activeStageText}"`);
       stagesDetected.push(activeStageText);
       lastStage = activeStageText;
-      await page.screenshot({ path: `${artifactDir}/e2e_stage_${i}_${activeStageText.replace(/\s/g, '_').toLowerCase()}.png` });
+      await page.screenshot({
+        path: `${artifactDir}/e2e_stage_${i}_${activeStageText.replace(/\s/g, '_').toLowerCase()}.png`,
+      });
     } else {
       console.log(`[${elapsed}s] Active stage: "${activeStageText || 'none/done'}" | Variants ready: ${hasDone}`);
     }

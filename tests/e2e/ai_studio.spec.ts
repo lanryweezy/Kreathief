@@ -15,6 +15,8 @@ test.describe('AI Studio Capabilities E2E Suite', () => {
       window.localStorage.setItem('kreathief_guest_session', userSession);
       window.localStorage.setItem('kreathief_qa_session', userSession);
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
       window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     });
 
@@ -53,7 +55,9 @@ test.describe('AI Studio Capabilities E2E Suite', () => {
     await expect(promptInput).toBeVisible({ timeout: 10000 });
 
     // Click an Inspiration Tag
-    const inspirationTag = aiDialog.locator('button:has-text("+ Volumetric Lighting"), button:has-text("+ Neon Rim Light")').first();
+    const inspirationTag = aiDialog
+      .locator('button:has-text("+ Volumetric Lighting"), button:has-text("+ Neon Rim Light")')
+      .first();
     if (await inspirationTag.isVisible()) {
       await inspirationTag.click();
       const value = await promptInput.inputValue();

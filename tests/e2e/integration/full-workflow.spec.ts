@@ -17,6 +17,8 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     const dashboard = new DashboardPage(page);
@@ -97,15 +99,17 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     const editor = new EditorPage(page);
 
     // First session: Create and save
-    await page.goto('/');
+    await page.goto('/dashboard');
     const dashboard = new DashboardPage(page);
     await dashboard.switchToTemplates();
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
     await editor.waitForCanvasReady();
 
     await editor.setProjectTitle('Persistent Design');
@@ -154,13 +158,15 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Tab 1: Create project
-    await page.goto('/');
+    await page.goto('/dashboard');
     const dashboard1 = new DashboardPage(page);
     await dashboard1.switchToTemplates();
-    await page.locator('#templates-grid button').first().click();
+    await page.getByTestId('dashboard-templates-grid').locator('button').first().click();
 
     const editor1 = new EditorPage(page);
     await editor1.waitForCanvasReady();

@@ -30,11 +30,11 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
   // Simulated designer variables
   let mouseMovements = 0;
   let hesitations = 0;
-  let wrongClicks = 0;
+  const wrongClicks = 0;
   let toolSwitches = 0;
-  let undoCount = 0;
+  const undoCount = 0;
   let alignmentFailures = 0;
-  let accessibilityIssues = 0;
+  const accessibilityIssues = 0;
 
   // Helper to record telemetry
   const recordTelemetry = (state: string, extra: Partial<TelemetryData> = {}) => {
@@ -69,6 +69,8 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
         })
       );
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
   });
 
@@ -678,7 +680,9 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     const spatialTelemetry = await page.evaluate(() => {
       const store = (window as any).useStore.getState();
       const artboard = store.artboards.find((a: any) => a.id === store.activeArtboardId);
-      if (!artboard) return { aligned: false, spacing: 0 };
+      if (!artboard) {
+        return { aligned: false, spacing: 0 };
+      }
 
       const titleLayer = artboard.layers.find((l: any) => l.type === 'text' && l.text === 'CASH COW');
       const subtitleLayer = artboard.layers.find((l: any) => l.type === 'text' && l.text.includes('flowing income'));
@@ -710,7 +714,9 @@ test.describe('Double-Agent: CASH COW Visual Design & AI-UX Telemetry Test', () 
     console.log(
       `Spatial Verification: Title grid-aligned: ${spatialTelemetry.titleSnapped}, Platform centered: ${spatialTelemetry.platformCenteredX && spatialTelemetry.platformCenteredY}, Spacing: ${spatialTelemetry.typographySpacing}px`
     );
-    if (!spatialTelemetry.platformCenteredX) alignmentFailures++;
+    if (!spatialTelemetry.platformCenteredX) {
+      alignmentFailures++;
+    }
 
     // 11. EXPORT SUITE TRIGGER & SCREENSHOT (Done BEFORE Stress Test to avoid browser freezing!)
     console.log('Triggering export dialog process...');

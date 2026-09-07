@@ -26,10 +26,12 @@ test.describe('Export Features', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Navigate to editor
-    await page.goto('/');
+    await page.goto('/dashboard');
     await page.getByTestId('nav-templates').click();
     await page.waitForLoadState('networkidle');
     await page

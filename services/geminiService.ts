@@ -2,6 +2,7 @@ import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
+import { getPromptArchetype } from './promptArchetypes';
 import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
@@ -99,12 +100,12 @@ export const callBackendGeminiAPI = async (payload: any) => {
           const data = await response.json();
           // Normalize OpenRouter response to match the shape callers expect
           let text = data.choices?.[0]?.message?.content ?? data.text ?? '';
-          
+
           // Strip markdown codeblocks if the caller expects pure JSON
           if (isJSON && text.startsWith('```')) {
             text = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/i, '');
           }
-          
+
           return { text, candidates: [{ content: { parts: [{ text }] } }] };
         }
 
@@ -429,7 +430,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
-      systemInstruction: 'You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user\'s topic. Useful for posters or social media. Return them as a simple JSON string array.',
+      systemInstruction:
+        "You are a creative copywriter. Generate 5 creative, short, and catchy phrases about the user's topic. Useful for posters or social media. Return them as a simple JSON string array.",
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -438,8 +440,8 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
             variants: {
               type: SchemaType.ARRAY,
               items: { type: SchemaType.STRING },
-            }
-          }
+            },
+          },
         },
       },
       contents: [
@@ -470,26 +472,14 @@ const ENHANCE_PROMPT_SYSTEM_V1 = `
 You are an expert prompt engineer for AI image generators.
 `;
 const getArchetypeGuidance = (archetype?: string): string => {
-  switch (archetype) {
-    case 'cinematic':
-      return 'Emphasize cinematic photography: 85mm f/1.4 lens optics, shallow depth of field, natural volumetric lighting, subtle film grain, 8k resolution, photorealistic realism.';
-    case 'artistic':
-      return 'Emphasize artistic painterly qualities: expressive brushstrokes, tactile canvas texture, rich color harmonies, and atmospheric emotional depth.';
-    case 'product':
-      return 'Emphasize commercial product photography: studio softbox illumination, clean rim highlights, pristine reflections, neutral cyclorama backdrop, commercial catalog sharpness.';
-    case 'render_3d':
-      return 'Emphasize high-end 3D digital art: Octane/Blender render, subsurface scattering, ambient occlusion, physically based rendering (PBR), and volumetric caustics.';
-    case 'vector_graphic':
-      return 'Emphasize modern graphic design: clean vector line work, bold flat colors, geometric balance, modern SVG illustration aesthetic.';
-    default:
-      return 'Include lighting, style, composition, camera perspective, and mood keywords.';
+  if (!archetype) {
+    return 'Include lighting, style, composition, camera perspective, and mood keywords.';
   }
+  const strategy = getPromptArchetype(archetype);
+  return strategy?.guidance || 'Include lighting, style, composition, camera perspective, and mood keywords.';
 };
 
-export const enhancePromptWithArchetype = async (
-  simplePrompt: string,
-  archetype?: string
-): Promise<string> => {
+export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
   try {
     const sanitizedPrompt = simplePrompt.trim().substring(0, 1000);
     const archetypeGuidance = getArchetypeGuidance(archetype);
@@ -531,20 +521,13 @@ export const enhancePromptWithArchetype = async (
 
 const enhancePromptLocally = (simplePrompt: string, archetype?: string): string => {
   const clean = simplePrompt.trim();
-  switch (archetype) {
-    case 'cinematic':
-      return `${clean}, cinematic 35mm photography, natural volumetric lighting, shallow depth of field, f/1.8 aperture, 8k resolution, ultra detailed, photorealistic`;
-    case 'artistic':
-      return `${clean}, expressive concept art, rich painterly brush strokes, vibrant color harmony, atmospheric lighting, detailed composition`;
-    case 'product':
-      return `${clean}, professional studio product photography, clean reflections, softbox illumination, minimal cyclorama backdrop, catalog grade`;
-    case 'render_3d':
-      return `${clean}, 3D Octane render, smooth ray tracing, subsurface scattering, ambient occlusion, physically based shaders, 8k masterpiece`;
-    case 'vector_graphic':
-      return `${clean}, clean modern vector illustration, bold graphic lines, minimalist geometric styling, vibrant flat color palette, SVG vector`;
-    default:
-      return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
+  if (archetype) {
+    const strategy = getPromptArchetype(archetype);
+    if (strategy) {
+      return strategy.enhanceLocally(clean);
+    }
   }
+  return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
 };
 
 export const enhancePrompt = async (simplePrompt: string, archetype?: string): Promise<string> => {

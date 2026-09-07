@@ -442,7 +442,7 @@ export const LayersPanel = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div data-testid="layers-panel" className="flex flex-col h-full bg-transparent">
       {/* Tabs */}
       <PanelHeader
         tabs={[

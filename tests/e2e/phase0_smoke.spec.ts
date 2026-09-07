@@ -35,17 +35,21 @@ test.describe('Phase 0 Smoke Test - 6 Core Loops', () => {
       window.localStorage.setItem('kreathief_guest_session', userSession);
       window.localStorage.setItem('kreathief_qa_session', userSession);
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
       window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     });
   });
 
-  test('Complete Phase 0 Smoke Test: 1) Load without errors 2) Create project 3) Add shape, text, image 4) Move/resize/delete 5) Export PNG 6) Refresh persistence', async ({ page }) => {
+  test('Complete Phase 0 Smoke Test: 1) Load without errors 2) Create project 3) Add shape, text, image 4) Move/resize/delete 5) Export PNG 6) Refresh persistence', async ({
+    page,
+  }) => {
     // 1. App loads without console errors
     await page.goto('/editor', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('.canvas-container, .design-artboard').first()).toBeVisible({ timeout: 15000 });
 
     // Verify no fatal console errors during load
-    const fatalErrors = consoleErrors.filter(e => !e.includes('Download the React DevTools'));
+    const fatalErrors = consoleErrors.filter((e) => !e.includes('Download the React DevTools'));
     expect(fatalErrors.length, `Console errors on load: ${fatalErrors.join(', ')}`).toBe(0);
 
     // 2. Verify project/canvas initialized
@@ -160,7 +164,7 @@ test.describe('Phase 0 Smoke Test - 6 Core Loops', () => {
     // Verify download trigger button
     const downloadBtn = page.getByTestId('download-btn').or(page.locator('button:has-text("Download")')).first();
     await expect(downloadBtn).toBeVisible();
-    
+
     // Close modal
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
