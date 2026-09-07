@@ -21,7 +21,9 @@ test.describe('Component Functionality', () => {
           avatar: 'https://via.placeholder.com/150',
         })
       );
-      localStorage.setItem('kreathief_onboarding_seen', 'true'); // Skip onboarding
+      localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true'); // Skip onboarding
     });
 
     // Navigate directly to editor

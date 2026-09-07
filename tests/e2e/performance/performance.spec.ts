@@ -20,6 +20,8 @@ test.describe('Performance Tests', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
   });
 
@@ -60,7 +62,7 @@ test.describe('Performance Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
@@ -145,7 +147,7 @@ test.describe('Performance Tests', () => {
     await textTab.click();
 
     for (let i = 0; i < 10; i++) {
-      const addHeading = page.locator('button:has-text("Heading")');
+      const addHeading = page.getByTestId('add-heading-btn');
       await addHeading.click();
       await page.waitForTimeout(200);
     }
@@ -177,7 +179,7 @@ test.describe('Performance Tests', () => {
       // Add text
       const textTab = editor.sidebar.locator('button[aria-label="Text"]');
       await textTab.click();
-      const addHeading = page.locator('button:has-text("Heading")');
+      const addHeading = page.getByTestId('add-heading-btn');
       await addHeading.click();
       await page.waitForTimeout(500);
 

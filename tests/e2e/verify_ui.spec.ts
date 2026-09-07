@@ -22,6 +22,8 @@ test('verify all requested changes', async ({ page }) => {
     };
     localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
     localStorage.setItem('kreathief_onboarding_seen', 'true');
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    localStorage.setItem('kreathief_editor_tour_seen', 'true');
     console.log('LocalStorage set');
   });
 

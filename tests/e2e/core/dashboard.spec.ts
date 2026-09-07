@@ -21,6 +21,8 @@ test.describe('Dashboard Core Features', () => {
       localStorage.setItem('kreathief_qa_session', userSession);
       localStorage.setItem('kreathief_onboarding_seen', 'true');
       localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     });
 
     await dashboard.goto();
