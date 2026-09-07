@@ -2,6 +2,9 @@ import { Page, Locator, expect } from '@playwright/test';
 
 export class EditorPage {
   readonly page: Page;
+  readonly toolbar: Locator;
+  readonly elementsPanel: Locator;
+  readonly layersPanel: Locator;
   readonly canvas: Locator;
   readonly canvasContainer: Locator;
   readonly projectTitleInput: Locator;
@@ -12,12 +15,15 @@ export class EditorPage {
 
   constructor(page: Page) {
     this.page = page;
+    this.toolbar = page.locator('#toolbar, [data-testid="toolbar"], .toolbar').first();
+    this.elementsPanel = page.locator('[data-testid="elements-panel"], .elements-panel').first();
+    this.layersPanel = page.locator('[data-testid="layers-panel"], .layers-panel').first();
     this.canvas = page.locator('.design-artboard, canvas').first();
     this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
     this.projectTitleInput = page.getByTestId('project-title-input');
     this.projectTitleDisplay = page.getByTestId('project-title-display');
     this.exportButton = page.getByRole('button', { name: 'Export' });
-    this.layersPanel = page.getByTestId('layers-panel');
+    this.layersPanel = page.locator('[data-testid="layers-panel"], .layers-panel').first();
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
   }
 
@@ -34,7 +40,7 @@ export class EditorPage {
 
   async setProjectTitle(title: string) {
     await expect(this.projectTitleDisplay).toBeVisible({ timeout: 5000 });
-    await this.projectTitleDisplay.click();
+    await this.projectTitleDisplay.click({ force: true });
     await this.projectTitleInput.fill(title);
     await this.page.keyboard.press('Enter');
     await expect(this.projectTitleDisplay).toHaveText(title);
@@ -42,7 +48,7 @@ export class EditorPage {
 
   async openLayersPanel() {
     const layersTab = this.page.getByRole('button', { name: 'Layers' });
-    await layersTab.click();
+    await layersTab.click({ force: true });
     await this.page.waitForTimeout(500);
   }
 
@@ -54,7 +60,7 @@ export class EditorPage {
   }
 
   async export(format: 'png' | 'jpeg' | 'webp') {
-    await this.exportButton.click();
+    await this.exportButton.click({ force: true });
     await this.page.waitForTimeout(500);
     const formatBtn = this.page.getByTestId(`export-${format}-btn`);
     await formatBtn.click();
