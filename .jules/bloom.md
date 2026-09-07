@@ -78,3 +78,7 @@
 ## 2026-08-26 - Rely on Type-Checking Over Automated Code Review For Imports
 **Learning:** The automated code review incorrectly flagged the import of `fuzzyMatch` from `../../utils/search` as a "hallucinated import", despite it being successfully verified by `pnpm run type-check`.
 **Action:** When a known utility function like `fuzzyMatch` is imported and verified by the TypeScript compiler (`tsc --noEmit`), disregard automated code review flags about missing imports and proceed with the submission.
+## 2024-08-16 - Specific error messaging for PDF import
+
+**Learning:** The PDF import operation in `Dashboard.tsx` was displaying a generic "Failed to import PDF" error toast on failure. While `utils/errorMessages.ts` contained a robust `getErrorDetails` utility capable of diagnosing network, timeout, memory, permission, and format errors with actionable suggestions, it was not being utilized for PDF imports.
+**Action:** Replaced the hardcoded, generic error string in the PDF import catch block with `getErrorDetails(err)` to provide specific, actionable guidance to users.
