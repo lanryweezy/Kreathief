@@ -203,3 +203,8 @@
 ## 2026-08-30 - Prevent O(N) array allocation in AI design analysis
 **Learning:** Found an unoptimized `artboards.flatMap((a) => a.layers).concat(layers)` call in `getAllLayers` in `ai/designEngine.ts`. This was causing massive intermediate array allocations in performance critical paths.
 **Action:** Replaced it with an imperative nested loop to prevent intermediate array allocations and reduce garbage collection overhead, particularly inside frequently called utility functions.
+
+## 2026-09-08 - Avoid inline array allocations in JSX render blocks
+
+**Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
+**Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
