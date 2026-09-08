@@ -105,7 +105,7 @@ test.describe('Full Design Workflow', () => {
     await page.goto('/');
     const dashboard = new DashboardPage(page);
     await dashboard.switchToTemplates();
-    await page.locator('#templates-grid button').first().click();
+    await page.locator('[data-testid="dashboard-templates-grid"] button').first().click();
     await editor.waitForCanvasReady();
 
     await editor.setProjectTitle('Persistent Design');
@@ -160,7 +160,7 @@ test.describe('Full Design Workflow', () => {
     await page.goto('/');
     const dashboard1 = new DashboardPage(page);
     await dashboard1.switchToTemplates();
-    await page.locator('#templates-grid button').first().click();
+    await page.locator('[data-testid="dashboard-templates-grid"] button').first().click();
 
     const editor1 = new EditorPage(page);
     await editor1.waitForCanvasReady();

@@ -320,8 +320,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         onOpenProject(created);
       }
     } catch (err) {
-      const details = getErrorDetails(err);
-      addToast(`Failed to import PDF: ${details.message}. ${details.suggestion}`, 'error');
+      addToast('Failed to import PDF', 'error');
     } finally {
       if (pdfInputRef.current) {
         pdfInputRef.current.value = '';
