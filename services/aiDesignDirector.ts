@@ -1,3 +1,4 @@
+import { SchemaType } from '@google/generative-ai';
 import { Layer, Gradient, CornerRadius, AutoLayoutSettings } from '../types';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
@@ -82,7 +83,17 @@ const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt
         color: '#ff007f',
         locked: false,
         visible: true,
-        filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 40, sepia: 0, hueRotate: 0, vignette: 0, opacity: 0.25 },
+        filters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          grayscale: 0,
+          blur: 40,
+          sepia: 0,
+          hueRotate: 0,
+          vignette: 0,
+          opacity: 0.25,
+        },
         blendMode: 'screen',
       } as any,
       // Grid Card Backdrop
@@ -597,59 +608,111 @@ export const generateMultiLayerDesign = async (
   height: number = 1080,
   archetypeHint?: string
 ): Promise<ArtboardDesignResult> => {
-  const pLower = (prompt + ' ' + (archetypeHint || '')).toLowerCase();
+  const sanitizedPrompt = prompt.trim().substring(0, 1000);
+  const pLower = (sanitizedPrompt + ' ' + (archetypeHint || '')).toLowerCase();
 
   // Try calling AI structured output model
   try {
     const systemInstruction = `You are an elite Senior Design Director and Artboard Generator.
-Given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, EDITABLE MULTI-LAYER artboard structure in JSON.
+Given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, EDITABLE MULTI-LAYER artboard structure.
 Do NOT generate flat single images. Generate separate coordinate-placed layers for:
 1. Background decorative elements or glow cards
 2. Category / Eyebrow pill or tag
 3. Main headline text with bold font styling, color, and drop shadow
 4. Subheadline or supporting description body text
 5. Floating badge / discount chip / highlight shape & badge text
-6. Call to Action (CTA) button container shape & button text
-
-Return strictly JSON with:
-{
-  "title": string,
-  "description": string,
-  "backgroundColor": string (hex or rgba),
-  "backgroundGradient": { "type": "linear" | "radial", "angle": number, "colors": [{"color": string, "position": number}] } (optional),
-  "layers": [
-    {
-      "type": "rect" | "ellipse" | "text",
-      "name": string,
-      "x": number,
-      "y": number,
-      "width": number,
-      "height": number,
-      "rotation": number,
-      "opacity": number,
-      "color": string,
-      "cornerRadius": { "tl": number, "tr": number, "br": number, "bl": number } (for rects),
-      "stroke": { "color": string, "width": number } (optional),
-      "shadow": { "color": string, "blur": number, "offsetX": number, "offsetY": number } (optional),
-      "text": string (for text layers),
-      "fontSize": number (for text layers),
-      "fontWeight": "400" | "600" | "700" | "800" | "900",
-      "fontFamily": "Inter" | "Outfit" | "Playfair Display" | "Roboto" | "Montserrat" | "Cinzel",
-      "textAlign": "left" | "center" | "right",
-      "letterSpacing": number,
-      "lineHeight": number,
-      "textTransform": "none" | "uppercase" | "lowercase"
-    }
-  ]
-}`;
+6. Call to Action (CTA) button container shape & button text`;
 
     const response = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       systemInstruction,
-      contents: [{ role: 'user', parts: [{ text: `Generate multi-layer artboard for: "${prompt}". Dimensions: ${width}x${height}` }] }],
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `Generate multi-layer artboard for: "${sanitizedPrompt}". Dimensions: ${width}x${height}` }],
+        },
+      ],
+      // Astra: Strict JSON output schema prevents malformed parsing issues and unbounded object keys
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.7,
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            title: { type: SchemaType.STRING },
+            description: { type: SchemaType.STRING },
+            backgroundColor: { type: SchemaType.STRING },
+            backgroundGradient: {
+              type: SchemaType.OBJECT,
+              properties: {
+                type: { type: SchemaType.STRING, description: 'linear or radial' },
+                angle: { type: SchemaType.NUMBER },
+                colors: {
+                  type: SchemaType.ARRAY,
+                  items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      position: { type: SchemaType.NUMBER },
+                    },
+                  },
+                },
+              },
+            },
+            layers: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  type: { type: SchemaType.STRING, description: 'rect, ellipse, or text' },
+                  name: { type: SchemaType.STRING },
+                  x: { type: SchemaType.NUMBER },
+                  y: { type: SchemaType.NUMBER },
+                  width: { type: SchemaType.NUMBER },
+                  height: { type: SchemaType.NUMBER },
+                  rotation: { type: SchemaType.NUMBER },
+                  opacity: { type: SchemaType.NUMBER },
+                  color: { type: SchemaType.STRING },
+                  cornerRadius: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      tl: { type: SchemaType.NUMBER },
+                      tr: { type: SchemaType.NUMBER },
+                      br: { type: SchemaType.NUMBER },
+                      bl: { type: SchemaType.NUMBER },
+                    },
+                  },
+                  stroke: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      width: { type: SchemaType.NUMBER },
+                    },
+                  },
+                  shadow: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      blur: { type: SchemaType.NUMBER },
+                      offsetX: { type: SchemaType.NUMBER },
+                      offsetY: { type: SchemaType.NUMBER },
+                    },
+                  },
+                  text: { type: SchemaType.STRING },
+                  fontSize: { type: SchemaType.NUMBER },
+                  fontWeight: { type: SchemaType.STRING },
+                  fontFamily: { type: SchemaType.STRING },
+                  textAlign: { type: SchemaType.STRING },
+                  letterSpacing: { type: SchemaType.NUMBER },
+                  lineHeight: { type: SchemaType.NUMBER },
+                  textTransform: { type: SchemaType.STRING },
+                },
+                required: ['type', 'name', 'x', 'y', 'width', 'height'],
+              },
+            },
+          },
+          required: ['title', 'description', 'backgroundColor', 'layers'],
+        },
       },
     });
 
@@ -680,7 +743,11 @@ Return strictly JSON with:
           color: l.color || '#3b82f6',
           locked: false,
           visible: true,
-          cornerRadius: l.cornerRadius || (typeof l.cornerRadius === 'number' ? { tl: l.cornerRadius, tr: l.cornerRadius, br: l.cornerRadius, bl: l.cornerRadius } : undefined),
+          cornerRadius:
+            l.cornerRadius ||
+            (typeof l.cornerRadius === 'number'
+              ? { tl: l.cornerRadius, tr: l.cornerRadius, br: l.cornerRadius, bl: l.cornerRadius }
+              : undefined),
           stroke: l.stroke,
           shadow: l.shadow,
           text: l.text,
@@ -705,13 +772,29 @@ Return strictly JSON with:
       };
     }
   } catch (err) {
-    log.warn('[aiDesignDirector] Structured API call failed or timed out, utilizing intelligent archetype generation', err);
+    log.warn(
+      '[aiDesignDirector] Structured API call failed or timed out, utilizing intelligent archetype generation',
+      err
+    );
   }
 
   // Fallback to high-aesthetic archetype generators
-  if (pLower.includes('cyber') || pLower.includes('neon') || pLower.includes('gaming') || pLower.includes('futuristic') || pLower.includes('sale') || pLower.includes('black friday')) {
+  if (
+    pLower.includes('cyber') ||
+    pLower.includes('neon') ||
+    pLower.includes('gaming') ||
+    pLower.includes('futuristic') ||
+    pLower.includes('sale') ||
+    pLower.includes('black friday')
+  ) {
     return FALLBACK_ARCHETYPES.cyberpunk(width, height, prompt);
-  } else if (pLower.includes('saas') || pLower.includes('tech') || pLower.includes('app') || pLower.includes('cloud') || pLower.includes('startup')) {
+  } else if (
+    pLower.includes('saas') ||
+    pLower.includes('tech') ||
+    pLower.includes('app') ||
+    pLower.includes('cloud') ||
+    pLower.includes('startup')
+  ) {
     return FALLBACK_ARCHETYPES.saas(width, height, prompt);
   } else {
     return FALLBACK_ARCHETYPES.editorial(width, height, prompt);

@@ -126,3 +126,7 @@
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
 **Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
+
+## 2026-10-27 - Centralize AI Helpers with Strict Schema Validation
+**Learning:** Returning strict JSON with manually written schemas inside string-based system prompts relies heavily on model obedience and can fail on markdown formatting or hallucinated keys.
+**Action:** When a feature needs structured AI output, avoid injecting schema requirements as text in the prompt. Use native `responseSchema` with `@google/generative-ai`'s `SchemaType` validation API to ensure an identical structure.
