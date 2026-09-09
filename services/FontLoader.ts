@@ -43,9 +43,20 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   // Strip CSS fallback (e.g. "Inter, sans-serif" → "Inter")
   const cleanFamily = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
 
-  // Skip if already loaded or natively bundled
-  if (loadedFonts.has(cleanFamily) || LOCAL_FONTS.includes(cleanFamily)) {
+  // Skip if already loaded
+  if (loadedFonts.has(cleanFamily)) {
     return true;
+  }
+
+  // If it's a known local font, manually load it to ensure it's ready for canvas rendering
+  if (LOCAL_FONTS.includes(cleanFamily)) {
+    try {
+      await document.fonts.load(`16px "${cleanFamily}"`);
+      loadedFonts.add(cleanFamily);
+      return true;
+    } catch (e) {
+      // Continue to fallback if it fails
+    }
   }
 
   // Skip families that already failed — no point retrying every render

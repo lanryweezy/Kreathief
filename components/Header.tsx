@@ -205,13 +205,13 @@ export const Header: React.FC<HeaderProps> = ({
                   }
                 }}
                 autoFocus
-                className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-0.5 outline-none w-40 rounded shadow-lg text-center"
+                className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-0.5 outline-none w-[500px] rounded shadow-lg text-center"
               />
             ) : (
               <button
                 data-testid="project-title-display"
                 onClick={() => setIsEditingTitle(true)}
-                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-[180px] text-center"
+                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-[500px] text-center"
                 title="Click to rename"
               >
                 {String(projectTitle || 'Untitled')}

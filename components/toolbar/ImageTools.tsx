@@ -88,16 +88,16 @@ export const ImageTools = React.memo(
 
     return (
       <div className="flex items-center gap-3 flex-nowrap">
-        <div className="flex bg-surface-dark-4 rounded-lg border border-brand-600/30 p-0.5 shadow-lg shadow-purple-900/10">
+        <div className="flex bg-surface-dark-4 rounded-lg border border-brand-600/30 p-1 shadow-lg shadow-purple-900/10 gap-1">
           <IconButton
             onClick={handleRemoveBackground}
             loading={isRemovingBg}
             title="Auto Cut Out (AI)"
-            className="px-3"
+            className="px-3 py-1.5 rounded bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/20"
           >
             <div className="flex items-center gap-1.5">
-              <Icons.Scissors className="w-4 h-4 text-purple-400" />
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">Cut Out</span>
+              <Icons.Scissors className="w-3.5 h-3.5 text-purple-400" />
+              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Cut Out</span>
             </div>
             {!isPro && (
               <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
@@ -109,46 +109,46 @@ export const ImageTools = React.memo(
           <IconButton
             onClick={() => setActiveTab(NavTab.MAGIC_IMAGE)}
             title="Magic Image AI (Generative Fill, Upscale)"
-            className="px-3 bg-purple-500/20 hover:bg-purple-500/40"
+            className="px-3 py-1.5 rounded bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/20"
           >
             <div className="flex items-center gap-1.5">
-              <Icons.Sparkles className="w-4 h-4 text-purple-400" />
-              <span className="text-[10px] font-bold text-purple-200 uppercase tracking-wider">Magic AI</span>
+              <Icons.Sparkles className="w-3.5 h-3.5 text-purple-400" />
+              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Magic AI</span>
             </div>
           </IconButton>
-
-          <Divider />
 
           <IconButton
             onClick={() => setIsSmartMaskMode(!isSmartMaskMode)}
             active={isSmartMaskMode}
             title="Smart Mask (Hover & Click)"
-            className="px-3"
+            className={`px-3 py-1.5 rounded border ${isSmartMaskMode ? 'bg-pink-500/20 border-pink-500/40 text-white' : 'bg-gradient-to-r from-pink-500/10 to-rose-500/10 hover:from-pink-500/20 hover:to-rose-500/20 border-pink-500/20'}`}
           >
             <div className="flex items-center gap-1.5">
-              <Icons.Target className="w-4 h-4 text-pink-400" />
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">Smart Mask</span>
+              <Icons.Target className="w-3.5 h-3.5 text-pink-400" />
+              <span className="text-[10px] font-bold text-pink-100 uppercase tracking-wider">Smart Mask</span>
             </div>
           </IconButton>
 
-          <Divider />
           <IconButton
             onClick={() => setIsLassoMode(!isLassoMode)}
             active={isLassoMode}
             title="Lasso Cut Out"
-            className="px-3"
+            className={`px-3 py-1.5 rounded border ${isLassoMode ? 'bg-brand-600/20 border-brand-500/40 text-white' : 'bg-surface-dark-3 hover:bg-surface-dark-2 border-white/5'}`}
           >
-            <Icons.Brush className={`w-4 h-4 ${isLassoMode ? 'text-white' : 'text-indigo-400'}`} />
+            <div className="flex items-center gap-1.5">
+              <Icons.Brush className={`w-3.5 h-3.5 ${isLassoMode ? 'text-brand-400' : 'text-gray-400'}`} />
+              <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Lasso</span>
+            </div>
           </IconButton>
-          <Divider />
+
           <IconButton
             onClick={() => _onVectorize && _onVectorize(layer.id)}
             title="Vectorize Image (AI)"
-            className="px-3 bg-indigo-500/20 hover:bg-indigo-500/40"
+            className="px-3 py-1.5 rounded bg-gradient-to-r from-indigo-500/10 to-blue-500/10 hover:from-indigo-500/20 hover:to-blue-500/20 border border-indigo-500/20"
           >
             <div className="flex items-center gap-1.5">
-              <Icons.Zap className="w-4 h-4 text-indigo-400" />
-              <span className="text-[10px] font-bold text-indigo-200 uppercase tracking-wider">Vectorize</span>
+              <Icons.Zap className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Vectorize</span>
             </div>
           </IconButton>
         </div>
@@ -526,7 +526,8 @@ export const ImageTools = React.memo(
                   { label: 'Vignette', prop: 'vignette', min: 0, max: 100 },
                   { label: 'Blur', prop: 'blur', min: 0, max: 20 },
                 ].map((adj) => {
-                  const defaultValue = adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0;
+                  const defaultValue =
+                    adj.prop === 'brightness' || adj.prop === 'contrast' || adj.prop === 'saturation' ? 100 : 0;
                   return (
                     <div key={adj.prop} className="flex flex-col gap-1.5">
                       <div className="flex justify-between items-center">

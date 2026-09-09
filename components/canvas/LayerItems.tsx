@@ -481,7 +481,18 @@ const parseCssGradient = (colorStr: string | undefined) => {
 export const ShapeLayerItem = React.memo(
   React.forwardRef<HTMLDivElement, LayerItemProps>(
     (
-      { layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu, onDrop, previewAnimation, maskPath },
+      {
+        layer,
+        isSelected,
+        isHovered,
+        onMouseDown,
+        onResize,
+        onRotate,
+        onContextMenu,
+        onDrop,
+        previewAnimation,
+        maskPath,
+      },
       ref
     ) => {
       const shapeLayer = layer as ShapeLayer;
@@ -832,7 +843,7 @@ export const TextLayerItem = React.memo(
         textLayer.color?.startsWith('linear-gradient') || textLayer.color?.startsWith('radial-gradient')
           ? textLayer.color
           : grad && grad.colors
-            ? `${grad.type === 'radial' ? 'radial-gradient' : 'linear-gradient'}(${grad.angle || 90}deg, ${grad.colors.map((c: any) => `${c.color} ${c.position * 100}%`).join(', ')})`
+            ? `${grad.type === 'radial' ? 'radial-gradient(circle' : `linear-gradient(${grad.angle || 90}deg`}, ${grad.colors.map((c: any) => `${c.color} ${c.position * 100}%`).join(', ')})`
             : grad && grad.startColor && grad.endColor
               ? `linear-gradient(${grad.angle || 90}deg, ${grad.startColor} 0%, ${grad.endColor} 100%)`
               : '';
