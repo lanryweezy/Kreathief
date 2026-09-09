@@ -150,6 +150,7 @@ export const CommonActions = React.memo(
               </span>
               <button
                 onClick={() => handleUpdateLayer({ locked: !selectedLayer.locked })}
+                aria-pressed={selectedLayer.locked}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.locked ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
               >
                 <Icons.Lock className="w-3.5 h-3.5 shrink-0" />
@@ -160,6 +161,7 @@ export const CommonActions = React.memo(
 
               <button
                 onClick={() => handleUpdateLayer({ lockPosition: !selectedLayer.lockPosition })}
+                aria-pressed={selectedLayer.lockPosition}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockPosition ? 'bg-orange-500/20 text-orange-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
               >
                 <Icons.Layout className="w-3.5 h-3.5 shrink-0" />
@@ -168,6 +170,7 @@ export const CommonActions = React.memo(
 
               <button
                 onClick={() => handleUpdateLayer({ lockStyle: !selectedLayer.lockStyle })}
+                aria-pressed={selectedLayer.lockStyle}
                 className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockStyle ? 'bg-blue-500/20 text-blue-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
               >
                 <Icons.Blend className="w-3.5 h-3.5 shrink-0" />
@@ -177,6 +180,7 @@ export const CommonActions = React.memo(
               {selectedLayer.type === 'text' && (
                 <button
                   onClick={() => handleUpdateLayer({ lockText: !selectedLayer.lockText })}
+                  aria-pressed={selectedLayer.lockText}
                   className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedLayer.lockText ? 'bg-green-500/20 text-green-400' : 'hover:bg-white/5 text-gray-300 hover:text-white'}`}
                 >
                   <Icons.Text className="w-3.5 h-3.5 shrink-0" />

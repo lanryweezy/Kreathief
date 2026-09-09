@@ -127,14 +127,16 @@ export const MobileTransformController: React.FC = () => {
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
               <button
-                aria-label={selectedLayer.locked ? 'Unlock layer' : 'Lock layer'}
+                aria-label="Toggle layer lock"
+                aria-pressed={selectedLayer.locked}
                 onClick={() => updateLayer(selectedLayer.id, { locked: !selectedLayer.locked })}
                 className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${selectedLayer.locked ? 'bg-orange-500/20 border-orange-500/30 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}
               >
                 {selectedLayer.locked ? <Icons.Lock className="w-5 h-5" /> : <Icons.Unlock className="w-5 h-5" />}
               </button>
               <button
-                aria-label={selectedLayer.visible ? 'Hide layer' : 'Show layer'}
+                aria-label="Toggle layer visibility"
+                aria-pressed={!selectedLayer.visible}
                 onClick={() => updateLayer(selectedLayer.id, { visible: !selectedLayer.visible })}
                 className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${!selectedLayer.visible ? 'bg-red-500/20 border-red-500/30 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}
               >
