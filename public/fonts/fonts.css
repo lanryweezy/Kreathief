@@ -198,3 +198,12 @@
   font-display: swap;
   src: url('/fonts/Kreathief002.ttf') format('truetype');
 }
+
+/* ===== Kreathief003 ===== */
+@font-face {
+  font-family: 'Kreathief003';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Kreathief003.ttf') format('truetype');
+}

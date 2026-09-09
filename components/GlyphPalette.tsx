@@ -77,10 +77,14 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
         let fontUrl: string | null = null;
 
         // Check if it's one of our core local fonts
-        const localFonts = ['Inter', 'Space Grotesk', 'Outfit'];
+        const localFonts = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003'];
         if (localFonts.includes(fontFamily)) {
           // Try weight 400
-          fontUrl = `/fonts/${fontFamily.replace(/\s+/g, '-')}-400.ttf`;
+          if (fontFamily.startsWith('Kreathief')) {
+            fontUrl = `/fonts/${fontFamily}.ttf`;
+          } else {
+            fontUrl = `/fonts/${fontFamily.replace(/\s+/g, '-')}-400.ttf`;
+          }
         }
 
         if (fontUrl) {
