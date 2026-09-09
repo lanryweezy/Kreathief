@@ -1,4 +1,5 @@
 import { Layer, Gradient, CornerRadius, AutoLayoutSettings } from '../types';
+import { SchemaType } from '@google/generative-ai';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -643,12 +644,92 @@ Return strictly JSON with:
   ]
 }`;
 
+// 🤖 Astra: Sanitize user input to prevent prompt injection and context window exhaustion
+    const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
+    // 🤖 Astra: Add strict response schema to prevent unbounded JSON generation
     const response = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       systemInstruction,
-      contents: [{ role: 'user', parts: [{ text: `Generate multi-layer artboard for: "${prompt}". Dimensions: ${width}x${height}` }] }],
+      contents: [{ role: 'user', parts: [{ text: `Generate multi-layer artboard for: "${sanitizedPrompt}". Dimensions: ${width}x${height}` }] }],
       generationConfig: {
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            title: { type: SchemaType.STRING },
+            description: { type: SchemaType.STRING },
+            backgroundColor: { type: SchemaType.STRING },
+            backgroundGradient: {
+              type: SchemaType.OBJECT,
+              properties: {
+                type: { type: SchemaType.STRING },
+                angle: { type: SchemaType.NUMBER },
+                colors: {
+                  type: SchemaType.ARRAY,
+                  items: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      position: { type: SchemaType.NUMBER }
+                    }
+                  }
+                }
+              }
+            },
+            layers: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  type: { type: SchemaType.STRING },
+                  name: { type: SchemaType.STRING },
+                  x: { type: SchemaType.NUMBER },
+                  y: { type: SchemaType.NUMBER },
+                  width: { type: SchemaType.NUMBER },
+                  height: { type: SchemaType.NUMBER },
+                  rotation: { type: SchemaType.NUMBER },
+                  opacity: { type: SchemaType.NUMBER },
+                  color: { type: SchemaType.STRING },
+                  cornerRadius: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      tl: { type: SchemaType.NUMBER },
+                      tr: { type: SchemaType.NUMBER },
+                      br: { type: SchemaType.NUMBER },
+                      bl: { type: SchemaType.NUMBER }
+                    }
+                  },
+                  stroke: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      width: { type: SchemaType.NUMBER }
+                    }
+                  },
+                  shadow: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      color: { type: SchemaType.STRING },
+                      blur: { type: SchemaType.NUMBER },
+                      offsetX: { type: SchemaType.NUMBER },
+                      offsetY: { type: SchemaType.NUMBER }
+                    }
+                  },
+                  text: { type: SchemaType.STRING },
+                  fontSize: { type: SchemaType.NUMBER },
+                  fontWeight: { type: SchemaType.STRING },
+                  fontFamily: { type: SchemaType.STRING },
+                  textAlign: { type: SchemaType.STRING },
+                  letterSpacing: { type: SchemaType.NUMBER },
+                  lineHeight: { type: SchemaType.NUMBER },
+                  textTransform: { type: SchemaType.STRING }
+                }
+              }
+            }
+          },
+          required: ['title', 'description', 'backgroundColor', 'layers']
+        },
         temperature: 0.7,
       },
     });

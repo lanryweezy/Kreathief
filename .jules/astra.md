@@ -126,3 +126,8 @@
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
 **Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
+
+## 2026-09-05 - Enforce schema types for robust generative outputs
+
+**Learning:** Omitting `responseSchema` on complex nested LLM generations (like generating multi-layer structured artboards in `aiDesignDirector.ts`) causes unpredictable property omissions and format variations that lead to mapping failures. Additionally, interpolating raw `prompt` directly into the payload poses injection risks.
+**Action:** Always provide a fully populated `responseSchema` (using `SchemaType.OBJECT`) alongside `responseMimeType: 'application/json'` that matches the expected interface for complex output, and sanitize user prompts using `.trim().substring(0, 1000)` before use.
