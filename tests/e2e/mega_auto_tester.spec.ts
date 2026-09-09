@@ -17,6 +17,8 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     await page.goto('http://localhost:5173/editor');
@@ -38,14 +40,20 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
 
     // 1.5 Spawn Elements to Reveal Toolbars
     const addTextBtn = page.locator('button:has-text("Text")').first();
-    if (await addTextBtn.isVisible()) await addTextBtn.click();
-    
+    if (await addTextBtn.isVisible()) {
+      await addTextBtn.click();
+    }
+
     const addShapeBtn = page.locator('button:has-text("Shape")').first();
-    if (await addShapeBtn.isVisible()) await addShapeBtn.click();
+    if (await addShapeBtn.isVisible()) {
+      await addShapeBtn.click();
+    }
 
     // Open Design Agent tab
     const agentBtn = page.locator('button:has-text("AI")').first();
-    if (await agentBtn.isVisible()) await agentBtn.click();
+    if (await agentBtn.isVisible()) {
+      await agentBtn.click();
+    }
 
     await page.waitForTimeout(1000); // Wait for toolbars to mount
 
@@ -61,11 +69,13 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
     // 2. Test All Buttons in Sidebar
     const buttons = await page.locator('button').all();
     for (const btn of buttons) {
-      if (await btn.isVisible() && await btn.isEnabled()) {
+      if ((await btn.isVisible()) && (await btn.isEnabled())) {
         const text = await btn.textContent();
         // Skip some destructive or navigation buttons to prevent breaking the test flow
-        if (text && (text.includes('Delete') || text.includes('Sign Out') || text.includes('Home'))) continue;
-        
+        if (text && (text.includes('Delete') || text.includes('Sign Out') || text.includes('Home'))) {
+          continue;
+        }
+
         try {
           await btn.hover();
           logInteraction(`Hovered button: ${text?.trim() || 'icon-button'}`);
@@ -104,8 +114,10 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
     if (await textToolBtn.isVisible()) {
       await textToolBtn.click();
       logInteraction('Opened Text Tools');
-      
-      const colorPicker = page.locator('button[aria-label="Choose Text Color color"], button[data-testid="color-picker"]').first();
+
+      const colorPicker = page
+        .locator('button[aria-label="Choose Text Color color"], button[data-testid="color-picker"]')
+        .first();
       if (await colorPicker.isVisible()) {
         await colorPicker.click();
         logInteraction('Clicked Text Color Picker');
@@ -127,13 +139,15 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
     }
 
     // 6. Test AI Design Agent
-    const agentInput = page.locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe the design"]').first();
+    const agentInput = page
+      .locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe the design"]')
+      .first();
     if (await agentInput.isVisible()) {
       await agentInput.fill('create a vibrant neo-tokyo flyer');
       logInteraction('Filled AI Prompt');
       await agentInput.press('Enter');
       logInteraction('Submitted AI Prompt');
-      
+
       // Wait for variations
       const applyBtn = page.locator('button:has-text("Apply")').first();
       await applyBtn.waitFor({ state: 'visible', timeout: 45000 });
