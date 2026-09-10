@@ -1,12 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import {
-  buildStyleReferenceSuffix,
-  composeGenerationPrompt,
-} from '../../services/imageGenService';
-import {
-  CURATED_STYLE_PRESETS,
-  presetToStyleReference,
-} from '../../config/stylePresets';
+import { buildStyleReferenceSuffix, composeGenerationPrompt } from '../../services/imageGenService';
+import { CURATED_STYLE_PRESETS, presetToStyleReference } from '../../config/stylePresets';
 import { StyleReference, GenerationContext } from '../../types';
 
 describe('AI Studio Capabilities Unit Tests', () => {
