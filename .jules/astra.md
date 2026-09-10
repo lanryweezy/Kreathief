@@ -126,3 +126,8 @@
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
 **Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
+
+## 2026-09-10 - Explicit responseSchema and strict safeParseJSON in aiDesignDirector
+
+**Learning:** Unbounded JSON generation without a `responseSchema` (relying purely on system prompts and `responseMimeType: 'application/json'`) in core generative engines like `generateMultiLayerDesign` leads to hallucinations and silent failures when parsed. Additionally, using `safeParseJSON(rawText, null)` masks falsy/empty string responses because the fallback variable evaluates prior to parsing, completely missing explicit failure modes.
+**Action:** Always inject a `responseSchema` defining the exact properties of the expected output when using `callBackendGeminiAPI`. For parsing the raw text returned by the model, strictly use `safeParseJSON<T | null>(rawText || 'null', null)` coupled with a `if (!parsed) { throw new Error(...) }` block to ensure parsing fails loudly when appropriate.
