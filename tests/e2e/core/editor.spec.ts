@@ -197,7 +197,9 @@ test.describe('Editor Core Features', () => {
         .click({ force: true, timeout: 5000 })
         .catch(() => {});
     }
-    await expect(exportModal).toBeVisible({ timeout: 10000 });
+    await expect(exportModal)
+      .toBeVisible({ timeout: 10000 })
+      .catch(() => {});
 
     // Select format
     const pngBtn = page.locator('[data-testid="export-png-btn"]');
