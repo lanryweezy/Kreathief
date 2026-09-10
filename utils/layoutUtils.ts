@@ -3,6 +3,11 @@ import { Layer } from '../types';
 export type AlignmentType = 'left' | 'h-center' | 'right' | 'top' | 'v-center' | 'bottom';
 export type DistributionType = 'h-spacing' | 'v-spacing' | 'h-center' | 'v-center';
 
+// Helper function to extract height matching the exact behavior of `(l as any).height || l.width`
+const getLayerHeight = (layer: Partial<Layer>): number => {
+  return (layer as any).height || layer.width;
+};
+
 /**
  * Aligns a set of layers relative to their selection bounding box or the canvas.
  */
@@ -35,7 +40,7 @@ export const alignLayers = (
   const boxHeight = maxY - minY;
 
   return layers.map((l) => {
-    const h = (l as any).height || l.width;
+    const h = getLayerHeight(l);
     let newX = l.x;
     let newY = l.y;
 
@@ -101,14 +106,14 @@ export const distributeLayers = (
     const last = sorted[sorted.length - 1];
 
     const totalGaps = sorted.length - 1;
-    const hLast = (last as any).height || last.width;
+    const hLast = getLayerHeight(last);
     const span = last.y + hLast - first.y;
-    const totalContentHeight = sorted.reduce((sum, l) => sum + ((l as any).height || l.width), 0);
+    const totalContentHeight = sorted.reduce((sum, l) => sum + getLayerHeight(l), 0);
     const gap = (span - totalContentHeight) / totalGaps;
 
     let currentY = first.y;
     sorted.forEach((l, i) => {
-      const h = (l as any).height || l.width;
+      const h = getLayerHeight(l);
       if (i > 0 && i < sorted.length - 1) {
         result.push({ id: l.id, changes: { y: currentY } });
       }
@@ -132,20 +137,20 @@ export const distributeLayers = (
     });
   } else if (type === 'v-center') {
     const sorted = [...layers].sort(
-      (a, b) => a.y + ((a as any).height || a.width) / 2 - (b.y + ((b as any).height || b.width) / 2)
+      (a, b) => a.y + getLayerHeight(a) / 2 - (b.y + getLayerHeight(b) / 2)
     );
     if (sorted.length < 2) {
       return [];
     }
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
-    const hFirst = (first as any).height || first.width;
-    const hLast = (last as any).height || last.width;
+    const hFirst = getLayerHeight(first);
+    const hLast = getLayerHeight(last);
     const span = last.y + hLast / 2 - (first.y + hFirst / 2);
     const interval = span / (sorted.length - 1);
 
     sorted.forEach((l, i) => {
-      const h = (l as any).height || l.width;
+      const h = getLayerHeight(l);
       if (i > 0 && i < sorted.length - 1) {
         const targetCenter = first.y + hFirst / 2 + i * interval;
         result.push({ id: l.id, changes: { y: targetCenter - h / 2 } });
@@ -175,7 +180,7 @@ export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<La
     minX = Math.min(minX, l.x);
     minY = Math.min(minY, l.y);
     maxX = Math.max(maxX, l.x + l.width);
-    maxY = Math.max(maxY, l.y + ((l as any).height || l.width));
+    maxY = Math.max(maxY, l.y + getLayerHeight(l));
   });
 
   const totalWidth = maxX - minX;
@@ -212,7 +217,7 @@ export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<La
       maxHeightInRow = 0;
     }
 
-    const h = (l as any).height || l.width;
+    const h = getLayerHeight(l);
     maxHeightInRow = Math.max(maxHeightInRow, h);
 
     const result = {
@@ -236,6 +241,7 @@ export const resolveConstraints = (
   canvasSize: { width: number; height: number }
 ): { x: number; y: number; width?: number; height?: number } => {
   const { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
+  // NOTE: intentional not replacing this with getLayerHeight to preserve exact fallbacks, as the reviewer noted
   const height = (layer as any).height || 100;
 
   const resolved = { x, y };
