@@ -26,7 +26,8 @@ test.describe('Visual Regression Tests', () => {
     // Navigate to editor
     await page.goto('/');
     const templateBtn = page.locator('#templates-grid button').first();
-    await templateBtn.waitFor({ state: 'visible', timeout: 30000 });
+    await page.waitForSelector('#templates-grid button', { state: 'attached', timeout: 30000 });
+    await templateBtn.waitFor({ state: 'attached', timeout: 30000 });
     await templateBtn.click({ force: true });
     await editor.waitForCanvasReady();
   });
