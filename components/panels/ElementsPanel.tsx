@@ -433,9 +433,33 @@ export const ElementsPanel = () => {
         !searchQuery.trim() ||
         item.keywords.some((k) => fuzzyMatch(searchQuery, k)) ||
         fuzzyMatch(searchQuery, item.name);
+
       return matchesCategory && matchesSearch;
     });
   }, [shapePresets, selectedCategory, searchQuery]);
+
+  // ⚡ Bolt: Pre-calculate categories to avoid multiple O(N) array iterations in render block
+  const shapeCategories = useMemo(() => {
+    const basicOrGeometric: ShapePreset[] = [];
+    const frames: ShapePreset[] = [];
+    const blobs: ShapePreset[] = [];
+
+    // Single iteration
+    for (let i = 0; i < shapePresets.length; i++) {
+      const item = shapePresets[i];
+      if (item.category === 'basic' || item.category === 'geometric') {
+        if (basicOrGeometric.length < 10) {
+          basicOrGeometric.push(item);
+        }
+      } else if (item.category === 'frames') {
+        frames.push(item);
+      } else if (item.category === 'blobs') {
+        blobs.push(item);
+      }
+    }
+
+    return { basicOrGeometric, frames, blobs };
+  }, [shapePresets]);
 
   const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
     { id: 'all', label: 'All', icon: Icons.Grid },
@@ -646,7 +670,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'basic' || s.category === 'geometric').slice(0, 10).map((item, idx) => (
+                {shapeCategories.basicOrGeometric.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -698,7 +722,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'frames').map((item, idx) => (
+                {shapeCategories.frames.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -742,7 +766,7 @@ export const ElementsPanel = () => {
               </div>
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
-                {shapePresets.filter((s) => s.category === 'blobs').map((item, idx) => (
+                {shapeCategories.blobs.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
