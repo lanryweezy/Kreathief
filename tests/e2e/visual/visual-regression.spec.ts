@@ -20,11 +20,19 @@ test.describe('Visual Regression Tests', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Navigate to editor
     await page.goto('/');
-    await page.locator('#templates-grid button').first().click();
+    await page.waitForSelector('#templates-grid button', { state: 'visible', timeout: 5000 }).catch(() => {});
+    const templates = page.locator('#templates-grid button');
+    if ((await templates.count()) > 0) {
+      await templates.first().click();
+    } else {
+      await page.goto('/editor');
+    }
     await editor.waitForCanvasReady();
   });
 

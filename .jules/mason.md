@@ -2,6 +2,7 @@
 
 **Learning:** `smartResize.ts` heavily relied on unsafe `(layer as any).width` and `(layer as any).height` type casting, which masked potential TypeScript errors and bypassed standard `Layer` interface definitions. In addition, the file contained unused variables (`srcAspect`, `tgtAspect`) which triggered ESLint warnings.
 **Action:** When finding unsafe type escapes like `as any` in utilities, replace them by utilizing the correct properties mapped to the `Layer` and `TextLayer` interfaces. Removing unused variables ensures a cleaner build and prevents linting failures.
+
 ## 2026-06-09 - Unused `formatErrorMessage` removed
 
 **Learning:** Found another unused error formatting function (`formatErrorMessage`) in `utils/errorMessages.ts` which just formatted `getErrorDetails` output into a string. The codebase seems to have a pattern of creating specific wrappers for `getErrorDetails` without ever consuming them.
@@ -59,6 +60,7 @@
 **Action:** Before refactoring or changing components, always check for duplicate files across directories (like `components/` vs `components/pages/` or `components/overlays/`) to identify unused relics that can be safely removed.
 
 ## 2026-06-25 - Removed unused error handling wrappers
+
 **Learning:** The codebase contained multiple generalized error handling wrappers in `utils/errorHandling.ts` (like `handleApiError`, `safeExecute`, `withErrorHandling`, `validateRequired`, `getErrorBoundaryFallback`, and `createError`) that were fully tested in `tests/unit/utils/errorHandling.test.ts` but had exactly zero usage in the actual application code. This is a common pattern of speculative abstraction where generalized error helpers are built but never actually consumed.
 **Action:** When finding utility files with broad, speculative functions (like generic error wrappers or validation helpers), aggressively check for call sites. If they are only referenced in their own unit tests, delete them entirely instead of trying to refactor them.
 
@@ -76,6 +78,7 @@
 
 **Learning:** The warp registry had completely duplicate code for `arch` and `arc` effect implementations.
 **Action:** Extract identically repeated plugin configurations or handler functions to a shared constant or function reference, reducing structural noise and keeping a single source of truth for the logic.
+
 ## 2026-08-22 - Consolidate fragmented Zustand subscriptions in components
 
 **Learning:** When a component calls `useStore(selector)` multiple times consecutively for different atomic state properties, it forces Zustand to create multiple separate `useSyncExternalStore` subscriptions. This causes the component to evaluate multiple listeners on every state change, which increases CPU overhead and degrades rendering performance.
@@ -83,5 +86,6 @@
 \n## 2026-08-25 - Safely Casting Subtype Properties on Union Types\n\n**Learning:** When removing `as any` casts for properties that only exist on specific subtypes of a union type (e.g., `color` or `fontFamily` on `Partial<Layer>`), it's important to cast the object to the specific partial subtype (e.g., `as Partial<TextLayer>`) rather than keeping `as any`. This maintains type safety while resolving 'Property does not exist on type' errors.\n**Action:** When resolving TypeScript property access errors on union types where a property only exists on one variant, use a precise subtype cast like `as Partial<TextLayer>` instead of `as any` to restore type safety without changing behavior.
 
 ## 2026-09-10 - Preserving operator precedence in layout utils
+
 **Learning:** In `utils/layoutUtils.ts`, the inline logic `l.y + (l as any).height || l.width` relied on the fact that addition `+` has a higher operator precedence than `||`. This meant it effectively executed as `(l.y + l.height) || l.width`. A naive refactoring into `l.y + getLayerHeight(l)` changed this precedence execution to `l.y + (l.height || l.width)`, which silently changed layout bounds logic.
 **Action:** When refactoring inline fallback structures involving operators like `||` and mathematical operations, strictly preserve the exact output mapping.

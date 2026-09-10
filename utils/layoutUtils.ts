@@ -136,9 +136,7 @@ export const distributeLayers = (
       }
     });
   } else if (type === 'v-center') {
-    const sorted = [...layers].sort(
-      (a, b) => a.y + getLayerHeight(a) / 2 - (b.y + getLayerHeight(b) / 2)
-    );
+    const sorted = [...layers].sort((a, b) => a.y + getLayerHeight(a) / 2 - (b.y + getLayerHeight(b) / 2));
     if (sorted.length < 2) {
       return [];
     }
@@ -284,10 +282,10 @@ export const resolveSemanticConstraints = (
     vertical: 'start' | 'end' | 'center' | 'scale' | 'both';
   } = { horizontal: 'start', vertical: 'start' };
 
-  const constraintsList = Array.isArray(simpleConstraints) 
-    ? simpleConstraints 
-    : typeof simpleConstraints === 'string' 
-      ? [simpleConstraints] 
+  const constraintsList = Array.isArray(simpleConstraints)
+    ? simpleConstraints
+    : typeof simpleConstraints === 'string'
+      ? [simpleConstraints]
       : [];
 
   if (constraintsList.includes('center-h')) {

@@ -17,6 +17,8 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     const dashboard = new DashboardPage(page);
@@ -97,6 +99,8 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     const editor = new EditorPage(page);
@@ -154,6 +158,8 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Tab 1: Create project

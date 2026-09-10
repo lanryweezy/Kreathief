@@ -15,6 +15,7 @@ test.describe('Editor Core Features', () => {
       localStorage.setItem('kreathief_qa_session', userSession);
       localStorage.setItem('kreathief_onboarding_seen', 'true');
       localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -191,7 +192,10 @@ test.describe('Editor Core Features', () => {
     await page.keyboard.press('Control+e');
     const exportModal = page.locator('[data-testid="export-modal"]');
     if (!(await exportModal.isVisible())) {
-      await page.getByTestId('export-btn').click({ force: true });
+      await page
+        .getByTestId('export-btn')
+        .click({ force: true, timeout: 5000 })
+        .catch(() => {});
     }
     await expect(exportModal).toBeVisible({ timeout: 10000 });
 
