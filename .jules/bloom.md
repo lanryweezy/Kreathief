@@ -78,3 +78,6 @@
 ## 2026-08-26 - Rely on Type-Checking Over Automated Code Review For Imports
 **Learning:** The automated code review incorrectly flagged the import of `fuzzyMatch` from `../../utils/search` as a "hallucinated import", despite it being successfully verified by `pnpm run type-check`.
 **Action:** When a known utility function like `fuzzyMatch` is imported and verified by the TypeScript compiler (`tsc --noEmit`), disregard automated code review flags about missing imports and proceed with the submission.
+## 2026-08-30 - Typo-tolerant Enhanced Mockups Search
+**Learning:** The mockup search functionality (`searchMockups` in `services/enhancedMockupsLibrary.ts`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific mockups by name, tags, or category, degrading the mockup selection experience.
+**Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
