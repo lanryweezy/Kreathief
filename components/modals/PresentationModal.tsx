@@ -127,6 +127,7 @@ export const PresentationModal: React.FC = () => {
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSmartAnimateEnabled(!smartAnimateEnabled)}
+            aria-pressed={smartAnimateEnabled}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border ${
               smartAnimateEnabled
                 ? 'bg-brand-600/20 text-brand-400 border-brand-500/50'
@@ -139,6 +140,7 @@ export const PresentationModal: React.FC = () => {
 
           <button
             onClick={() => setIsPlaying(!isPlaying)}
+            aria-pressed={isPlaying}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
               isPlaying
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'

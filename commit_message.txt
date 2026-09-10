@@ -1,6 +1,6 @@
-⚡ Bolt: Replace separate Zustand subscriptions with useShallow
+🎨 Palette: Add aria-pressed to PresentationModal toggles
 
-💡 What: Refactored `components/panels/DrawPanel.tsx` to combine 8 independent `useStore` property accesses into a single object selector wrapped in `useShallow`.
-🎯 Why: Multiple independent `useStore` hooks trigger separate store subscriptions. Consolidating them with `useShallow` minimizes listener overhead and reduces re-evaluations during rapid state updates, conforming strictly to codebase architectural guidelines.
-📊 Impact: Reduces independent store listener evaluations from 8 to 1 for this panel, making rendering more efficient during intensive drawing interactions.
-🔬 Measurement: Can be verified by using React Profiler or tracing store listener counts during DrawPanel interactions.
+💡 What: Added `aria-pressed` attributes to the "Smart Animate" and "Autoplay" toggle buttons in `PresentationModal`.
+🎯 Why: State toggle buttons require explicit `aria-pressed` state to be accurately announced by screen readers, replacing potentially ambiguous implied states.
+📸 Before/After: No visual change. (Accessibility only)
+♿ Accessibility: Improved screen reader announcements for presentation playback controls by explicitly communicating their toggled active/inactive state.
