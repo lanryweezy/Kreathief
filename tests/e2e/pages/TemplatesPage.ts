@@ -78,11 +78,11 @@ export class TemplatesPage {
     // If we're on dashboard
     if (await this.dashboardTemplatesGrid.isVisible()) {
       const template = this.dashboardTemplatesGrid.locator(`button:has-text("${templateName}")`).first();
-      await template.click();
+      await template.click({ force: true });
     } else {
       await this.openTemplatesPanel();
       const template = this.templatesGrid.locator(`button:has-text("${templateName}")`).first();
-      await template.click();
+      await template.click({ force: true });
     }
   }
 

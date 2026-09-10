@@ -191,7 +191,9 @@ test.describe('Editor Core Features', () => {
     await page.keyboard.press('Control+e');
     const exportModal = page.locator('[data-testid="export-modal"]');
     if (!(await exportModal.isVisible())) {
-      await page.getByTestId('export-btn').click({ force: true });
+      const exportBtn = page.getByTestId('export-btn');
+      await exportBtn.waitFor({ state: 'attached' });
+      await exportBtn.click({ force: true });
     }
     await expect(exportModal).toBeVisible({ timeout: 10000 });
 
