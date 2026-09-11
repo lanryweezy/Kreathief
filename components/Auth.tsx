@@ -116,7 +116,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,_var(--tw-gradient-stops))] from-brand-500/10 via-transparent to-transparent"></div>
             <img
-              src="/images/hero_abstract_glass_1772614949077.png"
+              src="/images/hero_abstract_glass_1772614949077.webp"
               className="absolute -right-20 -bottom-20 w-[120%] h-auto opacity-20 grayscale"
               alt="Decorative"
             />

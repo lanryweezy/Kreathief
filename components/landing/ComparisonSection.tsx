@@ -9,7 +9,7 @@ export const ComparisonSection: React.FC = () => {
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-[#0a0a0c]/50 z-10" />
         <img
-          src="/images/comparison_rings_bg.png"
+          src="/images/comparison_rings_bg.webp"
           alt="Space rings alternative"
           loading="lazy"
           decoding="async"

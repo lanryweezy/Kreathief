@@ -35,7 +35,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-black/60 z-10" />
         <img
-          src="/images/hero_rings_bg.png"
+          src="/images/hero_rings_bg.webp"
           alt="Abstract glowing 3D space rings representing AI design tools background"
           className="absolute inset-0 w-full h-full object-cover opacity-80 z-0 mix-blend-screen"
         />
@@ -138,7 +138,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
             </div>
             <img
-              src="/images/screenshot_editor_main.png"
+              src="/images/screenshot_editor_main.webp"
               alt="Kreathief AI graphic design software and professional vector editor dashboard interface showing creative design tools"
               fetchPriority="high"
               decoding="async"
@@ -155,7 +155,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             className="hidden md:block absolute -left-10 md:left-0 top-[10%] w-[250px] md:w-[350px] rounded-2xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 z-20 group"
           >
             <img
-              src="/images/hero_abstract_glass_1772614949077.png"
+              src="/images/hero_abstract_glass_1772614949077.webp"
               alt="3D Apple-like glassmorphism generative fill and asset engine interface used in Kreathief AI design tool"
               loading="lazy"
               decoding="async"
@@ -177,7 +177,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             className="hidden md:block absolute -right-5 md:right-5 top-[30%] w-[250px] md:w-[350px] rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.7)] border border-white/10 z-30 group"
           >
             <img
-              src="/images/landing_feature_layers.png"
+              src="/images/landing_feature_layers.webp"
               alt="Advanced layer orchestration and UI management panel for vector editing software AI inside Kreathief"
               loading="lazy"
               decoding="async"
@@ -199,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             className="hidden md:block absolute -left-5 md:left-20 bottom-[10%] w-[200px] md:w-[280px] rounded-2xl overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.5)] border border-white/10 z-30 group"
           >
             <img
-              src="/images/hero_floating_palette_1772559659004.png"
+              src="/images/hero_floating_palette_1772559659004.webp"
               alt="Smart brand kits AI and intelligent color palette generator panel tool interface"
               loading="lazy"
               decoding="async"
@@ -217,21 +217,21 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           >
             <div className="flex -space-x-3">
               <img
-                src="/images/avatar_1_1772614969136.png"
+                src="/images/avatar_1_1772614969136.webp"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Designer collaborating in real-time on Kreathief"
               />
               <img
-                src="/images/avatar_2_1772614992003.png"
+                src="/images/avatar_2_1772614992003.webp"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Marketer using Kreathief canvas"
               />
               <img
-                src="/images/avatar_3_1772615019487.png"
+                src="/images/avatar_3_1772615019487.webp"
                 className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
                 loading="lazy"
                 decoding="async"

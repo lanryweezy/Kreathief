@@ -10,7 +10,7 @@ export const Testimonials: React.FC = () => {
       author: 'Sarah Chen',
       role: 'Product Designer',
       company: 'Stripe',
-      avatar: '/images/avatar_1_1772614969136.png',
+      avatar: '/images/avatar_1_1772614969136.webp',
       rating: 5,
     },
     {
@@ -19,7 +19,7 @@ export const Testimonials: React.FC = () => {
       author: 'Marcus Rodriguez',
       role: 'Creative Director',
       company: 'R/GA',
-      avatar: '/images/avatar_2_1772614992003.png',
+      avatar: '/images/avatar_2_1772614992003.webp',
       rating: 5,
     },
     {
@@ -28,7 +28,7 @@ export const Testimonials: React.FC = () => {
       author: 'Emily Watson',
       role: 'Brand Designer',
       company: 'Airbnb',
-      avatar: '/images/avatar_3_1772615019487.png',
+      avatar: '/images/avatar_3_1772615019487.webp',
       rating: 5,
     },
   ];

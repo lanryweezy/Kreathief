@@ -88,7 +88,7 @@ export const Features: React.FC = () => {
               <div className="flex-1 w-full relative mt-auto px-6 pb-6">
                 <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
                   <img
-                    src="/images/feature_gen_fill_pro.png"
+                    src="/images/feature_gen_fill_pro.webp"
                     alt="AI Image Generation"
                     loading="lazy"
                     decoding="async"
@@ -120,7 +120,7 @@ export const Features: React.FC = () => {
               <div className="flex-1 w-full relative mt-auto px-6 pb-6">
                 <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 relative">
                   <img
-                    src="/images/feature_cutout_mockup_1772615585150.png"
+                    src="/images/feature_cutout_mockup_1772615585150.webp"
                     alt="Background Removal"
                     loading="lazy"
                     decoding="async"
@@ -167,7 +167,7 @@ export const Features: React.FC = () => {
 
               <div className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[50%] h-[70%] rounded-2xl overflow-hidden border border-white/10 relative transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105">
                 <img
-                  src="/images/feature_gen_fill_pro.png"
+                  src="/images/feature_gen_fill_pro.webp"
                   alt="Generative Fill"
                   loading="lazy"
                     decoding="async"
@@ -222,7 +222,7 @@ export const Features: React.FC = () => {
               </div>
 
               <img
-                src="/images/feature_vector_pro.png"
+                src="/images/feature_vector_pro.webp"
                 alt="Vector Tool"
                 loading="lazy"
                     decoding="async"
@@ -285,7 +285,7 @@ export const Features: React.FC = () => {
               </div>
 
               <img
-                src="/images/feature_collab_pro.png"
+                src="/images/feature_collab_pro.webp"
                 alt="Multiplayer Collaboration"
                 loading="lazy"
                     decoding="async"

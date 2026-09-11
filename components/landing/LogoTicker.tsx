@@ -8,19 +8,19 @@ export const LogoTicker: React.FC = () => {
     { name: 'Stripe', image: '/images/logos/stripe.svg' },
     { name: 'Vercel', image: '/images/logos/vercel.svg' },
     { name: 'Discord', image: '/images/logos/discord.svg' },
-    { name: 'Street Heart', image: '/images/logos/street_heart_logo.png', isCustomColor: true },
+    { name: 'Street Heart', image: '/images/logos/street_heart_logo.webp', isCustomColor: true },
     { name: 'Paystack', textOnly: true },
     { name: 'Flutterwave', textOnly: true },
     { name: 'Andela', textOnly: true },
   ];
 
   const avatars = [
-    '/images/avatar_1_1772614969136.png',
-    '/images/avatar_2_1772614992003.png',
-    '/images/avatar_3_1772615019487.png',
-    '/images/avatar_4_1772615076735.png',
-    '/images/avatar_5_1772615099721.png',
-    '/images/avatar_6_1772615117433.png',
+    '/images/avatar_1_1772614969136.webp',
+    '/images/avatar_2_1772614992003.webp',
+    '/images/avatar_3_1772615019487.webp',
+    '/images/avatar_4_1772615076735.webp',
+    '/images/avatar_5_1772615099721.webp',
+    '/images/avatar_6_1772615117433.webp',
   ];
 
   return (
