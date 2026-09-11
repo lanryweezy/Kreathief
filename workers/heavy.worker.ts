@@ -41,15 +41,28 @@ self.onmessage = async (e: MessageEvent) => {
           };
           const visited = new Uint8Array(canvas.width * canvas.height);
           const threshold = 45;
-          const queue: [number, number][] = [[0, 0], [canvas.width - 1, 0], [0, canvas.height - 1], [canvas.width - 1, canvas.height - 1]];
+          const queue: [number, number][] = [
+            [0, 0],
+            [canvas.width - 1, 0],
+            [0, canvas.height - 1],
+            [canvas.width - 1, canvas.height - 1],
+          ];
           while (queue.length > 0) {
             const [x, y] = queue.pop()!;
-            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) continue;
+            if (x < 0 || x >= canvas.width || y < 0 || y >= canvas.height) {
+              continue;
+            }
             const idx = y * canvas.width + x;
-            if (visited[idx]) continue;
+            if (visited[idx]) {
+              continue;
+            }
             const pixel = getPixel(data, x, y, canvas.width);
-            const dist = Math.sqrt((pixel.r - bgColor.r) ** 2 + (pixel.g - bgColor.g) ** 2 + (pixel.b - bgColor.b) ** 2);
-            if (dist > threshold) continue;
+            const dist = Math.sqrt(
+              (pixel.r - bgColor.r) ** 2 + (pixel.g - bgColor.g) ** 2 + (pixel.b - bgColor.b) ** 2
+            );
+            if (dist > threshold) {
+              continue;
+            }
             visited[idx] = 1;
             data[idx * 4 + 3] = 0;
             queue.push([x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]);
@@ -175,32 +188,26 @@ async function applyFiltersToImage(imageSrc: string, filters: any): Promise<stri
 }
 
 async function vectorize(imageUrl: string, options: any): Promise<string> {
-  return new Promise(async (resolve, reject) => {
-    try {
-      // ImageTracer.imageToSVG uses new Image() and document.createElement('canvas'),
-      // which are not available in a Web Worker. We must use fetchImageBitmap and OffscreenCanvas
-      // to extract ImageData, then use ImageTracer.imagedataToSVG.
-      const bitmap = await fetchImageBitmap(imageUrl);
-      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        throw new Error('Offscreen context failed');
-      }
-      ctx.drawImage(bitmap, 0, 0);
-      bitmap.close();
-      
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
-      const svgString = ImageTracer.imagedataToSVG(imageData, options);
-      if (svgString) {
-        resolve(svgString);
-      } else {
-        reject(new Error('Vectorization failed'));
-      }
-    } catch (e) {
-      reject(e);
-    }
-  });
+  // ImageTracer.imageToSVG uses new Image() and document.createElement('canvas'),
+  // which are not available in a Web Worker. We must use fetchImageBitmap and OffscreenCanvas
+  // to extract ImageData, then use ImageTracer.imagedataToSVG.
+  const bitmap = await fetchImageBitmap(imageUrl);
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Offscreen context failed');
+  }
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  const svgString = ImageTracer.imagedataToSVG(imageData, options);
+  if (svgString) {
+    return svgString;
+  } else {
+    throw new Error('Vectorization failed');
+  }
 }
 
 async function algorithmicEnhance(imageSrc: string): Promise<string> {

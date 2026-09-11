@@ -22,6 +22,8 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
       window.localStorage.setItem('kreathief_qa_session', JSON.stringify(userPayload));
       window.localStorage.setItem('kreathief_user', JSON.stringify(userPayload));
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
   });
 
@@ -488,7 +490,9 @@ test.describe('Premium Pro User: Visual Design E2E Scenarios 2 & 3', () => {
     // Render and export the canvas visually as a verified PNG
     const exportBase64 = await page.evaluate(async () => {
       const artboardEl = document.querySelector('.design-artboard') as HTMLElement;
-      if (!artboardEl) return null;
+      if (!artboardEl) {
+        return null;
+      }
       try {
         const { default: html2canvas } = await import('html2canvas');
         const canvas = await html2canvas(artboardEl, { backgroundColor: null, useCORS: true });
