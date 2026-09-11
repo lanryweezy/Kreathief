@@ -1,0 +1,11 @@
+🔍 Gap: The dashboard displays a generic "Failed to import PDF" error toast when a PDF file fails to import, making it difficult for the user to understand what went wrong (e.g. file too large, invalid format, corrupted file).
+
+💡 Improvement: Updated `components/Dashboard.tsx` to use the `getErrorDetails` utility function from `utils/errorMessages.ts` for PDF import errors, providing users with a specific message and actionable suggestion.
+
+🔓 Interface: The external interface of the component and function remains unchanged.
+
+📊 Before / After:
+Before: `addToast('Failed to import PDF', 'error');`
+After: `const details = getErrorDetails(err); addToast(\`Failed to import PDF: ${details.message}. ${details.suggestion}\`, 'error');`
+
+✅ Verification: Check the toast message by forcing a PDF import error.
