@@ -14,7 +14,7 @@ const customFonts = new Set<string>();
 const failedFonts = new Set<string>();
 
 // Fonts already loaded globally via fonts.css
-const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001'];
+const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003'];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
@@ -43,9 +43,20 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   // Strip CSS fallback (e.g. "Inter, sans-serif" → "Inter")
   const cleanFamily = fontFamily.split(',')[0].trim().replace(/['"]/g, '');
 
-  // Skip if already loaded or natively bundled
-  if (loadedFonts.has(cleanFamily) || LOCAL_FONTS.includes(cleanFamily)) {
+  // Skip if already loaded
+  if (loadedFonts.has(cleanFamily)) {
     return true;
+  }
+
+  // If it's a known local font, manually load it to ensure it's ready for canvas rendering
+  if (LOCAL_FONTS.includes(cleanFamily)) {
+    try {
+      await document.fonts.load(`16px "${cleanFamily}"`);
+      loadedFonts.add(cleanFamily);
+      return true;
+    } catch (e) {
+      // Continue to fallback if it fails
+    }
   }
 
   // Skip families that already failed — no point retrying every render
@@ -187,6 +198,12 @@ export function getAllAvailableFonts(): string[] {
   const all = [...AVAILABLE_FONTS, ...Array.from(customFonts)];
   if (!all.includes('Kreathief001')) {
     all.push('Kreathief001');
+  }
+  if (!all.includes('Kreathief002')) {
+    all.push('Kreathief002');
+  }
+  if (!all.includes('Kreathief003')) {
+    all.push('Kreathief003');
   }
   return all.sort();
 }

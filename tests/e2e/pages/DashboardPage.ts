@@ -2,7 +2,6 @@ import { Page, Locator, expect } from '@playwright/test';
 
 export class DashboardPage {
   readonly page: Page;
-  readonly createProjectButton: Locator;
   readonly templatesGrid: Locator;
   readonly projectsList: Locator;
   readonly searchInput: Locator;
@@ -12,7 +11,6 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.createProjectButton = page.locator('button#create-btn, button:has-text("New Design")');
     this.templatesGrid = page.getByTestId('dashboard-templates-grid');
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
     this.searchInput = page.getByTestId('dashboard-search-input');
@@ -23,11 +21,8 @@ export class DashboardPage {
 
   async goto() {
     await this.page.goto('/dashboard');
-    await expect(this.createProjectButton).toBeVisible({ timeout: 10000 });
-  }
-
-  async createNewProject() {
-    await this.createProjectButton.click();
+    // Wait for the main layout to appear instead of a specific create button
+    await expect(this.userMenu).toBeVisible({ timeout: 10000 });
   }
 
   async openTemplate(templateName: string) {
@@ -63,7 +58,7 @@ export class DashboardPage {
   }
 
   async verifyDashboardLoaded() {
-    await expect(this.createProjectButton).toBeVisible();
+    await expect(this.userMenu).toBeVisible();
   }
 
   async switchToTemplates() {

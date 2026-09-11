@@ -3,7 +3,7 @@ export interface ShapeDefinition {
   type: string;
   pathData: string;
   viewBox: string;
-  category: 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+  category: 'basic' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars' | 'frames' | 'blobs' | 'badges';
 }
 
 export const SHAPE_LIBRARY: ShapeDefinition[] = [
@@ -344,5 +344,132 @@ export const SHAPE_LIBRARY: ShapeDefinition[] = [
     pathData: 'M 25,65 C 10,65 5,50 15,40 C 15,20 40,15 50,30 C 65,15 90,20 90,45 C 100,50 95,65 85,65 Z',
     viewBox: '0 0 100 100',
     category: 'decorative',
+  },
+
+  // --- PHOTO FRAMES & MASKS ---
+  {
+    name: 'Arch Window Frame',
+    type: 'path',
+    pathData: 'M 10,100 V 50 A 40,40 0 0,1 90,50 V 100 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+  {
+    name: 'Polaroid Frame',
+    type: 'path',
+    pathData: 'M 5,5 H 95 V 95 H 5 Z M 15,15 V 70 H 85 V 15 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+  {
+    name: 'Stamp Cutout Frame',
+    type: 'path',
+    pathData: 'M 10,10 H 90 V 90 H 10 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+  {
+    name: 'Smartphone Frame',
+    type: 'path',
+    pathData: 'M 20,5 H 80 A 15,15 0 0,1 95,20 V 80 A 15,15 0 0,1 80,95 H 20 A 15,15 0 0,1 5,80 V 20 A 15,15 0 0,1 20,5 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+  {
+    name: 'Browser Window Frame',
+    type: 'path',
+    pathData: 'M 5,10 H 95 A 5,5 0 0,1 100,15 V 85 A 5,5 0 0,1 95,90 H 5 A 5,5 0 0,1 0,85 V 15 A 5,5 0 0,1 5,10 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+  {
+    name: 'Scalloped Badge Frame',
+    type: 'path',
+    pathData: 'M 50,0 A 12,12 0 0,1 68,5 A 12,12 0 0,1 85,15 A 12,12 0 0,1 95,32 A 12,12 0 0,1 100,50 A 12,12 0 0,1 95,68 A 12,12 0 0,1 85,85 A 12,12 0 0,1 68,95 A 12,12 0 0,1 50,100 A 12,12 0 0,1 32,95 A 12,12 0 0,1 15,85 A 12,12 0 0,1 5,68 A 12,12 0 0,1 0,50 A 12,12 0 0,1 5,32 A 12,12 0 0,1 15,15 A 12,12 0 0,1 32,5 A 12,12 0 0,1 50,0 Z',
+    viewBox: '0 0 100 100',
+    category: 'frames',
+  },
+
+  // --- ORGANIC FLUID BLOBS ---
+  {
+    name: 'Fluid Blob 1',
+    type: 'path',
+    pathData: 'M 50,5 C 75,5 95,25 90,50 C 85,75 70,95 45,95 C 20,95 5,75 10,45 C 15,15 25,5 50,5 Z',
+    viewBox: '0 0 100 100',
+    category: 'blobs',
+  },
+  {
+    name: 'Fluid Blob 2',
+    type: 'path',
+    pathData: 'M 50,10 C 80,5 95,35 90,65 C 85,95 55,90 35,85 C 15,80 5,60 10,35 C 15,10 20,15 50,10 Z',
+    viewBox: '0 0 100 100',
+    category: 'blobs',
+  },
+  {
+    name: 'Fluid Blob 3',
+    type: 'path',
+    pathData: 'M 40,5 C 70,-5 95,20 95,50 C 95,80 75,95 45,90 C 15,85 0,70 5,40 C 10,10 10,15 40,5 Z',
+    viewBox: '0 0 100 100',
+    category: 'blobs',
+  },
+  {
+    name: 'Wavy Pebble',
+    type: 'path',
+    pathData: 'M 30,10 C 65,0 90,20 95,50 C 100,80 75,95 40,95 C 15,95 0,75 5,45 C 10,15 0,20 30,10 Z',
+    viewBox: '0 0 100 100',
+    category: 'blobs',
+  },
+
+  // --- BADGES, SEALS & RIBBONS ---
+  {
+    name: '16-Point Sale Burst',
+    type: 'path',
+    pathData: 'M 50,0 L 58,15 L 75,7 L 78,25 L 95,25 L 90,42 L 100,56 L 88,68 L 92,85 L 75,88 L 70,100 L 54,93 L 42,100 L 35,88 L 18,88 L 20,70 L 5,60 L 15,45 L 8,28 L 25,25 L 28,8 L 45,15 Z',
+    viewBox: '0 0 100 100',
+    category: 'badges',
+  },
+  {
+    name: 'Rosette Award Badge',
+    type: 'path',
+    pathData: 'M 50,5 A 45,45 0 0,1 95,50 A 45,45 0 0,1 50,95 A 45,45 0 0,1 5,50 A 45,45 0 0,1 50,5 Z',
+    viewBox: '0 0 100 100',
+    category: 'badges',
+  },
+  {
+    name: 'Price Tag Badge',
+    type: 'path',
+    pathData: 'M 10,10 H 55 L 90,45 L 55,80 L 10,80 Z',
+    viewBox: '0 0 100 100',
+    category: 'badges',
+  },
+  {
+    name: 'Ribbon Banner',
+    type: 'path',
+    pathData: 'M 0,25 H 100 L 85,50 L 100,75 H 0 L 15,50 Z',
+    viewBox: '0 0 100 100',
+    category: 'badges',
+  },
+
+  // --- LINES & DIVIDERS ---
+  {
+    name: 'Wave Divider',
+    type: 'path',
+    pathData: 'M 0,50 Q 25,20 50,50 T 100,50',
+    viewBox: '0 0 100 100',
+    category: 'arrows',
+  },
+  {
+    name: 'Zigzag Divider',
+    type: 'path',
+    pathData: 'M 0,50 L 20,30 L 40,70 L 60,30 L 80,70 L 100,50',
+    viewBox: '0 0 100 100',
+    category: 'arrows',
+  },
+  {
+    name: 'Callout Arrow Right',
+    type: 'path',
+    pathData: 'M 0,30 H 60 V 10 L 100,50 L 60,90 V 70 H 0 Z',
+    viewBox: '0 0 100 100',
+    category: 'arrows',
   },
 ];

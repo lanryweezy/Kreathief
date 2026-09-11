@@ -374,7 +374,7 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         style={{ width: 'calc(100% - 8px)' }}
       >
         <Icon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
-        <span className="flex-1">{children}</span>
+        <span className="flex-1 flex items-center">{children}</span>
       </button>
     );
   };
@@ -539,47 +539,49 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
       <div className="px-5 pb-2 pt-1">
         <p className="text-[10px] font-black text-cyan-500/70 uppercase tracking-[0.2em]">AI Actions</p>
       </div>
-      {Array.from(aiActionRegistry.values()).filter((a) => a.type === 'all' || a.type === layer?.type).map((action) => {
-        const AiIcon = (Icons as any)[action.icon] || Icons.Sparkles;
-        return (
-          <button
-            key={action.id}
-            role="menuitem"
-            onClick={() => handleAIAction(action.id)}
-            className={`w-full flex items-center gap-3 px-3.5 py-2 text-sm transition-all text-left rounded-lg mx-1 group/mi text-cyan-300 hover:bg-cyan-500/15 hover:text-cyan-200`}
-            style={{ width: 'calc(100% - 8px)' }}
-          >
-            <AiIcon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
-            <div className="flex-1 flex flex-col min-w-0">
-              <span className="text-sm leading-none">{action.label}</span>
-              <span className="text-[10px] text-cyan-600/70 mt-0.5 group-hover/mi:text-cyan-400/70 leading-none">
-                {action.hint}
-              </span>
-            </div>
-          </button>
-        );
-      })}
+      {Array.from(aiActionRegistry.values())
+        .filter((a) => a.type === 'all' || a.type === layer?.type)
+        .map((action) => {
+          const AiIcon = (Icons as any)[action.icon] || Icons.Sparkles;
+          return (
+            <button
+              key={action.id}
+              role="menuitem"
+              onClick={() => handleAIAction(action.id)}
+              className={`w-full flex items-center gap-3 px-3.5 py-2 text-sm transition-all text-left rounded-lg mx-1 group/mi text-cyan-300 hover:bg-cyan-500/15 hover:text-cyan-200`}
+              style={{ width: 'calc(100% - 8px)' }}
+            >
+              <AiIcon className="w-4 h-4 shrink-0 opacity-70 group-hover/mi:opacity-100" />
+              <div className="flex-1 flex flex-col min-w-0">
+                <span className="text-sm leading-none">{action.label}</span>
+                <span className="text-[10px] text-cyan-600/70 mt-0.5 group-hover/mi:text-cyan-400/70 leading-none">
+                  {action.hint}
+                </span>
+              </div>
+            </button>
+          );
+        })}
 
       <Div />
 
       <MI
         onClick={() => {
-          moveLayer(layerId, 'front');
+          moveLayer(layerId, 'forward');
           onClose();
         }}
         icon={Icons.ArrowUp}
       >
-        Bring to Front{' '}
+        Bring Forward{' '}
         <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">⇧]</span>
       </MI>
       <MI
         onClick={() => {
-          moveLayer(layerId, 'back');
+          moveLayer(layerId, 'backward');
           onClose();
         }}
         icon={Icons.ArrowDown}
       >
-        Send to Back{' '}
+        Send Backward{' '}
         <span className="ml-auto text-[10px] text-slate-600 font-mono group-hover/mi:text-white/50">⇧[</span>
       </MI>
 

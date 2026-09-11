@@ -72,6 +72,44 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
         });
         return;
       }
+      if (req.url?.startsWith('/api/')) {
+        const url = new URL(req.url, 'http://localhost:5173');
+        const endpoint = url.pathname.replace('/api/', '').split('?')[0];
+        try {
+          const mod = await server.ssrLoadModule(`/api/${endpoint}.ts`);
+          if (mod && mod.default) {
+            let bodyStr = '';
+            if (req.method !== 'GET' && req.method !== 'HEAD') {
+              for await (const chunk of req) {
+                bodyStr += chunk;
+              }
+            }
+            
+            // Mock VITE_FRONTEND_URL for edge functions if not set
+            process.env.VITE_FRONTEND_URL = env.VITE_FRONTEND_URL || 'http://localhost:5173';
+            // Inject env variables to process.env since they use it
+            Object.assign(process.env, env);
+
+            const webReq = new Request(url, {
+              method: req.method,
+              headers: req.headers as any,
+              body: bodyStr ? bodyStr : undefined
+            });
+
+            const webRes: Response = await mod.default(webReq);
+
+            res.statusCode = webRes.status;
+            webRes.headers.forEach((value, key) => {
+              res.setHeader(key, value);
+            });
+            const arrayBuffer = await webRes.arrayBuffer();
+            res.end(Buffer.from(arrayBuffer));
+            return;
+          }
+        } catch (err: any) {
+          console.error(`API proxy error for ${endpoint}:`, err.message);
+        }
+      }
       
       next();
     });

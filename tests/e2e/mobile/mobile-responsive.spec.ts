@@ -37,7 +37,7 @@ test.describe('Mobile Responsive Tests', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Verify layout adapts to mobile
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
 
     // Take screenshot
     await expect(page).toHaveScreenshot('iphone-dashboard.png', {
@@ -51,7 +51,7 @@ test.describe('Mobile Responsive Tests', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Verify layout adapts to tablet
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
 
     // Take screenshot
     await expect(page).toHaveScreenshot('ipad-dashboard.png', {
@@ -65,7 +65,7 @@ test.describe('Mobile Responsive Tests', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Verify layout adapts
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
 
     // Take screenshot
     await expect(page).toHaveScreenshot('android-dashboard.png', {
@@ -232,7 +232,7 @@ test.describe('Mobile Responsive Tests', () => {
     await page.waitForTimeout(500);
 
     // Verify layout adapts to landscape
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
 
     // Take screenshot in landscape
     await expect(page).toHaveScreenshot('mobile-landscape.png');

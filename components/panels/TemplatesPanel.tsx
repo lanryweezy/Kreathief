@@ -4,11 +4,14 @@ import { useStore } from '../../store/useStore';
 import { fuzzyMatch } from '../../utils/search';
 import { Icons } from '../../constants';
 import { STARTER_TEMPLATES } from '../../data/templates';
-import { communityService, CommunityTemplate } from '../../services/communityService';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { ConfirmModal } from '../modals/ConfirmModal';
 import { Input } from '../Input';
 import { PanelHeader } from './PanelHeader';
+import { TemplatePreview } from '../TemplatePreview';
+import { SmartTemplatesPanel } from './SmartTemplatesPanel';
+import { smartTemplateService } from '../../services/smartTemplateService';
+import { createProjectFromTemplate } from '../../data/templates';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -51,9 +54,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [activeTab, setActiveTab] = useState<'starter' | 'community'>('starter');
-  const [communityTemplates, setCommunityTemplates] = useState<CommunityTemplate[]>([]);
-  const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
+  const [activeTab, setActiveTab] = useState<'starter' | 'smart'>('starter');
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -68,38 +69,6 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
   const initializeProject = useStore((state) => state.initializeProject);
-
-  useEffect(() => {
-    if (activeTab === 'community') {
-      loadCommunity();
-    }
-  }, [activeTab, category, searchQuery]);
-
-  const loadCommunity = async () => {
-    setIsLoadingCommunity(true);
-    const data = await communityService.fetchTemplates(category, searchQuery);
-    setCommunityTemplates(data);
-    setIsLoadingCommunity(false);
-  };
-
-  const handleApplyCommunity = (tmpl: CommunityTemplate) => {
-    const newProject: any = {
-      id: `tmpl-${Date.now()}`,
-      name: (tmpl as any).title || (tmpl as any).name || 'Template',
-      updatedAt: Date.now(),
-      state: tmpl.state,
-    };
-    if (!showReplaceWarning) {
-      initializeProject(newProject);
-      return;
-    }
-    setConfirmModal({
-      isOpen: true,
-      title: 'Apply Template?',
-      message: 'Apply community template? This will replace your current project.',
-      onConfirm: () => initializeProject(newProject),
-    });
-  };
 
   const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
 
@@ -245,7 +214,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
             </button>
           </div>
 
-          {/* Community Tabs */}
+          {/* Template Tabs */}
           <div className="flex gap-1 mt-4 p-0.5 bg-black/20 rounded-lg border border-white/5">
             <button
               onClick={() => setActiveTab('starter')}
@@ -256,18 +225,18 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
               Starter
             </button>
             <button
-              onClick={() => setActiveTab('community')}
+              onClick={() => setActiveTab('smart')}
               className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
-                activeTab === 'community' ? 'bg-orange-500 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+                activeTab === 'smart' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              Community ✦
+              Smart AI ⚡
             </button>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
-          {activeTab === 'starter' ? (
+          {activeTab === 'starter' && (
             <>
               {/* Themes Section */}
               <div>
@@ -351,10 +320,13 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                           }}
                           className="cursor-pointer group relative aspect-video rounded-xl overflow-hidden bg-surface-dark-3 border border-gray-700 hover:border-brand-600 transition-all shadow-lg text-left"
                         >
-                          <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                            <Icons.Layout className="w-12 h-12" />
-                          </div>
-                          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                          <TemplatePreview
+                            template={tmpl}
+                            containerWidth={320}
+                            containerHeight={180}
+                            className="w-full h-full"
+                          />
+                          <div className="absolute inset-0 bg-black/30 group-hover:bg-black/10 transition-colors" />
                           <div className="absolute bottom-0 left-0 right-0 p-3 bg-black/60 backdrop-blur-sm flex items-center justify-between">
                             <span className="font-semibold text-xs text-white truncate">{tmpl.name}</span>
                             <span className="text-[9px] text-gray-400">
@@ -373,74 +345,38 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                 )}
               </div>
             </>
-          ) : (
-            /* Community View */
-            <div className="space-y-4">
-              <h4 className="text-xs font-bold text-gray-400 uppercase mb-3 flex items-center justify-between">
-                Community Creations
-                {isLoadingCommunity && <Icons.Loader className="w-3 h-3 animate-spin text-orange-500" />}
-              </h4>
+          )}
 
-              <div className="grid grid-cols-1 gap-4">
-                {isLoadingCommunity &&
-                  [1, 2, 3].map((i) => (
-                    <div
-                      key={`skel-${i}`}
-                      className="animate-pulse bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden"
-                    >
-                      <div className="aspect-video bg-white/5" />
-                      <div className="p-3 space-y-2">
-                        <div className="h-4 bg-white/5 rounded w-2/3" />
-                        <div className="h-3 bg-white/5 rounded w-1/3" />
-                        <div className="flex justify-between border-t border-white/5 pt-2 mt-2">
-                          <div className="h-3 bg-white/5 rounded w-1/4" />
-                          <div className="h-3 bg-white/5 rounded w-1/6" />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                {!isLoadingCommunity &&
-                  communityTemplates.map((tmpl) => (
-                    <div
-                      key={tmpl.id}
-                      onClick={() => handleApplyCommunity(tmpl)}
-                      className="bg-surface-dark-3 border border-gray-800 rounded-xl overflow-hidden group cursor-pointer hover:border-orange-500 transition-all shadow-lg"
-                    >
-                      <div className="aspect-video bg-black/40 relative">
-                        <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                          <Icons.Layout className="w-12 h-12" />
-                        </div>
-                        <div className="absolute top-2 right-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2 py-1 rounded-full border border-white/5">
-                          <Icons.Heart className="w-3 h-3 text-orange-500 fill-orange-500" />
-                          <span className="text-[10px] text-white font-black">{tmpl.likes}</span>
-                        </div>
-                      </div>
-                      <div className="p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <h4 className="text-sm font-bold text-white truncate">{tmpl.name}</h4>
-                          <span className="text-[9px] font-black text-orange-500 uppercase tracking-wider">
-                            {tmpl.category}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between border-t border-white/5 pt-2 mt-2">
-                          <span className="text-[9px] text-gray-400">
-                            by <span className="text-orange-400">{tmpl.userName}</span>
-                          </span>
-                          <span className="text-[9px] text-muted-light font-mono">
-                            {new Date(tmpl.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                {communityTemplates.length === 0 && !isLoadingCommunity && (
-                  <div className="text-center py-12 px-4 border-2 border-dashed border-gray-800 rounded-2xl">
-                    <Icons.Users className="w-10 h-10 text-gray-700 mx-auto mb-3" />
-                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">No designs found</p>
-                  </div>
-                )}
-              </div>
+          {activeTab === 'smart' && (
+            <div className="-m-4">
+              <SmartTemplatesPanel
+                onApplyTemplate={(templateId, variables) => {
+                  const tmpl = STARTER_TEMPLATES.find((t) => t.id === templateId);
+                  if (tmpl) {
+                    const stateWithVars = smartTemplateService.applyVariables(templateId, variables);
+                    const baseProject = createProjectFromTemplate(tmpl);
+                    initializeProject({
+                      ...baseProject,
+                      ...stateWithVars,
+                      artboards: [
+                        {
+                          id: 'artboard-1',
+                          name: 'Artboard 1',
+                          x: 0,
+                          y: 0,
+                          width: tmpl.size.width,
+                          height: tmpl.size.height,
+                          backgroundColor: (stateWithVars as any).canvasBackgroundColor || tmpl.state?.canvasBackgroundColor || '#ffffff',
+                          layers: (stateWithVars as any).layers || (baseProject as any).artboards?.[0]?.layers || (baseProject as any).layers || [],
+                          isLocked: false,
+                          isVisible: true,
+                          opacity: 1,
+                        },
+                      ],
+                    } as any);
+                  }
+                }}
+              />
             </div>
           )}
 

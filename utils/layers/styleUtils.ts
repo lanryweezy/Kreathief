@@ -53,7 +53,7 @@ export const getLayerStyle = (layer: Layer, zoom: number = 1): React.CSSProperti
     // rather than the container (which might hold selection handles that shouldn't be blurred)
     mixBlendMode: layer.blendMode as React.CSSProperties['mixBlendMode'],
     pointerEvents: layer.locked ? 'none' : 'auto',
-    zIndex: layer.locked ? 49 : 50,
+    zIndex: typeof (layer as any).zIndex === 'number' ? (layer as any).zIndex : layer.locked ? 1 : 2,
   };
 
   return baseStyle;

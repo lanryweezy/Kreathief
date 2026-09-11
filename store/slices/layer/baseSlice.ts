@@ -1,6 +1,7 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
 import { Layer, TextLayer, ShapeLayer, Artboard } from '../../../types';
+import { applyAutoLayout } from './utils';
 
 export interface LayerSlice {
   artboards: Artboard[];
@@ -126,12 +127,13 @@ export const createBaseLayerSlice: StateCreator<StoreState, [], [], Partial<Laye
         return {};
       }
 
-      const newLayers = artboard.layers.map((l: Layer) => {
+      const rawLayers = artboard.layers.map((l: Layer) => {
         if (updates[l.id]) {
           return { ...l, ...updates[l.id], dirty: true };
         }
         return l;
       });
+      const newLayers = applyAutoLayout(rawLayers);
 
       return {
         artboards: state.artboards.map((a: Artboard) =>

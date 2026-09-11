@@ -168,6 +168,32 @@ export const useLayerTransformation = ({
           partial.fontSize = state.initialFontSize * scaleFactor;
         }
 
+        // Image Cropping: Adjust crop values to keep image visually stable when resizing from an edge handle
+        // Only apply for single-edge handles (n, s, e, w) — corners (ne, nw, se, sw) scale the image, not crop it
+        if (layer?.type === 'image' && handle.length === 1) {
+          const imgLayer = layer as any;
+          const naturalW = imgLayer.naturalWidth || imgLayer.width;
+          const naturalH = imgLayer.naturalHeight || imgLayer.height;
+          const oldCrop = imgLayer.crop || { x: 0, y: 0, width: naturalW, height: naturalH };
+          const S = initialWidth / (oldCrop.width || 1); // current render scale
+          const newCrop = { ...oldCrop };
+
+          if (handle === 'e') {
+            newCrop.width = newWidth / S;
+          } else if (handle === 'w') {
+            const dw = initialWidth - newWidth;
+            newCrop.x = Math.max(0, oldCrop.x + dw / S);
+            newCrop.width = newWidth / S;
+          } else if (handle === 's') {
+            newCrop.height = newHeight / S;
+          } else if (handle === 'n') {
+            const dh = initialHeight - newHeight;
+            newCrop.y = Math.max(0, oldCrop.y + dh / S);
+            newCrop.height = newHeight / S;
+          }
+          partial.crop = newCrop;
+        }
+
         // Keep the anchor edge/corner fixed. Rotation happens about the layer
         // center, so the center must shift by half the size delta along the
         // dragged local axes, rotated back into world space.

@@ -2,6 +2,7 @@ export enum AppMode {
   GENERATE = 'GENERATE',
   EDIT = 'EDIT',
   THEME = 'THEME',
+  MULTI_LAYER = 'MULTI_LAYER',
 }
 
 export enum NavTab {
@@ -40,20 +41,22 @@ export enum NavTab {
   DOCUMENT = 'DOCUMENT',
 }
 
-export enum BrushType {
-  BASIC = 'basic',
-  CALLIGRAPHY = 'calligraphy',
-  OIL = 'oil',
-  CRAYON = 'crayon',
-  PENCIL = 'pencil',
-  WATERCOLOR = 'watercolor',
-  VECTOR_PENCIL = 'vector_pencil',
-  SPLATTER = 'splatter',
-  TEXTURE = 'texture',
-  ERASER = 'eraser',
-  CUSTOM = 'custom',
-  NEON = 'neon',
-}
+export const BrushType = {
+  BASIC: 'basic',
+  CALLIGRAPHY: 'calligraphy',
+  OIL: 'oil',
+  CRAYON: 'crayon',
+  PENCIL: 'pencil',
+  WATERCOLOR: 'watercolor',
+  VECTOR_PENCIL: 'vector_pencil',
+  SPLATTER: 'splatter',
+  TEXTURE: 'texture',
+  ERASER: 'eraser',
+  CUSTOM: 'custom',
+  NEON: 'neon',
+} as const;
+
+export type BrushType = string;
 
 export interface CustomBrush {
   id: string;
@@ -206,6 +209,7 @@ export interface LayerBase {
   lockText?: boolean;
   restrictToDam?: boolean;
   visible: boolean;
+  zIndex?: number;
   maskLayerId?: string;
   isMasking?: boolean; // True if this layer masks the one(s) above it
   clippingMaskType?: 'clipping' | 'alpha' | 'luminance';

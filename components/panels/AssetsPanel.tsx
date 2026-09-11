@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from '../../constants';
 import * as unsplashService from '../../services/unsplashService';
 import * as freepikService from '../../services/freepikService';
+import { iconScoutService } from '../../services/iconScoutService';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { PanelHeader } from './PanelHeader';
@@ -21,7 +22,7 @@ interface PhotoItem {
 }
 
 interface AssetsPanelProps {
-  provider?: 'unsplash';
+  provider?: 'all' | 'unsplash' | 'freepik' | 'iconscout' | string;
 }
 
 export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
@@ -87,7 +88,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
       const combined: PhotoItem[] = [];
       const q = searchQuery || 'trending';
 
-      if (activeSource === 'unsplash') {
+      if (activeSource === 'unsplash' || activeSource === 'all') {
         try {
           const results = await unsplashService.searchPhotos(q);
           results.forEach((p) => {
@@ -103,6 +104,42 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
           });
         } catch (e) {
           log.error('[AssetsPanel] Unsplash search failed', e);
+        }
+      }
+
+      if (activeSource === 'freepik' || activeSource === 'all') {
+        try {
+          const results = await freepikService.searchResources(q, 'photos');
+          results.items.forEach((p) => {
+            combined.push({
+              id: `fp-${p.id}`,
+              url: p.thumbnailUrl, // Use thumbnail as URL if download URL isn't directly available without auth
+              thumbnail: p.thumbnailUrl,
+              alt: p.name,
+              author: p.author,
+              source: 'freepik',
+            });
+          });
+        } catch (e) {
+          log.error('[AssetsPanel] Freepik search failed', e);
+        }
+      }
+
+      if (activeSource === 'iconscout' || activeSource === 'all') {
+        try {
+          const results = await iconScoutService.search(q, 'illustration');
+          results.forEach((p) => {
+            combined.push({
+              id: `is-${p.id}`,
+              url: p.previewUrl,
+              thumbnail: p.previewUrl,
+              alt: p.name,
+              author: p.author,
+              source: 'iconscout',
+            });
+          });
+        } catch (e) {
+          log.error('[AssetsPanel] IconScout search failed', e);
         }
       }
 
@@ -136,7 +173,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
       // Always publish results — previously only the 'all' source ever called
       // setPhotos, so single-provider searches (e.g. Unsplash) never rendered.
       setPhotos(finalPhotos);
-      tabCacheRef.current[activeSource] = { photos: finalPhotos.slice(0, 20), query: q };
+      tabCacheRef.current[activeSource] = { photos: finalPhotos, query: q };
     } catch (e) {
       log.error('[AssetsPanel] Search error', e);
     } finally {

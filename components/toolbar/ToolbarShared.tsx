@@ -24,30 +24,53 @@ export const Divider = React.memo(() => (
 /**
  * Shared hook to handle math evaluation and nudging logic for input fields
  */
-function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onChange: any; step?: number }) {
+function useMathInputHandlers({ value, onChange, step = 1, min, max }: { value: any; onChange: any; step?: number; min?: number; max?: number }) {
+  const sanitize = (val: number): number => {
+    if (isNaN(val)) return 16;
+    let v = val;
+    if (typeof min === 'number') v = Math.max(min, v);
+    if (typeof max === 'number') v = Math.min(max, v);
+    return v;
+  };
+
+  const notify = React.useCallback(
+    (val: number) => {
+      const sanitized = sanitize(val);
+      if (typeof onChange === 'function') {
+        try {
+          onChange(sanitized);
+        } catch {}
+        try {
+          onChange({ target: { value: sanitized } } as any);
+        } catch {}
+      }
+    },
+    [onChange, min, max]
+  );
+
   const handleKeyDown = React.useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         try {
           const result = safeEvaluate(e.currentTarget.value);
           if (!isNaN(result)) {
-            onChange({ target: { value: result } } as any);
+            notify(result);
           }
         } catch (error) {
-          // Fallback to original if safeEvaluate fails
           log.error('[ToolbarShared] Enter key evaluation failed', error, { value: e.currentTarget.value });
         }
         e.currentTarget.blur();
       }
-      // Shift+Arrow power nudging for #11
+      // Shift+Arrow power nudging
       if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         const delta = e.shiftKey ? 10 : 1;
         const direction = e.key === 'ArrowUp' ? 1 : -1;
-        onChange({ target: { value: Number(value) + delta * direction * step } } as any);
+        const cur = typeof value === 'number' && !isNaN(value) ? value : parseFloat(String(value)) || 0;
+        notify(cur + delta * direction * step);
         e.preventDefault();
       }
     },
-    [value, onChange, step]
+    [value, notify, step]
   );
 
   const handleBlur = React.useCallback(
@@ -55,14 +78,15 @@ function useMathInputHandlers({ value, onChange, step = 1 }: { value: any; onCha
       try {
         const result = safeEvaluate(e.target.value);
         if (!isNaN(result)) {
-          onChange({ target: { value: result } } as any);
+          notify(result);
         }
       } catch (error) {
         log.error('[ToolbarShared] Blur evaluation failed', error, { value: e.target.value });
-        e.target.value = String(Math.round(value));
+        const cur = typeof value === 'number' && !isNaN(value) ? value : 16;
+        e.target.value = String(Math.round(cur));
       }
     },
-    [value, onChange]
+    [value, notify]
   );
 
   return { onKeyDown: handleKeyDown, onBlur: handleBlur };

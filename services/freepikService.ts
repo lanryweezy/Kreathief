@@ -30,7 +30,7 @@ export interface FreepikSearchResult {
 async function freepikFetch(endpoint: string, options: RequestInit = {}) {
   const url = new URL('/api/freepik', window.location.origin);
 
-  if (endpoint.includes('search')) {
+  if (endpoint.includes('search') || endpoint.includes('resources')) {
     url.searchParams.set('action', 'search');
   } else if (endpoint.includes('icons')) {
     url.searchParams.set('action', 'search_icons');
@@ -48,6 +48,18 @@ async function freepikFetch(endpoint: string, options: RequestInit = {}) {
     url.searchParams.set('action', 'style_transfer');
   } else if (endpoint.includes('image-expand')) {
     url.searchParams.set('action', 'expand');
+  }
+
+  const queryStrIndex = endpoint.indexOf('?');
+  if (queryStrIndex !== -1) {
+    const endpointParams = new URLSearchParams(endpoint.substring(queryStrIndex));
+    endpointParams.forEach((value, key) => {
+      if (key === 'term') {
+        url.searchParams.set('query', value);
+      } else {
+        url.searchParams.set(key, value);
+      }
+    });
   }
 
   try {

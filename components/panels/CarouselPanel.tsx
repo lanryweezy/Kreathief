@@ -530,6 +530,7 @@ export const CarouselPanel: React.FC = () => {
                 <label className="text-xs font-medium text-gray-400 mb-1.5 block">Number of Slides</label>
                 <input
                   type="range"
+                  aria-label="Number of Slides"
                   min="3"
                   max="10"
                   value={slideCount}

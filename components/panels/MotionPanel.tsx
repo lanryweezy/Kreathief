@@ -70,7 +70,9 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
           break;
         }
       }
-      if (selectedLayer) break;
+      if (selectedLayer) {
+        break;
+      }
     }
   }
   const onUpdateLayer = updateLayer;
@@ -242,6 +244,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
               </div>
               <input
                 type="range"
+                aria-label="Beats Per Minute"
                 min="60"
                 max="180"
                 step="1"
@@ -410,6 +413,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 </div>
                 <input
                   type="range"
+                  aria-label="Animation Duration"
                   min="0.1"
                   max="10"
                   step="0.1"
@@ -426,6 +430,7 @@ export const MotionPanel = React.memo(({ onPreviewMotion }: MotionPanelProps) =>
                 </div>
                 <input
                   type="range"
+                  aria-label="Animation Delay"
                   min="0"
                   max="5"
                   step="0.1"

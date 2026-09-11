@@ -184,8 +184,37 @@ export const ShapeTools = React.memo(
       handleUpdateLayer({ filters: { ...currentFilters, [key]: value } });
     };
 
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const src = ev.target?.result as string;
+          if (src) {
+            handleUpdateLayer({
+              imageFill: { src, fit: 'cover' },
+              backgroundImage: src,
+              color: 'transparent',
+            });
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
     return (
       <div className="flex items-center gap-2 flex-nowrap">
+        {/* Hidden file input for image fill */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageUpload}
+        />
+
         <ColorPicker
           value={(layer as any).color}
           onChange={(color, gradient) =>
@@ -197,6 +226,57 @@ export const ShapeTools = React.memo(
           }
           documentColors={documentColors}
         />
+
+        {/* Image Fill / Replace Photo for Shapes & Layout Cells */}
+        {(layer as ShapeLayer).imageFill?.src || (layer as ShapeLayer).backgroundImage ? (
+          <div className="flex items-center gap-1 bg-white/5 p-1 rounded-lg border border-white/5">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1 px-2 py-1 bg-brand-600/20 hover:bg-brand-600/30 text-brand-400 rounded text-[10px] font-bold transition-all"
+              title="Replace Image"
+            >
+              <Icons.Image className="w-3.5 h-3.5" />
+              <span>Replace Photo</span>
+            </button>
+            <button
+              onClick={() =>
+                handleUpdateLayer({
+                  imageFill: {
+                    src: (layer as ShapeLayer).imageFill?.src || (layer as ShapeLayer).backgroundImage!,
+                    fit: (layer as ShapeLayer).imageFill?.fit === 'contain' ? 'cover' : 'contain',
+                  },
+                })
+              }
+              className="px-2 py-1 bg-white/5 hover:bg-white/10 text-gray-300 rounded text-[10px] font-mono"
+              title="Toggle Cover / Contain"
+            >
+              {(layer as ShapeLayer).imageFill?.fit === 'contain' ? 'Fit' : 'Fill'}
+            </button>
+            <button
+              onClick={() =>
+                handleUpdateLayer({
+                  imageFill: undefined,
+                  backgroundImage: undefined,
+                  color: '#7d2ae8',
+                })
+              }
+              className="p-1 hover:bg-red-500/20 text-gray-400 hover:text-red-400 rounded transition-colors"
+              title="Remove Image Fill"
+            >
+              <Icons.X className="w-3 h-3" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1 px-2.5 py-1 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-600/50 rounded-lg text-[10px] font-bold text-gray-300 hover:text-white transition-all"
+            title="Fill Shape / Cell with Image"
+          >
+            <Icons.Image className="w-3.5 h-3.5 text-brand-400" />
+            <span>Image Fill</span>
+          </button>
+        )}
+
         <MaskTools
           layer={layer}
           onUpdateLayer={handleUpdateLayer}

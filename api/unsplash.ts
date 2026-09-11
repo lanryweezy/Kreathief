@@ -73,6 +73,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
+  // SECURITY: Never fallback to VITE_ prefixed env variables for backend secrets, as it causes them to be bundled into the client code.
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
 
   if (!accessKey) {
@@ -96,7 +97,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
+        `${BASE_URL}/search/photos?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=30`,
         {
           headers: {
             Authorization: `Client-ID ${accessKey}`,

@@ -57,6 +57,10 @@ rust-engine/target/
 .env*
 page_dump.html
 targets.txt
-commit_message.txt
 patch.diff
 spoof.cjs
+scratch/
+after_wait.png
+header_verified.png
+screenshots/
+

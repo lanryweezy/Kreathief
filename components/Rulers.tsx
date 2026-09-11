@@ -1,38 +1,48 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
 interface RulersProps {
-  width: number;
-  height: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
+  width?: number;
+  height?: number;
   zoom: number;
   panX?: number;
   panY?: number;
+  artboardX?: number;
+  artboardY?: number;
   visible?: boolean;
-  unit?: 'px' | 'in' | 'cm';
+  unit?: string;
 }
 
 /**
- * Horizontal and vertical rulers for precise positioning
- * Shows measurement marks at current zoom level
+ * Fixed viewport rulers (Horizontal & Vertical) for precise measurement & positioning.
+ * Stays docked to the viewport edges without shifting or distorting the canvas.
  */
-export const Rulers: React.FC<RulersProps> = ({
+export const Rulers: React.FC<RulersProps> = React.memo(({
+  viewportWidth = window.innerWidth,
+  viewportHeight = window.innerHeight,
   width,
   height,
   zoom,
   panX = 0,
   panY = 0,
+  artboardX = 0,
+  artboardY = 0,
   visible = true,
-  unit: _unit = 'px',
+  unit = 'px',
 }) => {
   const horizontalRef = useRef<HTMLCanvasElement>(null);
   const verticalRef = useRef<HTMLCanvasElement>(null);
   const rulerSize = 20;
 
+  const actualWidth = viewportWidth || width || window.innerWidth;
+  const actualHeight = viewportHeight || height || window.innerHeight;
+
   // Calculate tick spacing based on zoom
   const getTickSpacing = useCallback(() => {
-    // Find appropriate interval
-    const intervals = [10, 20, 25, 50, 100, 200, 500, 1000];
+    const intervals = [5, 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000];
     for (const interval of intervals) {
-      if (interval * zoom >= 50) {
+      if (interval * zoom >= 40) {
         return interval;
       }
     }
@@ -44,6 +54,8 @@ export const Rulers: React.FC<RulersProps> = ({
       return;
     }
 
+    const dpr = window.devicePixelRatio || 1;
+
     const drawRuler = (canvas: HTMLCanvasElement | null, isHorizontal: boolean) => {
       if (!canvas) {
         return;
@@ -54,87 +66,99 @@ export const Rulers: React.FC<RulersProps> = ({
         return;
       }
 
-      const length = isHorizontal ? width : height;
-      canvas.width = isHorizontal ? width : rulerSize;
-      canvas.height = isHorizontal ? rulerSize : height;
+      const displayLength = isHorizontal ? Math.max(10, actualWidth - rulerSize) : Math.max(10, actualHeight - rulerSize);
+      const displayThickness = rulerSize;
 
-      // Background
-      ctx.fillStyle = '#1a1d21';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // HiDPI backing store setup
+      canvas.width = (isHorizontal ? displayLength : displayThickness) * dpr;
+      canvas.height = (isHorizontal ? displayThickness : displayLength) * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Border
-      ctx.strokeStyle = '#333';
+      // Ruler Background
+      ctx.fillStyle = '#12161a';
+      ctx.fillRect(0, 0, isHorizontal ? displayLength : displayThickness, isHorizontal ? displayThickness : displayLength);
+
+      // Outer Border line
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
       ctx.lineWidth = 1;
+      ctx.beginPath();
       if (isHorizontal) {
-        ctx.beginPath();
-        ctx.moveTo(0, rulerSize - 0.5);
-        ctx.lineTo(width, rulerSize - 0.5);
-        ctx.stroke();
+        ctx.moveTo(0, displayThickness - 0.5);
+        ctx.lineTo(displayLength, displayThickness - 0.5);
       } else {
-        ctx.beginPath();
-        ctx.moveTo(rulerSize - 0.5, 0);
-        ctx.lineTo(rulerSize - 0.5, height);
-        ctx.stroke();
+        ctx.moveTo(displayThickness - 0.5, 0);
+        ctx.lineTo(displayThickness - 0.5, displayLength);
       }
+      ctx.stroke();
 
-      // Tick marks and labels
       const tickSpacing = getTickSpacing();
-      const offset = isHorizontal ? panX : panY;
-      const startTick = Math.floor(-offset / (tickSpacing * zoom)) * tickSpacing;
-      const endTick = startTick + Math.ceil(length / (tickSpacing * zoom)) * tickSpacing + tickSpacing;
+      const pan = isHorizontal ? panX : panY;
+      const artboardOffset = isHorizontal ? artboardX : artboardY;
 
-      ctx.fillStyle = '#888';
-      ctx.font = '10px Inter, sans-serif';
+      // Calculate the start & end ticks in artboard world coordinates
+      // Screen coord: screen = (world + artboardOffset) * zoom + pan
+      // In ruler canvas (offset by rulerSize on viewport): rulerScreen = screen - rulerSize
+      // Therefore: world = (rulerScreen + rulerSize - pan) / zoom - artboardOffset
+      const startWorld = Math.floor(((0 + rulerSize - pan) / zoom - artboardOffset) / tickSpacing) * tickSpacing;
+      const endWorld = Math.ceil(((displayLength + rulerSize - pan) / zoom - artboardOffset) / tickSpacing) * tickSpacing;
+
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '9px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      for (let i = startTick; i <= endTick; i += tickSpacing) {
-        const pos = i * zoom + offset;
+      for (let val = startWorld; val <= endWorld; val += tickSpacing) {
+        const screenPos = (val + artboardOffset) * zoom + pan - rulerSize;
 
-        if (pos < 0 || pos > length) {
+        if (screenPos < -50 || screenPos > displayLength + 50) {
           continue;
         }
 
-        // Major tick
-        ctx.strokeStyle = '#666';
+        // Major Tick
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
         if (isHorizontal) {
-          ctx.moveTo(pos, rulerSize);
-          ctx.lineTo(pos, rulerSize - 10);
+          ctx.moveTo(screenPos + 0.5, displayThickness);
+          ctx.lineTo(screenPos + 0.5, displayThickness - 8);
         } else {
-          ctx.moveTo(rulerSize, pos);
-          ctx.lineTo(rulerSize - 10, pos);
+          ctx.moveTo(displayThickness, screenPos + 0.5);
+          ctx.lineTo(displayThickness - 8, screenPos + 0.5);
         }
         ctx.stroke();
 
         // Label
-        const label = i.toString();
+        const label = val.toString();
         if (isHorizontal) {
-          ctx.fillText(label, pos, 2);
+          ctx.fillStyle = val === 0 ? '#38bdf8' : '#9ca3af';
+          ctx.fillText(label, screenPos + (label.length > 3 ? 10 : 0), 2);
         } else {
           ctx.save();
-          ctx.translate(10, pos);
+          ctx.fillStyle = val === 0 ? '#38bdf8' : '#9ca3af';
+          ctx.translate(2, screenPos - 2);
           ctx.rotate(-Math.PI / 2);
+          ctx.textAlign = 'right';
           ctx.fillText(label, 0, 0);
           ctx.restore();
         }
 
         // Minor ticks
-        const minorSpacing = tickSpacing / 5;
+        const minorStep = tickSpacing / 5;
         for (let j = 1; j < 5; j++) {
-          const minorPos = (i + j * minorSpacing) * zoom + offset;
-          if (minorPos < 0 || minorPos > length) {
+          const minorVal = val + j * minorStep;
+          const minorScreen = (minorVal + artboardOffset) * zoom + pan - rulerSize;
+          if (minorScreen < 0 || minorScreen > displayLength) {
             continue;
           }
 
-          ctx.strokeStyle = '#444';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
           ctx.beginPath();
           if (isHorizontal) {
-            ctx.moveTo(minorPos, rulerSize);
-            ctx.lineTo(minorPos, rulerSize - 5);
+            ctx.moveTo(minorScreen + 0.5, displayThickness);
+            ctx.lineTo(minorScreen + 0.5, displayThickness - 4);
           } else {
-            ctx.moveTo(rulerSize, minorPos);
-            ctx.lineTo(rulerSize - 5, minorPos);
+            ctx.moveTo(displayThickness, minorScreen + 0.5);
+            ctx.lineTo(displayThickness - 4, minorScreen + 0.5);
           }
           ctx.stroke();
         }
@@ -143,37 +167,49 @@ export const Rulers: React.FC<RulersProps> = ({
 
     drawRuler(horizontalRef.current, true);
     drawRuler(verticalRef.current, false);
-  }, [width, height, zoom, panX, panY, visible, getTickSpacing]);
+  }, [actualWidth, actualHeight, zoom, panX, panY, artboardX, artboardY, visible, getTickSpacing]);
 
   if (!visible) {
     return null;
   }
 
   return (
-    <>
-      {/* Corner square */}
+    <div className="absolute inset-0 pointer-events-none z-[95] overflow-hidden" aria-hidden="true">
+      {/* Top-Left Origin Corner Square */}
       <div
-        className="absolute top-0 left-0 bg-[#1a1d21] border-r border-b border-[#333] z-20"
+        className="absolute top-0 left-0 bg-[#12161a] border-r border-b border-white/10 flex items-center justify-center pointer-events-auto select-none"
         style={{ width: rulerSize, height: rulerSize }}
-      />
+        title={`Unit: ${unit}`}
+      >
+        <span className="text-[8px] font-black text-gray-500 font-mono leading-none">
+          {unit.slice(0, 2)}
+        </span>
+      </div>
 
-      {/* Horizontal ruler */}
+      {/* Horizontal Ruler Canvas */}
       <canvas
         ref={horizontalRef}
-        className="absolute top-0 z-10 pointer-events-none"
-        style={{ left: rulerSize, height: rulerSize }}
-        aria-hidden="true"
+        className="absolute top-0 pointer-events-none"
+        style={{
+          left: rulerSize,
+          width: actualWidth - rulerSize,
+          height: rulerSize,
+        }}
       />
 
-      {/* Vertical ruler */}
+      {/* Vertical Ruler Canvas */}
       <canvas
         ref={verticalRef}
-        className="absolute left-0 z-10 pointer-events-none"
-        style={{ top: rulerSize, width: rulerSize }}
-        aria-hidden="true"
+        className="absolute left-0 pointer-events-none"
+        style={{
+          top: rulerSize,
+          width: rulerSize,
+          height: actualHeight - rulerSize,
+        }}
       />
-    </>
+    </div>
   );
-};
+});
 
+Rulers.displayName = 'Rulers';
 export default Rulers;

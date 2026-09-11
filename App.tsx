@@ -34,6 +34,7 @@ import {
 import { parseShareLink } from './utils/shareUtils';
 
 import { UserProfilePage } from './components/UserProfilePage';
+import { NotFoundPage } from './components/pages/NotFoundPage';
 
 function ProfileRoute() {
   const { userId } = useParams();
@@ -415,6 +416,7 @@ const App: React.FC = () => {
           <Route path="/help" element={<HelpCenterPage />} />
           <Route path="/changelog" element={<ChangelogPage />} />
           <Route path="/api" element={<APIPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         {location.pathname === '/dashboard' && user && showWelcome && (

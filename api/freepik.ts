@@ -87,6 +87,7 @@ export default async function handler(req: Request) {
     rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
+  // SECURITY: Never fallback to VITE_ prefixed env variables for backend secrets, as it causes them to be bundled into the client code.
   const freepikKey = process.env.FREEPIK_API_KEY;
 
   if (!freepikKey) {

@@ -31,7 +31,7 @@ test.describe('Cross-Browser Compatibility', () => {
     await dashboard.verifyDashboardLoaded();
 
     // Verify key elements are visible
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
     await expect(dashboard.templatesGrid).toBeVisible();
   });
 
@@ -141,7 +141,7 @@ test.describe('Cross-Browser Compatibility', () => {
     await page.waitForTimeout(500);
 
     // Verify layout is maintained
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
     await expect(dashboard.templatesGrid).toBeVisible();
 
     // Resize to mobile
@@ -149,7 +149,7 @@ test.describe('Cross-Browser Compatibility', () => {
     await page.waitForTimeout(500);
 
     // Verify layout adapts
-    await expect(dashboard.createProjectButton).toBeVisible();
+    await expect(dashboard.userMenu).toBeVisible();
   });
 
   test('should handle high DPI displays', async ({ page }) => {

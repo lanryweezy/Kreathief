@@ -5,6 +5,8 @@ import { smartTemplateService, SmartTemplateSuggestion, TemplateContext } from '
 import { AspectRatio } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { SearchInput } from '../SearchInput';
+import { STARTER_TEMPLATES } from '../../data/templates';
+import { TemplatePreview } from '../TemplatePreview';
 
 interface SmartTemplatesPanelProps {
   onApplyTemplate?: (templateId: string, variables: Record<string, string>) => void;
@@ -170,13 +172,29 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
                   className="bg-surface-dark-3 border border-gray-700 hover:border-purple-500/50 rounded-xl overflow-hidden transition-all group cursor-pointer"
                   onClick={() => handleApplySuggestion(suggestion)}
                 >
-                  {/* Preview Placeholder */}
-                  <div className="aspect-video bg-gradient-to-br from-gray-800 to-gray-900 relative">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-purple-600/20 flex items-center justify-center">
-                        <span className="text-2xl font-black text-purple-400">#{index + 1}</span>
-                      </div>
-                    </div>
+                  {/* WYSIWYG Live Preview */}
+                  <div className="aspect-video bg-surface-dark-4 relative overflow-hidden">
+                    {(() => {
+                      const matchedTemplate = STARTER_TEMPLATES.find((t) => t.id === suggestion.templateId);
+                      if (matchedTemplate) {
+                        return (
+                          <TemplatePreview
+                            template={matchedTemplate}
+                            containerWidth={300}
+                            containerHeight={170}
+                            className="w-full h-full"
+                          />
+                        );
+                      }
+                      return (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-16 h-16 rounded-2xl bg-purple-600/20 flex items-center justify-center">
+                            <span className="text-2xl font-black text-purple-400">#{index + 1}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                    <div className="absolute inset-0 bg-black/20 group-hover:bg-black/5 transition-colors" />
 
                     {/* Match Score Badge */}
                     <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-full border border-white/10">

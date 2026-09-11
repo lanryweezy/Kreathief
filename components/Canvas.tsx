@@ -441,8 +441,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           useStore.getState().deleteLayer(editingTextId);
         } else if (currentLayer.text !== newText) {
           useStore.getState().saveToHistory();
+          const fontSize = (currentLayer as TextLayer).fontSize || 16;
+          const estimatedWidth = Math.max(60, Math.round(newText.length * (fontSize * 0.6)));
           const updates: Partial<TextLayer> = {
             text: newText,
+            width: currentLayer.groupId ? estimatedWidth : (currentLayer.width || estimatedWidth),
             name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
           };
           onUpdateLayers?.({ [editingTextId]: updates });
@@ -560,6 +563,39 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     [props.onFileUpload, panOffset, zoom, activeArtboard, artboards, activeArtboardId, setActiveArtboardId]
   );
 
+  const handleDropShape = useCallback((e: React.DragEvent, layerId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const files = Array.from(e.dataTransfer.files || []).filter((f) => f.type.startsWith('image/'));
+    if (files.length > 0) {
+      const file = files[0];
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const src = ev.target?.result as string;
+        if (src) {
+          useStore.getState().saveToHistory();
+          useStore.getState().updateLayer(layerId, {
+            imageFill: { src, fit: 'cover' },
+            backgroundImage: src,
+            color: 'transparent',
+          } as any);
+        }
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    const url = e.dataTransfer.getData('text/plain') || e.dataTransfer.getData('text/uri-list');
+    if (url && (url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:'))) {
+      useStore.getState().saveToHistory();
+      useStore.getState().updateLayer(layerId, {
+        imageFill: { src: url, fit: 'cover' },
+        backgroundImage: url,
+        color: 'transparent',
+      } as any);
+    }
+  }, []);
+
   const canvasContextValue = useMemo<CanvasContextValue>(
     () => ({
       zoom,
@@ -571,7 +607,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       handleRotateStart,
       handleContextMenu,
       handleTextDoubleClick,
-      handleDropShape: noop,
+      handleDropShape,
       onDoubleClickLayer,
       editingTextId,
       textEditRef,
@@ -590,6 +626,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       handleRotateStart,
       handleContextMenu,
       handleTextDoubleClick,
+      handleDropShape,
       onDoubleClickLayer,
       editingTextId,
       finishEditingText,
@@ -652,7 +689,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 handleRotateStart={handleRotateStart}
                 handleContextMenu={handleContextMenu}
                 handleTextDoubleClick={handleTextDoubleClick}
-                handleDropShape={noop}
+                handleDropShape={handleDropShape}
                 onDoubleClickLayer={onDoubleClickLayer}
                 editingTextId={editingTextId}
                 textEditRef={textEditRef}
@@ -696,21 +733,26 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
               <CanvasGuides snapLines={snapLines} />
 
-              {showRulers && (
-                <Rulers
-                  width={canvasSize.width}
-                  height={canvasSize.height}
-                  zoom={zoom}
-                  panX={panOffset.x}
-                  panY={panOffset.y}
-                  visible={showRulers}
-                />
-              )}
               {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
               {selectionBox && <SelectionMarquee box={selectionBox} />}
             </CanvasProvider>
           </div>
+
+          {/* Viewport Overlay Rulers (Fixed to screen edges with zero layout shift) */}
+          {showRulers && (
+            <Rulers
+              viewportWidth={viewportSize.width}
+              viewportHeight={viewportSize.height}
+              zoom={zoom}
+              panX={panOffset.x}
+              panY={panOffset.y}
+              artboardX={activeArtboard?.x || 0}
+              artboardY={activeArtboard?.y || 0}
+              visible={showRulers}
+              unit={useStore.getState().unit || 'px'}
+            />
+          )}
         </div>
 
         {/* PathEditorOverlay is rendered OUTSIDE the zoom transform — coordinates are computed manually */}

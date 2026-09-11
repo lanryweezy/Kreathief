@@ -1,0 +1,8 @@
+feat: AI multi-layer design engine, smart snapping guides, batch alignment, auto-layout cards, and asset expansion
+
+- Build AI Design Director structured JSON engine (services/aiDesignDirector.ts) with archetypes and multi-layer artboard generation
+- Add Smart Snapping & Magnetic Guidelines with equal spacing interval detection
+- Add 1-click Batch Alignment Toolbar (align left/center/right/top/middle/bottom, distribute rows/cols) and Ctrl+G / Ctrl+Shift+G grouping shortcuts
+- Integrate Dynamic Auto-Layout Cards for auto-expanding/shrinking buttons & badges on text edits
+- Expand Lucide & Tabler vector icon pack and stock photo library
+- Ensure full WYSIWYG export parity and 0 TypeScript errors
