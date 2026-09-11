@@ -54,3 +54,23 @@ if (typeof URL.createObjectURL === 'undefined') {
 if (typeof URL.revokeObjectURL === 'undefined') {
   URL.revokeObjectURL = vi.fn();
 }
+
+// Mock fetch for OpenRouter/backend in unit tests to prevent network hangs
+const originalFetch = globalThis.fetch;
+globalThis.fetch = vi.fn(async (input: any, init?: any) => {
+  const url = typeof input === 'string' ? input : input?.url || '';
+  if (url.includes('/api/openrouter') || url.includes(':3000')) {
+    return {
+      ok: false,
+      status: 401,
+      statusText: 'Unauthorized',
+      json: async () => ({ error: 'OpenRouter API key not configured' }),
+      text: async () => JSON.stringify({ error: 'OpenRouter API key not configured' }),
+    } as any;
+  }
+  if (originalFetch) {
+    return originalFetch(input, init);
+  }
+  return { ok: false, status: 404 } as any;
+});
+

@@ -37,7 +37,9 @@
 
 **Learning:** When color pickers combine a native `<input type="color">` and a hex `<input type="text">` side-by-side (e.g., in `ContrastChecker`), they often lack semantic `<label>` associations or explicit `aria-label` attributes. Without them, screen readers announce both simply as generic inputs, providing no context on whether the user is interacting with the color swatch or the hex value for the foreground or background.
 **Action:** Always include context-specific `aria-label` attributes on both the visual color picker (e.g., `aria-label="Background color picker"`) and its accompanying hex text input (e.g., `aria-label="Background color hex value"`) when grouped together without explicit `<label htmlFor>` bindings.
+
 ## 2024-05-17 - Tab Component Accessibility
+
 **Learning:** Found that custom Tab components in this app lacked semantic ARIA roles and keyboard focus styles, leading to poor accessibility for screen reader and keyboard users.
 **Action:** Always ensure `role="tablist"` on the tab container, `role="tab"` and `aria-selected` on the tab items, and apply `focus-visible` styles with a negative outline offset to prevent layout shifts.
 
@@ -45,6 +47,8 @@
 
 **Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `TransformPanel.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-expanded` is semantically incorrect for simple toggles, as it implies the button expands/collapses a section.
 **Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.
+
 ## 2026-09-01 - Screen Reader Accessibility for Aspect Ratio Toggle Buttons
+
 **Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `ArrangePanel.tsx` and `TransformTools.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-pressed` is correct for state toggle buttons to let screen reader users know the current status.
 **Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.

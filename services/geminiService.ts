@@ -11,6 +11,7 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
 
+
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
   const messages: { role: string; content: string | any[] }[] = [];
 
@@ -57,22 +58,38 @@ export const callBackendGeminiAPI = async (payload: any) => {
     messages.push({ role: 'user', content: String(payload.contents) });
   }
 
-  // Map Gemini model names to OpenRouter equivalents
+  // Map Gemini/internal model names to OpenRouter equivalents.
+  // Full OpenRouter IDs (containing '/') are passed through as-is.
   const modelMap: Record<string, string> = {
     'gemini-2.5-flash': 'google/gemini-2.5-flash',
+    'gemini-2.5-flash-preview': 'google/gemini-2.5-flash',
     'gemini-2.5-pro': 'google/gemini-2.5-pro',
+    'gemini-2.5-pro-preview': 'google/gemini-2.5-pro-preview',
     'claude-sonnet-4': 'anthropic/claude-sonnet-4',
+    'claude-opus-4': 'anthropic/claude-opus-4',
     'gpt-4o': 'openai/gpt-4o',
+    'gpt-4o-mini': 'openai/gpt-4o-mini',
+    'o3': 'openai/o3',
+    'llama-4-scout': 'meta-llama/llama-4-scout',
   };
-  const rawModel = payload.modelName || 'gemini-2.5-flash';
-  const model = modelMap[rawModel] ?? 'google/gemini-2.5-flash';
+  const rawModel = payload.modelName || (() => {
+    try {
+      // Lazily import store to avoid circular deps — safe because this is always called at runtime
+      const { useStore } = require('../store/useStore');
+      return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
+    } catch {
+      return 'google/gemini-2.5-flash';
+    }
+  })();
+  // If the model already looks like an OpenRouter path (contains '/'), use it directly.
+  const model = rawModel.includes('/') ? rawModel : (modelMap[rawModel] ?? 'google/gemini-2.5-flash');
 
   const max_tokens = payload.generationConfig?.maxOutputTokens ?? 8192;
   const isJSON = payload.generationConfig?.responseMimeType === 'application/json';
 
   const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
-  const timeoutMs = isTest ? 200 : 60000;
-  const retries = 3;
+  const timeoutMs = isTest ? 100 : 60000;
+  const retries = isTest ? 0 : 3;
   const backoffMs = isTest ? 10 : 1000;
 
   return retryWithBackoff(
@@ -90,7 +107,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reqBody),
-          ...(isTest ? {} : { signal: controller?.signal }),
+          ...(controller?.signal ? { signal: controller.signal } : {}),
         });
 
         clearTimeout(timeoutId);

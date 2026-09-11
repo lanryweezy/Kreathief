@@ -106,7 +106,37 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
                   <option value="start">Start</option>
                   <option value="center">Center</option>
                   <option value="end">End</option>
+                  <option value="space-between">Space Between</option>
+                  <option value="space-around">Space Around</option>
+                  <option value="space-evenly">Space Evenly</option>
                 </select>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="space-y-2 flex-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Width</span>
+                  <select
+                    value={selectedLayer.autoLayout?.sizing?.width || 'fixed'}
+                    onChange={(e) => updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, width: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="fixed">Fixed</option>
+                    <option value="hug">Hug</option>
+                    <option value="fill">Fill</option>
+                  </select>
+                </div>
+                <div className="space-y-2 flex-1">
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Height</span>
+                  <select
+                    value={selectedLayer.autoLayout?.sizing?.height || 'fixed'}
+                    onChange={(e) => updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, height: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50"
+                  >
+                    <option value="fixed">Fixed</option>
+                    <option value="hug">Hug</option>
+                    <option value="fill">Fill</option>
+                  </select>
+                </div>
               </div>
             </div>
           </Dropdown>

@@ -49,7 +49,7 @@ export const AI_MODELS: AIModel[] = [
     icon: '🎯',
   },
   {
-    id: 'google/gemini-2.5-flash-preview',
+    id: 'google/gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
     provider: 'Google',
     category: 'quality',

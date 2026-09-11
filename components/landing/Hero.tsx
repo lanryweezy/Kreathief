@@ -179,6 +179,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <img
               src="/images/landing_feature_layers.png"
               alt="Advanced layer orchestration and UI management panel for vector editing software AI inside Kreathief"
+              loading="lazy"
+              decoding="async"
               className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
@@ -199,6 +201,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <img
               src="/images/hero_floating_palette_1772559659004.png"
               alt="Smart brand kits AI and intelligent color palette generator panel tool interface"
+              loading="lazy"
+              decoding="async"
               className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
             />
           </motion.div>

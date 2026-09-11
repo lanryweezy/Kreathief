@@ -84,6 +84,10 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
                 <img
                   src={tpl.src}
                   alt={`Template ${tpl.id}`}
+                  loading="lazy"
+
+                  decoding="async"
+
                   className="w-full h-full object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />

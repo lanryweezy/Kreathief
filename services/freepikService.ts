@@ -562,9 +562,6 @@ export async function downloadIconPNG(iconId: number): Promise<string | null> {
 }
 
 export function isConfigured(): boolean {
-  try {
-    return typeof window !== 'undefined' && !!import.meta.env.VITE_FREEPIK_API_KEY;
-  } catch {
-    return false;
-  }
+  // API key is server-side only — all calls go through /api/freepik proxy
+  return typeof window !== 'undefined';
 }

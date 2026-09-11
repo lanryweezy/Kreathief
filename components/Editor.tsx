@@ -19,9 +19,12 @@ import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { generateShareLink } from '../utils/shareUtils';
 import { storageService } from '../services/storageService';
-import { PresentationModal } from './modals/PresentationModal';
-import { ShareModal } from './modals/ShareModal';
-import { ExportModal } from './modals/ExportModal';
+const ExportModal = React.lazy(() =>
+  import('./modals/ExportModal').then((m) => ({ default: m.ExportModal }))
+);
+const ShareModal = React.lazy(() =>
+  import('./modals/ShareModal').then((m) => ({ default: m.ShareModal }))
+);
 import { MockupPanel } from './panels/MockupPanel';
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
@@ -32,10 +35,18 @@ const CommandPalette = React.lazy(() =>
   import('./modals/CommandPalette').then((module) => ({ default: module.CommandPalette }))
 );
 import { Toolbar } from './Toolbar';
-import { ShortcutOverlay } from './ShortcutOverlay';
+const ShortcutOverlay = React.lazy(() =>
+  import('./ShortcutOverlay').then((m) => ({ default: m.ShortcutOverlay }))
+);
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
-import { FeedbackModal } from './modals/FeedbackModal';
+import { buildEditorShortcuts } from './editor/EditorShortcuts';
+const FeedbackModal = React.lazy(() =>
+  import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
+);
+const PresentationModal = React.lazy(() =>
+  import('./modals/PresentationModal').then((m) => ({ default: m.PresentationModal }))
+);
 import { MobileQuickActions } from './MobileQuickActions';
 import { useShakeToUndo } from '../hooks/useShakeToUndo';
 import { MobileToolbar } from './MobileToolbar';
@@ -230,479 +241,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   };
 
   const shortcuts = useMemo(() => {
-    return [
-      {
-        key: 'z',
-        ctrl: true,
-        action: () => {
-          useStore.getState().undo();
-          haptics.light();
-        },
-        description: 'Undo',
-      },
-      {
-        key: 'y',
-        ctrl: true,
-        action: () => {
-          useStore.getState().redo();
-          haptics.light();
-        },
-        description: 'Redo',
-      },
-      {
-        key: 'z',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          useStore.getState().redo();
-          haptics.light();
-        },
-        description: 'Redo (Alt)',
-      },
-      {
-        key: 'c',
-        ctrl: true,
-        action: () => {
-          if (selectedLayerId) {
-            useStore.getState().copyLayer(selectedLayerId);
-            haptics.selection();
-          }
-        },
-        description: 'Copy Layer',
-      },
-      {
-        key: 'v',
-        ctrl: true,
-        action: () => {
-          useStore.getState().pasteLayer();
-          haptics.medium();
-        },
-        description: 'Paste Layer',
-      },
-      {
-        key: 'd',
-        ctrl: true,
-        action: () => {
-          if (selectedLayerIds.length > 0) {
-            useStore.getState().duplicateSelected();
-            haptics.medium();
-          }
-        },
-        description: 'Duplicate Layer(s)',
-      },
-      {
-        key: 'Delete',
-        action: () => {
-          if (selectedLayerIds.length > 0) {
-            // deleteSelected records store history itself
-            useStore.getState().deleteSelected();
-            haptics.heavy();
-          }
-        },
-        description: 'Delete Layer(s)',
-      },
-      {
-        key: 'Backspace',
-        action: () => {
-          if (selectedLayerIds.length > 0) {
-            useStore.getState().deleteSelected();
-            haptics.heavy();
-          }
-        },
-        description: 'Delete Layer(s)',
-      },
-      {
-        key: 's',
-        ctrl: true,
-        action: () => {
-          useStore.getState().saveProject();
-          haptics.light();
-        },
-        description: 'Save Project',
-      },
-      {
-        key: 'e',
-        ctrl: true,
-        action: () => {
-          setShowExport(true);
-          haptics.light();
-        },
-        description: 'Export Design',
-      },
-      {
-        key: 'g',
-        ctrl: true,
-        action: () => {
-          if (selectedLayerIds.length > 1) {
-            useStore.getState().groupSelected();
-            haptics.medium();
-          }
-        },
-        description: 'Group Layers',
-      },
-      {
-        key: 'g',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          if (selectedLayerIds.length > 0) {
-            useStore.getState().ungroupSelected();
-          }
-        },
-        description: 'Ungroup Layers',
-      },
-
-      {
-        key: 'v',
-        action: () => {
-          useStore.getState().setSelectedLayerIds([]);
-          useStore.getState().setPenMode(false);
-        },
-        description: 'Select Tool',
-      },
-      {
-        key: 't',
-        action: () => {
-          useStore.getState().setActiveTab(NavTab.TEXT);
-          useStore.getState().addTextLayer();
-        },
-        description: 'Text Tool',
-      },
-      {
-        key: 'r',
-        action: () => {
-          useStore.getState().setActiveTab(NavTab.MEDIA);
-          useStore.getState().addShapeLayer('rectangle');
-        },
-        description: 'Rectangle Tool',
-      },
-      {
-        key: 'o',
-        action: () => {
-          useStore.getState().setActiveTab(NavTab.MEDIA);
-          useStore.getState().addShapeLayer('circle');
-        },
-        description: 'Oval Tool',
-      },
-      {
-        key: 'p',
-        action: () => {
-          useStore.getState().setActiveTab(NavTab.DRAW);
-          useStore.getState().setPenMode(true);
-        },
-        description: 'Draw Tool',
-      },
-      {
-        key: 'v',
-        action: () => {
-          useStore.getState().setPenMode(false);
-          useStore.getState().setActiveTab(NavTab.LAYERS);
-        },
-        description: 'Selection / Move Tool',
-      },
-      { key: 'l', action: () => useStore.getState().setActiveTab(NavTab.LAYERS), description: 'Layers Panel' },
-      { key: 'b', action: () => useStore.getState().setActiveTab(NavTab.BRAND), description: 'Brand Kit' },
-
-      {
-        key: 'ArrowUp',
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 0, -1);
-          }
-        },
-        description: 'Nudge Up',
-      },
-      {
-        key: 'ArrowDown',
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 0, 1);
-          }
-        },
-        description: 'Nudge Down',
-      },
-      {
-        key: 'ArrowLeft',
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, -1, 0);
-          }
-        },
-        description: 'Nudge Left',
-      },
-      {
-        key: 'ArrowRight',
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 1, 0);
-          }
-        },
-        description: 'Nudge Right',
-      },
-      {
-        key: 'ArrowUp',
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 0, -10);
-          }
-        },
-        description: 'Nudge Up 10px',
-      },
-      {
-        key: 'ArrowDown',
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 0, 10);
-          }
-        },
-        description: 'Nudge Down 10px',
-      },
-      {
-        key: 'ArrowLeft',
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, -10, 0);
-          }
-        },
-        description: 'Nudge Left 10px',
-      },
-      {
-        key: 'ArrowRight',
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            const storeRef = useStore.getState();
-            storeRef.saveToHistory();
-            storeRef.nudgeLayer(selectedLayerId, 10, 0);
-          }
-        },
-        description: 'Nudge Right 10px',
-      },
-      {
-        key: 'a',
-        ctrl: true,
-        action: () => {
-          const layers =
-            useStore.getState().artboards.find((a: any) => a.id === useStore.getState().activeArtboardId)?.layers || [];
-          useStore.getState().setSelectedLayerIds(layers.map((l: any) => l.id));
-        },
-        description: 'Select All',
-      },
-      {
-        key: 'Escape',
-        action: () => {
-          useStore.getState().setSelectedLayerIds([]);
-        },
-        description: 'Deselect All',
-      },
-      {
-        key: '0',
-        ctrl: true,
-        action: () => {
-          useStore.getState().setZoom(1);
-        },
-        description: 'Zoom to 100%',
-      },
-      {
-        key: '=',
-        ctrl: true,
-        action: () => {
-          const state = useStore.getState();
-          state.setZoom(Math.min(10, state.zoom + 0.25));
-        },
-        description: 'Zoom In',
-      },
-      {
-        key: '-',
-        ctrl: true,
-        action: () => {
-          const state = useStore.getState();
-          state.setZoom(Math.max(0.05, state.zoom - 0.25));
-        },
-        description: 'Zoom Out',
-      },
-      {
-        key: ']',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            useStore.getState().moveLayer(selectedLayerId, 'front');
-          }
-        },
-        description: 'Bring to Front',
-      },
-      {
-        key: '[',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          if (selectedLayerId) {
-            useStore.getState().moveLayer(selectedLayerId, 'back');
-          }
-        },
-        description: 'Send to Back',
-      },
-      {
-        key: ']',
-        ctrl: true,
-        action: () => {
-          if (selectedLayerId) {
-            useStore.getState().moveLayer(selectedLayerId, 'forward');
-          }
-        },
-        description: 'Bring Forward',
-      },
-      {
-        key: '[',
-        ctrl: true,
-        action: () => {
-          if (selectedLayerId) {
-            useStore.getState().moveLayer(selectedLayerId, 'backward');
-          }
-        },
-        description: 'Send Backward',
-      },
-      {
-        key: 'h',
-        action: () => {
-          if (selectedLayer && selectedLayer.type !== 'text') {
-            useStore.getState().updateLayer(selectedLayer.id, { flipX: !(selectedLayer as any).flipX });
-          }
-        },
-        description: 'Flip Horizontal',
-      },
-      {
-        key: 'v',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          if (selectedLayer && selectedLayer.type !== 'text') {
-            useStore.getState().updateLayer(selectedLayer.id, { flipY: !(selectedLayer as any).flipY });
-          }
-        },
-        description: 'Flip Vertical',
-      },
-      {
-        key: 'k',
-        ctrl: true,
-        action: () => {
-          useStore.getState().setCommandPaletteOpen(true);
-          haptics.light();
-        },
-        description: 'Command Palette',
-      },
-      {
-        key: '?',
-        shift: true,
-        action: () => useStore.getState().setShowShortcuts(!useStore.getState().showShortcuts),
-        description: 'Shortcuts',
-      },
-      {
-        key: 'g',
-        ctrl: true,
-        shift: false,
-        action: () => {
-          useStore.getState().groupSelected?.();
-          haptics.light();
-        },
-        description: 'Group Selected (Ctrl+G)',
-      },
-      {
-        key: 'g',
-        ctrl: true,
-        shift: true,
-        action: () => {
-          useStore.getState().ungroupSelected?.();
-          haptics.light();
-        },
-        description: 'Ungroup Selected (Ctrl+Shift+G)',
-      },
-
-      {
-        key: '1',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('left');
-            haptics.light();
-          }
-        },
-        description: 'Align Left',
-      },
-      {
-        key: '2',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('center');
-            haptics.light();
-          }
-        },
-        description: 'Align Center H',
-      },
-      {
-        key: '3',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('right');
-            haptics.light();
-          }
-        },
-        description: 'Align Right',
-      },
-      {
-        key: '4',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('top');
-            haptics.light();
-          }
-        },
-        description: 'Align Top',
-      },
-      {
-        key: '5',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('middle');
-            haptics.light();
-          }
-        },
-        description: 'Align Middle V',
-      },
-      {
-        key: '6',
-        alt: true,
-        action: () => {
-          if (selectedLayerIds.length >= 2) {
-            useStore.getState().alignLayers('bottom');
-            haptics.light();
-          }
-        },
-        description: 'Align Bottom',
-      },
-    ];
+    return buildEditorShortcuts(selectedLayerIds, selectedLayer || undefined, selectedLayerId, setShowExport);
   }, [selectedLayerIds, selectedLayer, selectedLayerId]);
 
   useKeyboardShortcuts({ shortcuts, enabled: true });
@@ -1135,58 +674,58 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       </BottomSheet>
 
       <ErrorBoundary componentName="Modals" variant="widget">
-        {showExport && (
-          <ExportModal
-            onClose={() => setShowExport(false)}
-            currentSize={canvasSize}
-            onExport={(format, quality, size, transparentBg, customFilename, overrideLayers, printOptions) =>
-              handleConfirmExport({
-                format,
-                quality,
-                size,
-                transparentBg,
-                customFilename,
-                onComplete: () => setShowExport(false),
-                overrideLayers,
-                printOptions,
-              })
-            }
-            onGetPngBlob={handleExportBlob}
-          />
-        )}
-        {showShareModal && (
-          <ShareModal
-            onClose={() => useStore.getState().setShowShareModal(false)}
-            designTitle={projectTitle}
-            onGetShareLink={() => {
-              // Self-contained ?share= link (gzip URL payload) — parsed by App.tsx.
-              // The Supabase /share/:id flow has no consuming route, so it dead-ends for recipients.
-              const s = useStore.getState();
-              return generateShareLink({
-                id: projectId || 'shared',
-                name: s.projectTitle,
-                updatedAt: Date.now(),
-                state: {
-                  artboards: s.artboards,
-                  activeArtboardId: s.activeArtboardId,
-                  canvasBackgroundColor: s.canvasBackgroundColor,
-                  canvasFilters: s.canvasFilters,
-                  canvasSize: s.canvasSize,
-                  brandKits: s.brandKits,
-                  showGrid: s.showGrid,
-                  showRulers: s.showRulers,
-                },
-              } as Project);
-            }}
-          />
-        )}
+        <React.Suspense fallback={null}>
+          {showExport && (
+            <ExportModal
+              onClose={() => setShowExport(false)}
+              currentSize={canvasSize}
+              onExport={(format, quality, size, transparentBg, customFilename, overrideLayers, printOptions) =>
+                handleConfirmExport({
+                  format,
+                  quality,
+                  size,
+                  transparentBg,
+                  customFilename,
+                  onComplete: () => setShowExport(false),
+                  overrideLayers,
+                  printOptions,
+                })
+              }
+              onGetPngBlob={handleExportBlob}
+            />
+          )}
+          {showShareModal && (
+            <ShareModal
+              onClose={() => useStore.getState().setShowShareModal(false)}
+              designTitle={projectTitle}
+              onGetShareLink={() => {
+                const s = useStore.getState();
+                return generateShareLink({
+                  id: projectId || 'shared',
+                  name: s.projectTitle,
+                  updatedAt: Date.now(),
+                  state: {
+                    artboards: s.artboards,
+                    activeArtboardId: s.activeArtboardId,
+                    canvasBackgroundColor: s.canvasBackgroundColor,
+                    canvasFilters: s.canvasFilters,
+                    canvasSize: s.canvasSize,
+                    brandKits: s.brandKits,
+                    showGrid: s.showGrid,
+                    showRulers: s.showRulers,
+                  },
+                } as Project);
+              }}
+            />
+          )}
+        </React.Suspense>
       </ErrorBoundary>
 
-      <ShortcutOverlay isOpen={showShortcuts} onClose={() => useStore.getState().setShowShortcuts(false)} />
-      {showFeedbackModal && <FeedbackModal />}
-
-      {/* Mount the PresentationModal so it can react to global store changes */}
-      <PresentationModal />
+      <React.Suspense fallback={null}>
+        <ShortcutOverlay isOpen={showShortcuts} onClose={() => useStore.getState().setShowShortcuts(false)} />
+        {showFeedbackModal && <FeedbackModal />}
+        <PresentationModal />
+      </React.Suspense>
 
       <React.Suspense fallback={null}>
         {showCommunityModal && <CommunityModal onClose={() => setShowCommunityModal(false)} />}

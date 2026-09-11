@@ -86,6 +86,7 @@ export default async function handler(req: Request) {
     const ALLOWED_MODELS = [
       'google/gemini-2.5-flash',
       'google/gemini-2.5-pro',
+      'google/gemini-2.5-pro-preview',
       'openai/gpt-4o',
       'openai/gpt-4o-mini',
       'openai/o3',
@@ -104,7 +105,7 @@ export default async function handler(req: Request) {
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return new Response(JSON.stringify({ error: 'OpenRouter API key not configured' }), {
-        status: 500,
+        status: 401,
         headers: { 'Content-Type': 'application/json', ...noStoreHeaders() },
       });
     }

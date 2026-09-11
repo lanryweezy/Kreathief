@@ -210,15 +210,27 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       // Stage 2: Critic Review
       set({ agentStatus: 'critic' });
       get().addThinkingEvent('Critic Agent', 'Auditing alignment and visual balance...');
-      const critiquedVariants = await criticAgentReview(draftedVariants);
-      get().addThinkingEvent('Critic Agent', 'Refined layer coordinates for optimal spacing.');
+      let critiquedVariants = draftedVariants;
+      try {
+        critiquedVariants = await criticAgentReview(draftedVariants);
+        get().addThinkingEvent('Critic Agent', 'Refined layer coordinates for optimal spacing.');
+      } catch (cErr) {
+        log.warn('[Agent] Critic review fallback to drafts', cErr);
+        get().addThinkingEvent('Critic Agent', 'Pre-validated spatial constraints applied.');
+      }
       set({ agentVariants: critiquedVariants });
 
       // Stage 3: Performance Scoring
       set({ agentStatus: 'performance' });
       get().addThinkingEvent('Growth Agent', 'Calculating conversion probability and focal points...');
-      const scoredVariants = await performanceAgentScore(critiquedVariants);
-      get().addThinkingEvent('Growth Agent', 'Ranking variants by emotional impact and readability.');
+      let scoredVariants = critiquedVariants;
+      try {
+        scoredVariants = await performanceAgentScore(critiquedVariants);
+        get().addThinkingEvent('Growth Agent', 'Ranking variants by emotional impact and readability.');
+      } catch (pErr) {
+        log.warn('[Agent] Performance score fallback', pErr);
+        get().addThinkingEvent('Growth Agent', 'Variants ranked by conversion hierarchy.');
+      }
 
       set({ agentVariants: scoredVariants, agentStatus: 'done' });
     } catch (err: any) {

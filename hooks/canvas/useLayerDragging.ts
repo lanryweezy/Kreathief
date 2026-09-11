@@ -11,6 +11,7 @@ interface UseLayerDraggingProps {
   activeArtboard: Artboard | undefined;
   zoom: number;
   onUpdateLayers: (updates: Record<string, Partial<Layer>>) => void;
+  onPreviewLayers: (updates: Record<string, Partial<Layer>>) => void;
   onSelectLayer: (id: string | null) => void;
   onMultiSelectLayer: (id: string, shift: boolean) => void;
   onInteractionStart?: () => void;
@@ -24,6 +25,7 @@ export const useLayerDragging = ({
   activeArtboard,
   zoom,
   onUpdateLayers,
+  onPreviewLayers,
   onSelectLayer,
   onMultiSelectLayer,
   onInteractionStart,
@@ -217,7 +219,7 @@ export const useLayerDragging = ({
 
         const snap = wasmCalculateSnaps(
           currentMovingLayers,
-          staticLayersRef.current,
+          layersRef.current,
           currentActiveArtboard,
           SNAP_THRESHOLD,
           zoomRef.current
@@ -235,11 +237,15 @@ export const useLayerDragging = ({
         }
         wasSnappedToCenterRef.current = isSnappedToCenter;
 
-        const pivotId = movingLayers[0]?.id;
-        const finalDx =
-          dx + (snap.x !== null && pivotId ? snap.x - (currentDragState.initialPositions[pivotId].x + dx) : 0);
-        const finalDy =
-          dy + (snap.y !== null && pivotId ? snap.y - (currentDragState.initialPositions[pivotId].y + dy) : 0);
+        let minInitialX = Infinity;
+        let minInitialY = Infinity;
+        movingLayers.forEach((l) => {
+          minInitialX = Math.min(minInitialX, currentDragState.initialPositions[l.id].x);
+          minInitialY = Math.min(minInitialY, currentDragState.initialPositions[l.id].y);
+        });
+
+        const finalDx = dx + (snap.x !== null ? snap.x - (minInitialX + dx) : 0);
+        const finalDy = dy + (snap.y !== null ? snap.y - (minInitialY + dy) : 0);
 
         const buffer = dragUpdateBuffer.current;
         for (const key in buffer) {
@@ -250,10 +256,10 @@ export const useLayerDragging = ({
           buffer[id] = { x: pos.x + finalDx, y: pos.y + finalDy };
         });
         bulkDragPreviewRef.current = { ...buffer };
-        onUpdateLayers(bulkDragPreviewRef.current);
+        onPreviewLayers(bulkDragPreviewRef.current);
       }
     },
-    [onUpdateLayers]
+    [onPreviewLayers]
   );
 
   const finalizeDragging = useCallback(() => {

@@ -56,6 +56,7 @@ interface CanvasRendererProps {
   onDismissSuggestion?: (id: string) => void;
   onApplySuggestion?: (suggestion: SmartSuggestion) => void;
   allLayers?: Layer[];
+  interactionPreviewUpdates?: Record<string, Partial<Layer>>;
 }
 
 interface ArtboardItemProps {
@@ -98,6 +99,7 @@ interface ArtboardItemProps {
   localLassoPoints: { x: number; y: number }[];
   booleanPreview: { path: string; operation: string } | null;
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
+  interactionPreviewUpdates?: Record<string, Partial<Layer>>;
 }
 
 const ArtboardItem = React.memo(
@@ -141,7 +143,9 @@ const ArtboardItem = React.memo(
     booleanPreview,
     viewportBounds,
     isInteracting,
+    interactionPreviewUpdates,
   }: ArtboardItemProps) => {
+    const isExporting = useStore((state) => state.isExporting);
     const hoveredMaskBoundary = useStore((state) => state.hoveredMaskBoundary);
     const croppingLayer = useStore((state) => {
       if (!state.isCropMode || !state.croppingLayerId) {
@@ -213,8 +217,9 @@ const ArtboardItem = React.memo(
         </div>
 
         <div
+          data-artboard-content={artboard.id}
           className={`relative shadow-2xl bg-white overflow-hidden ${
-            activeArtboardId === artboard.id ? 'ring-2 ring-brand-600/50' : 'ring-1 ring-white/10'
+            activeArtboardId === artboard.id && !isExporting ? 'ring-2 ring-brand-600/50' : 'ring-1 ring-white/10'
           }`}
           style={{
             width: artboard.width,
@@ -246,6 +251,7 @@ const ArtboardItem = React.memo(
             onUpdatePath={onUpdatePath || noop}
             zoom={zoom}
             previewAnimation={previewAnimation}
+            interactionPreviewUpdates={interactionPreviewUpdates}
             viewportBounds={
               viewportBounds
                 ? {
@@ -271,7 +277,7 @@ const ArtboardItem = React.memo(
             />
           )}
 
-          {activeArtboardId === artboard.id && (
+          {activeArtboardId === artboard.id && !isExporting && (
             <>
               {showGrid && (
                 <div
@@ -386,6 +392,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     booleanPreview,
     viewportBounds,
     isInteracting,
+    interactionPreviewUpdates,
     suggestions = [],
     onDismissSuggestion = () => {},
     onApplySuggestion = () => {},
@@ -434,6 +441,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
             localLassoPoints={localLassoPoints}
             booleanPreview={booleanPreview}
             viewportBounds={viewportBounds}
+            interactionPreviewUpdates={interactionPreviewUpdates}
           />
         ))}
 

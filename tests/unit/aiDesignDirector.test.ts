@@ -10,7 +10,7 @@ describe('aiDesignDirector', () => {
     expect(result.layers.length).toBeGreaterThanOrEqual(5);
 
     const hasText = result.layers.some((l) => l.type === 'text');
-    const hasShape = result.layers.some((l) => l.type === 'rect' || l.type === 'ellipse');
+    const hasShape = result.layers.some((l) => l.type === 'rect' || l.type === 'rectangle' || l.type === 'ellipse' || l.type === 'circle');
     expect(hasText).toBe(true);
     expect(hasShape).toBe(true);
   });

@@ -45,7 +45,9 @@ export const LogoTicker: React.FC = () => {
                 key={idx}
                 className="w-14 h-14 rounded-full border-4 border-[#0a0a0c] overflow-hidden bg-gray-900 shadow-xl relative z-10 transition-transform hover:scale-110 hover:z-20 cursor-pointer"
               >
-                <img src={avatar} alt={`User ${idx + 1}`} className="w-full h-full object-cover" />
+                <img src={avatar} alt={`User ${idx + 1}`} loading="lazy"
+ decoding="async"
+ className="w-full h-full object-cover" />
               </div>
             ))}
             <div className="w-14 h-14 rounded-full border-4 border-[#0a0a0c] bg-white/10 backdrop-blur-md flex items-center justify-center relative z-0">
@@ -77,6 +79,10 @@ export const LogoTicker: React.FC = () => {
                       <img
                         src={brand.image}
                         alt={brand.name}
+                        loading="lazy"
+
+                        decoding="async"
+
                         className={`w-full h-full object-contain ${!brand.isCustomColor ? 'filter grayscale' : 'rounded-md shadow-sm border border-black/5 object-cover'}`}
                       />
                     </div>

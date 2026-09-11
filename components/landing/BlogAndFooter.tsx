@@ -91,7 +91,9 @@ export const Footer: React.FC = () => {
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-8">
               <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
-                <img src="/logo.svg" alt="Kreathief" className="w-full h-full object-cover" />
+                <img src="/logo.svg" alt="Kreathief" loading="lazy"
+ decoding="async"
+ className="w-full h-full object-cover" />
               </div>
               <span className="font-black text-xl tracking-tighter uppercase">Kreathief</span>
             </div>

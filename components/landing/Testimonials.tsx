@@ -97,6 +97,10 @@ export const Testimonials: React.FC = () => {
                 <img
                   src={testimonial.avatar}
                   alt={testimonial.author}
+                  loading="lazy"
+
+                  decoding="async"
+
                   className="w-12 h-12 rounded-full object-cover border-2 border-white/10"
                 />
                 <div>

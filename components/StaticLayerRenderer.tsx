@@ -1,6 +1,6 @@
 import React from 'react';
-import { Layer, TextLayer, ShapeLayer, ImageLayer } from '../types';
-import { ImageLayerItem, ShapeLayerItem, TextLayerItem } from './canvas/LayerItems';
+import { Layer, TextLayer, ShapeLayer, ImageLayer, AdjustmentLayer } from '../types';
+import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
 
 interface StaticLayerRendererProps {
   layers: Layer[];
@@ -11,7 +11,7 @@ interface StaticLayerRendererProps {
 
 /**
  * A lightweight, non-interactive version of CanvasLayerRenderer.
- * Used for displaying agent-generated variants in smaller cards.
+ * Used for displaying agent-generated variants in smaller cards and for DOM export.
  */
 export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
   layers,
@@ -29,12 +29,34 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
         height,
       }}
     >
-      {layers.map((l) => {
+      {layers.map((l, idx) => {
+        if (l.visible === false) {
+          return null;
+        }
+
+        const zIndex = typeof (l as any).zIndex === 'number' ? (l as any).zIndex : idx + 1;
+        const layerWithZIndex = { ...l, zIndex };
+
+        if (l.type === 'adjustment') {
+          return (
+            <AdjustmentLayerItem
+              key={l.id}
+              layer={layerWithZIndex as AdjustmentLayer}
+              isSelected={false}
+              isHovered={false}
+              onMouseDown={() => {}}
+              onResize={() => {}}
+              onRotate={() => {}}
+              onContextMenu={() => {}}
+            />
+          );
+        }
+
         if (l.type === 'image') {
           return (
             <ImageLayerItem
               key={l.id}
-              layer={l as ImageLayer}
+              layer={layerWithZIndex as ImageLayer}
               isSelected={false}
               isHovered={false}
               onMouseDown={() => {}}
@@ -49,7 +71,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
           return (
             <TextLayerItem
               key={l.id}
-              layer={l as TextLayer}
+              layer={layerWithZIndex as TextLayer}
               isSelected={false}
               isHovered={false}
               onMouseDown={() => {}}
@@ -64,7 +86,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
         return (
           <ShapeLayerItem
             key={l.id}
-            layer={l as ShapeLayer}
+            layer={layerWithZIndex as ShapeLayer}
             isSelected={false}
             isHovered={false}
             onMouseDown={() => {}}

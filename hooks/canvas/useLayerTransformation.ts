@@ -16,12 +16,15 @@ interface TransformationState {
   aspectRatio: number;
   // For rotation: angle from layer center to initial mouse position
   initialAngle?: number;
+  initialChildren?: { id: string; x: number; y: number; width: number; height: number; rotation: number }[];
 }
 
 interface UseLayerTransformationProps {
   layers: Layer[];
+  selectedLayerIds: string[];
   zoom: number;
   onUpdateLayers: (updates: Record<string, Partial<Layer>>) => void;
+  onPreviewLayers: (updates: Record<string, Partial<Layer>>) => void;
   panOffset: { x: number; y: number };
   viewportRef: React.RefObject<HTMLDivElement>;
   activeArtboard?: Artboard;
@@ -29,15 +32,19 @@ interface UseLayerTransformationProps {
 
 export const useLayerTransformation = ({
   layers,
+  selectedLayerIds,
   zoom,
   onUpdateLayers,
+  onPreviewLayers,
   panOffset,
   viewportRef,
   activeArtboard,
 }: UseLayerTransformationProps) => {
   const [transformState, setTransformState] = useState<TransformationState | null>(null);
   const transformStateRef = useRef(transformState);
+  const transformPreviewRef = useRef<Record<string, Partial<Layer>>>({});
   const layersRef = useRef(layers);
+  const selectedLayerIdsRef = useRef(selectedLayerIds);
   const zoomRef = useRef(zoom);
 
   const panOffsetRef = useRef(panOffset);
@@ -46,13 +53,26 @@ export const useLayerTransformation = ({
   useEffect(() => {
     transformStateRef.current = transformState;
     layersRef.current = layers;
+    selectedLayerIdsRef.current = selectedLayerIds;
     zoomRef.current = zoom;
     panOffsetRef.current = panOffset;
     activeArtboardRef.current = activeArtboard;
-  }, [transformState, layers, zoom, panOffset, activeArtboard]);
+  }, [transformState, layers, selectedLayerIds, zoom, panOffset, activeArtboard]);
 
   const handleResizeStart = useCallback((e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => {
     e.stopPropagation();
+
+    let initialChildren;
+    if (layer.id === 'group_proxy') {
+      initialChildren = layersRef.current
+        .filter((l) => selectedLayerIdsRef.current.includes(l.id))
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+    } else if (layer.isGroup) {
+      initialChildren = layersRef.current
+        .filter((l) => l.groupId === layer.id)
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+    }
+
     setTransformState({
       type: 'resize',
       handle,
@@ -66,6 +86,7 @@ export const useLayerTransformation = ({
       initialRotation: layer.rotation || 0,
       initialFontSize: layer.type === 'text' ? (layer as any).fontSize || 40 : undefined,
       aspectRatio: ((layer as any).width || 1) / ((layer as any).height || 1),
+      initialChildren,
     });
   }, []);
 
@@ -87,6 +108,18 @@ export const useLayerTransformation = ({
     const mouseCanvasX = (e.clientX - rect.left - panOffsetRef.current.x) / zoomRef.current;
     const mouseCanvasY = (e.clientY - rect.top - panOffsetRef.current.y) / zoomRef.current;
     const initialAngle = Math.atan2(mouseCanvasY - centerY, mouseCanvasX - centerX);
+
+    let initialChildren;
+    if (layer.id === 'group_proxy') {
+      initialChildren = layersRef.current
+        .filter((l) => selectedLayerIdsRef.current.includes(l.id))
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+    } else if (layer.isGroup) {
+      initialChildren = layersRef.current
+        .filter((l) => l.groupId === layer.id)
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+    }
+
     setTransformState({
       type: 'rotate',
       layerId: layer.id,
@@ -99,6 +132,7 @@ export const useLayerTransformation = ({
       initialRotation: layer.rotation || 0,
       aspectRatio: 1,
       initialAngle,
+      initialChildren,
     });
   }, []);
 
@@ -263,8 +297,8 @@ export const useLayerTransformation = ({
       updates[state.layerId] = partial;
 
       // Handle Group Children Transformations (Scaling & Rotation)
-      const layer = layersRef.current.find((l) => l.id === state.layerId);
-      if (layer?.isGroup) {
+      const layer = state.layerId === 'group_proxy' ? { isGroup: true } : layersRef.current.find((l) => l.id === state.layerId);
+      if (layer?.isGroup && state.initialChildren) {
         const gInitialCenterX = state.initialX + state.initialWidth / 2;
         const gInitialCenterY = state.initialY + state.initialHeight / 2;
         const gCurrentX = partial.x ?? state.initialX;
@@ -277,44 +311,47 @@ export const useLayerTransformation = ({
         const scaleY = gCurrentH / state.initialHeight;
         const dRot = gCurrentRot - state.initialRotation;
 
-        layersRef.current.forEach((child) => {
-          if (child.groupId === state.layerId) {
-            const childUpdate: any = {};
+        state.initialChildren.forEach((child) => {
+          const childUpdate: any = {};
 
-            if (state.type === 'resize') {
-              const relX = child.x - state.initialX;
-              const relY = child.y - state.initialY;
-              childUpdate.x = gCurrentX + relX * scaleX;
-              childUpdate.y = gCurrentY + relY * scaleY;
-              childUpdate.width = ((child as any).width || 0) * scaleX;
-              childUpdate.height = ((child as any).height || 0) * scaleY;
-            } else if (state.type === 'rotate') {
-              const trad = (dRot * Math.PI) / 180;
-              const relX = child.x + ((child as any).width || 0) / 2 - gInitialCenterX;
-              const relY = child.y + ((child as any).height || 0) / 2 - gInitialCenterY;
+          if (state.type === 'resize') {
+            const relX = child.x - state.initialX;
+            const relY = child.y - state.initialY;
+            childUpdate.x = gCurrentX + relX * scaleX;
+            childUpdate.y = gCurrentY + relY * scaleY;
+            childUpdate.width = child.width * scaleX;
+            childUpdate.height = child.height * scaleY;
+          } else if (state.type === 'rotate') {
+            const trad = (dRot * Math.PI) / 180;
+            const relX = child.x + child.width / 2 - gInitialCenterX;
+            const relY = child.y + child.height / 2 - gInitialCenterY;
 
-              // Rotate center position — use initial group center for consistent orbit
-              const rx = relX * Math.cos(trad) - relY * Math.sin(trad);
-              const ry = relX * Math.sin(trad) + relY * Math.cos(trad);
+            // Rotate center position — use initial group center for consistent orbit
+            const rx = relX * Math.cos(trad) - relY * Math.sin(trad);
+            const ry = relX * Math.sin(trad) + relY * Math.cos(trad);
 
-              childUpdate.x = state.initialX + state.initialWidth / 2 + rx - ((child as any).width || 0) / 2;
-              childUpdate.y = state.initialY + state.initialHeight / 2 + ry - ((child as any).height || 0) / 2;
-              childUpdate.rotation = (child.rotation || 0) + dRot;
-            }
-
-            updates[child.id] = { ...(updates[child.id] || {}), ...childUpdate };
+            childUpdate.x = state.initialX + state.initialWidth / 2 + rx - child.width / 2;
+            childUpdate.y = state.initialY + state.initialHeight / 2 + ry - child.height / 2;
+            childUpdate.rotation = child.rotation + dRot;
           }
+
+          updates[child.id] = { ...(updates[child.id] || {}), ...childUpdate };
         });
       }
 
-      onUpdateLayers(updates);
+      transformPreviewRef.current = updates;
+      onPreviewLayers(updates);
     },
-    [onUpdateLayers]
+    [onPreviewLayers]
   );
 
   const finalizeTransformation = useCallback(() => {
+    if (Object.keys(transformPreviewRef.current).length > 0) {
+      onUpdateLayers(transformPreviewRef.current);
+      transformPreviewRef.current = {};
+    }
     setTransformState(null);
-  }, []);
+  }, [onUpdateLayers]);
 
   return {
     transformState,

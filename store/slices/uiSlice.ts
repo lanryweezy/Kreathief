@@ -3,6 +3,7 @@ import type { StoreState } from '../useStore';
 import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
+import { DEFAULT_MODEL } from '../../config/aiModels';
 
 export interface UISlice {
   activeTab: NavTab;
@@ -53,6 +54,7 @@ export interface UISlice {
   hoveredMaskBoundary?: any;
   aspectLocked?: boolean;
   hoveredLayerId?: string | null;
+  selectedAiModel: string;
 
   setHoveredLayerId?: (id: string | null) => void;
 
@@ -116,6 +118,7 @@ export interface UISlice {
   addComment: (text: string, user: any) => Promise<void>;
   toggleFavoriteTemplate: (id: string) => void;
   toggleFavoriteProject: (id: string) => void;
+  setSelectedAiModel: (model: string) => void;
 }
 
 export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, get) => ({
@@ -148,6 +151,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   isPublished: false,
   showGoldenRatio: false,
   toasts: [],
+  selectedAiModel: DEFAULT_MODEL,
   isCropMode: false,
   croppingLayerId: null,
   cropArea: { x: 0, y: 0, width: 0, height: 0 },
@@ -436,4 +440,6 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
         ? state.favoriteProjects.filter((pid: string) => pid !== id)
         : [...state.favoriteProjects, id],
     })),
+
+  setSelectedAiModel: (model: string) => set({ selectedAiModel: model }),
 });

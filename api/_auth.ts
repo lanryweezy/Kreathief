@@ -13,7 +13,11 @@ interface AuthUser {
 }
 
 export async function requireAuth(request: Request): Promise<AuthUser> {
-  if (process.env.VITE_USE_QA_BYPASS === 'true') {
+  // SECURITY: QA bypass is only allowed in development/test environments.
+  // Production deployments must set VITE_USE_QA_BYPASS=false in Vercel env.
+  const isDevEnv = process.env.VERCEL_ENV !== 'production' && process.env.NODE_ENV !== 'production';
+  if (isDevEnv && process.env.VITE_USE_QA_BYPASS === 'true') {
+    console.warn('[Auth] QA bypass active — NOT for production use');
     return { id: 'qa-bypass-user', role: 'admin' };
   }
 

@@ -82,6 +82,10 @@ class StorageService {
   private statusListeners: Set<StatusChangeCallback> = new Set();
   private toastCallback: ToastCallback | null = null;
 
+  // In-memory cache for Supabase queries (reduces redundant network calls)
+  private _projectsCache: { data: Project[]; timestamp: number } | null = null;
+  private static CACHE_TTL_MS = 60_000; // 60 seconds
+
   constructor() {
     window.addEventListener('online', () => {
       this.isOnline = true;
@@ -624,6 +628,8 @@ class StorageService {
           logger.debug('Project saved to Supabase', { id: project.id });
           this.lastSyncTime = Date.now();
           this.setConnectionStatus('connected');
+          // Invalidate projects cache after successful save
+          this._projectsCache = null;
           // Remove from pending changes if synced successfully
           this.pendingChanges.delete(project.id);
           await this.persistPendingChanges();
@@ -638,6 +644,7 @@ class StorageService {
     }
 
     // Offline or error - save locally and queue for sync
+    this._projectsCache = null; // Invalidate cache
     await this.saveProjectIndexedDB(project);
     await this.queueSyncOperation(project.id, 'update');
   }
@@ -709,8 +716,14 @@ class StorageService {
    * Retrieve all projects for the current user.
    * Prefers Supabase when online; falls back to IndexedDB.
    * Returns projects sorted by most recently updated first.
+   * Uses in-memory cache (60s TTL) to avoid redundant network calls.
    */
   async getAllProjects(): Promise<Project[]> {
+    // Return cached data if still fresh
+    if (this._projectsCache && Date.now() - this._projectsCache.timestamp < StorageService.CACHE_TTL_MS) {
+      return this._projectsCache.data;
+    }
+
     const userId = await this.getUserId();
 
     if (this.isOnline && userId) {
@@ -719,12 +732,15 @@ class StorageService {
           .from('projects')
           .select('*')
           .eq('user_id', userId)
-          .order('updated_at', { ascending: false });
+          .order('updated_at', { ascending: false })
+          .limit(100); // Cap at 100 projects to prevent unbounded queries
 
         if (!error && data) {
           this.lastSyncTime = Date.now();
           this.setConnectionStatus('connected');
-          return data.map((p: any) => this.supabaseProjectToLocal(p));
+          const projects = data.map((p: any) => this.supabaseProjectToLocal(p));
+          this._projectsCache = { data: projects, timestamp: Date.now() };
+          return projects;
         }
       } catch (err) {
         logger.warn('Supabase error, using IndexedDB', { error: err });
@@ -743,7 +759,9 @@ class StorageService {
           }
           return p;
         });
-        resolve(projects.sort((a: Project, b: Project) => b.updatedAt - a.updatedAt));
+        const sorted = projects.sort((a: Project, b: Project) => b.updatedAt - a.updatedAt);
+        this._projectsCache = { data: sorted, timestamp: Date.now() };
+        resolve(sorted);
       };
       request.onerror = () => reject(request.error);
     });
@@ -762,6 +780,8 @@ class StorageService {
 
         if (!error) {
           logger.debug('Project deleted from Supabase', { id });
+          // Invalidate projects cache after successful delete
+          this._projectsCache = null;
           // Remove from pending changes
           this.pendingChanges.delete(id);
           await this.persistPendingChanges();

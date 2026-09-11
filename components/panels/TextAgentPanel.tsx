@@ -4,17 +4,20 @@ import { TextLayer } from '../../types';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '../Button';
+import { AI_MODELS, MODEL_CATEGORIES } from '../../config/aiModels';
 
 interface TextAgentPanelProps {
   selectedLayer?: TextLayer;
 }
 
 export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps) => {
-  const { handleToneRewrite, suggestFontPairing, isGenerating } = useStore(
+  const { handleToneRewrite, suggestFontPairing, isGenerating, selectedAiModel, setSelectedAiModel } = useStore(
     useShallow((state) => ({
       handleToneRewrite: state.handleToneRewrite,
       suggestFontPairing: state.suggestFontPairing,
       isGenerating: state.isGenerating,
+      selectedAiModel: state.selectedAiModel,
+      setSelectedAiModel: state.setSelectedAiModel,
     }))
   );
 
@@ -42,6 +45,37 @@ export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps
       <div className="flex items-center gap-2 border-b border-gray-700 pb-3">
         <Icons.Wand className="w-4 h-4 text-purple-400" />
         <h3 className="text-xs font-bold text-gray-200 uppercase tracking-wider">Text AI Agent</h3>
+      </div>
+
+      {/* AI Model Selector */}
+      <div className="space-y-2">
+        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1">
+          <Icons.Wand className="w-3 h-3" /> AI Model
+        </h4>
+        <div className="grid grid-cols-3 gap-1">
+          {Object.entries(MODEL_CATEGORIES).map(([cat, { label }]) => (
+            <div key={cat} className="space-y-1">
+              <div className="text-[8px] font-bold text-gray-500 uppercase text-center">{label}</div>
+              {AI_MODELS.filter((m) => m.category === cat).map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setSelectedAiModel(m.id)}
+                  title={`${m.name} (${m.provider})`}
+                  className={`w-full text-[9px] px-1.5 py-1.5 rounded-lg border transition-all text-left truncate ${
+                    selectedAiModel === m.id
+                      ? 'border-purple-500 bg-purple-500/20 text-purple-200'
+                      : 'border-gray-600 bg-surface-dark-4 text-gray-400 hover:border-gray-400 hover:text-gray-200'
+                  }`}
+                >
+                  <span className="mr-1">{m.icon}</span>{m.name}
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+        <p className="text-[9px] text-gray-600 text-center">
+          Active: <span className="text-purple-400 font-mono">{AI_MODELS.find(m => m.id === selectedAiModel)?.name ?? selectedAiModel}</span>
+        </p>
       </div>
 
       <div className="space-y-2">

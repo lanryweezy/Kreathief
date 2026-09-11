@@ -104,6 +104,7 @@ const LayerItem = React.memo(
       <div className="flex flex-col" ref={itemRef} style={style}>
         <div
           role="treeitem"
+          data-testid="layer-item"
           aria-selected={isSelected}
           aria-label={`Layer: ${String(layer.name || getLayerNameFallback(layer))}${isSelected ? ', selected' : ''}${layer.locked ? ', locked' : ''}`}
           tabIndex={tabIndex}
@@ -442,7 +443,7 @@ export const LayersPanel = () => {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-transparent">
+    <div data-testid="layers-panel" className="flex flex-col h-full bg-transparent">
       {/* Tabs */}
       <PanelHeader
         tabs={[

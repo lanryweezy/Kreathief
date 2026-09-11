@@ -11,6 +11,8 @@ export const ComparisonSection: React.FC = () => {
         <img
           src="/images/comparison_rings_bg.png"
           alt="Space rings alternative"
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-screen z-0 grayscale-[30%]"
         />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#0a0a0c]/80 to-[#0a0a0c] z-20" />

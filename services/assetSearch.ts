@@ -1,6 +1,8 @@
 import { log } from '../utils/log';
 import * as unsplashService from './unsplashService';
 import * as freepikService from './freepikService';
+import { iconScoutService } from './iconScoutService';
+import { getFallbackPhotos } from './fallbackPhotos';
 
 export interface NormalizedAsset {
   id: string;
@@ -95,8 +97,84 @@ if (freepikService.isConfigured()) {
   });
 }
 
-export async function searchAllProviders(query: string): Promise<NormalizedAsset[]> {
-  const cacheKey = `all:${query}`;
+registerSearchProvider({
+  id: 'pexels',
+  search: async (query) => {
+    try {
+      const res = await fetch(`/api/pexels?action=search&query=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        if (res.status === 429) log.warn('Pexels rate limited, falling back');
+        else log.warn(`Pexels API error: ${res.status}`);
+        return getFallbackPhotos(query, 'pexels');
+      }
+      const data = await res.json();
+      if (!data.photos) return getFallbackPhotos(query, 'pexels');
+
+      return data.photos.map((p: any) => ({
+        id: `px-${p.id}`,
+        url: p.src.original,
+        thumbnail: p.src.medium,
+        alt: p.alt || 'Pexels photo',
+        author: p.photographer,
+        authorUrl: p.photographer_url,
+        provider: 'pexels',
+        width: p.width,
+        height: p.height,
+      }));
+    } catch (err) {
+      log.error('Pexels fetch failed, falling back to curated photos', err);
+      return getFallbackPhotos(query, 'pexels');
+    }
+  }
+});
+
+registerSearchProvider({
+  id: 'pixabay',
+  search: async (query) => {
+    try {
+      const res = await fetch(`/api/pixabay?action=search&query=${encodeURIComponent(query)}`);
+      if (!res.ok) {
+        if (res.status === 429) log.warn('Pixabay rate limited, falling back');
+        else log.warn(`Pixabay API error: ${res.status}`);
+        return getFallbackPhotos(query, 'pixabay');
+      }
+      const data = await res.json();
+      if (!data.hits) return getFallbackPhotos(query, 'pixabay');
+
+      return data.hits.map((p: any) => ({
+        id: `pb-${p.id}`,
+        url: p.largeImageURL,
+        thumbnail: p.webformatURL,
+        alt: p.tags || 'Pixabay photo',
+        author: p.user,
+        provider: 'pixabay',
+        width: p.imageWidth,
+        height: p.imageHeight,
+      }));
+    } catch (err) {
+      log.error('Pixabay fetch failed, falling back to curated photos', err);
+      return getFallbackPhotos(query, 'pixabay');
+    }
+  }
+});
+
+registerSearchProvider({
+  id: 'iconscout',
+  search: (query) =>
+    iconScoutService.search(query, 'illustration').then((results) =>
+      results.map((p) => ({
+        id: `is-${p.id}`,
+        url: p.previewUrl,
+        thumbnail: p.previewUrl,
+        alt: p.name,
+        author: p.author,
+        provider: 'iconscout',
+      }))
+    ),
+});
+
+export async function searchAllProviders(query: string, providerId?: string): Promise<NormalizedAsset[]> {
+  const cacheKey = providerId ? `${providerId}:${query}` : `all:${query}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.ts < TTL) {
     return cached.data;
@@ -105,6 +183,9 @@ export async function searchAllProviders(query: string): Promise<NormalizedAsset
   const promises: Promise<NormalizedAsset[]>[] = [];
 
   for (const provider of searchProviders.values()) {
+    if (providerId && providerId !== 'all' && provider.id !== providerId) {
+      continue;
+    }
     if (checkRateLimit(provider.id)) {
       promises.push(
         provider.search(query).catch((e) => {

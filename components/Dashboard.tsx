@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Project, User, CanvasSize } from '../types';
 import { Icons } from '../constants';
@@ -22,6 +22,10 @@ import { NodeGraph } from './nodes/NodeGraph';
 import { importPdfAsArtboards } from '../utils/pdfImport';
 import { StaticLayerRenderer } from './StaticLayerRenderer';
 import { TemplatePreview } from './TemplatePreview';
+import { StyleChip } from './panels/StylePicker';
+import type { DesignStyleEntry } from '../services/designStyleDatabase';
+
+const StylePicker = lazy(() => import('./panels/StylePicker').then(m => ({ default: m.StylePicker })));
 
 interface DashboardProps {
   user: User;
@@ -88,6 +92,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [generationMode, setGenerationMode] = useState<'design' | 'image'>('design');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  // Style picker state
+  const [selectedStyle, setSelectedStyle] = useState<DesignStyleEntry | null>(null);
+  const [showStylePicker, setShowStylePicker] = useState(false);
 
   const [showNodeGraph, setShowNodeGraph] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
@@ -102,12 +109,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   ];
 
   const STYLE_SUGGESTIONS = [
-    'Modern minimalist',
-    'Bold and vibrant',
-    'Elegant luxury',
-    'Neon cyberpunk',
-    'Warm earthy tones',
-    'Clean corporate',
+    'Art Deco',
+    'Minimalism',
+    'Brutalism',
+    'Y2K',
+    'Kawaii',
+    'Synthwave',
   ];
 
   // Design mode: create an empty project, open the editor, and hand the prompt
@@ -130,7 +137,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       // Kick off the agent and surface its progress in the AI overlay's Design Agent tab
       const store = useStore.getState();
       store.setShowAIOverlay(true, 'assistant');
-      store.runAgenticWorkflow(aiPrompt.trim());
+      // Prepend style guidance if a style is selected
+      const stylePrefix = selectedStyle ? `[Style: ${selectedStyle.name}] ${selectedStyle.tagline}. Use ${selectedStyle.typography.headlineFont} for headlines, ${selectedStyle.typography.bodyFont} for body. ` : '';
+      store.runAgenticWorkflow(stylePrefix + aiPrompt.trim());
 
       addToast('Design Agent is building your layout...', 'info');
       onOpenProject(created);
@@ -159,7 +168,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       // Unified generation path shared with the editor's Image Gen panel
       const { useBrandInPrompts, brandKits, activeBrandKitId, styleReference, campaignGoal } = useStore.getState();
       const fullPrompt = composeGenerationPrompt({
-        prompt: `${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
+        prompt: `${selectedStyle ? `${selectedStyle.name} style. ` : ''}${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
         brandKit: useBrandInPrompts ? brandKits?.find((bk) => bk.id === activeBrandKitId) : undefined,
         styleReference,
         campaignGoal,
@@ -678,6 +687,39 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             {format.label}
                           </button>
                         ))}
+                        {/* Style Picker Button */}
+                        <button
+                          onClick={() => setShowStylePicker(!showStylePicker)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            selectedStyle
+                              ? 'border border-brand-500/50 bg-brand-500/10 text-brand-300'
+                              : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'
+                          }`}
+                        >
+                          {selectedStyle ? (
+                            <>
+                              <span
+                                className="w-3 h-3 rounded-full shrink-0"
+                                style={{ background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})` }}
+                              />
+                              {selectedStyle.icon} {selectedStyle.name}
+                            </>
+                          ) : (
+                            <>
+                              <Icons.Palette className="w-3 h-3" />
+                              Style
+                            </>
+                          )}
+                        </button>
+                        {selectedStyle && (
+                          <button
+                            onClick={() => setSelectedStyle(null)}
+                            className="text-[10px] text-gray-500 hover:text-white transition-colors"
+                            title="Clear style"
+                          >
+                            <Icons.X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                       </div>
                       <div className="flex items-center gap-2 ml-3 shrink-0">
                         {/* Design = agent-built editable layers; Image = single flat AI image */}
@@ -725,6 +767,40 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     </div>
                   </div>
                 </div>
+
+                {/* Style Picker Panel */}
+                <AnimatePresence>
+                  {showStylePicker && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 420 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                      className="mt-3 rounded-2xl border border-white/10 overflow-hidden bg-surface-dark-1 shadow-2xl"
+                    >
+                      <Suspense fallback={
+                        <div className="flex items-center justify-center h-full">
+                          <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      }>
+                        <StylePicker
+                          onSelectStyle={(style) => {
+                            setSelectedStyle(style);
+                            setShowStylePicker(false);
+                            // Append style keywords to prompt if empty
+                            if (!aiPrompt.trim()) {
+                              setAiPrompt(style.tagline);
+                            }
+                            aiInputRef.current?.focus();
+                          }}
+                          currentStyleId={selectedStyle?.id}
+                          onClose={() => setShowStylePicker(false)}
+                        />
+                      </Suspense>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <AnimatePresence>
                   {showSuggestions && !aiPrompt && (
                     <motion.div
@@ -912,6 +988,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 {pagedTemplates.map((tmpl) => (
                   <button
                     key={tmpl.id}
+                    data-testid={`dashboard-template-btn-${tmpl.id}`}
                     onClick={() => handleStartFromTemplate(tmpl.id)}
                     className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   >

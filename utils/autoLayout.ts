@@ -44,15 +44,54 @@ export function computeAutoLayout(
 
   totalAxisSize += spacing * Math.max(0, leaves.length - 1);
 
-  // Compute parent's inner dimensions
-  const parentW = Number((parentLayer as any).width) || totalAxisSize + pad * 2;
-  const parentH = Number((parentLayer as any).height) || maxCrossSize + pad * 2;
+  // Compute parent's inner dimensions based on sizing
+  const sizing = layout.sizing;
+  const isWidthHug = !sizing || sizing.width === 'hug';
+  const isHeightHug = !sizing || sizing.height === 'hug';
+
+  let parentW = Number((parentLayer as any).width) || 100;
+  let parentH = Number((parentLayer as any).height) || 100;
+
+  if (isRow) {
+    if (isWidthHug) parentW = totalAxisSize + pad * 2;
+    if (isHeightHug) parentH = maxCrossSize + pad * 2;
+  } else {
+    if (isHeightHug) parentH = totalAxisSize + pad * 2;
+    if (isWidthHug) parentW = maxCrossSize + pad * 2;
+  }
 
   // Position children along the main axis
   let cursor = pad;
 
   leaves.forEach((child, i) => {
-    const { w, h } = sizes[i];
+    let { w, h } = sizes[i];
+    
+    // Process fill sizing for children
+    const childSizing = child.autoLayout?.sizing;
+    if (childSizing) {
+      if (isRow && childSizing.width === 'fill') {
+        // Divide remaining space equally among all 'fill' children
+        const fillChildrenCount = leaves.filter(l => l.autoLayout?.sizing?.width === 'fill').length;
+        if (fillChildrenCount > 0) {
+           const availableSpace = parentW - (totalAxisSize - w) - pad * 2;
+           w = Math.max(0, availableSpace / fillChildrenCount);
+        }
+      }
+      if (!isRow && childSizing.height === 'fill') {
+        const fillChildrenCount = leaves.filter(l => l.autoLayout?.sizing?.height === 'fill').length;
+        if (fillChildrenCount > 0) {
+           const availableSpace = parentH - (totalAxisSize - h) - pad * 2;
+           h = Math.max(0, availableSpace / fillChildrenCount);
+        }
+      }
+      if (isRow && childSizing.height === 'fill') {
+        h = parentH - pad * 2;
+      }
+      if (!isRow && childSizing.width === 'fill') {
+        w = parentW - pad * 2;
+      }
+    }
+
     let x: number, y: number;
 
     if (isRow) {
@@ -90,21 +129,17 @@ export function computeAutoLayout(
     updates[child.id] = {
       x: (parentLayer.x || 0) + x,
       y: (parentLayer.y || 0) + y,
-    };
+      ...(childSizing ? { width: w, height: h } : {})
+    } as any;
   });
 
-  // Resize parent to fit if needed
-  const totalContentSize = cursor - spacing;
-  if (isRow) {
-    (updates as any)[parentLayer.id] = {
-      width: totalContentSize + pad,
-      height: maxCrossSize + pad * 2,
-    };
-  } else {
-    (updates as any)[parentLayer.id] = {
-      width: maxCrossSize + pad * 2,
-      height: totalContentSize + pad,
-    };
+  // Apply parent resizing
+  const parentUpdates: any = {};
+  if (isWidthHug) parentUpdates.width = parentW;
+  if (isHeightHug) parentUpdates.height = parentH;
+  
+  if (Object.keys(parentUpdates).length > 0) {
+    (updates as any)[parentLayer.id] = parentUpdates;
   }
 
   return updates;

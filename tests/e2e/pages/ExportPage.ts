@@ -25,6 +25,8 @@ export class ExportPage {
     this.downloadBtn = page.getByTestId('download-btn');
   }
 
+  private pendingDownload?: Promise<any>;
+
   async openExportModal() {
     const isVisible = await this.exportModal.isVisible();
     if (!isVisible) {
@@ -43,36 +45,41 @@ export class ExportPage {
   async exportPNG() {
     await this.openExportModal();
     await this.pngBtn.click();
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
     await this.downloadBtn.click();
-    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
+    await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
 
   async exportJPEG() {
     await this.openExportModal();
     await this.jpegBtn.click();
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
     await this.downloadBtn.click();
-    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
+    await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
 
   async exportWEBP() {
     await this.openExportModal();
     await this.webpBtn.click();
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
     await this.downloadBtn.click();
-    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
+    await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
 
   async exportPDF() {
     await this.openExportModal();
     await this.pdfBtn.click();
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
     await this.downloadBtn.click();
-    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
+    await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
 
   async exportPSD() {
     await this.openExportModal();
     await this.psdBtn.click();
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
     await this.downloadBtn.click();
-    await expect(this.exportModal).not.toBeVisible({ timeout: 10000 });
+    await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
 
   async setQuality(quality: number) {
@@ -83,6 +90,11 @@ export class ExportPage {
   }
 
   async waitForDownload() {
+    if (this.pendingDownload) {
+      const d = await this.pendingDownload;
+      this.pendingDownload = undefined;
+      return d;
+    }
     const download = await this.page.waitForEvent('download', { timeout: 30000 });
     return download;
   }

@@ -90,6 +90,8 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_gen_fill_pro.png"
                     alt="AI Image Generation"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                   />
                 </div>
@@ -120,6 +122,8 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_cutout_mockup_1772615585150.png"
                     alt="Background Removal"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
                   />
                 </div>
@@ -165,7 +169,9 @@ export const Features: React.FC = () => {
                 <img
                   src="/images/feature_gen_fill_pro.png"
                   alt="Generative Fill"
-                  className="w-full h-full object-cover"
+                  loading="lazy"
+                    decoding="async"
+                    className="w-full h-full object-cover"
                 />
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-10 bg-black/60 backdrop-blur-md rounded-xl border border-white/20 flex items-center px-4">
                   <span className="text-[10px] text-white/70 font-mono typing-animation">
@@ -218,7 +224,9 @@ export const Features: React.FC = () => {
               <img
                 src="/images/feature_vector_pro.png"
                 alt="Vector Tool"
-                className="absolute -bottom-10 -right-10 w-[80%] md:w-[65%] h-auto rounded-tl-3xl shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-translate-x-4 group-hover:-translate-y-4"
+                loading="lazy"
+                    decoding="async"
+                    className="absolute -bottom-10 -right-10 w-[80%] md:w-[65%] h-auto rounded-tl-3xl shadow-2xl transition-transform duration-700 group-hover:scale-105 group-hover:-translate-x-4 group-hover:-translate-y-4"
               />
             </MouseSpotlight>
           </motion.div>
@@ -279,7 +287,9 @@ export const Features: React.FC = () => {
               <img
                 src="/images/feature_collab_pro.png"
                 alt="Multiplayer Collaboration"
-                className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[60%] h-auto shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 rounded-2xl transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105"
+                loading="lazy"
+                    decoding="async"
+                    className="absolute top-1/2 -translate-y-1/2 -right-5 w-[75%] md:w-[60%] h-auto shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 rounded-2xl transition-transform duration-700 group-hover:-translate-x-4 group-hover:scale-105"
               />
             </MouseSpotlight>
           </motion.div>

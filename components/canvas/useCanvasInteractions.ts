@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 import { Layer, Artboard } from '../../types';
 import { useCanvasPanning } from '../../hooks/canvas/useCanvasPanning';
 import { useCanvasSelection } from '../../hooks/canvas/useCanvasSelection';
@@ -18,10 +18,14 @@ interface UseCanvasInteractionsProps {
   onSelectLayer: (id: string | null) => void;
   onMultiSelectLayer: (id: string, shift: boolean) => void;
   setSelectedLayerIds: (ids: string[]) => void;
+  onBeginBatch?: () => void;
+  onEndBatch?: () => void;
   onInteractionStart?: () => void;
   onContextMenu?: (e: { clientX: number; clientY: number }, layerId: string) => void;
   isDrawing: boolean;
   viewportRef: React.RefObject<HTMLDivElement>;
+  isInteracting?: boolean;
+  setIsInteracting?: (val: boolean) => void;
 }
 
 export const useCanvasInteractions = ({
@@ -35,10 +39,14 @@ export const useCanvasInteractions = ({
   onSelectLayer,
   onMultiSelectLayer,
   setSelectedLayerIds,
+  onBeginBatch,
+  onEndBatch,
   onInteractionStart,
   onContextMenu,
   isDrawing,
   viewportRef,
+  isInteracting,
+  setIsInteracting,
 }: UseCanvasInteractionsProps) => {
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const lastPinchDistanceRef = useRef<number | null>(null);
@@ -54,6 +62,8 @@ export const useCanvasInteractions = ({
       }
     }
   }, []);
+
+  const [interactionPreviewUpdates, setInteractionPreviewUpdates] = useState<Record<string, Partial<Layer>>>({});
 
   // 1. Panning Hook
   const {
@@ -91,7 +101,11 @@ export const useCanvasInteractions = ({
     selectedLayerIds,
     activeArtboard,
     zoom,
-    onUpdateLayers,
+    onUpdateLayers: (updates) => {
+      setInteractionPreviewUpdates({});
+      onUpdateLayers(updates);
+    },
+    onPreviewLayers: setInteractionPreviewUpdates,
     onSelectLayer,
     onMultiSelectLayer,
     onInteractionStart,
@@ -103,8 +117,13 @@ export const useCanvasInteractions = ({
   const { transformState, handleResizeStart, handleRotateStart, updateTransformation, finalizeTransformation } =
     useLayerTransformation({
       layers,
+      selectedLayerIds,
       zoom,
-      onUpdateLayers,
+      onUpdateLayers: (updates) => {
+        setInteractionPreviewUpdates({});
+        onUpdateLayers(updates);
+      },
+      onPreviewLayers: setInteractionPreviewUpdates,
       panOffset,
       viewportRef,
       activeArtboard,
@@ -352,6 +371,7 @@ export const useCanvasInteractions = ({
     handleDrawingMouseDown,
     handleDrawingMouseMove,
     handleDrawingMouseUp,
+    interactionPreviewUpdates,
     layerRefs,
     snapLines,
     selectionBox,

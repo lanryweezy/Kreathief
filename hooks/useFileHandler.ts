@@ -22,6 +22,10 @@ export interface ExportStrategyContext {
   exportWidth: number;
   exportHeight: number;
   scaledLayers: any[];
+  originalLayers?: any[];
+  sourceWidth?: number;
+  sourceHeight?: number;
+  artboardId?: string;
   fileName: string;
   bgColor: string;
   format: ExportOptions['format'];
@@ -86,13 +90,16 @@ const exportStrategies: ExportStrategy[] = [
 const fallbackExportStrategy: ExportStrategy = {
   canHandle: () => true,
   export: async (ctx) => {
-    const blob = await exportService.exportDesignToImage(ctx.scaledLayers, {
+    const blob = await exportService.exportDesignToImage(ctx.originalLayers || ctx.scaledLayers, {
       width: ctx.exportWidth,
       height: ctx.exportHeight,
       format: ctx.format,
       quality: ctx.quality,
       background: ctx.bgColor !== 'transparent',
       backgroundColor: ctx.bgColor,
+      artboardId: ctx.artboardId,
+      baseWidth: ctx.sourceWidth,
+      baseHeight: ctx.sourceHeight,
     });
     const downloadUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -232,6 +239,9 @@ export const useFileHandler = () => {
       height: canvasSize.height,
       backgroundColor: canvasBackgroundColor,
       background: true,
+      artboardId: activeArtboard?.id,
+      baseWidth: activeArtboard?.width || canvasSize.width,
+      baseHeight: activeArtboard?.height || canvasSize.height,
     });
     return new Promise<string>((resolve) => {
       const reader = new FileReader();
@@ -259,6 +269,9 @@ export const useFileHandler = () => {
       height: canvasSize.height,
       backgroundColor: canvasBackgroundColor,
       background: true,
+      artboardId: activeArtboard?.id,
+      baseWidth: activeArtboard?.width || canvasSize.width,
+      baseHeight: activeArtboard?.height || canvasSize.height,
     });
   };
 
@@ -298,6 +311,10 @@ export const useFileHandler = () => {
         exportWidth,
         exportHeight,
         scaledLayers,
+        originalLayers: targetLayers,
+        sourceWidth,
+        sourceHeight,
+        artboardId: overrideLayers ? undefined : activeArtboard?.id,
         fileName,
         bgColor,
         format,

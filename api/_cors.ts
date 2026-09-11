@@ -11,11 +11,19 @@ export function getOrigin(req?: Request | any): string {
   }
   if (req) {
     if (typeof req.headers?.get === 'function') {
-      return req.headers.get('origin') || '*';
+      // SECURITY: In production, don't fall back to wildcard — require explicit origin
+      const origin = req.headers.get('origin');
+      if (origin) return origin;
+      // If no origin header, use VERCEL_URL or reject
+      return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'null';
     }
     if (req.headers && req.headers['origin']) {
       return req.headers['origin'];
     }
+  }
+  // SECURITY: Never return wildcard in production
+  if (process.env.VERCEL_ENV === 'production') {
+    return process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'null';
   }
   return '*';
 }

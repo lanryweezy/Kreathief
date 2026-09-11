@@ -305,6 +305,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     selectionBox,
     handleResizeStart,
     handleRotateStart,
+    interactionPreviewUpdates,
   } = useCanvasInteractions({
     zoom: zoom || 1,
     onZoomChangeValue: onZoomChange || noop,
@@ -719,6 +720,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 onDismissSuggestion={dismissSuggestion}
                 onApplySuggestion={applySuggestion}
                 allLayers={allLayers}
+                interactionPreviewUpdates={interactionPreviewUpdates}
               />
 
               <CanvasControls

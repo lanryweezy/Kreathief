@@ -185,7 +185,12 @@ export interface AutoLayoutSettings {
   direction: 'row' | 'col';
   padding: number | { top: number; right: number; bottom: number; left: number };
   spacing: number;
-  alignment: 'start' | 'center' | 'end' | 'space-between';
+  alignment: 'start' | 'center' | 'end' | 'space-between' | 'space-around' | 'space-evenly';
+  sizing?: {
+    width: 'fixed' | 'hug' | 'fill';
+    height: 'fixed' | 'hug' | 'fill';
+  };
+  wrap?: boolean;
 }
 
 export interface DesignTokenRef {

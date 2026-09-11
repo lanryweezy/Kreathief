@@ -14,26 +14,57 @@ import { log } from './utils/log';
 import { WelcomeModal } from './components/modals/WelcomeModal';
 import { GuidedTour, TourStep } from './components/modals/GuidedTour';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { LandingPage } from './components/LandingPage';
-import { BlogList } from './components/blog/BlogList';
-import { BlogPostView } from './components/blog/BlogPostView';
-import { FeedbackModal } from './components/modals/FeedbackModal';
-import { ProfileModal } from './components/modals/ProfileModal';
-import { PresentationModal } from './components/modals/PresentationModal';
-import { VersionDiffModal } from './components/modals/VersionDiffModal';
-import {
-  AboutPage,
-  PrivacyPage,
-  TermsPage,
-  SecurityPage,
-  ContactPage,
-  HelpCenterPage,
-  ChangelogPage,
-  APIPage,
-} from './components/pages/StaticPages';
 import { parseShareLink } from './utils/shareUtils';
 
-import { UserProfilePage } from './components/UserProfilePage';
+// Lazy load all route-level and modal components for code splitting
+const LandingPage = React.lazy(() =>
+  import('./components/LandingPage').then((m) => ({ default: m.LandingPage }))
+);
+const BlogList = React.lazy(() =>
+  import('./components/blog/BlogList').then((m) => ({ default: m.BlogList }))
+);
+const BlogPostView = React.lazy(() =>
+  import('./components/blog/BlogPostView').then((m) => ({ default: m.BlogPostView }))
+);
+const FeedbackModal = React.lazy(() =>
+  import('./components/modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
+);
+const ProfileModal = React.lazy(() =>
+  import('./components/modals/ProfileModal').then((m) => ({ default: m.ProfileModal }))
+);
+const PresentationModal = React.lazy(() =>
+  import('./components/modals/PresentationModal').then((m) => ({ default: m.PresentationModal }))
+);
+const VersionDiffModal = React.lazy(() =>
+  import('./components/modals/VersionDiffModal').then((m) => ({ default: m.VersionDiffModal }))
+);
+const UserProfilePage = React.lazy(() =>
+  import('./components/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
+);
+const AboutPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.AboutPage }))
+);
+const PrivacyPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.PrivacyPage }))
+);
+const TermsPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.TermsPage }))
+);
+const SecurityPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.SecurityPage }))
+);
+const ContactPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.ContactPage }))
+);
+const HelpCenterPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.HelpCenterPage }))
+);
+const ChangelogPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.ChangelogPage }))
+);
+const APIPage = React.lazy(() =>
+  import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage }))
+);
 
 function ProfileRoute() {
   const { userId } = useParams();
@@ -369,7 +400,7 @@ const App: React.FC = () => {
     <ErrorBoundary componentName="App Root" variant="full">
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} />} />
+          <Route path="/" element={<Suspense fallback={<LoadingFallback />}><LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} /></Suspense>} />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
@@ -403,18 +434,19 @@ const App: React.FC = () => {
               )
             }
           />
-          <Route path="/blog" element={<BlogList />} />
-          <Route path="/blog/:id" element={<BlogPostView />} />
-          <Route path="/profile/:userId" element={<ProfileRoute />} />
+          <Route path="/blog" element={<Suspense fallback={<LoadingFallback />}><BlogList /></Suspense>} />
+          <Route path="/blog/:id" element={<Suspense fallback={<LoadingFallback />}><BlogPostView /></Suspense>} />
+          <Route path="/profile/:userId" element={<Suspense fallback={<LoadingFallback />}><ProfileRoute /></Suspense>} />
 
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/security" element={<SecurityPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/help" element={<HelpCenterPage />} />
-          <Route path="/changelog" element={<ChangelogPage />} />
-          <Route path="/api" element={<APIPage />} />
+          <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
+          <Route path="/privacy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPage /></Suspense>} />
+          <Route path="/terms" element={<Suspense fallback={<LoadingFallback />}><TermsPage /></Suspense>} />
+          <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><SecurityPage /></Suspense>} />
+          <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><ContactPage /></Suspense>} />
+          <Route path="/help" element={<Suspense fallback={<LoadingFallback />}><HelpCenterPage /></Suspense>} />
+          <Route path="/changelog" element={<Suspense fallback={<LoadingFallback />}><ChangelogPage /></Suspense>} />
+          <Route path="/api" element={<Suspense fallback={<LoadingFallback />}><APIPage /></Suspense>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
         {location.pathname === '/dashboard' && user && showWelcome && (
@@ -444,10 +476,12 @@ const App: React.FC = () => {
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <OnboardingTour />
-      <FeedbackModal />
-      <ProfileModal />
-      <PresentationModal />
-      <VersionDiffModal />
+      <Suspense fallback={null}>
+        <FeedbackModal />
+        <ProfileModal />
+        <PresentationModal />
+        <VersionDiffModal />
+      </Suspense>
     </ErrorBoundary>
   );
 };

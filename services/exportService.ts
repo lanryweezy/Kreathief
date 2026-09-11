@@ -4,8 +4,10 @@
 // the same formulas so visual output is identical.
 import React from 'react';
 import { createRoot } from 'react-dom/client';
+import { flushSync } from 'react-dom';
 import html2canvas from 'html2canvas';
 import { StaticLayerRenderer } from '../components/StaticLayerRenderer';
+import { log } from '../utils/log';
 import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
@@ -1544,11 +1546,201 @@ export async function exportDesignToImage(
     quality?: number;
     background?: boolean;
     backgroundColor?: string;
+    artboardId?: string;
+    baseWidth?: number;
+    baseHeight?: number;
   } = {
     width: 1080,
     height: 1080,
   }
 ): Promise<Blob> {
+  const format = options.format || 'png';
+  const quality = options.quality ?? 0.95;
+  const mimeType =
+    format === 'jpeg' || format === 'jpg'
+      ? 'image/jpeg'
+      : format === 'webp'
+        ? 'image/webp'
+        : 'image/png';
+
+  // 1. In browser DOM environments, perform true WYSIWYG export via DOM capture
+  if (typeof window !== 'undefined' && typeof document !== 'undefined' && document.body) {
+    try {
+      // Approach A: If an artboard element is present on the canvas, clone it
+      const targetSelector = options.artboardId
+        ? `[data-artboard-content="${options.artboardId}"]`
+        : '[data-artboard-content]';
+      let sourceArtboardEl = document.querySelector(targetSelector) as HTMLElement | null;
+
+      if (!sourceArtboardEl) {
+        const outer = document.querySelector(
+          options.artboardId ? `[data-artboard-id="${options.artboardId}"]` : '.design-artboard'
+        );
+        if (outer) {
+          sourceArtboardEl = (outer.querySelector('[data-artboard-content]') ||
+            outer.querySelector(':scope > div:last-child') ||
+            outer) as HTMLElement;
+        }
+      }
+
+      // Check if nodes is empty or passed un-overridden
+      const hasSpecificOverride = Array.isArray(nodes) && nodes.length > 0 && !!nodes[0]?.type;
+
+      if (sourceArtboardEl && !hasOverrideLayers(nodes, sourceArtboardEl)) {
+        const baseWidth = parseFloat(sourceArtboardEl.style.width) || sourceArtboardEl.offsetWidth || options.width;
+        const baseHeight = parseFloat(sourceArtboardEl.style.height) || sourceArtboardEl.offsetHeight || options.height;
+        const scale = options.width / baseWidth;
+
+        const clone = sourceArtboardEl.cloneNode(true) as HTMLElement;
+        // Strip out interactive chrome, selection handles, and rings
+        const unwanted = clone.querySelectorAll(
+          '.selection-handle, .selection-box, .crop-overlay, [class*="ring-2"], [data-testid="selection-box"]'
+        );
+        unwanted.forEach((el) => el.remove());
+
+        if (options.background === false) {
+          clone.style.backgroundColor = 'transparent';
+        } else if (options.backgroundColor) {
+          clone.style.backgroundColor = options.backgroundColor;
+        }
+
+        clone.style.width = `${baseWidth}px`;
+        clone.style.height = `${baseHeight}px`;
+        clone.style.transform = 'none';
+        clone.style.position = 'relative';
+        clone.style.left = '0';
+        clone.style.top = '0';
+        clone.style.boxShadow = 'none';
+
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-99999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = `${baseWidth}px`;
+        wrapper.style.height = `${baseHeight}px`;
+        wrapper.style.overflow = 'hidden';
+        wrapper.style.pointerEvents = 'none';
+        wrapper.style.zIndex = '-99999';
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+
+        try {
+          if (document.fonts?.ready) {
+            await document.fonts.ready;
+          }
+
+          const canvas = await html2canvas(clone, {
+            width: baseWidth,
+            height: baseHeight,
+            scale: scale > 0 ? scale : 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: options.background === false ? null : (options.backgroundColor || '#ffffff'),
+            logging: false,
+          });
+
+          const blob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((b) => resolve(b), mimeType, quality);
+          });
+          if (blob && blob.size > 0) {
+            return blob;
+          }
+        } finally {
+          wrapper.remove();
+        }
+      }
+
+      // Approach B: Offscreen rendering with React + StaticLayerRenderer
+      // Handles custom layer selections, single layer exports, or hidden artboards
+      if (Array.isArray(nodes) && nodes.length > 0 && typeof createRoot === 'function') {
+        const baseWidth = options.baseWidth || options.width;
+        const baseHeight = options.baseHeight || options.height;
+        const scale = options.width / baseWidth;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.position = 'fixed';
+        wrapper.style.left = '-99999px';
+        wrapper.style.top = '0';
+        wrapper.style.width = `${baseWidth}px`;
+        wrapper.style.height = `${baseHeight}px`;
+        wrapper.style.overflow = 'hidden';
+        wrapper.style.pointerEvents = 'none';
+        wrapper.style.zIndex = '-99999';
+        document.body.appendChild(wrapper);
+
+        const root = createRoot(wrapper);
+        try {
+          flushSync(() => {
+            root.render(
+              React.createElement(
+                'div',
+                {
+                  style: {
+                    width: `${baseWidth}px`,
+                    height: `${baseHeight}px`,
+                    backgroundColor:
+                      options.background === false ? 'transparent' : options.backgroundColor || '#ffffff',
+                    position: 'relative',
+                    overflow: 'hidden',
+                  },
+                },
+                React.createElement(StaticLayerRenderer, {
+                  layers: nodes as any,
+                  scale: 1,
+                  width: baseWidth,
+                  height: baseHeight,
+                })
+              )
+            );
+          });
+
+          if (document.fonts?.ready) {
+            await document.fonts.ready;
+          }
+
+          const imgElements = Array.from(wrapper.querySelectorAll('img'));
+          await Promise.all(
+            imgElements.map(
+              (img) =>
+                new Promise<void>((resolve) => {
+                  if (img.complete) {
+                    resolve();
+                  } else {
+                    img.onload = () => resolve();
+                    img.onerror = () => resolve();
+                  }
+                })
+            )
+          );
+
+          const targetEl = (wrapper.firstElementChild as HTMLElement) || wrapper;
+          const canvas = await html2canvas(targetEl, {
+            width: baseWidth,
+            height: baseHeight,
+            scale: scale > 0 ? scale : 1,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: options.background === false ? null : options.backgroundColor || '#ffffff',
+            logging: false,
+          });
+
+          const blob = await new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((b) => resolve(b), mimeType, quality);
+          });
+          if (blob && blob.size > 0) {
+            return blob;
+          }
+        } finally {
+          root.unmount();
+          wrapper.remove();
+        }
+      }
+    } catch (domErr) {
+      log.warn('[exportService] DOM-based export failed, falling back to canvas export', domErr);
+    }
+  }
+
+  // Fallback: manual 2D canvas export (used in Node/Vitest test environment or on error)
   const adaptedNodes = (nodes || []).map(layerToDesignNode);
   if (!Array.isArray(adaptedNodes) || adaptedNodes.length === 0) {
     return new Blob(['<svg></svg>'], { type: 'image/svg+xml' });
@@ -1565,6 +1757,15 @@ export async function exportDesignToImage(
     backgroundColor: options.backgroundColor,
   } as any);
   return result || new Blob();
+}
+
+function hasOverrideLayers(nodes: any[], artboardEl: HTMLElement): boolean {
+  if (!Array.isArray(nodes) || nodes.length === 0) return false;
+  // If count of nodes is different from child layers in the artboard element, it's an override selection
+  const layerElements = artboardEl.querySelectorAll(
+    '[data-layer-id], .image-layer-item, .text-layer, .shape-layer, .adjustment-layer-item'
+  );
+  return layerElements.length > 0 && nodes.length !== layerElements.length;
 }
 
 export async function exportDesignToBlob(

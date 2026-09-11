@@ -28,6 +28,7 @@ interface CanvasLayerRendererProps {
   isInteracting?: boolean;
   previewAnimation?: AnimationSettings;
   viewportBounds: { x: number; y: number; width: number; height: number } | null;
+  interactionPreviewUpdates?: Record<string, Partial<Layer>>;
 }
 
 const isLayerVisible = (
@@ -99,6 +100,7 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
     previewAnimation,
     viewportBounds,
     isInteracting,
+    interactionPreviewUpdates,
   }) => {
     const layerMasks = React.useMemo(() => {
       const masks = new Map<string, Layer>();
@@ -197,12 +199,13 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
           const children = groupChildrenMap.get(l.id) || [];
           const layerIndex = layers ? layers.findIndex((lay) => lay.id === l.id) : idx;
           const zIndex = typeof (l as any).zIndex === 'number' ? (l as any).zIndex : (layerIndex >= 0 ? layerIndex + 1 : idx + 1);
-          const layerWithZIndex = { ...l, zIndex };
+          const previewUpdate = interactionPreviewUpdates?.[l.id] || {};
+          const layerWithZIndex = { ...l, zIndex, ...previewUpdate };
 
           return (
             <React.Fragment key={l.id}>
               <CanvasLayerItemWrapper
-                layer={layerWithZIndex}
+                layer={layerWithZIndex as Layer}
                 allLayers={layers}
                 layerMap={layerMap}
                 maskLayerOverride={maskLayer}
@@ -230,10 +233,11 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
               {children.map((child, cIdx) => {
                 const childLayerIndex = layers ? layers.findIndex((lay) => lay.id === child.id) : cIdx;
                 const childZIndex = typeof (child as any).zIndex === 'number' ? (child as any).zIndex : (childLayerIndex >= 0 ? childLayerIndex + 1 : zIndex);
+                const childPreviewUpdate = interactionPreviewUpdates?.[child.id] || {};
                 return (
                   <CanvasLayerItemWrapper
                     key={child.id}
-                    layer={{ ...child, zIndex: childZIndex }}
+                    layer={{ ...child, zIndex: childZIndex, ...childPreviewUpdate } as Layer}
                     allLayers={layers}
                     layerMap={layerMap}
                     maskLayerOverride={layerMasks.get(child.id)}
