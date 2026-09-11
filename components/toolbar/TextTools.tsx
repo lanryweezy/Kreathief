@@ -128,7 +128,7 @@ export const TextTools = React.memo(
                 if (raw) {
                   const val = parseInt(raw, 10);
                   if (!isNaN(val) && val > 0) {
-                    onUpdateTextLayer(layer.id, { fontSize: Math.max(6, Math.min(500, val)) });
+                    onUpdateTextLayer(layer.id, { fontSize: Math.max(6, Math.min(3000, val)) });
                   }
                 }
               }}
@@ -136,7 +136,7 @@ export const TextTools = React.memo(
                 const current = typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? layer.fontSize : 16;
                 if (e.key === 'ArrowUp') {
                   e.preventDefault();
-                  onUpdateTextLayer(layer.id, { fontSize: Math.min(500, current + (e.shiftKey ? 10 : 1)) });
+                  onUpdateTextLayer(layer.id, { fontSize: Math.min(3000, current + (e.shiftKey ? 10 : 1)) });
                 } else if (e.key === 'ArrowDown') {
                   e.preventDefault();
                   onUpdateTextLayer(layer.id, { fontSize: Math.max(6, current - (e.shiftKey ? 10 : 1)) });
@@ -148,7 +148,7 @@ export const TextTools = React.memo(
             <button
               onClick={() => {
                 const current = typeof layer.fontSize === 'number' && !isNaN(layer.fontSize) ? layer.fontSize : 16;
-                onUpdateTextLayer(layer.id, { fontSize: Math.min(500, Math.round(current + 1)) });
+                onUpdateTextLayer(layer.id, { fontSize: Math.min(3000, Math.round(current + 1)) });
               }}
               className="px-1.5 py-1 text-gray-400 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center text-xs font-bold shrink-0"
               title="Increase Font Size"
@@ -157,7 +157,6 @@ export const TextTools = React.memo(
             </button>
           </div>
           <ColorPicker
-            label="Text Color"
             value={layer.color}
             onChange={(color, gradient) =>
               onUpdateTextLayer(layer.id, {
@@ -222,7 +221,9 @@ export const TextTools = React.memo(
             value={typeof layer.letterSpacing === 'number' && !isNaN(layer.letterSpacing) ? layer.letterSpacing : 0}
             onChange={(e: any) => {
               const val = typeof e === 'number' ? e : parseFloat(e?.target?.value);
-              if (!isNaN(val)) onUpdateTextLayer(layer.id, { letterSpacing: val });
+              if (!isNaN(val)) {
+                onUpdateTextLayer(layer.id, { letterSpacing: val });
+              }
             }}
             step={1}
             width="w-7"
@@ -233,7 +234,9 @@ export const TextTools = React.memo(
             value={typeof layer.lineHeight === 'number' && !isNaN(layer.lineHeight) ? layer.lineHeight : 1.2}
             onChange={(e: any) => {
               const val = typeof e === 'number' ? e : parseFloat(e?.target?.value);
-              if (!isNaN(val) && val > 0) onUpdateTextLayer(layer.id, { lineHeight: Math.max(0.5, Math.min(5, val)) });
+              if (!isNaN(val) && val > 0) {
+                onUpdateTextLayer(layer.id, { lineHeight: Math.max(0.5, Math.min(5, val)) });
+              }
             }}
             step={0.1}
             width="w-7"

@@ -208,6 +208,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
               onClick={() => onToggleGrid(!showGrid)}
               className={`p-1.5 rounded-md transition-all ${showGrid ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
               title="Toggle Grid"
+              aria-pressed={showGrid}
             >
               <Icons.Grid className="w-3.5 h-3.5" />
             </button>
@@ -215,6 +216,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
               onClick={() => onToggleRulers(!showRulers)}
               className={`p-1.5 rounded-md transition-all ${showRulers ? 'bg-brand/20 text-brand' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
               title="Toggle Rulers"
+              aria-pressed={showRulers}
             >
               <Icons.Layout className="w-3.5 h-3.5" />
             </button>

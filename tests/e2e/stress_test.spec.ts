@@ -27,6 +27,8 @@ test('Aggressive Stress Test - Long Duration Simulation', async ({ page }) => {
     window.localStorage.setItem('kreathief_onboarding_seen', 'true');
     localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
     localStorage.setItem('kreathief_editor_tour_seen', 'true');
+    window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    window.localStorage.setItem('kreathief_editor_tour_seen', 'true');
   });
 
   await page.goto('http://localhost:5173/editor');

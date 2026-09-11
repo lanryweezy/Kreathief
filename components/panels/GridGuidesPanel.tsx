@@ -129,6 +129,7 @@ export const GridGuidesPanel: React.FC = () => {
           </div>
           <input
             type="range"
+            aria-label="Grid Size"
             min="5"
             max="100"
             value={gridSize}
@@ -189,7 +190,7 @@ export const GridGuidesPanel: React.FC = () => {
                 <span>
                   {guide.type === 'horizontal' ? '↔' : '↕'} {guide.position}px
                 </span>
-                <button onClick={() => removeGuide(index)} className="text-gray-600 hover:text-red-400">
+                <button aria-label="Remove guide" onClick={() => removeGuide(index)} className="text-gray-600 hover:text-red-400">
                   ×
                 </button>
               </div>

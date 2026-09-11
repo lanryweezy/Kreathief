@@ -86,14 +86,23 @@ function parseCssGradientToFill(colorStr: string | undefined): GradientFill | nu
         colorParts = parts.slice(1);
       } else if (firstPart.startsWith('to ')) {
         const dir = firstPart.replace('to ', '').trim();
-        if (dir === 'top') angle = 0;
-        else if (dir === 'top right' || dir === 'right top') angle = 45;
-        else if (dir === 'right') angle = 90;
-        else if (dir === 'bottom right' || dir === 'right bottom') angle = 135;
-        else if (dir === 'bottom') angle = 180;
-        else if (dir === 'bottom left' || dir === 'left bottom') angle = 225;
-        else if (dir === 'left') angle = 270;
-        else if (dir === 'top left' || dir === 'left top') angle = 315;
+        if (dir === 'top') {
+          angle = 0;
+        } else if (dir === 'top right' || dir === 'right top') {
+          angle = 45;
+        } else if (dir === 'right') {
+          angle = 90;
+        } else if (dir === 'bottom right' || dir === 'right bottom') {
+          angle = 135;
+        } else if (dir === 'bottom') {
+          angle = 180;
+        } else if (dir === 'bottom left' || dir === 'left bottom') {
+          angle = 225;
+        } else if (dir === 'left') {
+          angle = 270;
+        } else if (dir === 'top left' || dir === 'left top') {
+          angle = 315;
+        }
         colorParts = parts.slice(1);
       }
     } else if (isRadial && (parts[0].includes('circle') || parts[0].includes('ellipse') || parts[0].includes('at '))) {
@@ -152,11 +161,7 @@ function resolveNodeFill(layer: any): string | GradientFill {
     if (rawStops && rawStops.length > 0) {
       stops = rawStops.map((c: any, idx: number) => {
         const rawPos =
-          typeof c.position === 'number'
-            ? c.position
-            : typeof c.offset === 'number'
-              ? c.offset
-              : undefined;
+          typeof c.position === 'number' ? c.position : typeof c.offset === 'number' ? c.offset : undefined;
         let offset = idx / Math.max(1, rawStops.length - 1);
         if (typeof rawPos === 'number') {
           offset = rawPos > 1 ? rawPos / 100 : rawPos;
@@ -239,16 +244,34 @@ function resolveVectorPoints(layer: any): VectorPoint[] | undefined {
  * Ensures 100% WYSIWYG fidelity for shapes, colors, images, text, gradients, shadows, and strokes.
  */
 function buildCanvasFilterString(filters: any): string {
-  if (!filters || typeof filters !== 'object') return 'none';
+  if (!filters || typeof filters !== 'object') {
+    return 'none';
+  }
   const parts: string[] = [];
-  if (typeof filters.brightness === 'number' && filters.brightness !== 100) parts.push(`brightness(${filters.brightness}%)`);
-  if (typeof filters.contrast === 'number' && filters.contrast !== 100) parts.push(`contrast(${filters.contrast}%)`);
-  if (typeof filters.saturation === 'number' && filters.saturation !== 100) parts.push(`saturate(${filters.saturation}%)`);
-  if (typeof filters.grayscale === 'number' && filters.grayscale > 0) parts.push(`grayscale(${filters.grayscale}%)`);
-  if (typeof filters.sepia === 'number' && filters.sepia > 0) parts.push(`sepia(${filters.sepia}%)`);
-  if (typeof filters.hueRotate === 'number' && filters.hueRotate !== 0) parts.push(`hue-rotate(${filters.hueRotate}deg)`);
-  if (typeof filters.blur === 'number' && filters.blur > 0) parts.push(`blur(${filters.blur}px)`);
-  if (typeof filters.opacity === 'number' && filters.opacity < 1) parts.push(`opacity(${filters.opacity})`);
+  if (typeof filters.brightness === 'number' && filters.brightness !== 100) {
+    parts.push(`brightness(${filters.brightness}%)`);
+  }
+  if (typeof filters.contrast === 'number' && filters.contrast !== 100) {
+    parts.push(`contrast(${filters.contrast}%)`);
+  }
+  if (typeof filters.saturation === 'number' && filters.saturation !== 100) {
+    parts.push(`saturate(${filters.saturation}%)`);
+  }
+  if (typeof filters.grayscale === 'number' && filters.grayscale > 0) {
+    parts.push(`grayscale(${filters.grayscale}%)`);
+  }
+  if (typeof filters.sepia === 'number' && filters.sepia > 0) {
+    parts.push(`sepia(${filters.sepia}%)`);
+  }
+  if (typeof filters.hueRotate === 'number' && filters.hueRotate !== 0) {
+    parts.push(`hue-rotate(${filters.hueRotate}deg)`);
+  }
+  if (typeof filters.blur === 'number' && filters.blur > 0) {
+    parts.push(`blur(${filters.blur}px)`);
+  }
+  if (typeof filters.opacity === 'number' && filters.opacity < 1) {
+    parts.push(`opacity(${filters.opacity})`);
+  }
   return parts.length > 0 ? parts.join(' ') : 'none';
 }
 
@@ -283,7 +306,7 @@ export function layerToDesignNode(layer: any): DesignNode {
   const effects = resolveNodeEffects(layer);
   const points = resolveVectorPoints(layer);
   const cornerRadius = typeof layer.cornerRadius === 'number' ? layer.cornerRadius : 0;
-  const imageUrl = layer.src || layer.url || layer.imageUrl;
+  const imageUrl = layer.optimizedSrc || layer.src || layer.url || layer.imageUrl;
 
   return {
     ...layer,
@@ -436,7 +459,9 @@ function renderEffectDefs(nodeId: string, effects: Effect[] = [], neonGlow?: any
     }
   }
 
-  return hasFilter ? `<filter id="filter-${nodeId}" x="-30%" y="-30%" width="160%" height="160%">${filterPrimitives}</filter>` : '';
+  return hasFilter
+    ? `<filter id="filter-${nodeId}" x="-30%" y="-30%" width="160%" height="160%">${filterPrimitives}</filter>`
+    : '';
 }
 
 // ── SVG path data from VectorPoint[] ────────────────────────────────
@@ -476,7 +501,7 @@ function renderNodeToSvg(
   const strokeDash = (node as any).strokeDasharray ? ` stroke-dasharray="${(node as any).strokeDasharray}"` : '';
   const stroke = node.stroke ? `stroke="${node.stroke}" stroke-width="${node.strokeWidth || 1}"${strokeDash}` : '';
   const opacity = (node.opacity ?? 1) < 1 ? ` opacity="${node.opacity ?? 1}"` : '';
-  
+
   const transforms: string[] = [];
   if (node.rotation) {
     transforms.push(`rotate(${node.rotation} ${x + node.width / 2} ${y + node.height / 2})`);
@@ -484,16 +509,23 @@ function renderNodeToSvg(
   if (node.flipX || node.flipY) {
     const fx = node.flipX ? -1 : 1;
     const fy = node.flipY ? -1 : 1;
-    transforms.push(`translate(${x + node.width / 2} ${y + node.height / 2}) scale(${fx} ${fy}) translate(${-(x + node.width / 2)} ${-(y + node.height / 2)})`);
+    transforms.push(
+      `translate(${x + node.width / 2} ${y + node.height / 2}) scale(${fx} ${fy}) translate(${-(x + node.width / 2)} ${-(y + node.height / 2)})`
+    );
   }
   if ((node as any).skewX || (node as any).skewY) {
-    if ((node as any).skewX) transforms.push(`skewX(${(node as any).skewX})`);
-    if ((node as any).skewY) transforms.push(`skewY(${(node as any).skewY})`);
+    if ((node as any).skewX) {
+      transforms.push(`skewX(${(node as any).skewX})`);
+    }
+    if ((node as any).skewY) {
+      transforms.push(`skewY(${(node as any).skewY})`);
+    }
   }
   const transform = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
   const blendMode = node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
-  const hasFilterDefs = (node.effects?.some((e) => e.enabled)) || node.neonGlow?.enabled || (node as any).stickerEffect?.enabled;
+  const hasFilterDefs =
+    node.effects?.some((e) => e.enabled) || node.neonGlow?.enabled || (node as any).stickerEffect?.enabled;
   const filterAttr = hasFilterDefs ? ` filter="url(#filter-${node.id})"` : '';
 
   let fillAttr: string;
@@ -529,7 +561,9 @@ function renderNodeToSvg(
       if (shapeImgSrc) {
         const ar = (node as any).imageFill?.fit === 'contain' ? 'xMidYMid meet' : 'xMidYMid slice';
         const clipDef = `<clipPath id="clip-rect-${node.id}"><rect x="${x}" y="${y}" width="${node.width}" height="${node.height}"${rxAttr} /></clipPath>`;
-        const strokeSvg = stroke ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="none" ${stroke}${rxAttr} />` : '';
+        const strokeSvg = stroke
+          ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="none" ${stroke}${rxAttr} />`
+          : '';
         return `<defs>${clipDef}</defs><g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}><rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" ${fillAttr}${rxAttr} /><image x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(shapeImgSrc)}" preserveAspectRatio="${ar}" clip-path="url(#clip-rect-${node.id})" />${strokeSvg}</g>`;
       }
 
@@ -541,7 +575,9 @@ function renderNodeToSvg(
       if (shapeImgSrc) {
         const ar = (node as any).imageFill?.fit === 'contain' ? 'xMidYMid meet' : 'xMidYMid slice';
         const clipDef = `<clipPath id="clip-ellipse-${node.id}"><ellipse cx="${x + node.width / 2}" cy="${y + node.height / 2}" rx="${node.width / 2}" ry="${node.height / 2}" /></clipPath>`;
-        const strokeSvg = stroke ? `<ellipse cx="${x + node.width / 2}" cy="${y + node.height / 2}" rx="${node.width / 2}" ry="${node.height / 2}" fill="none" ${stroke} />` : '';
+        const strokeSvg = stroke
+          ? `<ellipse cx="${x + node.width / 2}" cy="${y + node.height / 2}" rx="${node.width / 2}" ry="${node.height / 2}" fill="none" ${stroke} />`
+          : '';
         return `<defs>${clipDef}</defs><g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}><ellipse cx="${x + node.width / 2}" cy="${y + node.height / 2}" rx="${node.width / 2}" ry="${node.height / 2}" ${fillAttr} /><image x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(shapeImgSrc)}" preserveAspectRatio="${ar}" clip-path="url(#clip-ellipse-${node.id})" />${strokeSvg}</g>`;
       }
 
@@ -550,13 +586,16 @@ function renderNodeToSvg(
 
     case 'text': {
       const fontSize = node.fontSize || 16;
-      const textFill = (node as any).styleType === 'hollow'
-        ? 'none'
-        : hasGradient
-          ? `url(#grad-${node.id})`
-          : (node as any).textTextureUrl
-            ? `url(#pattern-${node.id})`
-            : (node.fill && typeof node.fill === 'string' ? node.fill : content.inverse);
+      const textFill =
+        (node as any).styleType === 'hollow'
+          ? 'none'
+          : hasGradient
+            ? `url(#grad-${node.id})`
+            : (node as any).textTextureUrl
+              ? `url(#pattern-${node.id})`
+              : node.fill && typeof node.fill === 'string'
+                ? node.fill
+                : content.inverse;
       const lineHeight = (node as any).lineHeight || 1.2;
       const letterSpacing = (node as any).letterSpacing || 0;
       const textAnchor = node.textAlign === 'center' ? 'middle' : node.textAlign === 'right' ? 'end' : 'start';
@@ -567,7 +606,7 @@ function renderNodeToSvg(
         tStroke && tStroke.width > 0
           ? ` stroke="${tStroke.color || '#000000'}" stroke-width="${tStroke.width}" paint-order="stroke"`
           : (node as any).styleType === 'hollow'
-            ? ` stroke="${(node.fill && typeof node.fill === 'string' ? node.fill : '#7d2ae8')}" stroke-width="1.5" paint-order="stroke"`
+            ? ` stroke="${node.fill && typeof node.fill === 'string' ? node.fill : '#7d2ae8'}" stroke-width="1.5" paint-order="stroke"`
             : '';
       const fontStyleAttr =
         (node as any).fontStyle && (node as any).fontStyle !== 'normal'
@@ -686,7 +725,7 @@ function renderNodeToSvg(
         const radius = node.cornerRadiusPerCorner || node.cornerRadius || 0;
         const rVal = typeof radius === 'object' ? Math.max(radius.tl || 0, radius.tr || 0) : radius;
         const rxAttr = rVal > 0 ? ` rx="${rVal}" ry="${rVal}"` : '';
-        
+
         let clipDef = '';
         let clipAttr = '';
         if ((node as any).maskPath) {
@@ -697,7 +736,9 @@ function renderNodeToSvg(
           clipAttr = ` clip-path="url(#clip-${node.id})"`;
         }
 
-        const strokeSvg = stroke ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="none" ${stroke}${rxAttr} />` : '';
+        const strokeSvg = stroke
+          ? `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="none" ${stroke}${rxAttr} />`
+          : '';
 
         // Inpaint patches overlay
         let inpaintSvg = '';
@@ -789,7 +830,9 @@ export function exportToSvg(
       defs.push(renderGradientDef(`grad-${node.id}`, node.fill, node, minX, minY));
     }
     if ((node as any).textTextureUrl) {
-      defs.push(`<pattern id="pattern-${node.id}" width="100%" height="100%" patternContentUnits="objectBoundingBox"><image href="${escapeXml((node as any).textTextureUrl)}" width="1" height="1" preserveAspectRatio="none" /></pattern>`);
+      defs.push(
+        `<pattern id="pattern-${node.id}" width="100%" height="100%" patternContentUnits="objectBoundingBox"><image href="${escapeXml((node as any).textTextureUrl)}" width="1" height="1" preserveAspectRatio="none" /></pattern>`
+      );
     }
     if (node.effects?.length || node.neonGlow?.enabled || (node as any).stickerEffect?.enabled) {
       const filterDef = renderEffectDefs(node.id, node.effects, node.neonGlow, (node as any).stickerEffect);
@@ -1011,7 +1054,7 @@ export async function exportToCanvas(
       switch (node.type) {
         case 'rect': {
           const radius = node.cornerRadiusPerCorner || node.cornerRadius || 0;
-          const hasRadius = typeof radius === 'object' ? (radius.tl || radius.tr || radius.br || radius.bl) : radius > 0;
+          const hasRadius = typeof radius === 'object' ? radius.tl || radius.tr || radius.br || radius.bl : radius > 0;
           const shapeImgSrc = (node as any).imageFill?.src || (node as any).backgroundImage;
           const shapeImg = shapeImgSrc ? imageCache.get(shapeImgSrc) : null;
 
@@ -1091,8 +1134,26 @@ export async function exportToCanvas(
             const texImg = imageCache.get((node as any).textTextureUrl);
             if (texImg) {
               const pattern = ctx.createPattern(texImg, 'repeat');
-              if (pattern) ctx.fillStyle = pattern;
+              if (pattern) {
+                ctx.fillStyle = pattern;
+              }
             }
+          }
+
+          // Text gradient: resolve from node.gradient object if fill is not already a GradientFill
+          const tGrad = (node as any).gradient;
+          if (tGrad && tGrad.enabled !== false && (tGrad.colors || (tGrad.startColor && tGrad.endColor))) {
+            const gradStops: Array<{ color: string; offset: number }> = Array.isArray(tGrad.colors)
+              ? tGrad.colors.map((c: any, i: number) => ({
+                  color: c.color,
+                  offset: typeof c.position === 'number' ? c.position : i / Math.max(1, tGrad.colors.length - 1),
+                }))
+              : [
+                  { color: tGrad.startColor, offset: 0 },
+                  { color: tGrad.endColor, offset: 1 },
+                ];
+            const gradFill: GradientFill = { type: tGrad.type || 'linear', angle: tGrad.angle ?? 90, stops: gradStops };
+            ctx.fillStyle = createCanvasGradient(ctx, gradFill, node);
           }
 
           // Shared resolver: textTransform + word wrap to layer width, matching the editor.
@@ -1117,7 +1178,9 @@ export async function exportToCanvas(
           }
 
           const isHollow = (node as any).styleType === 'hollow';
-          const tStroke = (node as any).textStroke || (isHollow ? { width: 1.5, color: typeof node.fill === 'string' ? node.fill : '#7d2ae8' } : undefined);
+          const tStroke =
+            (node as any).textStroke ||
+            (isHollow ? { width: 1.5, color: typeof node.fill === 'string' ? node.fill : '#7d2ae8' } : undefined);
 
           for (let i = 0; i < lines.length; i++) {
             if (tStroke && tStroke.width > 0) {
@@ -1161,12 +1224,8 @@ export async function exportToCanvas(
                 points.forEach((point, index) => {
                   const coords = point.split(/\s+/);
                   if (coords.length === 2) {
-                    const px = coords[0].endsWith('%')
-                      ? (parseFloat(coords[0]) / 100) * vbW
-                      : parseFloat(coords[0]);
-                    const py = coords[1].endsWith('%')
-                      ? (parseFloat(coords[1]) / 100) * vbH
-                      : parseFloat(coords[1]);
+                    const px = coords[0].endsWith('%') ? (parseFloat(coords[0]) / 100) * vbW : parseFloat(coords[0]);
+                    const py = coords[1].endsWith('%') ? (parseFloat(coords[1]) / 100) * vbH : parseFloat(coords[1]);
                     d += `${index === 0 ? 'M' : 'L'} ${px} ${py} `;
                   }
                 });
@@ -1250,7 +1309,7 @@ export async function exportToCanvas(
         case 'image': {
           const img = node.imageUrl ? imageCache.get(node.imageUrl) : undefined;
           const radius = node.cornerRadiusPerCorner || node.cornerRadius || 0;
-          const hasRadius = typeof radius === 'object' ? (radius.tl || radius.tr || radius.br || radius.bl) : radius > 0;
+          const hasRadius = typeof radius === 'object' ? radius.tl || radius.tr || radius.br || radius.bl : radius > 0;
 
           ctx.save();
           if ((node as any).maskPath) {
@@ -1313,7 +1372,9 @@ export async function exportToCanvas(
 
             if (node.inpaintNodes && node.inpaintNodes.length > 0) {
               for (const patch of node.inpaintNodes) {
-                if (!patch.enabled || !patch.patchSrc) continue;
+                if (!patch.enabled || !patch.patchSrc) {
+                  continue;
+                }
                 const patchImg = imageCache.get(patch.patchSrc);
                 if (patchImg && patchImg.naturalWidth > 0) {
                   ctx.save();
@@ -1327,6 +1388,26 @@ export async function exportToCanvas(
             ctx.fillStyle = surface[3];
             ctx.fillRect(x, y, node.width, node.height);
           }
+
+          // Vignette overlay: applied on top of the image, matching the web worker approach
+          const vignetteAmount = (node as any).filters?.vignette ?? 0;
+          if (vignetteAmount > 0) {
+            ctx.filter = 'none';
+            const radius2 = Math.max(node.width, node.height) / 1.5;
+            const vgGrad = ctx.createRadialGradient(
+              x + node.width / 2,
+              y + node.height / 2,
+              0,
+              x + node.width / 2,
+              y + node.height / 2,
+              radius2
+            );
+            vgGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vgGrad.addColorStop(1, `rgba(0,0,0,${vignetteAmount / 100})`);
+            ctx.fillStyle = vgGrad;
+            ctx.fillRect(x, y, node.width, node.height);
+          }
+
           ctx.restore();
 
           if (node.stroke) {
@@ -1405,21 +1486,29 @@ function canvasRoundRect(
   h: number,
   r: number | { tl?: number; tr?: number; br?: number; bl?: number }
 ) {
-  const tl = typeof r === 'object' ? (r.tl || 0) : (r || 0);
-  const tr = typeof r === 'object' ? (r.tr || 0) : (r || 0);
-  const br = typeof r === 'object' ? (r.br || 0) : (r || 0);
-  const bl = typeof r === 'object' ? (r.bl || 0) : (r || 0);
+  const tl = typeof r === 'object' ? r.tl || 0 : r || 0;
+  const tr = typeof r === 'object' ? r.tr || 0 : r || 0;
+  const br = typeof r === 'object' ? r.br || 0 : r || 0;
+  const bl = typeof r === 'object' ? r.bl || 0 : r || 0;
 
   ctx.beginPath();
   ctx.moveTo(x + tl, y);
   ctx.lineTo(x + w - tr, y);
-  if (tr > 0) ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+  if (tr > 0) {
+    ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+  }
   ctx.lineTo(x + w, y + h - br);
-  if (br > 0) ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+  if (br > 0) {
+    ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+  }
   ctx.lineTo(x + bl, y + h);
-  if (bl > 0) ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+  if (bl > 0) {
+    ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+  }
   ctx.lineTo(x, y + tl);
-  if (tl > 0) ctx.quadraticCurveTo(x, y, x + tl, y);
+  if (tl > 0) {
+    ctx.quadraticCurveTo(x, y, x + tl, y);
+  }
   ctx.closePath();
 }
 
@@ -1448,7 +1537,14 @@ export interface PDFExportOptions {
 
 export async function exportDesignToImage(
   nodes: (DesignNode | any)[],
-  options: { width: number; height: number; format?: string; quality?: number; background?: boolean; backgroundColor?: string } = {
+  options: {
+    width: number;
+    height: number;
+    format?: string;
+    quality?: number;
+    background?: boolean;
+    backgroundColor?: string;
+  } = {
     width: 1080,
     height: 1080,
   }

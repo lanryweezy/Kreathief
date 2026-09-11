@@ -82,7 +82,17 @@ const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt
         color: '#ff007f',
         locked: false,
         visible: true,
-        filters: { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, blur: 40, sepia: 0, hueRotate: 0, vignette: 0, opacity: 0.25 },
+        filters: {
+          brightness: 100,
+          contrast: 100,
+          saturation: 100,
+          grayscale: 0,
+          blur: 40,
+          sepia: 0,
+          hueRotate: 0,
+          vignette: 0,
+          opacity: 0.25,
+        },
         blendMode: 'screen',
       } as any,
       // Grid Card Backdrop
@@ -586,6 +596,585 @@ const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt
       layers,
     };
   },
+
+  luxury: (width, height, prompt) => {
+    const bgGrad: Gradient = {
+      type: 'linear',
+      angle: 160,
+      colors: [
+        { color: '#0a0703', position: 0 },
+        { color: '#1a1209', position: 0.5 },
+        { color: '#0e0c06', position: 1 },
+      ],
+    };
+
+    const layers: Layer[] = [
+      // Gold shimmer top accent
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Gold Top Rule',
+        x: width * 0.28,
+        y: height * 0.08,
+        width: width * 0.44,
+        height: 2,
+        rotation: 0,
+        opacity: 0.8,
+        color: '#c9a84c',
+        locked: false,
+        visible: true,
+      } as any,
+      // Soft gold glow orb
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'ellipse',
+        name: 'Gold Glow Orb',
+        x: width * 0.25,
+        y: height * 0.15,
+        width: width * 0.5,
+        height: width * 0.5,
+        rotation: 0,
+        opacity: 0.08,
+        color: '#d4a017',
+        locked: false,
+        visible: true,
+        blendMode: 'screen',
+      } as any,
+      // Brand name eyebrow
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Brand Name',
+        text: 'MAISON DORÉE',
+        x: width * 0.1,
+        y: height * 0.14,
+        width: width * 0.8,
+        height: 28,
+        fontSize: Math.max(11, Math.round(width * 0.022)),
+        fontWeight: '300',
+        fontFamily: 'Cinzel',
+        color: '#c9a84c',
+        letterSpacing: 8,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+      // Thin divider
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Centre Rule',
+        x: width * 0.4,
+        y: height * 0.2,
+        width: width * 0.2,
+        height: 1,
+        rotation: 0,
+        opacity: 0.4,
+        color: '#c9a84c',
+        locked: false,
+        visible: true,
+      } as any,
+      // Main editorial headline
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Editorial Headline',
+        text: prompt.slice(0, 32) || 'The Art of Luxury Skincare',
+        x: width * 0.08,
+        y: height * 0.26,
+        width: width * 0.84,
+        height: 160,
+        fontSize: Math.max(34, Math.round(width * 0.085)),
+        fontWeight: '400',
+        fontFamily: 'Playfair Display',
+        color: '#f5ead8',
+        letterSpacing: -0.5,
+        lineHeight: 1.15,
+        textAlign: 'center',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        textShadow: { color: 'rgba(212, 160, 23, 0.2)', blur: 30, offsetX: 0, offsetY: 8 },
+      } as any,
+      // Italic descriptor
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Descriptor',
+        text: 'An exquisite ritual crafted from rare botanical extracts and 24-karat gold infusion.',
+        x: width * 0.15,
+        y: height * 0.52,
+        width: width * 0.7,
+        height: 72,
+        fontSize: Math.max(13, Math.round(width * 0.026)),
+        fontWeight: '300',
+        fontFamily: 'Playfair Display',
+        color: '#a89060',
+        letterSpacing: 0.5,
+        lineHeight: 1.65,
+        textAlign: 'center',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 0.85,
+        locked: false,
+        visible: true,
+      } as any,
+      // Price badge
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Price Badge',
+        x: width * 0.38,
+        y: height * 0.68,
+        width: width * 0.24,
+        height: 48,
+        rotation: 0,
+        opacity: 1,
+        color: '#c9a84c',
+        cornerRadius: { tl: 0, tr: 0, br: 0, bl: 0 },
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Price Text',
+        text: 'FROM $240',
+        x: width * 0.38,
+        y: height * 0.695,
+        width: width * 0.24,
+        height: 24,
+        fontSize: Math.max(12, Math.round(width * 0.024)),
+        fontWeight: '700',
+        fontFamily: 'Cinzel',
+        color: '#0a0703',
+        letterSpacing: 2,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+      // Gold bottom rule
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Gold Bottom Rule',
+        x: width * 0.28,
+        y: height * 0.88,
+        width: width * 0.44,
+        height: 2,
+        rotation: 0,
+        opacity: 0.8,
+        color: '#c9a84c',
+        locked: false,
+        visible: true,
+      } as any,
+    ];
+
+    return {
+      title: 'Luxury Brand Editorial',
+      description:
+        'Sophisticated luxury product artboard with gold accents, Cinzel/Playfair typography, and editorial layout.',
+      width,
+      height,
+      backgroundColor: '#0a0703',
+      backgroundGradient: bgGrad,
+      layers,
+    };
+  },
+
+  food: (width, height, prompt) => {
+    const bgGrad: Gradient = {
+      type: 'linear',
+      angle: 145,
+      colors: [
+        { color: '#1a0a00', position: 0 },
+        { color: '#2d1200', position: 0.5 },
+        { color: '#1a0a00', position: 1 },
+      ],
+    };
+
+    const layers: Layer[] = [
+      // Warm radial glow
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'ellipse',
+        name: 'Warm Glow',
+        x: width * 0.1,
+        y: height * 0.1,
+        width: width * 0.8,
+        height: width * 0.8,
+        rotation: 0,
+        opacity: 0.18,
+        color: '#ff6b00',
+        locked: false,
+        visible: true,
+        blendMode: 'screen',
+      } as any,
+      // Category tag
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Tag Background',
+        x: width * 0.34,
+        y: height * 0.1,
+        width: width * 0.32,
+        height: 36,
+        rotation: 0,
+        opacity: 1,
+        color: '#e85d04',
+        cornerRadius: { tl: 4, tr: 4, br: 4, bl: 4 },
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Category Tag',
+        text: "CHEF'S SPECIAL",
+        x: width * 0.34,
+        y: height * 0.118,
+        width: width * 0.32,
+        height: 20,
+        fontSize: Math.max(11, Math.round(width * 0.022)),
+        fontWeight: '800',
+        fontFamily: 'Outfit',
+        color: '#ffffff',
+        letterSpacing: 2,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+      // Dish name headline
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Dish Headline',
+        text: prompt.slice(0, 30) || 'Smoked Wagyu Brisket',
+        x: width * 0.08,
+        y: height * 0.22,
+        width: width * 0.84,
+        height: 150,
+        fontSize: Math.max(38, Math.round(width * 0.095)),
+        fontWeight: '800',
+        fontFamily: 'Outfit',
+        color: '#fff8f0',
+        letterSpacing: -1,
+        lineHeight: 1.1,
+        textAlign: 'center',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        textShadow: { color: 'rgba(232, 93, 4, 0.5)', blur: 30, offsetX: 0, offsetY: 8 },
+      } as any,
+      // Description
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Dish Description',
+        text: '18-hour slow smoked · House dry-rub · Bourbon glaze · Pickled slaw',
+        x: width * 0.12,
+        y: height * 0.48,
+        width: width * 0.76,
+        height: 50,
+        fontSize: Math.max(14, Math.round(width * 0.028)),
+        fontWeight: '400',
+        fontFamily: 'Inter',
+        color: '#d4956a',
+        letterSpacing: 0,
+        lineHeight: 1.5,
+        textAlign: 'center',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 0.9,
+        locked: false,
+        visible: true,
+      } as any,
+      // Price circle badge
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'ellipse',
+        name: 'Price Circle',
+        x: width * 0.74,
+        y: height * 0.6,
+        width: width * 0.2,
+        height: width * 0.2,
+        rotation: -8,
+        opacity: 1,
+        color: '#e85d04',
+        shadow: { color: 'rgba(232, 93, 4, 0.5)', blur: 24, offsetX: 0, offsetY: 6 },
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Price',
+        text: '$48',
+        x: width * 0.74,
+        y: height * 0.66,
+        width: width * 0.2,
+        height: 40,
+        fontSize: Math.max(22, Math.round(width * 0.045)),
+        fontWeight: '900',
+        fontFamily: 'Outfit',
+        color: '#ffffff',
+        letterSpacing: 0,
+        lineHeight: 1.1,
+        textAlign: 'center',
+        textTransform: 'none',
+        rotation: -8,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+      // Order CTA
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Order Button',
+        x: width * 0.2,
+        y: height * 0.76,
+        width: width * 0.6,
+        height: 60,
+        rotation: 0,
+        opacity: 1,
+        color: '#e85d04',
+        cornerRadius: { tl: 8, tr: 8, br: 8, bl: 8 },
+        shadow: { color: 'rgba(232, 93, 4, 0.5)', blur: 24, offsetX: 0, offsetY: 8 },
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Order CTA',
+        text: 'ORDER NOW — TABLE 7',
+        x: width * 0.2,
+        y: height * 0.79,
+        width: width * 0.6,
+        height: 28,
+        fontSize: Math.max(14, Math.round(width * 0.028)),
+        fontWeight: '800',
+        fontFamily: 'Outfit',
+        color: '#ffffff',
+        letterSpacing: 2,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+    ];
+
+    return {
+      title: 'Restaurant Feature Post',
+      description:
+        'Warm, appetizing food/restaurant artboard with burnt orange palette and bold food-forward typography.',
+      width,
+      height,
+      backgroundColor: '#1a0a00',
+      backgroundGradient: bgGrad,
+      layers,
+    };
+  },
+
+  africanMarket: (width, height, prompt) => {
+    const bgGrad: Gradient = {
+      type: 'linear',
+      angle: 150,
+      colors: [
+        { color: '#0d1b2a', position: 0 },
+        { color: '#1b2838', position: 0.6 },
+        { color: '#0a1520', position: 1 },
+      ],
+    };
+
+    const layers: Layer[] = [
+      // Ankara-inspired accent strip
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Ankara Accent Strip',
+        x: 0,
+        y: height * 0.06,
+        width: width * 0.08,
+        height: height * 0.88,
+        rotation: 0,
+        opacity: 1,
+        color: '#e63946',
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'Accent Strip 2',
+        x: width * 0.08,
+        y: height * 0.06,
+        width: width * 0.03,
+        height: height * 0.88,
+        rotation: 0,
+        opacity: 1,
+        color: '#f4a261',
+        locked: false,
+        visible: true,
+      } as any,
+      // Gold glow
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'ellipse',
+        name: 'Gold Glow',
+        x: width * 0.3,
+        y: -height * 0.1,
+        width: width * 0.7,
+        height: width * 0.7,
+        rotation: 0,
+        opacity: 0.12,
+        color: '#f4a261',
+        locked: false,
+        visible: true,
+        blendMode: 'screen',
+      } as any,
+      // Eyebrow
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Eyebrow',
+        text: '🌍 MADE IN AFRICA · EST. 2024',
+        x: width * 0.15,
+        y: height * 0.13,
+        width: width * 0.8,
+        height: 28,
+        fontSize: Math.max(11, Math.round(width * 0.022)),
+        fontWeight: '700',
+        fontFamily: 'Inter',
+        color: '#f4a261',
+        letterSpacing: 3,
+        lineHeight: 1.2,
+        textAlign: 'left',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+      // Main Headline
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Main Headline',
+        text: prompt.slice(0, 28) || 'Elevate Your African Brand',
+        x: width * 0.14,
+        y: height * 0.23,
+        width: width * 0.8,
+        height: 160,
+        fontSize: Math.max(34, Math.round(width * 0.088)),
+        fontWeight: '900',
+        fontFamily: 'Outfit',
+        color: '#f0f4f8',
+        letterSpacing: -0.5,
+        lineHeight: 1.1,
+        textAlign: 'left',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+        textShadow: { color: 'rgba(230, 57, 70, 0.4)', blur: 30, offsetX: 4, offsetY: 8 },
+      } as any,
+      // Body text
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'Body Copy',
+        text: 'Premium creative tools built for African creators, brands, and businesses ready to compete globally.',
+        x: width * 0.14,
+        y: height * 0.52,
+        width: width * 0.76,
+        height: 70,
+        fontSize: Math.max(14, Math.round(width * 0.028)),
+        fontWeight: '400',
+        fontFamily: 'Inter',
+        color: '#94a3b8',
+        letterSpacing: 0,
+        lineHeight: 1.55,
+        textAlign: 'left',
+        textTransform: 'none',
+        rotation: 0,
+        opacity: 0.9,
+        locked: false,
+        visible: true,
+      } as any,
+      // CTA button
+      {
+        id: `shape_${uuidv4().slice(0, 8)}`,
+        type: 'rect',
+        name: 'CTA Button',
+        x: width * 0.14,
+        y: height * 0.72,
+        width: width * 0.48,
+        height: 60,
+        rotation: 0,
+        opacity: 1,
+        color: '#e63946',
+        cornerRadius: { tl: 8, tr: 8, br: 8, bl: 8 },
+        shadow: { color: 'rgba(230, 57, 70, 0.5)', blur: 24, offsetX: 0, offsetY: 8 },
+        locked: false,
+        visible: true,
+      } as any,
+      {
+        id: `text_${uuidv4().slice(0, 8)}`,
+        type: 'text',
+        name: 'CTA Text',
+        text: 'GET STARTED FREE →',
+        x: width * 0.14,
+        y: height * 0.745,
+        width: width * 0.48,
+        height: 28,
+        fontSize: Math.max(14, Math.round(width * 0.028)),
+        fontWeight: '800',
+        fontFamily: 'Outfit',
+        color: '#ffffff',
+        letterSpacing: 1,
+        lineHeight: 1.2,
+        textAlign: 'center',
+        textTransform: 'uppercase',
+        rotation: 0,
+        opacity: 1,
+        locked: false,
+        visible: true,
+      } as any,
+    ];
+
+    return {
+      title: 'African Market Banner',
+      description:
+        'Bold, vibrant artboard for African brands with ankara accent strip, warm palette, and confident typography.',
+      width,
+      height,
+      backgroundColor: '#0d1b2a',
+      backgroundGradient: bgGrad,
+      layers,
+    };
+  },
 };
 
 /**
@@ -601,44 +1190,73 @@ export const generateMultiLayerDesign = async (
 
   // Try calling AI structured output model
   try {
-    const systemInstruction = `You are an elite Senior Design Director and Artboard Generator.
-Given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, EDITABLE MULTI-LAYER artboard structure in JSON.
-Do NOT generate flat single images. Generate separate coordinate-placed layers for:
-1. Background decorative elements or glow cards
-2. Category / Eyebrow pill or tag
-3. Main headline text with bold font styling, color, and drop shadow
-4. Subheadline or supporting description body text
-5. Floating badge / discount chip / highlight shape & badge text
-6. Call to Action (CTA) button container shape & button text
+    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister). 
 
-Return strictly JSON with:
+Your job: given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, PRODUCTION-READY EDITABLE MULTI-LAYER artboard in JSON.
+
+DESIGN RULES — MANDATORY:
+1. NEVER generate flat single-image layers. ALL layers must be coordinate-placed rectangles, ellipses, or text.
+2. Build a full VISUAL HIERARCHY with at least 8–12 layers: background → decorative elements → content → CTA.
+3. Use RICH COLOR PALETTES — no plain primary colors. Use brand-specific palettes with HSL precision (e.g. #1a0533, #ff006e, #e8ff45, #003049).
+4. Apply LAYERED DEPTH using background shapes, mid-ground decorative elements, and foreground content layers.
+5. TEXT LAYERS must use design-appropriate fonts: Outfit (headlines), Inter (body/UI), Playfair Display (editorial/luxury), Montserrat (sporty/bold), Cinzel (premium/luxury).
+6. EVERY design must include: background fill/gradient, at least 2 decorative shapes, eyebrow pill/tag, main headline (large, bold), supporting subtitle, and a CTA button shape + CTA text.
+7. Use SHADOWS generously to create depth. Use GRADIENTS on backgrounds and key shapes.
+8. CORNERRADIUS: pills = 999, cards = 16–24, buttons = 12, tags = 8.
+9. PRECISE COORDINATES: place every layer pixel-perfectly relative to ${width}x${height}.
+10. ANTI-AI-SLOP: Avoid purple/teal generic gradients and generic AI illustrations. Use curated, campaign-quality colors.
+
+LAYER COMPOSITION GUIDELINES for ${width}x${height}:
+- Background gradient shape (full-bleed): x=0, y=0, w=${width}, h=${height}
+- Decorative glow orb (behind content): large ellipse, opacity 0.15–0.3, blendMode screen
+- Decorative accent shapes: geometric accents, corner elements, floating badges
+- Eyebrow pill: small rounded rect with category text above headline
+- Main headline: 60–90% of canvas width, centered or left-aligned, very bold
+- Subheadline: 50–70% canvas width, lighter weight, secondary color
+- Feature list or body text (optional)
+- Floating badge/sticker shape + badge text (tilted -3 to -8 degrees for dynamism)
+- CTA button shape (rounded rect) + CTA text
+- Decorative bottom rule or footer text (optional)
+
+Return ONLY valid JSON, no markdown, no explanation:
 {
   "title": string,
   "description": string,
-  "backgroundColor": string (hex or rgba),
-  "backgroundGradient": { "type": "linear" | "radial", "angle": number, "colors": [{"color": string, "position": number}] } (optional),
+  "backgroundColor": string (hex),
+  "backgroundGradient": {
+    "type": "linear" | "radial",
+    "angle": number,
+    "colors": [{"color": string (hex or rgba), "position": number (0-1)}]
+  },
   "layers": [
     {
       "type": "rect" | "ellipse" | "text",
-      "name": string,
+      "name": string (descriptive layer name),
       "x": number,
       "y": number,
       "width": number,
       "height": number,
-      "rotation": number,
-      "opacity": number,
-      "color": string,
-      "cornerRadius": { "tl": number, "tr": number, "br": number, "bl": number } (for rects),
-      "stroke": { "color": string, "width": number } (optional),
-      "shadow": { "color": string, "blur": number, "offsetX": number, "offsetY": number } (optional),
-      "text": string (for text layers),
-      "fontSize": number (for text layers),
-      "fontWeight": "400" | "600" | "700" | "800" | "900",
-      "fontFamily": "Inter" | "Outfit" | "Playfair Display" | "Roboto" | "Montserrat" | "Cinzel",
+      "rotation": number (degrees, default 0),
+      "opacity": number (0-1, default 1),
+      "color": string (hex or rgba),
+      "gradient": {
+        "type": "linear" | "radial",
+        "angle": number,
+        "colors": [{"color": string, "position": number}]
+      } (optional, for shapes),
+      "cornerRadius": {"tl": number, "tr": number, "br": number, "bl": number} (for rects),
+      "stroke": {"color": string, "width": number} (optional),
+      "shadow": {"color": string (rgba), "blur": number, "offsetX": number, "offsetY": number} (optional),
+      "blendMode": "normal" | "screen" | "multiply" | "overlay" (optional),
+      "text": string (text layers only),
+      "fontSize": number (text layers only, in px),
+      "fontWeight": "300" | "400" | "500" | "600" | "700" | "800" | "900",
+      "fontFamily": "Outfit" | "Inter" | "Playfair Display" | "Montserrat" | "Cinzel" | "Roboto",
       "textAlign": "left" | "center" | "right",
-      "letterSpacing": number,
-      "lineHeight": number,
-      "textTransform": "none" | "uppercase" | "lowercase"
+      "letterSpacing": number (px, default 0),
+      "lineHeight": number (multiplier, e.g. 1.2),
+      "textTransform": "none" | "uppercase" | "lowercase",
+      "textShadow": {"color": string, "blur": number, "offsetX": number, "offsetY": number} (optional)
     }
   ]
 }`;
@@ -646,10 +1264,21 @@ Return strictly JSON with:
     const response = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
       systemInstruction,
-      contents: [{ role: 'user', parts: [{ text: `Generate multi-layer artboard for: "${prompt}". Dimensions: ${width}x${height}` }] }],
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text: `Design brief: "${prompt}"
+Canvas: ${width}x${height}px
+Goal: Production-ready, highly polished multi-layer artboard with at least 10 distinct, well-placed layers. Make it WOW.`,
+            },
+          ],
+        },
+      ],
       generationConfig: {
         responseMimeType: 'application/json',
-        temperature: 0.7,
+        temperature: 0.75,
       },
     });
 
@@ -671,18 +1300,24 @@ Return strictly JSON with:
           id,
           type: l.type || 'rect',
           name: l.name || `Layer ${i + 1}`,
-          x: Math.max(0, Math.min(width, Number(l.x) || 0)),
-          y: Math.max(0, Math.min(height, Number(l.y) || 0)),
-          width: Math.max(10, Math.min(width * 2, Number(l.width) || 100)),
-          height: Math.max(10, Math.min(height * 2, Number(l.height) || 50)),
+          x: Math.max(-width * 0.5, Math.min(width * 1.5, Number(l.x) || 0)),
+          y: Math.max(-height * 0.5, Math.min(height * 1.5, Number(l.y) || 0)),
+          width: Math.max(10, Math.min(width * 3, Number(l.width) || 100)),
+          height: Math.max(10, Math.min(height * 3, Number(l.height) || 50)),
           rotation: Number(l.rotation) || 0,
           opacity: typeof l.opacity === 'number' ? Math.max(0, Math.min(1, l.opacity)) : 1,
           color: l.color || '#3b82f6',
           locked: false,
           visible: true,
-          cornerRadius: l.cornerRadius || (typeof l.cornerRadius === 'number' ? { tl: l.cornerRadius, tr: l.cornerRadius, br: l.cornerRadius, bl: l.cornerRadius } : undefined),
+          cornerRadius: l.cornerRadius
+            ? l.cornerRadius
+            : typeof l.cornerRadius === 'number'
+              ? { tl: l.cornerRadius, tr: l.cornerRadius, br: l.cornerRadius, bl: l.cornerRadius }
+              : undefined,
+          gradient: l.gradient,
           stroke: l.stroke,
           shadow: l.shadow,
+          blendMode: l.blendMode,
           text: l.text,
           fontSize: l.fontSize || 24,
           fontWeight: l.fontWeight || '600',
@@ -691,6 +1326,7 @@ Return strictly JSON with:
           letterSpacing: l.letterSpacing || 0,
           lineHeight: l.lineHeight || 1.2,
           textTransform: l.textTransform || 'none',
+          textShadow: l.textShadow,
         } as Layer;
       });
 
@@ -705,14 +1341,58 @@ Return strictly JSON with:
       };
     }
   } catch (err) {
-    log.warn('[aiDesignDirector] Structured API call failed or timed out, utilizing intelligent archetype generation', err);
+    log.warn(
+      '[aiDesignDirector] Structured API call failed or timed out, utilizing intelligent archetype generation',
+      err
+    );
   }
 
   // Fallback to high-aesthetic archetype generators
-  if (pLower.includes('cyber') || pLower.includes('neon') || pLower.includes('gaming') || pLower.includes('futuristic') || pLower.includes('sale') || pLower.includes('black friday')) {
+  if (
+    pLower.includes('cyber') ||
+    pLower.includes('neon') ||
+    pLower.includes('gaming') ||
+    pLower.includes('futuristic') ||
+    pLower.includes('sale') ||
+    pLower.includes('black friday')
+  ) {
     return FALLBACK_ARCHETYPES.cyberpunk(width, height, prompt);
-  } else if (pLower.includes('saas') || pLower.includes('tech') || pLower.includes('app') || pLower.includes('cloud') || pLower.includes('startup')) {
+  } else if (
+    pLower.includes('saas') ||
+    pLower.includes('tech') ||
+    pLower.includes('app') ||
+    pLower.includes('cloud') ||
+    pLower.includes('startup') ||
+    pLower.includes('launch')
+  ) {
     return FALLBACK_ARCHETYPES.saas(width, height, prompt);
+  } else if (
+    pLower.includes('luxury') ||
+    pLower.includes('skincare') ||
+    pLower.includes('beauty') ||
+    pLower.includes('gold') ||
+    pLower.includes('premium') ||
+    pLower.includes('elegant')
+  ) {
+    return FALLBACK_ARCHETYPES.luxury(width, height, prompt);
+  } else if (
+    pLower.includes('food') ||
+    pLower.includes('restaurant') ||
+    pLower.includes('menu') ||
+    pLower.includes('eat') ||
+    pLower.includes('cafe') ||
+    pLower.includes('recipe')
+  ) {
+    return FALLBACK_ARCHETYPES.food(width, height, prompt);
+  } else if (
+    pLower.includes('africa') ||
+    pLower.includes('afro') ||
+    pLower.includes('naija') ||
+    pLower.includes('lagos') ||
+    pLower.includes('ghana') ||
+    pLower.includes('ankara')
+  ) {
+    return FALLBACK_ARCHETYPES.africanMarket(width, height, prompt);
   } else {
     return FALLBACK_ARCHETYPES.editorial(width, height, prompt);
   }

@@ -19,7 +19,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
-import { getAIErrorMessage } from '../../utils/errorMessages';
+import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
 import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -303,7 +303,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       void setStyleReference(String(reader.result), file.name);
       setShowAspects(true);
     };
-    reader.onerror = () => addToast('Could not read that image.', 'error');
+    reader.onerror = () => addToast('Could not read that image. Please check the file and try again.', 'error');
     reader.readAsDataURL(file);
   };
 
@@ -338,7 +338,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
   };
 
   const toggleNegativeChip = (chip: string) => {
-    const current = negativePrompt.split(',').map((s) => s.trim()).filter(Boolean);
+    const current = negativePrompt
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
     if (current.includes(chip)) {
       setNegativePrompt(current.filter((c) => c !== chip).join(', '));
     } else {
@@ -619,7 +622,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                         }}
                         className="flex flex-col p-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 hover:border-brand-500/40 text-left transition-all group"
                       >
-                        <div className={`h-8 w-full rounded-md bg-gradient-to-r ${preset.thumbnailGradient} mb-1.5 flex items-center justify-center`}>
+                        <div
+                          className={`h-8 w-full rounded-md bg-gradient-to-r ${preset.thumbnailGradient} mb-1.5 flex items-center justify-center`}
+                        >
                           <span className="text-[8px] font-black uppercase text-white tracking-widest drop-shadow">
                             {preset.category}
                           </span>
@@ -629,7 +634,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                         </span>
                         <div className="flex gap-1 mt-1">
                           {preset.palette.slice(0, 4).map((c, i) => (
-                            <span key={i} className="w-2.5 h-2.5 rounded-full border border-black/40" style={{ backgroundColor: c }} />
+                            <span
+                              key={i}
+                              className="w-2.5 h-2.5 rounded-full border border-black/40"
+                              style={{ backgroundColor: c }}
+                            />
                           ))}
                         </div>
                       </button>
@@ -686,7 +695,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                     {/* Extracted Palette Swatches preview */}
                     {styleReference.extracted?.palette && styleReference.extracted.palette.length > 0 && (
                       <div className="flex items-center gap-1 pt-1 border-t border-white/5">
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider mr-1">Palette:</span>
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider mr-1">
+                          Palette:
+                        </span>
                         {styleReference.extracted.palette.slice(0, 6).map((col, idx) => (
                           <span
                             key={idx}
@@ -728,9 +739,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                               onClick={() => toggleReferenceAspect(aspect)}
                               aria-pressed={active}
                               className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${
-                                active
-                                  ? 'bg-brand-600 text-white'
-                                  : 'bg-white/5 text-gray-500 hover:text-gray-300'
+                                active ? 'bg-brand-600 text-white' : 'bg-white/5 text-gray-500 hover:text-gray-300'
                               }`}
                             >
                               {REFERENCE_ASPECT_LABELS[aspect]}
@@ -869,7 +878,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 analyticsService.track('analyze_design', { score: result.score });
               } catch (e) {
                 log.error('[MagicPanel] Design analysis failed', e);
-                addToast('Analysis failed', 'error');
+                const details = getErrorDetails(e);
+                addToast(`Analysis failed: ${details.message}. ${details.suggestion}`, 'error');
               } finally {
                 setIsAnalyzing(false);
               }
@@ -933,6 +943,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                   const design = await generateMultiLayerDesign(finalPrompt, w, h);
                   if (design && design.layers.length > 0) {
                     useStore.getState().saveToHistory?.();
+                    // REPLACE all existing layers with the fresh AI artboard (not append)
                     useStore.setState((s: any) => ({
                       artboards: s.artboards.map((a: any) =>
                         a.id === s.activeArtboardId
@@ -940,22 +951,27 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                               ...a,
                               name: design.title || a.name,
                               backgroundColor: design.backgroundColor || a.backgroundColor,
-                              backgroundGradient: design.backgroundGradient || a.backgroundGradient,
-                              layers: [...a.layers, ...design.layers],
+                              backgroundGradient: design.backgroundGradient,
+                              width: design.width || a.width,
+                              height: design.height || a.height,
+                              layers: design.layers, // REPLACE — not append
                             }
                           : a
                       ),
-                      selectedLayerIds: design.layers.map((l) => l.id),
+                      selectedLayerIds: [],
                       isGenerating: false,
                     }));
-                    addToast(`Multi-Layer Design Created: Generated ${design.layers.length} editable layers!`, 'success');
+                    addToast(
+                      `✨ Multi-Layer Artboard Created: ${design.layers.length} editable layers — fully replaces old design!`,
+                      'success'
+                    );
                   } else {
                     useStore.setState({ isGenerating: false });
                   }
                 } catch (e) {
                   log.error('Multi-layer generation failed', e);
                   useStore.setState({ isGenerating: false });
-                  addToast('Could not generate multi-layer artboard.', 'error');
+                  addToast(getAIErrorMessage(e), 'error');
                 }
               } else if (mode === AppMode.EDIT && selectedLayerId) {
                 await useStore.getState().onRemix(selectedLayerId);

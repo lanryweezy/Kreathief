@@ -710,18 +710,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           whileTap={{ scale: 0.98 }}
                           onClick={generationMode === 'design' ? handleDesignGenerate : handleAIGenerate}
                           disabled={!aiPrompt.trim() || isGenerating}
-                          className="px-6 py-2.5 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
+                          className="px-4 py-2 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
                         >
                           {isGenerating ? (
                             <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              <div className="w-3 h-3 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               Generating
                             </>
                           ) : (
-                            <>
-                              <Icons.Magic className="w-4 h-4" />
-                              Generate
-                            </>
+                            <>Generate</>
                           )}
                         </motion.button>
                       </div>
@@ -878,7 +875,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {/* Templates */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
-                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Templates</span>
+                <span
+                  data-testid="nav-templates"
+                  className="text-xs font-black text-muted uppercase tracking-[0.2em]"
+                  onClick={() => setSidebarTab('templates')}
+                >
+                  Templates
+                </span>
                 <div className="flex items-center gap-2">
                   {['All', 'Social', 'Business', 'Video', 'Personal'].map((cat) => (
                     <button
@@ -902,6 +905,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                 </div>
               </div>
               <div
+                id="templates-grid"
                 data-testid="dashboard-templates-grid"
                 className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
               >
@@ -912,12 +916,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
-                      <TemplatePreview
-                        template={tmpl}
-                        containerWidth={260}
-                        containerHeight={195}
-                        className="p-2"
-                      />
+                      <TemplatePreview template={tmpl} containerWidth={260} containerHeight={195} className="p-2" />
                       <div className="absolute top-2 left-2 z-10">
                         <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
                           {tmpl.category}

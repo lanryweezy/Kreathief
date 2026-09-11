@@ -2,6 +2,8 @@ import { log } from '../../utils/log';
 
 import React, { useState, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
+import { getErrorDetails } from '../../utils/errorMessages';
+import { useStore } from '../../store/useStore';
 import { extractPalette } from '../../utils/colorUtils';
 
 interface PaletteGeneratorProps {
@@ -28,6 +30,14 @@ export const PaletteGenerator: React.FC<PaletteGeneratorProps> = ({ onPaletteSel
         onPaletteSelect(colors);
       } catch (error) {
         log.error('Failed to extract palette', error);
+        const details = getErrorDetails(error);
+        // 🌸 Bloom: Added specific error toast for better UX
+        useStore
+          .getState()
+          .addToast?.(
+            `Palette extraction failed: ${details.message}${details.suggestion ? '. ' + details.suggestion : ''}`,
+            'error'
+          );
       } finally {
         setIsProcessing(false);
       }

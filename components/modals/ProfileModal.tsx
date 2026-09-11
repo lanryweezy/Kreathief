@@ -136,6 +136,7 @@ export const ProfileModal: React.FC = () => {
                 <button
                   onClick={handleChangePhoto}
                   title="Upload Photo"
+                  aria-label="Upload Photo"
                   className="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white"
                 >
                   <Icons.Camera className="w-4 h-4" />

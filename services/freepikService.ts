@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fuzzyMatch } from '../utils/search';
 
 // Helper to create object URLs for generated assets. These URLs get stored in
 // layer state indefinitely, so they must NOT be auto-revoked on a timer — a
@@ -97,7 +98,7 @@ export async function searchVectors(
   if (!data?.data || data.data.length === 0) {
     const q = query.trim().toLowerCase();
     const matched = COMMON_FREEPIK_ICONS.filter(
-      (i) => !q || i.name.toLowerCase().includes(q) || i.tags?.some((t) => t.includes(q))
+      (i) => !q || fuzzyMatch(q, i.name) || i.tags?.some((t) => fuzzyMatch(q, t))
     );
     return { items: matched, total: matched.length, currentPage: page, lastPage: 1, hasMore: false };
   }
@@ -272,7 +273,7 @@ export async function searchIcons(query: string, page: number = 1): Promise<Free
   if (!data?.data || data.data.length === 0) {
     const q = query.trim().toLowerCase();
     const matched = COMMON_FREEPIK_ICONS.filter(
-      (i) => !q || i.name.toLowerCase().includes(q) || i.tags?.some((t) => t.includes(q))
+      (i) => !q || fuzzyMatch(q, i.name) || i.tags?.some((t) => fuzzyMatch(q, t))
     );
     return { items: matched, total: matched.length, currentPage: page, lastPage: 1, hasMore: false };
   }

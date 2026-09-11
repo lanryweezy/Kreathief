@@ -43,7 +43,9 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
             Canvas Size
           </span>
           <span className="text-xs text-white font-medium truncate max-w-[120px]">
-            {String(currentSize?.name || 'Untitled')}
+            {currentSize?.name === 'Untitled' || !currentSize?.name
+              ? `${Math.round(currentSize?.width || 1080)} × ${Math.round(currentSize?.height || 1080)}`
+              : currentSize.name}
           </span>
         </div>
         <Icons.ChevronDown
