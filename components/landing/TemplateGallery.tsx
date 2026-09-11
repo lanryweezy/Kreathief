@@ -66,7 +66,11 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
           </motion.button>
         </div>
 
-        <div id="templates-grid" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6">
+        <div
+          id="templates-grid"
+          data-testid="dashboard-templates-grid"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6"
+        >
           {templates.map((tpl, idx) => (
             <motion.div
               key={tpl.id}

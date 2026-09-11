@@ -162,6 +162,8 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
                 onClick={() => setIsAspectRatioLocked?.(!isAspectRatioLocked)}
                 className={`absolute -bottom-4 right-0 z-10 p-1 rounded transition-colors ${isAspectRatioLocked ? 'text-brand-600' : 'text-gray-600 hover:text-gray-400'}`}
                 title="Lock Aspect Ratio"
+                aria-label={isAspectRatioLocked ? 'Unlock Aspect Ratio' : 'Lock Aspect Ratio'}
+                aria-pressed={isAspectRatioLocked}
               >
                 {isAspectRatioLocked ? <Icons.Lock className="w-3 h-3" /> : <Icons.Unlock className="w-3 h-3" />}
               </button>

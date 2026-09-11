@@ -45,3 +45,6 @@
 
 **Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `TransformPanel.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-expanded` is semantically incorrect for simple toggles, as it implies the button expands/collapses a section.
 **Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.
+## 2026-09-01 - Screen Reader Accessibility for Aspect Ratio Toggle Buttons
+**Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `ArrangePanel.tsx` and `TransformTools.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-pressed` is correct for state toggle buttons to let screen reader users know the current status.
+**Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.

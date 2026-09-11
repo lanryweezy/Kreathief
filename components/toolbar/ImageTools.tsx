@@ -219,6 +219,7 @@ export const ImageTools = React.memo(
                           }}
                           className="text-gray-400 hover:text-white"
                           title="Toggle Visibility"
+                          aria-pressed={node.enabled}
                         >
                           {node.enabled ? (
                             <Icons.Eye className="w-3.5 h-3.5" />

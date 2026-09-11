@@ -18,10 +18,14 @@ export const TransformPanel: React.FC = () => {
   // ⚡ Bolt Optimization: Replace `artboards.flatMap().filter()` with an imperative loop inside useMemo to avoid O(N) array allocations
   const selectedLayers = useMemo(() => {
     const result: Layer[] = [];
-    if (selectedLayerIds.length === 0) return result;
+    if (selectedLayerIds.length === 0) {
+      return result;
+    }
 
     for (const artboard of artboards) {
-      if (!artboard.layers) continue;
+      if (!artboard.layers) {
+        continue;
+      }
       for (const layer of artboard.layers) {
         if (selectedLayerIds.includes(layer.id)) {
           result.push(layer);
@@ -380,6 +384,7 @@ export const TransformPanel: React.FC = () => {
           <span className="text-[10px] text-gray-400 w-12">Opacity</span>
           <input
             type="range"
+            aria-label="Opacity"
             min="0"
             max="1"
             step="0.01"

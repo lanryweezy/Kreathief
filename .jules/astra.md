@@ -120,9 +120,16 @@
 **Action:** Always sanitize and truncate raw user input (e.g., `intent.trim().substring(0, 1000)`) where it is interpolated directly into the `contents` block of an AI API call to limit payload bloat and mitigate prompt injection.
 
 ## 2026-08-27 - Centralize AI Helpers with Strict Schema Validation
+
 **Learning:** Refactoring inline AI implementations (like `autoRenameLayers` using generic `generateText` plus regex replacements) into dedicated helper functions (like `generateLayerNames`) in the core `geminiService` centralizes output parsing logic, enabling strict `responseSchema` definitions, `responseMimeType: 'application/json'` enforcement, and `safeParseJSON` usage, thereby completely eliminating prompt-based parsing fragility.
 **Action:** When a feature needs structured AI output (like mapping layer IDs to names), do not construct prompts and manipulate strings inline within state controllers. Instead, build dedicated, typed helper functions in the AI service layer that leverage the `@google/generative-ai` `SchemaType` validation API natively.
+
 ## 2026-08-30 - Eliminate raw JSON.parse for layer renaming object mapping
 
 **Learning:** Using raw `JSON.parse` coupled with generic prompt string extraction (`generateText`) for LLM tasks that expect dictionary/object outputs (like layer ID mapping for renaming) causes silent crashes and unhandled exceptions if the model generates invalid JSON, markdown blocks, or conversational preamble.
 **Action:** When expecting dynamic key-value pairs (e.g., mapping IDs to names), always call the base API (`callBackendGeminiAPI`) using a structured output schema (`SchemaType.ARRAY` of objects) to enforce the contract, parse it using `safeParseJSON` with a `'null'` fallback string, and construct the dictionary explicitly in the application logic.
+
+## 2026-09-05 - Enforce schema types for robust generative outputs
+
+**Learning:** Omitting `responseSchema` on complex nested LLM generations (like generating multi-layer structured artboards in `aiDesignDirector.ts`) causes unpredictable property omissions and format variations that lead to mapping failures. Additionally, interpolating raw `prompt` directly into the payload poses injection risks.
+**Action:** Always provide a fully populated `responseSchema` (using `SchemaType.OBJECT`) alongside `responseMimeType: 'application/json'` that matches the expected interface for complex output, and sanitize user prompts using `.trim().substring(0, 1000)` before use.
