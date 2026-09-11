@@ -4,6 +4,7 @@ import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
 import { StrokeSmoother } from '../../utils/variableStroke';
 import { recognizeShape } from '../../utils/shapeRecognition';
+import { brushStrategies } from '../../utils/canvas/brushStrategies';
 
 // Ramer-Douglas-Peucker path simplification
 function rdpSimplify(points: { x: number; y: number }[], epsilon: number): { x: number; y: number }[] {

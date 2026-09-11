@@ -23,6 +23,9 @@
 **Learning:** The `getFallbackPhotos` function in `services/fallbackPhotos.ts` used a hard-coded switch statement to parse data for 4 different providers (`unsplash`, `pixabay`, `pexels`, `vecteezy`). Adding a new fallback provider would require modifying this central function.
 **Action:** Introduced a `FallbackPhotoAdapter` registry pattern (`fallbackPhotoAdapters`). The `provider` argument type was relaxed to `string`, and providers now self-register using `registerFallbackPhotoAdapter`. This allows new fallback providers to be added without touching the core `getFallbackPhotos` logic.
 
+## 2026-09-09 - Canvas Brush Strategy Registry
+**Learning:** The \`useDrawingMode.ts\` hook used a hard-coded switch statement to alter the canvas context for different brush types (eraser, calligraphy, oil, crayon, pencil, watercolor, splatter, texture). Any new brush logic required touching the core pathing loop.
+**Action:** Extracted this into a \`BrushStrategy\` interface and \`brushStrategies\` map registry. The execution method returns a boolean flag to let the core loop determine whether to skip default pathing operations (\`lineTo\`, \`stroke\`) in order to preserve the original \`continue\` flow (e.g. for splatter brush).
 ## 2026-08-27 - UI-driven Strategy Registry
 
 **Learning:** When abstracting a switch statement that controls UI behavior into a registry, extracting only the logic is insufficient if the UI metadata (labels, icons) remains hardcoded in an array in the React component. This still requires modifying the core file for new extensions.
