@@ -21,6 +21,7 @@ test.describe('Dashboard Core Features', () => {
       localStorage.setItem('kreathief_qa_session', userSession);
       localStorage.setItem('kreathief_onboarding_seen', 'true');
       localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     await dashboard.goto();
@@ -135,7 +136,9 @@ test.describe('Dashboard Core Features', () => {
   });
 
   test('should logout successfully', async ({ page }) => {
-    const profileBtn = page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]').first();
+    const profileBtn = page
+      .locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]')
+      .first();
     await profileBtn.click();
     await page.waitForTimeout(300);
     const signOutBtn = page.locator('[data-testid="logout-btn"], button:has-text("Sign Out")').first();

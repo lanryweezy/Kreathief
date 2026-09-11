@@ -52,3 +52,8 @@
 
 **Learning:** When using an icon-only button to toggle a binary state (like locking/unlocking the aspect ratio in `ArrangePanel.tsx` and `TransformTools.tsx`), it's important to provide not only an `aria-label` but also the correct state attribute. Using `aria-pressed` is correct for state toggle buttons to let screen reader users know the current status.
 **Action:** Always use `aria-pressed={boolean}` for state toggle buttons, along with a descriptive `aria-label` when the button is icon-only.
+
+## 2024-05-30 - Screen Reader Accessibility for Remove Guide Buttons
+
+**Learning:** When generating a list of active grid guides in `GridGuidesPanel`, the button to remove each guide was a simple "×" without an `aria-label`. This caused screen readers to announce it as an unlabeled button, making it difficult for visually impaired users to understand its function or differentiate it from other buttons.
+**Action:** Always add a descriptive `aria-label` (e.g., `aria-label="Remove guide"`) to icon-only buttons used in lists to delete or remove items, ensuring screen reader users understand the action being performed.

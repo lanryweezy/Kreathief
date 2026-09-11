@@ -5,7 +5,7 @@ test('Master Stress-Test: NOVA AFRICA AI — Full Pipeline Execution', async ({ 
 
   const artifactDir = 'C:/Users/USER/.gemini/antigravity-ide/brain/18645210-f350-4e18-a0b7-258a86646446';
 
-  page.on('console', msg => {
+  page.on('console', (msg) => {
     const text = msg.text();
     if (!text.includes('[Vercel Web Analytics]')) {
       console.log(`[BROWSER ${msg.type().toUpperCase()}] ${text}`);
@@ -24,6 +24,8 @@ test('Master Stress-Test: NOVA AFRICA AI — Full Pipeline Execution', async ({ 
       })
     );
     localStorage.setItem('kreathief_onboarding_seen', 'true');
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    localStorage.setItem('kreathief_editor_tour_seen', 'true');
   });
 
   console.log('Master Stress-Test: Launching Kreathief Editor...');
@@ -34,13 +36,17 @@ test('Master Stress-Test: NOVA AFRICA AI — Full Pipeline Execution', async ({ 
   // Dismiss onboarding/dialogs
   try {
     const skipBtn = page.getByRole('button', { name: /Skip/i }).first();
-    if (await skipBtn.isVisible({ timeout: 2000 })) await skipBtn.click();
+    if (await skipBtn.isVisible({ timeout: 2000 })) {
+      await skipBtn.click();
+    }
   } catch (e) {}
   await page.keyboard.press('Escape');
   await page.waitForTimeout(500);
 
   // Switch to Instagram Portrait (1080x1350) or set canvas size
-  const sizeSelector = page.locator('button:has-text("Square"), button:has-text("CANVAS SIZE"), button:has-text("1080")').first();
+  const sizeSelector = page
+    .locator('button:has-text("Square"), button:has-text("CANVAS SIZE"), button:has-text("1080")')
+    .first();
   if (await sizeSelector.isVisible()) {
     console.log('Adjusting canvas preset...');
   }
@@ -52,10 +58,14 @@ test('Master Stress-Test: NOVA AFRICA AI — Full Pipeline Execution', async ({ 
     await page.waitForTimeout(1000);
   } else {
     const aiBtn = page.locator('button:has-text("AI")').first();
-    if (await aiBtn.isVisible()) await aiBtn.click();
+    if (await aiBtn.isVisible()) {
+      await aiBtn.click();
+    }
     await page.waitForTimeout(500);
     const tab2 = page.locator('button:has-text("Design Agent")').first();
-    if (await tab2.isVisible()) await tab2.click();
+    if (await tab2.isVisible()) {
+      await tab2.click();
+    }
     await page.waitForTimeout(500);
   }
 
@@ -86,11 +96,15 @@ Content blocks:
 Art direction:
 Futuristic African visual identity (Apple x Stripe x Futuristic African Tech). Deep violet, electric indigo, subtle cyan illumination, warm restrained highlights. Strong editorial hierarchy, gigantic headline, clear card containers, high contrast, WCAG compliant.`;
 
-  const textarea = page.locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe"], textarea').first();
+  const textarea = page
+    .locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe"], textarea')
+    .first();
   await textarea.fill(masterPrompt);
   await page.waitForTimeout(500);
 
-  const generateBtn = page.locator('button:has-text("Generate"), button[aria-label="Start AI Design Workflow"]').first();
+  const generateBtn = page
+    .locator('button:has-text("Generate"), button[aria-label="Start AI Design Workflow"]')
+    .first();
   const genStart = Date.now();
   await generateBtn.click();
   console.log('Master Stress-Test: Pipeline initiated. Monitoring Strategy -> Creative -> Critic -> Performance...');
@@ -108,7 +122,9 @@ Futuristic African visual identity (Apple x Stripe x Futuristic African Tech). D
     const bodyText = await page.innerText('body').catch(() => '');
     const hasVariants = bodyText.includes('Apply Variant') || bodyText.includes('Apply This Variant');
 
-    console.log(`[${elapsed}s] Active Pipeline Stage: "${activeStage || 'Processing'}" | Variants ready: ${hasVariants}`);
+    console.log(
+      `[${elapsed}s] Active Pipeline Stage: "${activeStage || 'Processing'}" | Variants ready: ${hasVariants}`
+    );
 
     if (hasVariants) {
       completed = true;
@@ -131,7 +147,9 @@ Futuristic African visual identity (Apple x Stripe x Futuristic African Tech). D
   // Inspect the Canvas layer tree structure
   const layersReport = await page.evaluate(() => {
     const store = (window as any).useStore?.getState?.();
-    if (!store) return { error: 'Store not accessible' };
+    if (!store) {
+      return { error: 'Store not accessible' };
+    }
     const layers = store.layers || [];
     return {
       totalLayers: layers.length,

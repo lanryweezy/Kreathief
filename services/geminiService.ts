@@ -417,11 +417,12 @@ export const generateAltText = async (src: string): Promise<string> => {
     }
 
     const parts = [
-      { text: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.' },
       { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
     ];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      // 🤖 Astra: Moved persona and rules to native systemInstruction field to prevent context confusion
+      systemInstruction: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
