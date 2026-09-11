@@ -63,7 +63,7 @@
 ## 2026-08-20 - Typo-tolerant Layers Panel Search
 **Learning:** The layer search functionality in the Layers Panel (`LayersPanel.tsx`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific layers among potentially hundreds (e.g. "hader" instead of "header"), degrading the workflow quality.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
-## $(date +%Y-%m-%d) - Component fragility with string methods on unstructured props
+## 2024-11-20 - Component fragility with string methods on unstructured props
 **Learning:** Destructuring with a default value (e.g. `alt = ''`) only protects against `undefined`, leaving the component vulnerable to fatal crashes (`Cannot read properties of null`) if passed `null` or unexpected types from loosely typed data or APIs.
 **Action:** Always defensively check `typeof prop === 'string'` before calling string methods like `charAt` or `toUpperCase` on props that can be bypassed by nulls.
 ## 2024-05-18 - Replacing exact substring matching with fuzzy matching in Community Feed search
@@ -78,6 +78,9 @@
 ## 2026-08-26 - Rely on Type-Checking Over Automated Code Review For Imports
 **Learning:** The automated code review incorrectly flagged the import of `fuzzyMatch` from `../../utils/search` as a "hallucinated import", despite it being successfully verified by `pnpm run type-check`.
 **Action:** When a known utility function like `fuzzyMatch` is imported and verified by the TypeScript compiler (`tsc --noEmit`), disregard automated code review flags about missing imports and proceed with the submission.
+## 2024-11-20 - Replaced generic error messages in MagicPanel with actionable details
+**Learning:** Found multiple instances where the `MagicPanel` component was using generic error messages in `addToast` calls inside `catch` blocks (e.g., `addToast('Analysis failed', 'error')`). While these operations are AI-related, the `getErrorDetails` and `getAIErrorMessage` utilities provide a consistent, robust way to extract actionable suggestions (like storage limits, network issues, timeout, etc.) for any error type.
+**Action:** Replaced generic error strings in `MagicPanel` catch blocks with dynamic messages constructed using `getErrorDetails(e)` and `getAIErrorMessage(e)`. This ensures that standard operations also provide specific, actionable guidance to users when they fail, closing the quality gap in error reporting without changing the feature's interface.
 ## 2026-08-30 - Typo-tolerant Enhanced Mockups Search
 **Learning:** The mockup search functionality (`searchMockups` in `services/enhancedMockupsLibrary.ts`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific mockups by name, tags, or category, degrading the mockup selection experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any component props or state structures.
