@@ -237,6 +237,19 @@ export const hslToRGB = (h: number, s: number, l: number): RGB => {
 /**
  * Color Harmony Generation
  */
+export interface ColorHarmonyStrategy {
+  id: string;
+  label: string;
+  icon: string;
+  generateColors: (baseColor: string) => string[];
+}
+
+export const colorHarmonyStrategies = new Map<string, ColorHarmonyStrategy>();
+
+export const registerColorHarmonyStrategy = (strategy: ColorHarmonyStrategy) => {
+  colorHarmonyStrategies.set(strategy.id, strategy);
+};
+
 export interface Harmonies {
   complementary: string;
   analogous: string[];
@@ -268,6 +281,72 @@ export const generateHarmonies = (hex: string): Harmonies => {
     ],
   };
 };
+
+// Register default strategies
+registerColorHarmonyStrategy({
+  id: 'complementary',
+  label: 'Complementary',
+  icon: '◐',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [baseColor, harmonies.complementary];
+  },
+});
+
+registerColorHarmonyStrategy({
+  id: 'analogous',
+  label: 'Analogous',
+  icon: '◅▻',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [harmonies.analogous[0], baseColor, harmonies.analogous[1]];
+  },
+});
+
+registerColorHarmonyStrategy({
+  id: 'triadic',
+  label: 'Triadic',
+  icon: '△',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [baseColor, harmonies.triadic[0], harmonies.triadic[1]];
+  },
+});
+
+registerColorHarmonyStrategy({
+  id: 'split',
+  label: 'Split Comp.',
+  icon: '◰',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [baseColor, harmonies.splitComplementary[0], harmonies.splitComplementary[1]];
+  },
+});
+
+registerColorHarmonyStrategy({
+  id: 'tetradic',
+  label: 'Tetradic',
+  icon: '□',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [
+      baseColor,
+      harmonies.tetradic[0],
+      harmonies.tetradic[1],
+      harmonies.tetradic[2],
+    ];
+  },
+});
+
+registerColorHarmonyStrategy({
+  id: 'monochromatic',
+  label: 'Monochromatic',
+  icon: '◫',
+  generateColors: (baseColor: string) => {
+    const harmonies = generateHarmonies(baseColor);
+    return [baseColor, ...harmonies.monochromatic];
+  },
+});
 
 export const generateTints = (hex: string, count: number = 5): string[] => {
   const rgb = parseColor(hex);
