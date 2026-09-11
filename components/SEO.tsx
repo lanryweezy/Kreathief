@@ -10,7 +10,7 @@ interface SEOProps {
 }
 
 export const SEO: React.FC<SEOProps> = ({
-  title = 'Kreathief | Your AI Creative Director',
+  title = 'Kreathief | AI Design & Vector Editing Platform',
   description = 'Kreathief is an AI design platform with image generation, editable vector tools, real-time collaboration, and high-fidelity mockups in one browser workflow.',
   image = 'https://www.kreathief.com/og-image.png',
   url = 'https://www.kreathief.com',
