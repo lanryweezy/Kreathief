@@ -1,13 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { Icons } from '../../constants';
 import {
-  generateHarmonies,
   generateTints,
   generateShades,
   generateTones,
   getContrastRatio,
   checkWCAG,
   getAccessibleTextColor,
+  colorHarmonyStrategies,
 } from '../../utils/colorUtils';
 
 interface ColorHarmonyGeneratorProps {
@@ -15,16 +15,11 @@ interface ColorHarmonyGeneratorProps {
   onColorSelect: (color: string) => void;
 }
 
-type HarmonyType = 'complementary' | 'analogous' | 'triadic' | 'split' | 'tetradic' | 'monochromatic';
 type VariationType = 'tints' | 'shades' | 'tones';
 
 export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ baseColor, onColorSelect }) => {
-  const [activeHarmony, setActiveHarmony] = useState<HarmonyType>('complementary');
+  const [activeHarmony, setActiveHarmony] = useState<string>('complementary');
   const [showVariations, setShowVariations] = useState<VariationType | null>(null);
-
-  const harmonies = useMemo(() => {
-    return generateHarmonies(baseColor);
-  }, [baseColor]);
 
   const variations = useMemo(() => {
     return {
@@ -39,27 +34,11 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
   }, [baseColor]);
 
   const getHarmonyColors = (): string[] => {
-    switch (activeHarmony) {
-      case 'complementary':
-        return [baseColor, (harmonies as any).complementary];
-      case 'analogous':
-        return [(harmonies as any).analogous[0], baseColor, (harmonies as any).analogous[1]];
-      case 'triadic':
-        return [baseColor, (harmonies as any).triadic[0], (harmonies as any).triadic[1]];
-      case 'split':
-        return [baseColor, (harmonies as any).splitComplementary[0], (harmonies as any).splitComplementary[1]];
-      case 'tetradic':
-        return [
-          baseColor,
-          (harmonies as any).tetradic[0],
-          (harmonies as any).tetradic[1],
-          (harmonies as any).tetradic[2],
-        ];
-      case 'monochromatic':
-        return [baseColor, ...(harmonies as any).monochromatic];
-      default:
-        return [baseColor];
+    const strategy = colorHarmonyStrategies.get(activeHarmony);
+    if (strategy) {
+      return strategy.generateColors(baseColor);
     }
+    return [baseColor];
   };
 
   const harmonyColors = getHarmonyColors();
@@ -70,25 +49,18 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
       <div>
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Color Harmony</h3>
         <div className="grid grid-cols-3 gap-2">
-          {[
-            { id: 'complementary', label: 'Complementary', icon: '◐' },
-            { id: 'analogous', label: 'Analogous', icon: '◅▻' },
-            { id: 'triadic', label: 'Triadic', icon: '△' },
-            { id: 'split', label: 'Split Comp.', icon: '◰' },
-            { id: 'tetradic', label: 'Tetradic', icon: '□' },
-            { id: 'monochromatic', label: 'Monochromatic', icon: '◫' },
-          ].map((type) => (
+          {Array.from(colorHarmonyStrategies.values()).map((strategy) => (
             <button
-              key={type.id}
-              onClick={() => setActiveHarmony(type.id as HarmonyType)}
+              key={strategy.id}
+              onClick={() => setActiveHarmony(strategy.id)}
               className={`px-3 py-2 rounded-lg text-[10px] font-bold transition-all flex flex-col items-center gap-1 ${
-                activeHarmony === type.id
+                activeHarmony === strategy.id
                   ? 'bg-brand-600 text-white shadow-lg shadow-purple-900/20'
                   : 'bg-surface-dark-4 text-gray-400 hover:text-white hover:bg-gray-700'
               }`}
             >
-              <span className="text-sm">{type.icon}</span>
-              <span className="truncate w-full text-center">{type.label}</span>
+              <span className="text-sm">{strategy.icon}</span>
+              <span className="truncate w-full text-center">{strategy.label}</span>
             </button>
           ))}
         </div>
