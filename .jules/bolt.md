@@ -208,3 +208,8 @@
 
 **Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
 **Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
+
+## 2024-09-11 - Avoid intermediate array allocations for simple numeric loops in render blocks
+
+**Learning:** Using `Array.from({ length }).map()` in JSX render blocks (like generating skeletons) creates multiple unnecessary objects per render cycle: an options object, an empty target array of the given length, and an intermediate mapped array. This negatively impacts React component rendering performance by increasing garbage collection overhead.
+**Action:** Replace `Array.from().map()` pattern with a single imperative `for` loop that pushes elements to a target array, achieving the same JSX structure without intermediate array allocations.

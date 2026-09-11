@@ -205,13 +205,17 @@ export const Skeleton: React.FC<SkeletonProps> = ({ className = '', width, heigh
   />
 );
 
-export const SkeletonText: React.FC<{ lines?: number }> = ({ lines = 3 }) => (
-  <div className="space-y-2">
-    {Array.from({ length: lines }).map((_, i) => (
+export const SkeletonText: React.FC<{ lines?: number }> = ({ lines = 3 }) => {
+  // Bolt: Optimized from Array.from().map() to avoid unnecessary intermediate array allocation on every render
+  const skeletons = [];
+  for (let i = 0; i < lines; i++) {
+    skeletons.push(
       <Skeleton key={i} height="11px" width={i === lines - 1 ? '60%' : '100%'} rounded="xs" />
-    ))}
-  </div>
-);
+    );
+  }
+
+  return <div className="space-y-2">{skeletons}</div>;
+};
 
 export const SkeletonCard: React.FC = () => (
   <div className="p-4 space-y-3">
