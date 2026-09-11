@@ -6,6 +6,7 @@ import { Analytics } from '@vercel/analytics/react';
 import * as Sentry from '@sentry/react';
 import { useStore } from './store/useStore';
 import App from './App';
+import { GoogleAnalytics } from './components/GoogleAnalytics';
 import './index.css';
 
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
@@ -55,6 +56,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <App />
         <Analytics />
+        <GoogleAnalytics />
       </BrowserRouter>
     </HelmetProvider>
   </React.StrictMode>
