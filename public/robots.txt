@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://kreathief.app/sitemap.xml
+Sitemap: https://www.kreathief.com/sitemap.xml

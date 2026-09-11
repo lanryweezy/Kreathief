@@ -55,6 +55,7 @@ export const BrushType = {
   CUSTOM: 'custom',
   NEON: 'neon',
 } as const;
+
 export type BrushType = string;
 
 export interface CustomBrush {

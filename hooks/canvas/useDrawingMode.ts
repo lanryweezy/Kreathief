@@ -1,3 +1,4 @@
+import { brushStrategies } from "../../utils/brushStrategies";
 import { useRef, useCallback, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
 import { generateLayerId } from '../../utils/layers/layerUtils';
@@ -299,21 +300,23 @@ export const useDrawingMode = ({ zoom, isDrawing, panOffset }: UseDrawingModePro
           ctx.shadowBlur = 0;
 
           const strategy = brushStrategies.get(brushType);
+          let shouldContinue = true;
+
           if (strategy) {
-            const skipDefaultStroke = strategy.apply({
+            shouldContinue = strategy.apply({
               ctx,
-              brushSize,
-              brushColor,
-              brushOpacity,
-              pressureWidth,
-              ptPressure,
               drawX,
               drawY,
+              pressureWidth,
+              brushColor,
+              brushSize,
+              brushOpacity,
+              ptPressure
             });
+          }
 
-            if (skipDefaultStroke) {
-              continue;
-            }
+          if (!shouldContinue) {
+            continue;
           }
 
           ctx.lineTo(drawX, drawY);
