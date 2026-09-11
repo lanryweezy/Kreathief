@@ -21,6 +21,8 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
     };
     window.localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
     window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    localStorage.setItem('kreathief_editor_tour_seen', 'true');
   });
 
   await page.goto('http://localhost:5173/editor');
@@ -69,7 +71,9 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
   const canvasContainer = page.locator('.canvas-container');
   await canvasContainer.waitFor({ state: 'visible' });
   const box = await canvasContainer.boundingBox();
-  if (!box) throw new Error('Canvas container box not found');
+  if (!box) {
+    throw new Error('Canvas container box not found');
+  }
 
   const startX = box.x + box.width / 2;
   const startY = box.y + box.height / 2;

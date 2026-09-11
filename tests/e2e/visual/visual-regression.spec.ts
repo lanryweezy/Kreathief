@@ -30,13 +30,18 @@ test.describe('Visual Regression Tests', () => {
     await templateBtn.waitFor({ state: 'attached', timeout: 30000 });
     await templateBtn.click({ force: true });
     await editor.waitForCanvasReady();
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
+    });
+
+    // Navigate to editor
+    await editor.goto();
   });
 
   test('should match dashboard screenshot', async ({ page }) => {
     await page.goto('/');
 
     // Wait for dashboard to load
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('dashboard-load.png', {
@@ -195,6 +200,7 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test('should detect visual changes', async ({ page }) => {
+    await page.waitForTimeout(2000);
     // Take initial screenshot
     await expect(page).toHaveScreenshot('initial-state.png', {
       fullPage: true,

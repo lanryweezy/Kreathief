@@ -1,0 +1,21 @@
+# Kreathief
+
+> AI-powered browser-based design platform combining image generation, editable vector tools, real-time collaboration, and export workflows.
+
+## Product
+- Homepage: https://www.kreathief.com/
+- Features: https://www.kreathief.com/#features
+- Pricing: https://www.kreathief.com/#pricing
+- Blog: https://www.kreathief.com/blog
+- Help Center: https://www.kreathief.com/help
+- API: https://www.kreathief.com/api
+
+## About
+Kreathief helps designers, marketers, agencies, and creative teams create production-ready visual work in one browser-based workflow. It supports AI image generation, vector editing, mockups, collaboration, templates, and professional exports.
+
+## Policies
+- About: https://www.kreathief.com/about
+- Security: https://www.kreathief.com/security
+- Privacy: https://www.kreathief.com/privacy
+- Terms: https://www.kreathief.com/terms
+- Contact: https://www.kreathief.com/contact

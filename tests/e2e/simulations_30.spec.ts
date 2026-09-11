@@ -21,6 +21,8 @@ test.describe('Premium Pro User: 30 Visual Simulation Stress Scenarios', () => {
       window.localStorage.setItem('kreathief_qa_session', JSON.stringify(userPayload));
       window.localStorage.setItem('kreathief_user', JSON.stringify(userPayload));
       window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
   });
 

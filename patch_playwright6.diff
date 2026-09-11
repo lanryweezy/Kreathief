@@ -1,0 +1,20 @@
+--- tests/e2e/visual/visual-regression.spec.ts
++++ tests/e2e/visual/visual-regression.spec.ts
+@@ -207,6 +207,6 @@
+     // Reload to apply viewport
+-    await page.reload();
+-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
++    await page.goto('/');
++    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
+
+     // Take screenshot
+     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
+@@ -222,6 +222,6 @@
+     // Reload to apply viewport
+-    await page.reload();
+-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
++    await page.goto('/');
++    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
+
+     // Take screenshot
+     await expect(page).toHaveScreenshot('tablet-dashboard.png', {

@@ -25,6 +25,10 @@ test('Aggressive Stress Test - Long Duration Simulation', async ({ page }) => {
     };
     window.localStorage.setItem('kreathief_qa_session', JSON.stringify(mockUser));
     window.localStorage.setItem('kreathief_onboarding_seen', 'true');
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    localStorage.setItem('kreathief_editor_tour_seen', 'true');
+    window.localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+    window.localStorage.setItem('kreathief_editor_tour_seen', 'true');
   });
 
   await page.goto('http://localhost:5173/editor');
@@ -41,6 +45,9 @@ test('Aggressive Stress Test - Long Duration Simulation', async ({ page }) => {
   const canvasContainer = page.locator('.canvas-container');
   const box = await canvasContainer.boundingBox();
   if (!box) {throw new Error('Canvas not found');}
+  if (!box) {
+    throw new Error('Canvas not found');
+  }
 
   const randomPoint = () => ({
     x: box.x + 100 + Math.random() * (box.width - 200),
@@ -74,6 +81,9 @@ test('Aggressive Stress Test - Long Duration Simulation', async ({ page }) => {
       await page.mouse.click(start.x, start.y); // Close
       const doneBtn = page.getByTitle('Done');
       if (await doneBtn.isVisible()) {await doneBtn.click();}
+      if (await doneBtn.isVisible()) {
+        await doneBtn.click();
+      }
     }
 
     // ACTION C: Multi-Selection Stress
@@ -98,6 +108,9 @@ test('Aggressive Stress Test - Long Duration Simulation', async ({ page }) => {
         const s = (window as any).useStore.getState();
         const ab = s.artboards.find((a: any) => a.id === s.activeArtboardId);
         if (ab) {s.setSelectedLayerIds(ab.layers.map((l: any) => l.id));}
+        if (ab) {
+          s.setSelectedLayerIds(ab.layers.map((l: any) => l.id));
+        }
       });
       const unionBtn = page.getByTitle('Union', { exact: true });
       if (await unionBtn.isVisible()) {

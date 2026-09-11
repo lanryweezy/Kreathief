@@ -425,6 +425,25 @@ export const ElementsPanel = () => {
     []
   );
 
+  // ⚡ Bolt Optimization: Pre-categorize shapes to avoid inline O(N) .filter().map() chains in render
+  const categorizedPresets = useMemo(() => {
+    const basic: ShapePreset[] = [];
+    const frames: ShapePreset[] = [];
+    const blobs: ShapePreset[] = [];
+
+    for (const shape of shapePresets) {
+      if (shape.category === 'basic' || shape.category === 'geometric') {
+        basic.push(shape);
+      } else if (shape.category === 'frames') {
+        frames.push(shape);
+      } else if (shape.category === 'blobs') {
+        blobs.push(shape);
+      }
+    }
+
+    return { basic, frames, blobs };
+  }, [shapePresets]);
+
   const filteredShapePresets = useMemo(() => {
     return shapePresets.filter((item) => {
       const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
@@ -671,6 +690,7 @@ export const ElementsPanel = () => {
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
                 {shapeCategories.basicOrGeometric.map((item, idx) => (
+                {categorizedPresets.basic.slice(0, 10).map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -723,6 +743,7 @@ export const ElementsPanel = () => {
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
                 {shapeCategories.frames.map((item, idx) => (
+                {categorizedPresets.frames.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
@@ -767,6 +788,7 @@ export const ElementsPanel = () => {
 
               <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
                 {shapeCategories.blobs.map((item, idx) => (
+                {categorizedPresets.blobs.map((item, idx) => (
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}

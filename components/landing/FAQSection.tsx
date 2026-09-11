@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Helmet } from 'react-helmet-async';
 import { Icons } from '../../constants';
 
 const faqs = [
@@ -40,6 +41,19 @@ export const FAQSection: React.FC = () => {
 
   return (
     <section className="py-32 relative bg-[#0a0a0c] border-t border-white/5 overflow-hidden">
+      <Helmet>
+        <script type="application/ld+json">
+          {JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'FAQPage',
+            mainEntity: faqs.map((faq) => ({
+              '@type': 'Question',
+              name: faq.question,
+              acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+            })),
+          })}
+        </script>
+      </Helmet>
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-[#0a0a0c] to-[#0a0a0c] pointer-events-none -z-10"></div>
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-16">

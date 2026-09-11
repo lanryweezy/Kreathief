@@ -19,7 +19,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
-import { getAIErrorMessage } from '../../utils/errorMessages';
+import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
 import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -303,7 +303,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       void setStyleReference(String(reader.result), file.name);
       setShowAspects(true);
     };
-    reader.onerror = () => addToast('Could not read that image.', 'error');
+    reader.onerror = () => addToast('Could not read that image. Please check the file and try again.', 'error');
     reader.readAsDataURL(file);
   };
 
@@ -878,7 +878,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 analyticsService.track('analyze_design', { score: result.score });
               } catch (e) {
                 log.error('[MagicPanel] Design analysis failed', e);
-                addToast('Analysis failed', 'error');
+                const details = getErrorDetails(e);
+                addToast(`Analysis failed: ${details.message}. ${details.suggestion}`, 'error');
               } finally {
                 setIsAnalyzing(false);
               }
@@ -970,7 +971,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 } catch (e) {
                   log.error('Multi-layer generation failed', e);
                   useStore.setState({ isGenerating: false });
-                  addToast('Could not generate multi-layer artboard.', 'error');
+                  addToast(getAIErrorMessage(e), 'error');
                 }
               } else if (mode === AppMode.EDIT && selectedLayerId) {
                 await useStore.getState().onRemix(selectedLayerId);
