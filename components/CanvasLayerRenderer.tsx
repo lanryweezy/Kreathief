@@ -189,84 +189,55 @@ export const CanvasLayerRenderer: React.FC<CanvasLayerRendererProps> = React.mem
       return [...prioritized, ...candidates.slice(0, Math.max(0, remaining))];
     }, [effectiveLayers, viewportBounds, zoom, selectedLayerIds, selectedLayerId, hoveredLayerId]);
 
+    const renderLayerNode = (l: Layer, idx: number, parentZIndex?: number) => {
+      if (l.isMasking) {
+        return null;
+      }
+      const maskLayer = layerMasks.get(l.id);
+      const children = groupChildrenMap.get(l.id) || [];
+      const layerIndex = layers ? layers.findIndex((lay) => lay.id === l.id) : idx;
+      const zIndex = typeof (l as any).zIndex === 'number' 
+        ? (l as any).zIndex 
+        : (parentZIndex !== undefined ? parentZIndex : (layerIndex >= 0 ? layerIndex + 1 : idx + 1));
+      const previewUpdate = interactionPreviewUpdates?.[l.id] || {};
+      const layerWithZIndex = { ...l, zIndex, ...previewUpdate };
+
+      return (
+        <React.Fragment key={l.id}>
+          <CanvasLayerItemWrapper
+            layer={layerWithZIndex as Layer}
+            allLayers={layers}
+            layerMap={layerMap}
+            maskLayerOverride={maskLayer}
+            selectedLayerId={selectedLayerId}
+            selectedLayerIds={selectedLayerIds}
+            hoveredLayerId={hoveredLayerId}
+            setHoveredLayerId={setHoveredLayerId}
+            setLayerRef={setLayerRef}
+            handleMouseDownLayer={handleMouseDownLayer}
+            handleResizeStart={handleResizeStart}
+            handleRotateStart={handleRotateStart}
+            handleContextMenu={handleContextMenu}
+            handleTextDoubleClick={handleTextDoubleClick}
+            handleDropShape={handleDropShape}
+            onDoubleClickLayer={onDoubleClickLayer}
+            editingTextId={editingTextId}
+            textEditRef={textEditRef}
+            finishEditingText={finishEditingText}
+            editingPathId={editingPathId}
+            onUpdatePath={onUpdatePath}
+            zoom={zoom}
+            isInteracting={isInteracting}
+            previewAnimation={previewAnimation}
+          />
+          {children.map((child, cIdx) => renderLayerNode(child, cIdx, zIndex))}
+        </React.Fragment>
+      );
+    };
+
     return (
       <>
-        {visibleLayers.map((l, idx) => {
-          if (l.isMasking) {
-            return null;
-          }
-          const maskLayer = layerMasks.get(l.id);
-          const children = groupChildrenMap.get(l.id) || [];
-          const layerIndex = layers ? layers.findIndex((lay) => lay.id === l.id) : idx;
-          const zIndex = typeof (l as any).zIndex === 'number' ? (l as any).zIndex : (layerIndex >= 0 ? layerIndex + 1 : idx + 1);
-          const previewUpdate = interactionPreviewUpdates?.[l.id] || {};
-          const layerWithZIndex = { ...l, zIndex, ...previewUpdate };
-
-          return (
-            <React.Fragment key={l.id}>
-              <CanvasLayerItemWrapper
-                layer={layerWithZIndex as Layer}
-                allLayers={layers}
-                layerMap={layerMap}
-                maskLayerOverride={maskLayer}
-                selectedLayerId={selectedLayerId}
-                selectedLayerIds={selectedLayerIds}
-                hoveredLayerId={hoveredLayerId}
-                setHoveredLayerId={setHoveredLayerId}
-                setLayerRef={setLayerRef}
-                handleMouseDownLayer={handleMouseDownLayer}
-                handleResizeStart={handleResizeStart}
-                handleRotateStart={handleRotateStart}
-                handleContextMenu={handleContextMenu}
-                handleTextDoubleClick={handleTextDoubleClick}
-                handleDropShape={handleDropShape}
-                onDoubleClickLayer={onDoubleClickLayer}
-                editingTextId={editingTextId}
-                textEditRef={textEditRef}
-                finishEditingText={finishEditingText}
-                editingPathId={editingPathId}
-                onUpdatePath={onUpdatePath}
-                zoom={zoom}
-                isInteracting={isInteracting}
-                previewAnimation={previewAnimation}
-              />
-              {children.map((child, cIdx) => {
-                const childLayerIndex = layers ? layers.findIndex((lay) => lay.id === child.id) : cIdx;
-                const childZIndex = typeof (child as any).zIndex === 'number' ? (child as any).zIndex : (childLayerIndex >= 0 ? childLayerIndex + 1 : zIndex);
-                const childPreviewUpdate = interactionPreviewUpdates?.[child.id] || {};
-                return (
-                  <CanvasLayerItemWrapper
-                    key={child.id}
-                    layer={{ ...child, zIndex: childZIndex, ...childPreviewUpdate } as Layer}
-                    allLayers={layers}
-                    layerMap={layerMap}
-                    maskLayerOverride={layerMasks.get(child.id)}
-                    selectedLayerId={selectedLayerId}
-                    selectedLayerIds={selectedLayerIds}
-                    hoveredLayerId={hoveredLayerId}
-                    setHoveredLayerId={setHoveredLayerId}
-                    setLayerRef={setLayerRef}
-                    handleMouseDownLayer={handleMouseDownLayer}
-                    handleResizeStart={handleResizeStart}
-                    handleRotateStart={handleRotateStart}
-                    handleContextMenu={handleContextMenu}
-                    handleTextDoubleClick={handleTextDoubleClick}
-                    handleDropShape={handleDropShape}
-                    onDoubleClickLayer={onDoubleClickLayer}
-                    editingTextId={editingTextId}
-                    textEditRef={textEditRef}
-                    finishEditingText={finishEditingText}
-                    editingPathId={editingPathId}
-                    onUpdatePath={onUpdatePath}
-                    zoom={zoom}
-                    isInteracting={isInteracting}
-                    previewAnimation={previewAnimation}
-                  />
-                );
-              })}
-            </React.Fragment>
-          );
-        })}
+        {visibleLayers.map((l, idx) => renderLayerNode(l, idx))}
       </>
     );
   }

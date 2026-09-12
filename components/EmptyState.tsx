@@ -75,7 +75,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {secondaryAction && (
           <button
             onClick={secondaryAction.onClick}
-            className="px-10 py-4 bg-[#1a1d21] text-gray-400 font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl border border-white/5 hover:border-white/20 hover:text-white transition-all active:scale-95 whitespace-nowrap"
+            className="px-10 py-4 bg-surface-dark-2 text-gray-400 font-black uppercase tracking-[0.2em] text-[11px] rounded-2xl border border-white/5 hover:border-white/20 hover:text-white transition-all active:scale-95 whitespace-nowrap"
           >
             {secondaryAction.label}
           </button>

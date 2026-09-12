@@ -19,6 +19,7 @@ import { TextSpacingControls } from './TextSpacingControls';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { Input } from '../Input';
 import { Button } from '../Button';
+import { BADGE_PRESETS, BadgeConfig, generateBadgeLayers } from '../../services/badgePathGenerator';
 
 // Flatten relevant fonts for "All" tab
 const ALL_FONTS = FONT_FAMILIES;
@@ -83,6 +84,8 @@ const FontPreviewItem = ({
 
 export const TextPanel: React.FC = () => {
   const addTextLayer = useStore((state) => state.addTextLayer);
+  const addLayer = useStore((state) => state.addLayer);
+  const activeArtboardId = useStore((state) => state.activeArtboardId);
   const updateLayer = useStore((state) => state.updateLayer);
   const setPreviewFontFamily = useStore((state) => state.setPreviewFontFamily);
   const customFonts = useStore((state) => state.customFonts);
@@ -98,8 +101,17 @@ export const TextPanel: React.FC = () => {
   const [textGenResults, setTextGenResults] = useState<string[]>([]);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [activeTextTab, setActiveTextTab] = useState<
-    'add' | 'styles' | 'gradient' | 'effects' | 'path' | 'find' | 'spacing'
+    'add' | 'badges' | 'styles' | 'gradient' | 'effects' | 'path' | 'find' | 'spacing'
   >('add');
+
+  const handleAddBadge = (badge: BadgeConfig) => {
+    const currentArtboard = artboards.find((a) => a.id === activeArtboardId) || artboards[0];
+    const width = currentArtboard?.width || 1080;
+    const height = currentArtboard?.height || 1080;
+    const layers = generateBadgeLayers(badge, width, height);
+    layers.forEach((l) => addLayer(l));
+    addToast(`Added ${badge.name} emblem to canvas!`, 'success');
+  };
   const [selectedTextStyle, setSelectedTextStyle] = useState<Partial<TextStyle> | null>(null);
   const [textGradient, setTextGradient] = useState<any>(null);
   const [textEffects, setTextEffects] = useState<any>({});
@@ -332,7 +344,7 @@ export const TextPanel: React.FC = () => {
           className="flex flex-nowrap overflow-x-auto no-scrollbar gap-1 mb-5 bg-surface-dark-2 p-1.5 rounded-xl border border-white/5"
           role="tablist"
         >
-          {(['add', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
+          {(['add', 'badges', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
             <button
               key={tab}
               role="tab"
@@ -352,7 +364,7 @@ export const TextPanel: React.FC = () => {
         {/* Add Text Tab */}
         {activeTextTab === 'add' && (
           <>
-            <div className="flex flex-col gap-2 mb-6">
+            <div className="flex flex-col gap-2 mb-4">
               <button
                 data-testid="add-heading-btn"
                 onClick={() => handleAddText({ text: 'Heading', fontSize: 62, fontWeight: '800' })}
@@ -373,6 +385,30 @@ export const TextPanel: React.FC = () => {
                 className="w-full py-2.5 bg-surface-dark-4 hover:bg-surface-dark-5 border border-gray-700 hover:border-gray-500 rounded-xl text-left px-4 transition-colors"
               >
                 <span className="text-sm font-medium text-gray-300 leading-none">Add a little bit of body text</span>
+              </button>
+            </div>
+
+            {/* Featured Badges Callout */}
+            <div className="mb-6 p-3 bg-gradient-to-r from-purple-500/10 via-brand-500/10 to-transparent border border-purple-500/20 rounded-xl flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="text-xl">🏵️</span>
+                <div>
+                  <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <span>Curved Badges & Stamps</span>
+                    <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-[8px] text-purple-400 font-black">
+                      NEW
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-gray-400">Vintage seals with curved arc typography</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                data-testid="explore-badges-btn"
+                onClick={() => setActiveTextTab('badges')}
+                className="px-2.5 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-[9px] font-bold uppercase transition-all"
+              >
+                Explore →
               </button>
             </div>
 
@@ -677,6 +713,91 @@ export const TextPanel: React.FC = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Badges Tab */}
+        {activeTextTab === 'badges' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-400 text-xs">🏵️</span>
+                <label className="text-[10px] font-black text-white uppercase tracking-widest">
+                  Badge & Stamp Generator
+                </label>
+              </div>
+              <span className="text-[9px] font-bold text-purple-400 font-mono">
+                4 Archetypes
+              </span>
+            </div>
+
+            <p className="text-[10px] text-gray-400 leading-relaxed">
+              1-click multi-layer circular stamp and emblem generator with coordinated curved arc typography and concentric borders.
+            </p>
+
+            <div className="grid grid-cols-1 gap-3">
+              {BADGE_PRESETS.map((badge) => (
+                <div
+                  key={badge.id}
+                  data-testid={`badge-card-${badge.id}`}
+                  className="p-3 bg-surface-dark-3 border border-white/10 hover:border-purple-500/40 rounded-xl space-y-2.5 transition-all group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">{badge.icon}</span>
+                      <div>
+                        <h4 className="text-xs font-bold text-white group-hover:text-purple-300">
+                          {badge.name}
+                        </h4>
+                        <span className="text-[8px] font-bold text-gray-500 uppercase tracking-wider">
+                          {badge.category} • {badge.fontFamily}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      data-testid={`add-badge-btn-${badge.id}`}
+                      onClick={() => handleAddBadge(badge)}
+                      className="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-[10px] font-black uppercase tracking-wider transition-all shadow-sm"
+                    >
+                      Add Emblem +
+                    </button>
+                  </div>
+
+                  {/* Micro Preview of Badge Content */}
+                  <div
+                    className="p-2.5 rounded-lg border flex flex-col items-center justify-center text-center select-none"
+                    style={{
+                      backgroundColor: badge.secondaryColor,
+                      borderColor: badge.primaryColor,
+                    }}
+                  >
+                    <span
+                      className="text-[9px] font-black tracking-widest uppercase"
+                      style={{ color: badge.primaryColor, fontFamily: badge.fontFamily }}
+                    >
+                      {badge.topText}
+                    </span>
+                    <span
+                      className="text-base font-black tracking-wider uppercase my-0.5"
+                      style={{ color: badge.primaryColor, fontFamily: badge.fontFamily }}
+                    >
+                      {badge.centerText}
+                    </span>
+                    <span
+                      className="text-[8px] font-bold tracking-widest uppercase opacity-80"
+                      style={{ color: badge.primaryColor, fontFamily: badge.fontFamily }}
+                    >
+                      {badge.bottomText}
+                    </span>
+                  </div>
+
+                  <p className="text-[9px] text-gray-400">
+                    {badge.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
         {/* Styles Tab */}

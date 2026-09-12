@@ -18,6 +18,8 @@ export interface MockupControlsProps {
   setLightingBrightness: (v: number) => void;
   lightingContrast: number;
   setLightingContrast: (v: number) => void;
+  substrateColor?: string;
+  setSubstrateColor?: (v: string) => void;
   useCornerPinning: boolean;
   setUseCornerPinning: (v: boolean) => void;
   setCornerPoints: (cp: CornerPoints | null) => void;
@@ -31,6 +33,8 @@ export interface MockupControlsProps {
   handleProRender: () => void;
   isProGenerating: boolean;
   handleAddToCanvas: () => void;
+  handleSocialPack?: () => void;
+  isGeneratingPack?: boolean;
 }
 
 export const MockupControls: React.FC<MockupControlsProps> = ({
@@ -61,6 +65,14 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
   handleProRender,
   isProGenerating,
   handleAddToCanvas,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  substrateColor: _substrateColor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  setSubstrateColor: _setSubstrateColor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  handleSocialPack: _handleSocialPack,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isGeneratingPack: _isGeneratingPack,
 }) => {
   if (variant === 'full') {
     return (
@@ -375,7 +387,7 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
   }
 
   return (
-    <div className="bg-[#1a1d21]">
+    <div className="bg-surface-dark-2">
       <div className="flex border-b border-gray-800 bg-surface-dark-2">
         {(['placement', 'effects', 'presets'] as const).map((tab) => (
           <button

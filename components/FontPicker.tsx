@@ -103,7 +103,7 @@ export const FontPicker: React.FC<FontPickerProps> = ({
           <input
             type="text"
             placeholder="Search fonts..."
-            className="w-full bg-[#13161a] border border-gray-600 rounded pl-7 pr-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none placeholder:text-gray-600"
+            className="w-full bg-surface-dark-2 border border-gray-600 rounded pl-7 pr-2 py-1.5 text-xs text-white focus:border-brand-600 outline-none placeholder:text-gray-600"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             autoFocus

@@ -28,7 +28,7 @@ export const ScrollShowcase: React.FC = () => {
   ];
 
   return (
-    <section className="py-32 bg-[#0a0a0c] relative border-y border-white/5 overflow-hidden">
+    <section className="py-32 bg-surface-dark-0 relative border-y border-white/5 overflow-hidden">
       <LaserSeparator className="absolute top-0 inset-x-0" />
 
       {/* Ambient background glow */}
@@ -52,7 +52,7 @@ export const ScrollShowcase: React.FC = () => {
               </div>
 
               <div className="w-full lg:w-7/12 flex items-center">
-                <div className="relative w-full h-[400px] md:h-[700px] rounded-[40px] border border-white/5 bg-[#0a0a0c] glass-edge overflow-hidden group shadow-2xl">
+                <div className="relative w-full h-[400px] md:h-[700px] rounded-[40px] border border-white/5 bg-surface-dark-0 glass-edge overflow-hidden group shadow-2xl">
                   <motion.img
                     initial={{ opacity: 0, scale: 0.9, y: 30 }}
                     whileInView={{ opacity: 1, scale: 1, y: 0 }}

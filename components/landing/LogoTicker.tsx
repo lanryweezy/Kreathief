@@ -24,7 +24,7 @@ export const LogoTicker: React.FC = () => {
   ];
 
   return (
-    <section className="py-24 relative bg-[#0a0a0c] overflow-hidden border-t border-white/5">
+    <section className="py-24 relative bg-surface-dark-0 overflow-hidden border-t border-white/5">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
 
       <div className="max-w-7xl mx-auto px-6 mb-16 flex flex-col md:flex-row items-center justify-between gap-8">

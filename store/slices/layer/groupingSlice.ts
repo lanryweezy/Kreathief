@@ -19,7 +19,7 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
 
     const selectedIdsSet = new Set(selectedLayerIds);
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) {
           return a;
@@ -101,7 +101,7 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
     get().saveToHistory?.();
     const selectedIdsSet = new Set(selectedLayerIds);
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) {
           return a;

@@ -29,7 +29,7 @@ export const MobileTransformController: React.FC = () => {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 md:hidden animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-[#1a1d21]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 flex flex-col gap-4">
+      <div className="bg-surface-dark-2/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 flex flex-col gap-4">
         {/* Quick Sliders */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">

@@ -510,7 +510,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="relative bg-[#1a1d21] border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
+              className="relative bg-surface-dark-2 border border-white/10 rounded-2xl p-6 w-full max-w-[280px] shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3 mb-4">

@@ -15,11 +15,11 @@ export const ContentPage: React.FC<ContentPageProps> = ({ title, children }) => 
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-brand-600 selection:text-white font-sans overflow-x-hidden">
+    <div className="min-h-screen bg-surface-dark-0 text-white selection:bg-brand-600 selection:text-white font-sans overflow-x-hidden">
       <SEO />
 
       {/* Navigation */}
-      <nav className="py-6 bg-[#050505]/90 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-50">
+      <nav className="py-6 bg-surface-dark-0/90 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 group cursor-pointer">
             <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300">

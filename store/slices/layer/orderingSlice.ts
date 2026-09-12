@@ -6,7 +6,7 @@ import { LayerSlice } from './baseSlice';
 export const createOrderingSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
   reorderLayer: (id, newIndex) => {
     get().saveToHistory?.();
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const idx = a.layers.findIndex((l) => l.id === id);
         if (idx === -1) return a;
@@ -20,7 +20,7 @@ export const createOrderingSlice: StateCreator<StoreState, [], [], Partial<Layer
 
   moveLayer: (id, direction) => {
     get().saveToHistory?.();
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const idx = a.layers.findIndex((l) => l.id === id);
         if (idx === -1) return a;

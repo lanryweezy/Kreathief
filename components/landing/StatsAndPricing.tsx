@@ -11,7 +11,7 @@ export const Stats: React.FC = () => {
   ];
 
   return (
-    <div className="py-20 border-y border-white/5 bg-[#0a0a0c]">
+    <div className="py-20 border-y border-white/5 bg-surface-dark-0">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
           {stats.map((stat, idx) => (
@@ -153,7 +153,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className={`p-10 rounded-[40px] bg-[#0a0a0c] border-2 ${plan.popular ? 'border-transparent animated-border-wrapper shadow-2xl shadow-purple-500/20' : plan.accent} flex flex-col relative overflow-hidden group`}
+              className={`p-10 rounded-[40px] bg-surface-dark-0 border-2 ${plan.popular ? 'border-transparent animated-border-wrapper shadow-2xl shadow-purple-500/20' : plan.accent} flex flex-col relative overflow-hidden group`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-purple-500/50">

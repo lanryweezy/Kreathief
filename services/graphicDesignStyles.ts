@@ -12,6 +12,8 @@ import { Layer, Gradient } from '../types';
 import { ArtboardDesignResult } from './aiDesignDirector';
 import { resolveHeroPhoto } from './visualAssetDirector';
 import { v4 as uuidv4 } from 'uuid';
+import { createTextureOverlayConfig } from './textureOverlayEngine';
+import { TEXT_EFFECT_PRESETS } from './textEffectPresets';
 
 export type GraphicDesignStyleCategory = 'trends2026' | 'movements' | 'retroSubculture' | 'minimalDigital';
 
@@ -2733,7 +2735,7 @@ export function buildBrutalistDesign(opts: StyleBuildOptions): ArtboardDesignRes
 }
 
 // ─── Master Dispatcher ──────────────────────────────────────────────────────
-export function buildCompositionByStyleId(
+function internalBuildComposition(
   styleId: GraphicDesignStyleId,
   width: number,
   height: number,
@@ -2919,6 +2921,85 @@ export function buildCompositionByStyleId(
       };
     }
   }
+}
+
+function attachMovementTextureAndEffects(
+  styleId: GraphicDesignStyleId,
+  result: ArtboardDesignResult
+): ArtboardDesignResult {
+  // 1. Text Effect Presets
+  const textPresetMap: Partial<Record<GraphicDesignStyleId, string>> = {
+    popArt: 'comicBoom',
+    y2k: 'liquidChrome',
+    aurora: 'liquidChrome',
+    artDeco: 'goldFoil',
+    luxuryTypography: 'goldFoil',
+    neoBrutalism: 'neoBrutalistBlock',
+    synthwave: 'synthwaveSunset',
+    risograph: 'risographHalftone',
+    psychedelic: 'psychedelicTrippy',
+    minimalism: 'minimalHollow',
+  };
+
+  const presetId = textPresetMap[styleId];
+  if (presetId && TEXT_EFFECT_PRESETS[presetId]) {
+    const changes = TEXT_EFFECT_PRESETS[presetId].changes;
+    const textLayers = result.layers.filter((l): l is Layer & { type: 'text' } => l.type === 'text');
+    if (textLayers.length > 0) {
+      const headline = textLayers.reduce(
+        (max, l) => (((l as any).fontSize || 0) > ((max as any).fontSize || 0) ? l : max),
+        textLayers[0]
+      );
+      result.layers = result.layers.map((l) => {
+        if (l.id === headline.id) {
+          return {
+            ...l,
+            ...changes,
+          } as Layer;
+        }
+        return l;
+      });
+    }
+  }
+
+  // 2. Texture Overlays
+  const textureMap: Partial<Record<GraphicDesignStyleId, { id: string; opacity?: number; blendMode?: any }>> = {
+    risograph: { id: 'risoHalftone', opacity: 0.28, blendMode: 'multiply' },
+    artDeco: { id: 'paperGrain', opacity: 0.22, blendMode: 'multiply' },
+    bauhaus: { id: 'paperGrain', opacity: 0.2, blendMode: 'multiply' },
+    y2k: { id: 'holographicFoil', opacity: 0.3, blendMode: 'screen' },
+    aurora: { id: 'holographicFoil', opacity: 0.25, blendMode: 'screen' },
+    punk: { id: 'grungeScratches', opacity: 0.35, blendMode: 'overlay' },
+    synthwave: { id: 'filmGrain', opacity: 0.22, blendMode: 'overlay' },
+    contemporary: { id: 'filmGrain', opacity: 0.18, blendMode: 'overlay' },
+    micrographics: { id: 'blueprintGrid', opacity: 0.28, blendMode: 'overlay' },
+    bentoGrid: { id: 'blueprintGrid', opacity: 0.2, blendMode: 'overlay' },
+    luxuryTypography: { id: 'goldFoilTexture', opacity: 0.25, blendMode: 'overlay' },
+    psychedelic: { id: 'marbledAcid', opacity: 0.28, blendMode: 'soft-light' },
+  };
+
+  const texConfig = textureMap[styleId];
+  if (texConfig) {
+    const config = createTextureOverlayConfig(texConfig.id, {
+      opacity: texConfig.opacity,
+      blendMode: texConfig.blendMode,
+    });
+    if (config) {
+      result.textureOverlay = config;
+    }
+  }
+
+  return result;
+}
+
+export function buildCompositionByStyleId(
+  styleId: GraphicDesignStyleId,
+  width: number,
+  height: number,
+  prompt: string
+): ArtboardDesignResult {
+  const raw = internalBuildComposition(styleId, width, height, prompt);
+  return attachMovementTextureAndEffects(styleId, raw);
 }
 
 /**

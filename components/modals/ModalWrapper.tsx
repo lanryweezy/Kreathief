@@ -91,7 +91,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
             role="dialog"
             aria-modal="true"
             aria-label={ariaLabel || 'Dialog'}
-            className={`relative w-full ${maxWidth} max-h-[calc(100vh-2rem)] bg-[#13161a] border border-white/10 rounded-[32px] shadow-[0_32px_100px_rgba(0,0,0,0.6)] flex flex-col z-10`}
+            className={`relative w-full ${maxWidth} max-h-[calc(100vh-2rem)] bg-surface-dark-2 border border-white/10 rounded-[32px] shadow-[0_32px_100px_rgba(0,0,0,0.6)] flex flex-col z-10`}
             onClick={(e) => e.stopPropagation()}
           >
             {showCloseButton && (

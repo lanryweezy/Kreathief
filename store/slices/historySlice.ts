@@ -67,7 +67,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
         selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
       };
 
-      set((state: any) => {
+      set((state) => {
         let entry: HistoryEntry;
         const lastSnapshot = state.__lastStateSnapshot;
         const shouldMakeSnapshot = !lastSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
@@ -110,7 +110,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     set({ __batchDepth: depth });
     if (depth === 0 && hadPending) {
       const now = Date.now();
-      set((state: any) => {
+      set((state) => {
         const currentState: HistoryState = {
           artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
           activeArtboardId: state.activeArtboardId,
@@ -286,7 +286,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     };
 
     await storageService.saveSnapshot(snapshot);
-    set((state: any) => ({ snapshots: [snapshot, ...state.snapshots] }));
+    set((state) => ({ snapshots: [snapshot, ...state.snapshots] }));
     analyticsService.track('export_design', { method: 'snapshot', name });
   },
 
@@ -322,6 +322,6 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
   deleteSnapshot: async (snapshotId) => {
     await storageService.deleteSnapshot(snapshotId);
-    set((state: any) => ({ snapshots: state.snapshots.filter((s: DesignSnapshot) => s.id !== snapshotId) }));
+    set((state) => ({ snapshots: state.snapshots.filter((s: DesignSnapshot) => s.id !== snapshotId) }));
   },
 });

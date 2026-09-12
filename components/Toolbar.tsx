@@ -105,8 +105,7 @@ export const Toolbar = React.memo(
     // Listen for "open effects panel" event
     useEffect(() => {
       const handleOpenEffects = () => {
-        setActiveTab(NavTab.TEXT);
-        // We could ideally trigger the inner tab state of TextPanel here, but setting active tab to TEXT is the fallback.
+        setActiveTab(NavTab.TEXT_EFFECTS);
       };
       window.addEventListener('open-effects-panel', handleOpenEffects);
       return () => window.removeEventListener('open-effects-panel', handleOpenEffects);

@@ -91,7 +91,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#050505] flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-screen w-full bg-surface-dark-0 flex items-center justify-center relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-900/10 rounded-full blur-[140px] animate-pulse-slow"></div>
@@ -112,7 +112,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
       <div className="flex w-full max-w-[1000px] h-[700px] bg-surface-dark-1 rounded-[32px] border border-white/5 shadow-2xl relative z-10 overflow-hidden m-6">
         {/* Left Side: Illustration/Text (Desktop Only) */}
-        <div className="hidden lg:flex flex-1 bg-[#111] relative overflow-hidden p-16 flex-col justify-between border-r border-white/5">
+        <div className="hidden lg:flex flex-1 bg-surface-dark-1 relative overflow-hidden p-16 flex-col justify-between border-r border-white/5">
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_20%,_var(--tw-gradient-stops))] from-brand-500/10 via-transparent to-transparent"></div>
             <img
@@ -124,7 +124,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
 
           <div className="relative z-10">
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-10 h-10 bg-[#0E1318] border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-surface-dark-1 border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
                 <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
               </div>
               <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
@@ -147,7 +147,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                 {[1, 2, 3].map((i) => (
                   <div
                     key={i}
-                    className="w-10 h-10 rounded-full border-2 border-[#111] bg-gray-800 flex items-center justify-center text-[10px] font-black"
+                    className="w-10 h-10 rounded-full border-2 border-surface-dark-1 bg-gray-800 flex items-center justify-center text-[10px] font-black"
                   >
                     {i}
                   </div>

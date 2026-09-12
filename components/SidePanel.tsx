@@ -18,6 +18,7 @@ const TextPanel = React.lazy(() => import('./panels/TextPanel'));
 const UploadsPanel = React.lazy(() => import('./panels/UploadsPanel'));
 const AssetsPanel = React.lazy(() => import('./panels/AssetsPanel'));
 const ComponentsPanel = React.lazy(() => import('./panels/ComponentsPanel'));
+const TexturesPanel = React.lazy(() => import('./panels/TexturesPanel').then((m) => ({ default: m.TexturesPanel })));
 const MotionPanel = React.lazy(() => import('./panels/MotionPanel').then((m) => ({ default: m.MotionPanel })));
 const AccessibilityPanel = React.lazy(() =>
   import('./panels/AccessibilityPanel').then((m) => ({ default: m.AccessibilityPanel }))
@@ -183,6 +184,7 @@ export const SidePanel = React.memo(
               {activeTab === NavTab.UPLOADS && <UploadsPanel />}
 
               {activeTab === NavTab.PHOTOS && <AssetsPanel />}
+              {activeTab === NavTab.TEXTURES && <TexturesPanel />}
 
               {activeTab === NavTab.TEXT_EFFECTS && selectedTextLayer && (
                 <TextEffectsPanel

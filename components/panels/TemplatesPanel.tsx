@@ -106,6 +106,17 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
         state: {
           canvasSize: { width: tmpl.width, height: tmpl.height },
           canvasBackgroundColor: tmpl.backgroundColor,
+          canvasFilters: {
+            brightness: 100,
+            contrast: 100,
+            saturation: 100,
+            blur: 0,
+            opacity: 1,
+            vignette: 0,
+            sepia: 0,
+            grayscale: 0,
+            hueRotate: 0,
+          },
           activeArtboardId: 'artboard-1',
           artboards: [
             {

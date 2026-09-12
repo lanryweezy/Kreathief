@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 export const NotFoundPage: React.FC = () => (
-  <main className="min-h-screen bg-[#0a0a0c] px-6 py-24 text-white">
+  <main className="min-h-screen bg-surface-dark-0 px-6 py-24 text-white">
     <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
       <img src="/logo.svg" alt="Kreathief" className="mb-10 h-14 w-14 object-contain" />
       <p className="mb-4 text-sm font-bold uppercase tracking-[0.25em] text-purple-300">404 — Page not found</p>

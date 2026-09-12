@@ -4,10 +4,10 @@ import { Icons } from '../../constants';
 
 export const ComparisonSection: React.FC = () => {
   return (
-    <section className="py-32 relative bg-[#0a0a0c] overflow-hidden flex flex-col justify-center min-h-screen">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden flex flex-col justify-center min-h-screen">
       {/* Background Image and Effects */}
       <div className="absolute inset-0 pointer-events-none z-0">
-        <div className="absolute inset-0 bg-[#0a0a0c]/50 z-10" />
+        <div className="absolute inset-0 bg-surface-dark-0/50 z-10" />
         <img
           src="/images/comparison_rings_bg.webp"
           alt="Space rings alternative"
@@ -50,7 +50,7 @@ export const ComparisonSection: React.FC = () => {
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="flex-1 w-full bg-[#0a0a0c] border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
+            className="flex-1 w-full bg-surface-dark-0 border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
           >
             <h3 className="text-2xl font-black text-gray-500 mb-8 tracking-widest uppercase text-center line-through">
               Traditional Workflow

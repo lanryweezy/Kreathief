@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
       <div className="flex items-center gap-4 relative z-30">
         <div className="flex items-center gap-2 mr-2">
-          <div className="w-8 h-8 bg-[#0E1318] border border-white/10 rounded-lg flex items-center justify-center shadow-lg">
+          <div className="w-8 h-8 bg-surface-dark-1 border border-white/10 rounded-lg flex items-center justify-center shadow-lg">
             <img src="/logo.svg" alt="Kreathief" className="w-5 h-5 object-contain" />
           </div>
           <span className="font-black text-lg tracking-tighter uppercase hidden lg:block">Kreathief</span>

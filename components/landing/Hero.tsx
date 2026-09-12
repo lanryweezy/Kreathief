@@ -30,7 +30,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   const y4 = useTransform(scrollY, [0, 1000], [0, -300]);
 
   return (
-    <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start bg-[#0a0a0c]">
+    <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start bg-surface-dark-0">
       {/* Background Decorative Elements */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute inset-0 bg-black/60 z-10" />
@@ -130,7 +130,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             initial={{ opacity: 0, y: 100, rotateX: 20, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, rotateX: 5, scale: 1 }}
             transition={{ duration: 1.4, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-1/2 -translate-x-1/2 top-0 w-full md:w-[85%] rounded-[30px] border border-transparent animated-border-wrapper bg-[#0a0a0c]/80 backdrop-blur-3xl overflow-hidden z-10 ring-1 ring-white/5"
+            className="absolute left-1/2 -translate-x-1/2 top-0 w-full md:w-[85%] rounded-[30px] border border-transparent animated-border-wrapper bg-surface-dark-0/80 backdrop-blur-3xl overflow-hidden z-10 ring-1 ring-white/5"
           >
             <div className="h-8 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
               <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
@@ -218,21 +218,21 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             <div className="flex -space-x-3">
               <img
                 src="/images/avatar_1_1772614969136.webp"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
+                className="w-10 h-10 rounded-full border-2 border-surface-dark-1 object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Designer collaborating in real-time on Kreathief"
               />
               <img
                 src="/images/avatar_2_1772614992003.webp"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
+                className="w-10 h-10 rounded-full border-2 border-surface-dark-1 object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Marketer using Kreathief canvas"
               />
               <img
                 src="/images/avatar_3_1772615019487.webp"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
+                className="w-10 h-10 rounded-full border-2 border-surface-dark-1 object-cover"
                 loading="lazy"
                 decoding="async"
                 alt="Creative director reviewing designs in Kreathief"

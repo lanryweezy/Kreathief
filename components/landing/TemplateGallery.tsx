@@ -28,7 +28,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
   ];
 
   return (
-    <section id="templates" className="py-32 relative bg-[#0a0a0c] overflow-hidden z-0">
+    <section id="templates" className="py-32 relative bg-surface-dark-0 overflow-hidden z-0">
       {/* Ambient Background Grid */}
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.2] [mask-image:radial-gradient(ellipse_at_top_right,white,transparent_75%)] pointer-events-none -z-10"></div>
 

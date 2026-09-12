@@ -176,7 +176,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
   autoSaveEnabled: true,
   communityProjects: [],
   shareToCommunity: (project: Project) => {
-    set((state: any) => ({
+    set((state) => ({
       communityProjects: [
         {
           id: `tpl_shared_${Date.now()}`,
@@ -270,7 +270,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       };
       await storageService.saveProject(updatedProject);
       await storageService.saveSessionMirror(projectId, updatedProject.state, get().past, get().future, projectTitle);
-      set((state: any) => ({
+      set((state) => ({
         isSaving: false,
         syncStatus: 'synced',
         lastSaved: new Date(),
@@ -329,14 +329,14 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       },
     };
     await storageService.saveProject(newProject);
-    set((state: any) => ({ projects: [newProject, ...state.projects] }));
+    set((state) => ({ projects: [newProject, ...state.projects] }));
     get().initializeProject(newProject);
     return id;
   },
 
   deleteProject: async (id) => {
     await storageService.deleteProject(id);
-    set((state: any) => ({ projects: state.projects.filter((p: Project) => p.id !== id) }));
+    set((state) => ({ projects: state.projects.filter((p: Project) => p.id !== id) }));
   },
 
   duplicateProject: async (project) => {
@@ -347,7 +347,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       updatedAt: Date.now(),
     };
     await storageService.saveProject(newProject);
-    set((state: any) => ({ projects: [newProject, ...state.projects] }));
+    set((state) => ({ projects: [newProject, ...state.projects] }));
   },
 
   updateProject: async (id, updates) => {
@@ -359,7 +359,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
 
     const updatedProject = { ...project, ...updates, updatedAt: Date.now() };
     await storageService.saveProject(updatedProject);
-    set((state: any) => ({
+    set((state) => ({
       projects: state.projects.map((p: Project) => (p.id === id ? updatedProject : p)),
     }));
   },
@@ -414,7 +414,17 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       artboards,
       activeArtboardId,
       canvasBackgroundColor: project.state.canvasBackgroundColor || '#ffffff',
-      canvasFilters: project.state.canvasFilters,
+      canvasFilters: project.state.canvasFilters || {
+        brightness: 100,
+        contrast: 100,
+        saturation: 100,
+        blur: 0,
+        opacity: 1,
+        vignette: 0,
+        sepia: 0,
+        grayscale: 0,
+        hueRotate: 0,
+      },
       canvasSize: project.state.canvasSize,
       brandKits: project.state.brandKits || [],
       selectedLayerIds: [],
@@ -454,7 +464,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       userId: user.id,
     };
 
-    set((state: any) => ({
+    set((state) => ({
       projects: state.projects.map((p: Project) =>
         p.id === projectId ? { ...p, comments: [...(p.comments || []), newComment] } : p
       ),
@@ -478,7 +488,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       return;
     }
 
-    set((state: any) => ({
+    set((state) => ({
       projects: state.projects.map((p: Project) =>
         p.id === projectId
           ? {
@@ -504,7 +514,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       return;
     }
 
-    set((state: any) => ({
+    set((state) => ({
       projects: state.projects.map((p: Project) =>
         p.id === projectId
           ? {
@@ -530,7 +540,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       return;
     }
 
-    set((state: any) => ({
+    set((state) => ({
       projects: state.projects.map((p: Project) =>
         p.id === projectId
           ? {

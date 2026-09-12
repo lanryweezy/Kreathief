@@ -77,7 +77,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
+    <div className="flex flex-col h-full bg-surface-dark-2">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 bg-gradient-to-r from-brand-600/10 to-accent/10">
         <div className="flex items-center justify-between mb-3">

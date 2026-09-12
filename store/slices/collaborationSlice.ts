@@ -37,13 +37,13 @@ export const createCollaborationSlice: StateCreator<StoreState, [], [], Collabor
   },
 
   updateCursor: (userId, cursor) => {
-    set((state: any) => ({
+    set((state) => ({
       cursors: { ...state.cursors, [userId]: cursor },
     }));
   },
 
   removeCursor: (userId) => {
-    set((state: any) => {
+    set((state) => {
       const { [userId]: _, ...restCursors } = state.cursors;
       const { [userId]: __, ...restSelections } = state.remoteSelections;
       return { cursors: restCursors, remoteSelections: restSelections };
@@ -51,13 +51,13 @@ export const createCollaborationSlice: StateCreator<StoreState, [], [], Collabor
   },
 
   setActiveLayerByUser: (userId, layerId) => {
-    set((state: any) => ({
+    set((state) => ({
       activeLayerByUser: { ...state.activeLayerByUser, [userId]: layerId },
     }));
   },
 
   setRemoteSelection: (userId, selection) => {
-    set((state: any) => ({
+    set((state) => ({
       remoteSelections: { ...state.remoteSelections, [userId]: selection },
     }));
   },

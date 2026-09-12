@@ -58,7 +58,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
   thinkingLog: [],
 
   addThinkingEvent: (agent, message) => {
-    set((state: any) => ({
+    set((state) => ({
       thinkingLog: [...state.thinkingLog, { id: uuidv4().substring(0, 8), agent, message, timestamp: Date.now() }],
     }));
   },

@@ -16,6 +16,7 @@ const PRIMARY_TABS = [
   { id: NavTab.TEXT, icon: Icons.Text, label: 'Text' },
   { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: 'Elements' },
   { id: NavTab.MEDIA, icon: Icons.Image, label: 'Media' },
+  { id: NavTab.TEXTURES, icon: Icons.Sparkles, label: 'Textures' },
   { id: NavTab.DRAW, icon: Icons.Brush, label: 'Draw' },
   { id: NavTab.BRAND, icon: Icons.Brand, label: 'Brand' },
   { id: NavTab.LAYERS, icon: Icons.Layers, label: 'Layers' },

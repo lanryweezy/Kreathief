@@ -38,7 +38,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
+    <div className="min-h-screen bg-surface-dark-0 text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
       {/* Global tactile noise overlay */}
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
       <SEO />
@@ -70,7 +70,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
             className="flex items-center gap-3 group cursor-pointer"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <div className="w-10 h-10 aspect-square rounded-xl bg-[#0E1318] border border-white/10 shadow-lg group-hover:shadow-purple-500/30 transition-all duration-500 overflow-hidden flex items-center justify-center">
+            <div className="w-10 h-10 aspect-square rounded-xl bg-surface-dark-1 border border-white/10 shadow-lg group-hover:shadow-purple-500/30 transition-all duration-500 overflow-hidden flex items-center justify-center">
               <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
             </div>
             <span className="font-black text-xl tracking-tighter">Kreathief</span>

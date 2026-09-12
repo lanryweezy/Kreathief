@@ -185,7 +185,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setIsProcessing: (isProcessing) => set({ isProcessing }),
   setIsExporting: (isExporting) => set({ isExporting }),
   setHistory: (input) =>
-    set((state: any) => ({
+    set((state) => ({
       history: typeof input === 'function' ? input(state.history) : input,
     })),
   clearHistory: () => set({ history: [] }),
@@ -200,10 +200,10 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
         return URL.createObjectURL(blob);
       })
     );
-    set((state: any) => ({ uploads: [...state.uploads, ...compressed] }));
+    set((state) => ({ uploads: [...state.uploads, ...compressed] }));
   },
   deleteUpload: (index) =>
-    set((state: any) => {
+    set((state) => {
       const url = state.uploads[index];
       // Only revoke the blob URL if no layer still uses it as its image source —
       // revoking a live src instantly blanks that image on the canvas.
@@ -216,7 +216,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
       return { uploads: state.uploads.filter((_: any, i: number) => i !== index) };
     }),
   setIsShapeBuilderActive: (isShapeBuilderActive) => set({ isShapeBuilderActive }),
-  setZoom: (zoom) => set((state: any) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
+  setZoom: (zoom) => set((state) => ({ zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom })),
   resetZoom: () => set({ zoom: 0.8 }),
   setShowGrid: (show) => set({ showGrid: show }),
   setShowRulers: (show) => set({ showRulers: show }),
@@ -230,28 +230,28 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setShowVersionDiff: (show: boolean, snapshotId: string | null = null) =>
     set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),
   setPreviewFontFamily: (font) => set({ fontPreview: font }),
-  addCustomFont: (font: string) => set((state: any) => ({ customFonts: [...state.customFonts, font] })),
+  addCustomFont: (font: string) => set((state) => ({ customFonts: [...state.customFonts, font] })),
   setShowGoldenRatio: (show) => set({ showGoldenRatio: show }),
   setTags: (tags) => set({ tags }),
   addTag: (tag) =>
-    set((state: any) => ({
+    set((state) => ({
       tags: state.tags.includes(tag) ? state.tags : [...state.tags, tag],
     })),
   removeTag: (tag) =>
-    set((state: any) => ({
+    set((state) => ({
       tags: state.tags.filter((t: string) => t !== tag),
     })),
   setIsPublished: (isPublished) => set({ isPublished }),
   addToast: (message, type = 'info', action, details) => {
     const id = uuidv4();
     const safeMessage = typeof message === 'string' ? message : String(message ?? 'Unknown error');
-    set((state: any) => ({
+    set((state) => ({
       toasts: [...state.toasts, { id, message: safeMessage, type, action, details }],
     }));
     setTimeout(() => get().removeToast(id), action ? 15000 : 5000);
   },
   removeToast: (id) =>
-    set((state: any) => ({
+    set((state) => ({
       toasts: state.toasts.filter((t: Toast) => t.id !== id),
     })),
 
@@ -277,7 +277,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     const naturalWidth = img.width || (layer as ImageLayer).width;
     const naturalHeight = img.height || (layer as ImageLayer).height;
     if (!(layer as ImageLayer).naturalWidth) {
-      set((state: any) => ({
+      set((state) => ({
         artboards: state.artboards.map((a: any) => ({
           ...a,
           layers: a.layers.map((l: any) => (l.id === id ? { ...l, naturalWidth, naturalHeight } : l)),
@@ -311,7 +311,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     const naturalWidth = layer.naturalWidth || layer.width;
     const previousCropWidth = layer.crop?.width || naturalWidth;
     const canvasScale = layer.width / previousCropWidth;
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
         layers: a.layers.map((l: any) => {
@@ -366,7 +366,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
         .map((p: { x: number; y: number }) => `L ${p.x} ${p.y}`)
         .join(' ') +
       ' Z';
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: any) => ({
         ...a,
         layers: a.layers.map((l: any) =>
@@ -393,7 +393,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     import('../../services/commentService').then(({ commentService }) => {
       commentService.getDesignComments(projectId).then((dbComments) => {
         if (dbComments.length > 0) {
-          set((state: any) => {
+          set((state) => {
             const localIds = new Set(state.comments.map((c: any) => c.id));
             const newFromDb = dbComments.filter((c) => !localIds.has(c.id));
             if (newFromDb.length > 0) {
@@ -421,21 +421,21 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
       timestamp: Date.now(),
     };
     await storageService.saveComment(newComment);
-    set((state: any) => ({ comments: [...state.comments, newComment] }));
+    set((state) => ({ comments: [...state.comments, newComment] }));
     import('../../services/commentService').then(({ commentService }) => {
       commentService.addDesignComment(projectId, user.id, user.name, user.avatar || null, text);
     });
   },
 
   toggleFavoriteTemplate: (id: string) =>
-    set((state: any) => ({
+    set((state) => ({
       favoriteTemplates: state.favoriteTemplates.includes(id)
         ? state.favoriteTemplates.filter((tid: string) => tid !== id)
         : [...state.favoriteTemplates, id],
     })),
 
   toggleFavoriteProject: (id: string) =>
-    set((state: any) => ({
+    set((state) => ({
       favoriteProjects: state.favoriteProjects.includes(id)
         ? state.favoriteProjects.filter((pid: string) => pid !== id)
         : [...state.favoriteProjects, id],

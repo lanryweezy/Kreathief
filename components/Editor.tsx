@@ -1,5 +1,4 @@
 import { log } from '../utils/log';
-import { computeAutoLayout } from '../utils/autoLayout';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
@@ -129,45 +128,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
 
-  // AutoLayout Reactivity Engine
-  useEffect(() => {
-    const allUpdates: Record<string, any> = {};
-    let didFindUpdates = false;
 
-    for (const artboard of artboards) {
-      const groupsWithLayout = artboard.layers.filter((l: Layer) => l.type === 'group' && (l as any).autoLayout);
-      if (groupsWithLayout.length === 0) {
-        continue;
-      }
-
-      for (const group of groupsWithLayout) {
-        const children = artboard.layers.filter((l: Layer) => l.groupId === group.id);
-        const updates = computeAutoLayout(group, children, artboard.layers);
-
-        for (const [id, partial] of Object.entries(updates)) {
-          const target = artboard.layers.find((l: Layer) => l.id === id);
-          if (target) {
-            let changed = false;
-            for (const key of Object.keys(partial)) {
-              if ((target as any)[key] !== (partial as any)[key]) {
-                changed = true;
-                break;
-              }
-            }
-            if (changed) {
-              allUpdates[id] = partial;
-              didFindUpdates = true;
-            }
-          }
-        }
-      }
-    }
-
-    if (didFindUpdates) {
-      // updateLayers is stable, safe to call
-      useStore.getState().updateLayers(allUpdates);
-    }
-  }, [artboards]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -525,7 +486,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && !isMobile && (
-          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shrink-0">
+          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-surface-dark-3 shrink-0">
             {/* Tab header */}
             <div className="flex items-center gap-1 p-3 border-b border-white/5 shrink-0">
               <button

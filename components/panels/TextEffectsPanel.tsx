@@ -1,5 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { PanelHeader } from './PanelHeader';
+import {
+  TEXT_EFFECT_PRESETS,
+  TEXT_EFFECT_PRESET_LIST,
+  getPresetsByCategory,
+  TextEffectCategory,
+  TextEffectPreset,
+} from '../../services/textEffectPresets';
 
 interface TextEffectsPanelProps {
   effects?: {
@@ -29,11 +36,15 @@ interface TextEffectsPanelProps {
       rotateY: number;
       perspective: number;
     };
+    [key: string]: any;
   };
-  onChange: (effects: object) => void;
+  onChange: (effects: Record<string, any>) => void;
 }
 
 export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}, onChange }) => {
+  const [presetCategory, setPresetCategory] = useState<TextEffectCategory>('all');
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
+
   const [styleType, setStyleType] = useState<'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss'>(
     effects.styleType || 'normal'
   );
@@ -171,6 +182,57 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
 
   const needsWarpParams = warpStyle === 'bulge' || warpStyle === 'squeeze' || warpStyle === 'perspective';
 
+  const handleApplyPreset = useCallback(
+    (preset: TextEffectPreset) => {
+      setActivePresetId(preset.id);
+      const c = preset.changes;
+
+      if (c.styleType !== undefined) setStyleType(c.styleType);
+      if (c.warpStyle !== undefined) setWarpStyle(c.warpStyle);
+      if (c.curve !== undefined) setCurve(c.curve);
+      if (c.depth !== undefined) setDepth(c.depth);
+
+      if (c.neonGlow) {
+        setNeonEnabled(c.neonGlow.enabled);
+        setNeonColor(c.neonGlow.color);
+        setNeonIntensity(c.neonGlow.intensity);
+        setNeonSpread(c.neonGlow.spread);
+        setNeonFlicker(c.neonGlow.flicker);
+      } else if (c.neonGlow === undefined && preset.id === 'minimalHollow') {
+        setNeonEnabled(false);
+      }
+
+      if (c.textShadow) {
+        setShadowEnabled(true);
+        setShadowX(c.textShadow.offsetX);
+        setShadowY(c.textShadow.offsetY);
+        setShadowBlur(c.textShadow.blur);
+        setShadowColor(c.textShadow.color);
+      }
+
+      if (c.textStroke) {
+        setStrokeEnabled(true);
+        setStrokeWidth(c.textStroke.width);
+        setStrokeColor(c.textStroke.color);
+      }
+
+      if ((c as any).warpParams) {
+        const wp = (c as any).warpParams;
+        if (wp.rotateX !== undefined) setWarpRotateX(wp.rotateX);
+        if (wp.rotateY !== undefined) setWarpRotateY(wp.rotateY);
+        if (wp.perspective !== undefined) setWarpPerspective(wp.perspective);
+      }
+
+      onChange({
+        ...effects,
+        ...preset.changes,
+      });
+    },
+    [effects, onChange]
+  );
+
+  const displayedPresets = getPresetsByCategory(presetCategory);
+
   return (
     <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
       <PanelHeader
@@ -182,6 +244,82 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
         }
       />
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6 flex flex-col">
+        {/* Signature Style Presets */}
+        <div className="space-y-3 bg-gradient-to-b from-purple-500/10 to-transparent p-3 rounded-2xl border border-purple-500/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <span className="text-amber-400 text-xs">⚡</span>
+              <label className="text-[10px] font-black text-white uppercase tracking-widest">
+                Style Presets
+              </label>
+            </div>
+            <span className="text-[9px] font-bold text-purple-400 font-mono">
+              {displayedPresets.length} Styles
+            </span>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex items-center gap-1 overflow-x-auto custom-scrollbar pb-1">
+            {(['all', 'popular', 'retro', 'futuristic', 'luxury'] as TextEffectCategory[]).map((cat) => (
+              <button
+                key={cat}
+                data-testid={`preset-cat-${cat}`}
+                onClick={() => setPresetCategory(cat)}
+                className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all ${
+                  presetCategory === cat
+                    ? 'bg-purple-600 text-white shadow-sm'
+                    : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* Presets Cards Grid */}
+          <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto custom-scrollbar pr-0.5">
+            {displayedPresets.map((preset) => {
+              const isSelected = activePresetId === preset.id;
+              return (
+                <button
+                  key={preset.id}
+                  data-testid={`preset-card-${preset.id}`}
+                  onClick={() => handleApplyPreset(preset)}
+                  className={`group relative flex flex-col p-2 rounded-xl border text-left transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-purple-600/20 border-purple-500 ring-2 ring-purple-500/30'
+                      : 'bg-black/30 border-white/10 hover:border-purple-500/40 hover:bg-white/5'
+                  }`}
+                >
+                  {/* Live Typographic Preview Badge */}
+                  <div
+                    className="w-full h-10 rounded-lg flex items-center justify-center font-black text-xs overflow-hidden select-none mb-1.5 transition-transform group-hover:scale-[1.02]"
+                    style={{
+                      backgroundColor: preset.previewBg,
+                      color: preset.previewColor,
+                      textShadow: preset.previewTextShadow,
+                      border: preset.previewBorder || '1px solid rgba(255,255,255,0.08)',
+                    }}
+                  >
+                    {preset.name.split(' ')[0]}
+                  </div>
+
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-[10px] font-black text-white flex items-center gap-1 truncate">
+                      <span>{preset.icon}</span>
+                      <span className="truncate">{preset.name}</span>
+                    </span>
+                  </div>
+
+                  <p className="text-[8px] text-gray-400 mt-0.5 line-clamp-1 leading-tight">
+                    {preset.tagline}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Style Type */}
         <div className="space-y-3">
           <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Core Style</label>

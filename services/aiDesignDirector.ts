@@ -1,4 +1,4 @@
-import { Layer, Gradient, CornerRadius, AutoLayoutSettings } from '../types';
+import { Layer, Gradient, CornerRadius, AutoLayoutSettings, TextureOverlayConfig } from '../types';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -54,6 +54,7 @@ export interface ArtboardDesignResult {
   height: number;
   backgroundColor: string;
   backgroundGradient?: Gradient;
+  textureOverlay?: TextureOverlayConfig;
   layers: Layer[];
 }
 

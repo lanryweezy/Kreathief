@@ -218,7 +218,7 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
             onClick={() => {
               setCanvasFilters({ ...canvasFilters, ...preset.filters });
             }}
-            className="group relative w-10 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-brand-600 transition-all bg-[#0e1318]"
+            className="group relative w-10 h-8 rounded-lg overflow-hidden border border-white/10 hover:border-brand-600 transition-all bg-surface-dark-1"
           >
             <div
               className={`absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity ${

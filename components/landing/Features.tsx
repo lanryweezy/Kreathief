@@ -72,7 +72,7 @@ export const Features: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(168, 85, 247, 0.1)" className="h-full flex flex-col">
               <div className="p-12 relative z-10">
@@ -105,7 +105,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.1 }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700 flex flex-col"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700 flex flex-col"
           >
             <MouseSpotlight color="rgba(168, 85, 247, 0.1)" className="h-full flex flex-col">
               <div className="p-12 relative z-10">
@@ -136,7 +136,7 @@ export const Features: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(251, 113, 133, 0.1)" className="h-full">
               <div className="p-12 relative z-10 h-full flex flex-col">
@@ -154,7 +154,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.1 }}
-            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(168, 85, 247, 0.1)" radius={600} className="h-full">
               <div className="p-16 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
@@ -210,7 +210,7 @@ export const Features: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(34, 211, 238, 0.1)" radius={500} className="h-full">
               <div className="p-16 relative z-10 w-full md:w-1/2">
@@ -236,7 +236,7 @@ export const Features: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(34, 211, 238, 0.1)" className="h-full">
               <div className="p-12 relative z-10">
@@ -254,7 +254,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.1 }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(236, 72, 153, 0.1)" className="h-full">
               <div className="p-12 relative z-10">
@@ -273,7 +273,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.1 }}
-            className="col-span-1 md:col-span-8 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-8 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(34, 197, 94, 0.1)" radius={600} className="h-full">
               <div className="p-16 relative z-10 w-full md:w-1/2 flex flex-col h-full justify-center">
@@ -321,7 +321,7 @@ export const Features: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(34, 211, 238, 0.1)" className="h-full">
               <div className="p-12 relative z-10">
@@ -343,7 +343,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.1 }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(236, 72, 153, 0.1)" className="h-full">
               <div className="p-12 relative z-10">
@@ -365,7 +365,7 @@ export const Features: React.FC = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-50px' }}
             transition={{ delay: 0.2 }}
-            className="col-span-1 md:col-span-4 rounded-[40px] bg-[#0a0a0c] glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
+            className="col-span-1 md:col-span-4 rounded-[40px] bg-surface-dark-0 glass-edge border border-white/5 relative overflow-hidden group hover:border-white/20 transition-all duration-700"
           >
             <MouseSpotlight color="rgba(249, 115, 22, 0.1)" className="h-full">
               <div className="p-12 relative z-10">

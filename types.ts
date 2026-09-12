@@ -464,6 +464,17 @@ export interface GroupLayer extends LayerBase {
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer | GroupLayer;
 
+export interface TextureOverlayConfig {
+  id: string;
+  name: string;
+  category: 'paper' | 'halftone' | 'grunge' | 'film' | 'holographic' | 'fabric' | 'microgrid' | 'foil';
+  svgDataUri: string;
+  opacity: number; // 0-1
+  blendMode: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light' | 'normal';
+  scale?: number;
+  invert?: boolean;
+}
+
 export interface Artboard {
   id: string;
   name: string;
@@ -473,6 +484,7 @@ export interface Artboard {
   height: number;
   layers: Layer[];
   backgroundColor?: string;
+  textureOverlay?: TextureOverlayConfig;
 
   storyNode?: {
     id: string;

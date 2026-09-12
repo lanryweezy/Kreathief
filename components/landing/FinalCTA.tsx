@@ -9,7 +9,7 @@ interface FinalCTAProps {
 
 export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
   return (
-    <section className="py-32 relative bg-[#0a0a0c] overflow-hidden">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden">
       {/* Dramatic Background */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-500/5 to-transparent"></div>

@@ -34,7 +34,7 @@ export const Testimonials: React.FC = () => {
   ];
 
   return (
-    <section className="py-32 relative bg-[#0a0a0c] overflow-hidden">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.08] pointer-events-none"></div>
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/5 blur-[120px] rounded-full pointer-events-none"></div>

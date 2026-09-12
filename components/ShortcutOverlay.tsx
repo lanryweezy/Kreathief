@@ -136,7 +136,7 @@ export const ShortcutOverlay: React.FC<ShortcutOverlayProps> = ({ isOpen, onClos
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 bg-[#13161a] border-t border-white/5 flex items-center justify-between">
+        <div className="px-6 py-3 bg-surface-dark-2 border-t border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-2 text-[10px] text-gray-600">
             <span>Hold</span>
             <kbd className="px-2 py-0.5 bg-surface-dark-4 border border-gray-700 rounded text-[10px] text-gray-400 font-mono">

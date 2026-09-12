@@ -247,6 +247,24 @@ const ArtboardItem = React.memo(
             />
           )}
 
+          {/* Artboard Texture Overlay Layer */}
+          {artboard.textureOverlay && (
+            <div
+              data-testid={`artboard-texture-overlay-${artboard.textureOverlay.id}`}
+              className="absolute inset-0 w-full h-full pointer-events-none z-[999]"
+              style={{
+                backgroundImage: `url("${artboard.textureOverlay.svgDataUri}")`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: artboard.textureOverlay.scale && artboard.textureOverlay.scale !== 1 
+                  ? `${artboard.textureOverlay.scale * 100}%` 
+                  : 'auto',
+                opacity: artboard.textureOverlay.opacity,
+                mixBlendMode: artboard.textureOverlay.blendMode as any,
+                filter: artboard.textureOverlay.invert ? 'invert(1)' : undefined,
+              }}
+            />
+          )}
+
           <CanvasLayerRenderer
             layers={artboard.layers}
             effectiveLayers={effectiveLayers}

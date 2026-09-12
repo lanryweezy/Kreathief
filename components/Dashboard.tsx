@@ -466,7 +466,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#0E1318] border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
+          <div className="w-10 h-10 bg-surface-dark-1 border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
             <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
           <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>

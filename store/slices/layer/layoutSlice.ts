@@ -6,7 +6,7 @@ import { LayerSlice } from './baseSlice';
 
 export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
   nudgeLayer: (id, dx, dy) =>
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l) => (l.id === id ? { ...l, x: l.x + dx, y: l.y + dy } : l)),
@@ -22,7 +22,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
 
     const selectedSet = new Set(selectedLayerIds);
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const selected = a.layers.filter((l) => selectedSet.has(l.id));
         if (selected.length < 2) {
@@ -118,7 +118,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
 
     const selectedSet = new Set(selectedLayerIds);
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
         const selected = [...a.layers.filter((l) => selectedSet.has(l.id))];
         if (selected.length < 3) {
@@ -207,7 +207,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
         locked: shape.locked ?? false,
         color: shape.color || '#333333',
       })) as Layer[];
-      set((state: any) => ({
+      set((state) => ({
         artboards: state.artboards.map((a: Artboard) =>
           a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a
         ),
@@ -245,7 +245,7 @@ export const createLayoutSlice: StateCreator<StoreState, [], [], Partial<LayerSl
     }
 
     if (newPositions.size > 0) {
-      set((state: any) => ({
+      set((state) => ({
         artboards: state.artboards.map((a: Artboard) => {
           if (a.id !== state.activeArtboardId) {
             return a;

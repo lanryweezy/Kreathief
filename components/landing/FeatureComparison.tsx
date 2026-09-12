@@ -16,7 +16,7 @@ export const FeatureComparison: React.FC = () => {
   ];
 
   return (
-    <section className="py-32 relative bg-[#0a0a0c] overflow-hidden border-t border-white/5">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden border-t border-white/5">
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.05] pointer-events-none"></div>
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
