@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { log } from '../utils/log';
+import { getErrorDetails } from '../utils/errorMessages';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -56,9 +57,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
       return (
         <div className="flex flex-col items-center justify-center p-6 bg-red-500/10 border border-red-500/20 rounded-lg min-h-[200px]">
-          <p className="text-red-400 text-sm font-medium mb-1">Something went wrong</p>
-          <p className="text-red-300/60 text-xs text-center mb-4 max-w-[260px] truncate">
-            {this.state.error.message || 'An unexpected error occurred'}
+          <p className="text-red-400 text-sm font-medium mb-1" title={this.state.error.message || 'Error'}>{getErrorDetails(this.state.error).message}</p>
+          <p className="text-red-300/60 text-xs text-center mb-4 max-w-[260px]">
+            {getErrorDetails(this.state.error).suggestion}
           </p>
           <button
             onClick={this.reset}
