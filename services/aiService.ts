@@ -316,6 +316,22 @@ Return ONLY JSON array of 3 objects with these keys.`;
       systemInstruction: copyPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
+        // 🤖 Astra: Added explicit responseSchema to enforce strict output shape for marketing copy generation
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              eyebrow: { type: SchemaType.STRING },
+              headline: { type: SchemaType.STRING },
+              subtitle: { type: SchemaType.STRING },
+              cta: { type: SchemaType.STRING },
+              badge: { type: SchemaType.STRING },
+              tag: { type: SchemaType.STRING },
+              metric: { type: SchemaType.STRING },
+            },
+          },
+        },
         temperature: 0.7,
       },
       contents: [{ role: 'user', parts: [{ text: `Generate marketing copy for: "${intent}"` }] }],
