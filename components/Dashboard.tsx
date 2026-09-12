@@ -637,7 +637,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
+      {/* Skip navigation for keyboard/screen reader users */}
+      <a
+        href="#dashboard-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
+      <main id="dashboard-content" className="flex-1 flex overflow-hidden">
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
           <div className="max-w-[1200px] mx-auto">

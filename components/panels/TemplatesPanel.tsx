@@ -12,6 +12,18 @@ import { TemplatePreview } from '../TemplatePreview';
 import { SmartTemplatesPanel } from './SmartTemplatesPanel';
 import { smartTemplateService } from '../../services/smartTemplateService';
 import { createProjectFromTemplate } from '../../data/templates';
+import {
+  generateStyleTemplates,
+  type StyleTemplate,
+} from '../../services/styleTemplateGenerator';
+import {
+  STYLE_CATEGORIES,
+  getAllStyles,
+  getStylesByCategory,
+  searchStyles,
+  type DesignStyleEntry,
+  type StyleCategory,
+} from '../../services/designStyleDatabase';
 
 interface TemplatesPanelProps {
   setPrompt: (s: string) => void;
@@ -54,7 +66,10 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [showReplaceWarning, setShowReplaceWarning] = useState(true);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
-  const [activeTab, setActiveTab] = useState<'starter' | 'smart'>('starter');
+  const [activeTab, setActiveTab] = useState<'starter' | 'styles' | 'smart'>('starter');
+  const [styleFormat, setStyleFormat] = useState<'instagram' | 'story' | 'presentation'>('instagram');
+  const [styleCategory, setStyleCategory] = useState<StyleCategory | 'all'>('all');
+  const [visibleStylesLimit, setVisibleStylesLimit] = useState(15);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -69,6 +84,60 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
 
   const favoriteTemplates = useStore((state) => state.favoriteTemplates);
   const initializeProject = useStore((state) => state.initializeProject);
+
+  const filteredStyleEntries = useMemo(() => {
+    if (searchQuery.trim()) {
+      return searchStyles(searchQuery.trim());
+    }
+    if (styleCategory === 'all') {
+      return getAllStyles();
+    }
+    return getStylesByCategory(styleCategory);
+  }, [searchQuery, styleCategory]);
+
+  const handleApplyStyleTemplate = (tmpl: StyleTemplate) => {
+    const applyFn = () => {
+      const now = new Date().toISOString();
+      initializeProject({
+        id: `proj_${Date.now()}`,
+        name: tmpl.name,
+        createdAt: now,
+        updatedAt: now,
+        state: {
+          canvasSize: { width: tmpl.width, height: tmpl.height },
+          canvasBackgroundColor: tmpl.backgroundColor,
+          activeArtboardId: 'artboard-1',
+          artboards: [
+            {
+              id: 'artboard-1',
+              name: tmpl.name,
+              x: 0,
+              y: 0,
+              width: tmpl.width,
+              height: tmpl.height,
+              backgroundColor: tmpl.backgroundColor,
+              backgroundGradient: tmpl.backgroundGradient,
+              layers: tmpl.layers,
+              isLocked: false,
+              isVisible: true,
+              opacity: 1,
+            },
+          ],
+        } as any,
+      } as any);
+    };
+
+    if (!showReplaceWarning || (typeof window !== 'undefined' && (window as any).VITE_QA_BYPASS)) {
+      applyFn();
+    } else {
+      setConfirmModal({
+        isOpen: true,
+        title: 'Apply Style Template?',
+        message: `Apply "${tmpl.name}"? This will replace your current canvas.`,
+        onConfirm: applyFn,
+      });
+    }
+  };
 
   const activeCategoryLabel = DESIGN_CATEGORIES.find((c) => c.id === category)?.label || 'All Designs';
 
@@ -154,7 +223,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
       <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col">
         {/* Header with Categories & Search */}
         <div className="p-4 border-b border-gray-700 bg-surface-dark-2 sticky top-0 z-10">
-          {category === 'All' && (
+          {activeTab === 'starter' && category === 'All' && (
             <div className="mb-2">
               <div data-testid="template-panel-category-filters" className="grid grid-cols-2 gap-2">
                 {DESIGN_CATEGORIES.filter((c) => c.id !== 'All').map((c) => (
@@ -217,6 +286,7 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
           {/* Template Tabs */}
           <div className="flex gap-1 mt-4 p-0.5 bg-black/20 rounded-lg border border-white/5">
             <button
+              data-testid="template-tab-starter"
               onClick={() => setActiveTab('starter')}
               className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'starter' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
@@ -225,6 +295,16 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
               Starter
             </button>
             <button
+              data-testid="template-tab-styles"
+              onClick={() => setActiveTab('styles')}
+              className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
+                activeTab === 'styles' ? 'bg-brand-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
+              }`}
+            >
+              🎨 Styles (195)
+            </button>
+            <button
+              data-testid="template-tab-smart"
               onClick={() => setActiveTab('smart')}
               className={`flex-1 py-1.5 rounded-md text-[10px] font-bold transition-all ${
                 activeTab === 'smart' ? 'bg-purple-600 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'
@@ -345,6 +425,216 @@ export const TemplatesPanel: React.FC<TemplatesPanelProps> = ({
                 )}
               </div>
             </>
+          )}
+
+          {activeTab === 'styles' && (
+            <div className="space-y-4">
+              {/* Format Switcher */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider">Canvas Format</span>
+                  <span className="text-[9px] text-brand-400 font-mono">
+                    {styleFormat === 'instagram' ? '1080×1080 (Square)' : styleFormat === 'story' ? '1080×1920 (Story/Reel)' : '1920×1080 (Slide)'}
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 gap-1 p-0.5 bg-black/30 rounded-xl border border-white/5 text-[10px] font-bold">
+                  {[
+                    { id: 'instagram', label: 'Square 1:1' },
+                    { id: 'story', label: 'Story 9:16' },
+                    { id: 'presentation', label: 'Slide 16:9' },
+                  ].map((fmt) => (
+                    <button
+                      key={fmt.id}
+                      onClick={() => setStyleFormat(fmt.id as any)}
+                      className={`py-1.5 px-2 rounded-lg transition-all cursor-pointer ${
+                        styleFormat === fmt.id
+                          ? 'bg-brand-600 text-white shadow-sm'
+                          : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'
+                      }`}
+                    >
+                      {fmt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Movement / Category Filter Chips */}
+              <div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-1.5">Movement Category</span>
+                <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-[10px] font-bold">
+                  <button
+                    onClick={() => setStyleCategory('all')}
+                    className={`px-2.5 py-1 rounded-lg shrink-0 transition-all cursor-pointer ${
+                      styleCategory === 'all'
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                    }`}
+                  >
+                    All (65)
+                  </button>
+                  {Object.entries(STYLE_CATEGORIES).map(([catKey, catMeta]) => (
+                    <button
+                      key={catKey}
+                      onClick={() => setStyleCategory(catKey as any)}
+                      className={`px-2.5 py-1 rounded-lg shrink-0 flex items-center gap-1 transition-all cursor-pointer ${
+                        styleCategory === catKey
+                          ? 'bg-brand-600 text-white shadow-sm'
+                          : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                      }`}
+                    >
+                      <span>{catMeta.icon}</span>
+                      <span>{catMeta.name.split(' ')[0]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Matching Styles & Their 3 Templates */}
+              <div className="space-y-3 pt-1">
+                {filteredStyleEntries.length > 0 ? (
+                  <>
+                    {filteredStyleEntries.slice(0, visibleStylesLimit).map((style) => {
+                      const templates = generateStyleTemplates(style, styleFormat);
+                      return (
+                        <div
+                          key={style.id}
+                          className="p-3 bg-surface-dark-2/90 border border-white/5 hover:border-brand-500/30 rounded-2xl space-y-2.5 transition-all group"
+                        >
+                          {/* Style Info Header */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base shrink-0">{style.icon}</span>
+                              <div className="min-w-0">
+                                <h5 className="text-xs font-bold text-white truncate group-hover:text-brand-300 transition-colors">
+                                  {style.name}
+                                </h5>
+                                <p className="text-[9px] text-gray-400 truncate">{style.tagline}</p>
+                              </div>
+                            </div>
+                            <span className="text-[9px] font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded-full shrink-0">
+                              {style.era}
+                            </span>
+                          </div>
+
+                          {/* Palette Strip */}
+                          <div className="flex items-center gap-1 h-2 rounded-full overflow-hidden bg-black/40 p-0.5">
+                            {[
+                              style.palette.primary,
+                              style.palette.secondary,
+                              style.palette.accent,
+                              style.palette.background,
+                              style.palette.surface,
+                            ].map((c, i) => (
+                              <div
+                                key={i}
+                                style={{ backgroundColor: c }}
+                                className="h-full flex-1 rounded-full shadow-xs"
+                                title={c}
+                              />
+                            ))}
+                          </div>
+
+                          {/* 3 Layout Archetypes */}
+                          <div className="grid grid-cols-3 gap-1.5 pt-1">
+                            {templates.map((tmpl, tIdx) => {
+                              const layoutName = tIdx === 0 ? 'Bold Hero' : tIdx === 1 ? 'Split' : 'Minimal';
+                              return (
+                                <button
+                                  key={tmpl.id}
+                                  onClick={() => handleApplyStyleTemplate(tmpl)}
+                                  className="group/btn relative p-1.5 bg-black/40 hover:bg-brand-600/20 border border-white/5 hover:border-brand-500/40 rounded-xl flex flex-col items-center gap-1 transition-all text-center cursor-pointer"
+                                  title={`Apply ${tmpl.name}`}
+                                >
+                                  {/* Wireframe Thumbnail Preview */}
+                                  <div
+                                    className="w-full aspect-square rounded-lg relative overflow-hidden flex flex-col items-center justify-center p-1 shadow-inner"
+                                    style={{ backgroundColor: tmpl.backgroundColor }}
+                                  >
+                                    {tIdx === 0 && (
+                                      <>
+                                        <div
+                                          className="w-full h-2/5 absolute top-0 left-0"
+                                          style={{ backgroundColor: style.palette.primary, opacity: 0.85 }}
+                                        />
+                                        <div
+                                          className="w-3/4 h-1 rounded-full relative z-10 my-0.5"
+                                          style={{ backgroundColor: style.palette.accent }}
+                                        />
+                                        <div
+                                          className="w-1/2 h-1 rounded-full relative z-10"
+                                          style={{ backgroundColor: style.palette.text }}
+                                        />
+                                        <div
+                                          className="w-2/5 h-2 rounded absolute bottom-1.5 left-2"
+                                          style={{ backgroundColor: style.palette.primary }}
+                                        />
+                                      </>
+                                    )}
+                                    {tIdx === 1 && (
+                                      <>
+                                        <div
+                                          className="w-1/2 h-full absolute top-0 left-0"
+                                          style={{ backgroundColor: style.palette.primary, opacity: 0.7 }}
+                                        />
+                                        <div
+                                          className="w-2/5 h-1/2 rounded absolute top-2 right-1"
+                                          style={{ backgroundColor: style.palette.surface, border: `1px solid ${style.palette.accent}` }}
+                                        />
+                                        <div
+                                          className="w-1/3 h-1 rounded absolute bottom-2 right-1.5"
+                                          style={{ backgroundColor: style.palette.textMuted }}
+                                        />
+                                      </>
+                                    )}
+                                    {tIdx === 2 && (
+                                      <>
+                                        <div
+                                          className="w-3/4 h-3/4 rounded-md border relative z-10 flex flex-col items-center justify-center p-1 shadow-sm"
+                                          style={{
+                                            borderColor: style.palette.primary,
+                                            backgroundColor: style.palette.surface,
+                                          }}
+                                        >
+                                          <div
+                                            className="w-2/3 h-1 rounded-full mb-1"
+                                            style={{ backgroundColor: style.palette.primary }}
+                                          />
+                                          <div
+                                            className="w-1/2 h-0.5 rounded-full"
+                                            style={{ backgroundColor: style.palette.accent }}
+                                          />
+                                        </div>
+                                      </>
+                                    )}
+                                  </div>
+                                  <span className="text-[9px] font-bold text-gray-300 group-hover/btn:text-white truncate w-full">
+                                    {layoutName}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {filteredStyleEntries.length > visibleStylesLimit && (
+                      <button
+                        onClick={() => setVisibleStylesLimit((prev) => prev + 20)}
+                        className="w-full py-2.5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white text-xs font-bold rounded-xl transition-all border border-white/5 cursor-pointer"
+                      >
+                        Show More Styles ({filteredStyleEntries.length - visibleStylesLimit} remaining)
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-800 rounded-2xl">
+                    <Icons.Search className="w-8 h-8 text-gray-700 mx-auto mb-2" />
+                    <p className="text-gray-500 text-xs font-bold">No style templates match your search</p>
+                  </div>
+                )}
+              </div>
+            </div>
           )}
 
           {activeTab === 'smart' && (

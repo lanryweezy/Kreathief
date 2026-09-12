@@ -164,7 +164,7 @@ export const useCanvasInteractions = ({
   );
 
   const handleMouseDownLayer = useCallback(
-    (e: React.MouseEvent | React.TouchEvent, layer: Layer) => {
+    (e: React.MouseEvent | React.TouchEvent | React.PointerEvent, layer: Layer) => {
       if (isSmartMaskModeRef.current) {
         const store = useStore.getState();
         const mask = store.hoveredMaskBoundary;

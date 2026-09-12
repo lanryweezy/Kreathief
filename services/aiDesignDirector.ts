@@ -2560,6 +2560,15 @@ export const generateMultiLayerDesign = async (
   archetypeHint?: string
 ): Promise<ArtboardDesignResult> => {
   const combinedPrompt = prompt + ' ' + (archetypeHint || '');
+  const movement = classifyDesignMovement(combinedPrompt);
+  if (movement) {
+    try {
+      return polishDesignOutput(buildCompositionByStyleId(movement, width, height, prompt));
+    } catch (movementErr) {
+      log.warn('[aiDesignDirector] Movement composition failed, falling back to pipeline', movementErr);
+    }
+  }
+
   const archetype = classifyDesignIntent(combinedPrompt);
   const typographyConstraint = getTypographyConstraint(archetype);
 
@@ -2729,8 +2738,11 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
     );
   }
 
-  // Fallback to high-aesthetic photographic composition engine using semantic classifier
+  // Fallback to graphic movement or high-aesthetic photographic composition engine
   try {
+    if (movement) {
+      return polishDesignOutput(buildCompositionByStyleId(movement, width, height, prompt));
+    }
     return polishDesignOutput(buildCompositionForArchetype(archetype, width, height, prompt));
   } catch (compErr) {
     log.warn('[aiDesignDirector] Photographic composition failed, falling back to shape archetype', compErr);

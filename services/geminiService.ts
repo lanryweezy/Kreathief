@@ -75,6 +75,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
   const rawModel = payload.modelName || (() => {
     try {
       // Lazily import store to avoid circular deps — safe because this is always called at runtime
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { useStore } = require('../store/useStore');
       return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
     } catch {

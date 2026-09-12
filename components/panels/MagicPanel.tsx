@@ -821,7 +821,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Source Image</label>
               {uploadedImage ? (
                 <div className="relative group rounded-xl overflow-hidden border border-gray-600 aspect-[2/1] bg-black/50">
-                  <img src={uploadedImage} className="w-full h-full object-contain" />
+                  <img src={uploadedImage} alt="Uploaded reference image" className="w-full h-full object-contain" />
                   <button
                     className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => localFileInputRef.current?.click()}

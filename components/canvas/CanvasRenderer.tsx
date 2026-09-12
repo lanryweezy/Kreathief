@@ -9,6 +9,7 @@ import { SmartSnap } from './SmartSnap';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { CropOverlay } from './CropOverlay';
+import { useBitmapCache } from '../../hooks/canvas/useBitmapCache';
 
 const noop = () => {};
 
@@ -20,7 +21,7 @@ interface CanvasRendererProps {
   zoom: number;
   getEffectiveLayer: (layer: Layer) => Layer;
   onLayerRef: (id: string, el: HTMLDivElement | null) => void;
-  handleMouseDownLayer: (e: React.MouseEvent, layer: Layer) => void;
+  handleMouseDownLayer: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
   handleContextMenu: (e: React.MouseEvent, layerId: string) => void;
@@ -67,7 +68,7 @@ interface ArtboardItemProps {
   zoom: number;
   getEffectiveLayer: (layer: Layer) => Layer;
   onLayerRef: (id: string, el: HTMLDivElement | null) => void;
-  handleMouseDownLayer: (e: React.MouseEvent, layer: Layer) => void;
+  handleMouseDownLayer: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
   handleContextMenu: (e: React.MouseEvent, layerId: string) => void;
@@ -155,10 +156,17 @@ const ArtboardItem = React.memo(
       return found && found.type === 'image' ? found : null;
     });
 
+    const { cachedUrl, cachedLayerIds } = useBitmapCache(
+      artboard.layers,
+      selectedLayerIds,
+      zoom,
+      isInteracting
+    );
+
     const effectiveLayers = React.useMemo(() => {
       const layers = artboard.layers || [];
-      // Skip map if getEffectiveLayer is basically an identity function
-      const isIdentity = !getEffectiveLayer || (layers.length > 0 && getEffectiveLayer(layers[0]) === layers[0]);
+      // Skip map if getEffectiveLayer is basically an identity function and we don't have cached layers
+      const isIdentity = (!getEffectiveLayer || (layers.length > 0 && getEffectiveLayer(layers[0]) === layers[0])) && cachedLayerIds.size === 0;
       if (isIdentity) {
         return layers;
       }
@@ -166,13 +174,14 @@ const ArtboardItem = React.memo(
       // Bolt: Use a single pass to map, filter, and unique to avoid O(N) intermediate allocations
       const uniqueMap = new Map<string, Layer>();
       for (const l of layers) {
+        if (cachedLayerIds.has(l.id)) continue;
         const effective = getEffectiveLayer(l);
         if (effective) {
           uniqueMap.set(effective.id, effective as Layer);
         }
       }
       return Array.from(uniqueMap.values());
-    }, [artboard.layers, getEffectiveLayer]);
+    }, [artboard.layers, getEffectiveLayer, cachedLayerIds]);
 
     const handleArtboardClick = React.useCallback(() => {
       setActiveArtboardId(artboard.id);
@@ -229,6 +238,15 @@ const ArtboardItem = React.memo(
             opacity: activeArtboardId === artboard.id ? canvasFilters.opacity : 1,
           }}
         >
+          {/* Render Cached Bitmap Layer below active DOM layers */}
+          {cachedUrl && (
+            <img 
+              src={cachedUrl} 
+              alt="Cached static layers" 
+              className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+            />
+          )}
+
           <CanvasLayerRenderer
             layers={artboard.layers}
             effectiveLayers={effectiveLayers}

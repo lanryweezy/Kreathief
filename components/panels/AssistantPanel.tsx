@@ -6,6 +6,12 @@ import { VariantCard } from '../agent/VariantCard';
 
 import { Icons as AgentIcons } from '../../constants';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import {
+  GRAPHIC_DESIGN_STYLE_LIST,
+  GraphicDesignStyleId,
+  GraphicDesignStyleCategory,
+  GRAPHIC_DESIGN_STYLES,
+} from '../../services/graphicDesignStyles';
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
@@ -69,6 +75,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   const isRefining = selectedLayerIds && selectedLayerIds.length > 0;
 
   const [input, setInput] = useState(agentIntent || '');
+  const [selectedStyleId, setSelectedStyleId] = useState<GraphicDesignStyleId | null>(null);
+  const [activeCategory, setActiveCategory] = useState<GraphicDesignStyleCategory | 'all'>('trends2026');
   const scrollRef = useRef<HTMLDivElement>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
 
@@ -88,10 +96,14 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     if (!input.trim()) {
       return;
     }
+    const finalPrompt = selectedStyleId
+      ? `${input} style: ${selectedStyleId} movement`
+      : input;
+
     if (isRefining) {
-      runAgenticRefine(input, selectedLayerIds);
+      runAgenticRefine(finalPrompt, selectedLayerIds);
     } else {
-      runAgenticWorkflow(input);
+      runAgenticWorkflow(finalPrompt);
     }
     setInput('');
   };
@@ -484,7 +496,91 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       </div>
 
       {/* Input Tray */}
-      <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
+      <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl space-y-3">
+        {/* Style Selector Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <span>🎨</span> Graphic Styles & 2026 Trends
+            </span>
+            {selectedStyleId && (
+              <button
+                onClick={() => setSelectedStyleId(null)}
+                className="text-[9px] font-bold text-gray-400 hover:text-red-400 transition-colors uppercase tracking-wider flex items-center gap-1"
+              >
+                <span>✕</span> Clear Style
+              </button>
+            )}
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1 text-[10px] font-bold">
+            {[
+              { id: 'trends2026', label: '🔥 2026 Trends' },
+              { id: 'movements', label: '🏛️ Movements' },
+              { id: 'retroSubculture', label: '📼 Retro' },
+              { id: 'minimalDigital', label: '🌿 Minimal' },
+              { id: 'all', label: 'All (25)' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id as any)}
+                className={`px-2.5 py-1 rounded-lg shrink-0 transition-all ${
+                  activeCategory === cat.id
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Horizontal Chips Bar */}
+          <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1.5 pt-0.5">
+            {GRAPHIC_DESIGN_STYLE_LIST.filter(
+              (s) => activeCategory === 'all' || s.category === activeCategory
+            ).map((style) => {
+              const isSelected = selectedStyleId === style.id;
+              return (
+                <button
+                  key={style.id}
+                  onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
+                  title={`${style.name} (${style.era}): ${style.tagline}`}
+                  className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
+                    isSelected
+                      ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
+                      : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-xs">{style.icon}</span>
+                  <span>{style.name}</span>
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: style.palette.primary }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected Style Indicator Pill */}
+          {selectedStyleId && (() => {
+            const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
+            if (!activeMeta) return null;
+            return (
+              <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
+                <span className="text-brand-300 font-bold truncate">
+                  Locked: <span className="text-white">{activeMeta.icon} {activeMeta.name}</span> — <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
+                </span>
+                <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
+                  {activeMeta.era}
+                </span>
+              </div>
+            );
+          })()}
+        </div>
+
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
           <textarea
             value={input}

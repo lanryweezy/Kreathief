@@ -50,7 +50,7 @@ interface CanvasLayerItemWrapperProps {
   hoveredLayerId: string | null;
   setHoveredLayerId: (id: string | null) => void;
   setLayerRef: (id: string, el: HTMLDivElement | null) => void;
-  handleMouseDownLayer: (e: React.MouseEvent, layer: Layer) => void;
+  handleMouseDownLayer: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: any) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
   handleContextMenu: (e: React.MouseEvent, layerId: string) => void;
@@ -134,7 +134,7 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
     const commonProps = {
       isSelected,
       isHovered: hoveredLayerId === l.id,
-      onMouseDown: handleMouseDownLayer,
+      onPointerDown: handleMouseDownLayer,
       onResize: handleResizeStart,
       onRotate: handleRotateStart,
       onContextMenu: handleContextMenu,

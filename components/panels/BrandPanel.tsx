@@ -304,7 +304,7 @@ export const BrandPanel = () => {
                     key={i}
                     className="w-12 h-12 rounded border border-gray-700 bg-black flex items-center justify-center relative group"
                   >
-                    <img src={logo} className="max-w-full max-h-full object-contain" />
+                    <img src={logo} alt="Brand logo" className="max-w-full max-h-full object-contain" />
                     <button
                       onClick={() => setNewLogos((prev) => prev.filter((_, idx) => idx !== i))}
                       className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -585,7 +585,7 @@ export const BrandPanel = () => {
                           className="aspect-square rounded border border-gray-700 bg-black/20 p-1 flex items-center justify-center hover:border-brand-600 transition-colors"
                           aria-label="Add logo to canvas"
                         >
-                          <img src={logo} className="max-w-full max-h-full object-contain pointer-events-none" />
+                          <img src={logo} alt="Brand logo" className="max-w-full max-h-full object-contain pointer-events-none" />
                         </button>
                       ))}
                       {kit.logos.length > 4 && (

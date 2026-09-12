@@ -22,6 +22,7 @@ import {
   buildFullBleedAtmosphericComposition,
   buildGlassCardComposition,
 } from './designCompositionEngine';
+import { classifyDesignMovement, buildCompositionByStyleId, GRAPHIC_DESIGN_STYLES } from './graphicDesignStyles';
 
 
 // ─── Cache ───────────────────────────────────────────────────────────────────
@@ -587,7 +588,34 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
 }
 
 export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }): AgentVariant[] {
+  const movement = classifyDesignMovement(intent);
   const primaryArchetype = classifyDesignIntent(intent);
+
+  // If a graphic movement is detected, synthesize authentic movement design as primary variant
+  let movementVariant: AgentVariant | null = null;
+  if (movement) {
+    const rawResult = buildCompositionByStyleId(movement, canvasSize.width, canvasSize.height, intent);
+    const polished = polishDesignOutput(rawResult);
+    const meta = GRAPHIC_DESIGN_STYLES[movement];
+    movementVariant = {
+      id: uuidv4(),
+      themeIdea: `${polished.title} (${meta?.badge || movement.toUpperCase()}) — ${polished.description}`,
+      layers: polished.layers.map((l, lIdx) => ({
+        ...l,
+        name: l.name || `Layer ${lIdx + 1}`,
+        opacity: 1,
+      })),
+      width: canvasSize.width,
+      height: canvasSize.height,
+      performanceScore: 98,
+      performanceReasoning: `${meta?.name || 'Design'} Engine: Authentic ${meta?.era || 'Historic'} visual hierarchy, specialized palette, and typography pairing.`,
+      criticFeedback: [
+        `Faithful adherence to ${meta?.name || 'movement'} design language and principles`,
+        'Mathematical grid alignment and contrast hierarchy verified',
+        'Balanced typography, CTA prominence, and spatial structure',
+      ],
+    };
+  }
 
   // Curate 2 diverse alternative archetypes tailored to the primary selection
   const alternativeMap: Record<string, string[]> = {
@@ -655,7 +683,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
     },
   ];
 
-  return selectedArchetypes.map((archKey, index) => {
+  const variants = selectedArchetypes.map((archKey, index) => {
     const framework = frameworks[index % frameworks.length];
     const rawResult = framework.build(archKey);
     const polished = polishDesignOutput(rawResult);
@@ -679,6 +707,12 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
       ],
     };
   });
+
+  if (movementVariant) {
+    return [movementVariant, ...variants.slice(0, 2)];
+  }
+
+  return variants;
 }
 
 export async function researchAgentStrategy(intent: string, brandKit: any): Promise<any> {

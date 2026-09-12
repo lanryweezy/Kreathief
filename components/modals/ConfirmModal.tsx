@@ -64,6 +64,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
       <div className="px-10 pb-10 flex flex-col gap-3">
         <button
+          data-testid="confirm-modal-apply-btn"
           onClick={() => {
             onConfirm();
             onClose();
