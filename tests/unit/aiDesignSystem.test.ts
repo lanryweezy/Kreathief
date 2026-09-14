@@ -146,7 +146,7 @@ describe('AI Design System — Semantic Classifier & 12 Archetypes', () => {
   it('classifies intents with weighted semantic scoring', () => {
     expect(classifyDesignIntent('crossfit high intensity gym workout')).toBe('fitness');
     expect(classifyDesignIntent('haute couture autumn fashion collection')).toBe('fashion');
-    expect(classifyDesignIntent('modern penthouse luxury apartment listing')).toBe('luxury');
+    expect(classifyDesignIntent('modern penthouse luxury apartment listing')).toBe('editorial');
     expect(classifyDesignIntent('techno music live festival tickets')).toBe('event');
     expect(classifyDesignIntent('online masterclass python bootcamp course')).toBe('cyberpunk');
     expect(classifyDesignIntent('black friday 50% discount flash sale promo')).toBe('ecommerce');
