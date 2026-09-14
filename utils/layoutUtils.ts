@@ -28,14 +28,14 @@ export const alignLayers = (
     minX = Math.min(minX, l.x);
     minY = Math.min(minY, l.y);
     maxX = Math.max(maxX, l.x + l.width);
-    maxY = Math.max(maxY, l.y + (l as any).height || l.width); // Fallback for height
+    maxY = Math.max(maxY, l.y + l.height || l.width); // Fallback for height
   });
 
   const boxWidth = maxX - minX;
   const boxHeight = maxY - minY;
 
   return layers.map((l) => {
-    const h = (l as any).height || l.width;
+    const h = l.height || l.width;
     let newX = l.x;
     let newY = l.y;
 
@@ -101,14 +101,14 @@ export const distributeLayers = (
     const last = sorted[sorted.length - 1];
 
     const totalGaps = sorted.length - 1;
-    const hLast = (last as any).height || last.width;
+    const hLast = last.height || last.width;
     const span = last.y + hLast - first.y;
-    const totalContentHeight = sorted.reduce((sum, l) => sum + ((l as any).height || l.width), 0);
+    const totalContentHeight = sorted.reduce((sum, l) => sum + (l.height || l.width), 0);
     const gap = (span - totalContentHeight) / totalGaps;
 
     let currentY = first.y;
     sorted.forEach((l, i) => {
-      const h = (l as any).height || l.width;
+      const h = l.height || l.width;
       if (i > 0 && i < sorted.length - 1) {
         result.push({ id: l.id, changes: { y: currentY } });
       }
@@ -132,20 +132,20 @@ export const distributeLayers = (
     });
   } else if (type === 'v-center') {
     const sorted = [...layers].sort(
-      (a, b) => a.y + ((a as any).height || a.width) / 2 - (b.y + ((b as any).height || b.width) / 2)
+      (a, b) => a.y + (a.height || a.width) / 2 - (b.y + (b.height || b.width) / 2)
     );
     if (sorted.length < 2) {
       return [];
     }
     const first = sorted[0];
     const last = sorted[sorted.length - 1];
-    const hFirst = (first as any).height || first.width;
-    const hLast = (last as any).height || last.width;
+    const hFirst = first.height || first.width;
+    const hLast = last.height || last.width;
     const span = last.y + hLast / 2 - (first.y + hFirst / 2);
     const interval = span / (sorted.length - 1);
 
     sorted.forEach((l, i) => {
-      const h = (l as any).height || l.width;
+      const h = l.height || l.width;
       if (i > 0 && i < sorted.length - 1) {
         const targetCenter = first.y + hFirst / 2 + i * interval;
         result.push({ id: l.id, changes: { y: targetCenter - h / 2 } });
@@ -175,7 +175,7 @@ export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<La
     minX = Math.min(minX, l.x);
     minY = Math.min(minY, l.y);
     maxX = Math.max(maxX, l.x + l.width);
-    maxY = Math.max(maxY, l.y + ((l as any).height || l.width));
+    maxY = Math.max(maxY, l.y + (l.height || l.width));
   });
 
   const totalWidth = maxX - minX;
@@ -212,7 +212,7 @@ export const tidyUpLayers = (layers: Layer[]): { id: string; changes: Partial<La
       maxHeightInRow = 0;
     }
 
-    const h = (l as any).height || l.width;
+    const h = l.height || l.width;
     maxHeightInRow = Math.max(maxHeightInRow, h);
 
     const result = {
@@ -236,7 +236,7 @@ export const resolveConstraints = (
   canvasSize: { width: number; height: number }
 ): { x: number; y: number; width?: number; height?: number } => {
   const { x = 0, y = 0, width = 100, constraints = { horizontal: 'start', vertical: 'start' } } = layer;
-  const height = (layer as any).height || 100;
+  const height = layer.height || 100;
 
   const resolved = { x, y };
 
