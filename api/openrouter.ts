@@ -21,9 +21,11 @@ setInterval(() => {
 
 
 export default async function handler(req: Request) {
-  const origin =
-    process.env.VITE_FRONTEND_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : req.headers.get('origin') || '*');
+  // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
+  const origin = process.env.VITE_FRONTEND_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
 
 
   try {

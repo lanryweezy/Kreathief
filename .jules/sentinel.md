@@ -294,3 +294,9 @@
 **Vulnerability:** The Vercel API Token used for website deployments was being stored in plain text within `localStorage` inside `components/panels/WebsitePanel.tsx`.
 **Learning:** `localStorage` is accessible to any JavaScript running on the page, meaning if the application is ever vulnerable to Cross-Site Scripting (XSS), attackers can silently exfiltrate sensitive tokens. A Personal Access Token (like Vercel API Token) grants significant permissions and should never be persisted insecurely on the client.
 **Prevention:** Never persist sensitive API keys or Personal Access Tokens in `localStorage`, `sessionStorage`, or cookies without `HttpOnly` flags. Such keys should only be held in memory (React state) during the current session or managed securely by a backend proxy.
+
+## 2026-09-11 - Secure CORS fallback in OpenRouter API without breaking Preview
+
+**Vulnerability:** The `api/openrouter.ts` proxy endpoint contained an insecure CORS fallback (`req.headers.get('origin') || '*'`). A naive fix (restricting the origin strictly to `VITE_FRONTEND_URL`) broke preview deployments because it removed the necessary `VERCEL_URL` check.
+**Learning:** In Vercel environments, `VERCEL_URL` is dynamically generated for preview deployments, while `VITE_FRONTEND_URL` is typically only set for production. Removing the `VERCEL_URL` fallback completely breaks preview environments. However, falling back to the `Origin` header blindly or using a wildcard `*` allows any malicious site to exploit the proxy.
+**Prevention:** When securing CORS in Vercel API routes, require `VITE_FRONTEND_URL` in production, but safely fall back to `VERCEL_URL` if present. Never echo the request's `Origin` header blindly (`req.headers.get('origin')`) or default to a wildcard `*` on sensitive proxy endpoints.
