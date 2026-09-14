@@ -146,16 +146,16 @@ describe('AI Design System — Semantic Classifier & 12 Archetypes', () => {
   it('classifies intents with weighted semantic scoring', () => {
     expect(classifyDesignIntent('crossfit high intensity gym workout')).toBe('fitness');
     expect(classifyDesignIntent('haute couture autumn fashion collection')).toBe('fashion');
-    expect(classifyDesignIntent('modern penthouse luxury apartment listing')).toBe('editorial');
+    expect(classifyDesignIntent('modern penthouse luxury apartment listing')).toBe('realEstate');
     expect(classifyDesignIntent('techno music live festival tickets')).toBe('event');
-    expect(classifyDesignIntent('online masterclass python bootcamp course')).toBe('cyberpunk');
+    expect(classifyDesignIntent('online masterclass python bootcamp course')).toBe('education');
     expect(classifyDesignIntent('black friday 50% discount flash sale promo')).toBe('ecommerce');
     expect(classifyDesignIntent('neon cyber glitch futuristic game')).toBe('cyberpunk');
-    expect(classifyDesignIntent('cloud analytics saas developer platform')).toBe('editorial');
+    expect(classifyDesignIntent('cloud analytics saas developer platform')).toBe('saas');
     expect(classifyDesignIntent('slow smoked wagyu steakhouse menu')).toBe('food');
     expect(classifyDesignIntent('lagos afrobeat heritage festival brand')).toBe('africanMarket');
     expect(classifyDesignIntent('minimalist scandinavian architecture journal')).toBe('editorial');
-    expect(classifyDesignIntent('swiss luxury 24k gold skincare serum')).toBe('editorial');
+    expect(classifyDesignIntent('swiss luxury 24k gold skincare serum')).toBe('luxury');
   });
 
   it('all 12 archetypes generate rich, compliant multi-layer designs', () => {

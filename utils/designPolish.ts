@@ -270,8 +270,9 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
       layers = fixOverlappingText(layers, polishedResult.height || 1080);
     }
 
-    // 5. Ensure text defaults
+    // 5. Ensure text defaults & final grid snap
     layers = layers.map(layer => {
+      layer = { ...layer, x: snapToGrid(layer.x), y: snapToGrid(layer.y) };
       if (layer.type === 'text') {
         const tl = layer as any;
         return {
