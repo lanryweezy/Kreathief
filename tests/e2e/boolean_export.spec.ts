@@ -188,11 +188,11 @@ test('Boolean operations and Export pipeline exploration', async ({ page }) => {
 
   await page.screenshot({ path: 'screenshots/post_export.png' });
 
-  // Check if "Something went wrong" is visible
-  const errorMsg = page.locator('text=Something went wrong');
+  // Check if the fallback error is visible
+  const errorMsg = page.locator('text=An unexpected error occurred');
   const isErrorVisible = await errorMsg.isVisible();
   if (isErrorVisible) {
-    console.error('CRITICAL: "Something went wrong" visible after export');
+    console.error('CRITICAL: "An unexpected error occurred" visible after export');
     const crashAfter = await page.evaluate(() => localStorage.getItem('kreathief_crash'));
     if (crashAfter) {
       console.error('CRASH DETAILS:', JSON.parse(crashAfter));
