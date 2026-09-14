@@ -13,6 +13,7 @@ import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { Toggle } from '../Toggle';
 import * as geminiService from '../../services/geminiService';
+import { promptArchetypeStrategies } from '../../services/geminiService';
 import { generateMultiLayerDesign } from '../../services/aiDesignDirector';
 
 import { useStore } from '../../store/useStore';
@@ -31,13 +32,7 @@ interface MagicPanelProps {
   uploadedImage: string | null;
 }
 
-const PROMPT_ARCHETYPES: { id: PromptArchetype; label: string; icon: string }[] = [
-  { id: 'cinematic', label: 'Cinematic', icon: 'Camera' },
-  { id: 'artistic', label: 'Concept Art', icon: 'Brush' },
-  { id: 'product', label: 'Product Shot', icon: 'Box' },
-  { id: 'render_3d', label: '3D Octane', icon: 'Sparkles' },
-  { id: 'vector_graphic', label: 'Vector Graphic', icon: 'Edit' },
-];
+const PROMPT_ARCHETYPES = Array.from(promptArchetypeStrategies.values());
 
 const INSPIRATION_TAGS = [
   'Volumetric Lighting',

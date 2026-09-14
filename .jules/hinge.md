@@ -30,3 +30,7 @@
 
 **Learning:** When abstracting a switch statement that controls UI behavior into a registry, extracting only the logic is insufficient if the UI metadata (labels, icons) remains hardcoded in an array in the React component. This still requires modifying the core file for new extensions.
 **Action:** Ensure the strategy interface includes both the execution logic and the UI metadata (label, desc, icon), allowing the core component to dynamically render its UI directly from the registry's values.
+## 2024-09-14 - Prompt Archetype Strategy Registry
+
+**Learning:** When abstracting a hardcoded logic switch into an extensible strategy registry, ensure that any associated UI metadata (such as labels or icons) previously hardcoded in React components is also extracted into the strategy interface. This ensures the UI file does not remain an extension bottleneck.
+**Action:** When creating strategies for logic previously tied to UI state, include the UI metadata fields (like `label`, `icon`, etc.) directly on the strategy interface.

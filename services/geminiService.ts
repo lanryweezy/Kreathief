@@ -489,21 +489,77 @@ export const generateTextOptions = async (topic: string): Promise<string[]> => {
 const ENHANCE_PROMPT_SYSTEM_V1 = `
 You are an expert prompt engineer for AI image generators.
 `;
+
+/**
+ * 🔩 Hinge Extension Point: Prompt Archetype Strategy Registry
+ *
+ * Evidence of pressure: The prompt enhancement feature relied on two hard-coded switch statements
+ * in `getArchetypeGuidance` and `enhancePromptLocally` across 5 existing archetypes (cinematic, artistic, product, render_3d, vector_graphic).
+ *
+ * Contract: Implementors must provide an `id`, UI metadata (`label`, `icon`),
+ * a `guidance` string for cloud enhancement, and a `localEnhancement` function for fallback processing.
+ *
+ * This registry enables adding new prompt styles without touching the core prompt enhancement logic.
+ */
+export interface PromptArchetypeStrategy {
+  id: string;
+  label: string;
+  icon: string;
+  guidance: string;
+  localEnhancement: (clean: string) => string;
+}
+
+export const promptArchetypeStrategies = new Map<string, PromptArchetypeStrategy>();
+
+export function registerPromptArchetypeStrategy(strategy: PromptArchetypeStrategy) {
+  promptArchetypeStrategies.set(strategy.id, strategy);
+}
+
+registerPromptArchetypeStrategy({
+  id: 'cinematic',
+  label: 'Cinematic',
+  icon: 'Camera',
+  guidance: 'Emphasize cinematic photography: 85mm f/1.4 lens optics, shallow depth of field, natural volumetric lighting, subtle film grain, 8k resolution, photorealistic realism.',
+  localEnhancement: (clean) => `${clean}, cinematic 35mm photography, natural volumetric lighting, shallow depth of field, f/1.8 aperture, 8k resolution, ultra detailed, photorealistic`
+});
+
+registerPromptArchetypeStrategy({
+  id: 'artistic',
+  label: 'Concept Art',
+  icon: 'Brush',
+  guidance: 'Emphasize artistic painterly qualities: expressive brushstrokes, tactile canvas texture, rich color harmonies, and atmospheric emotional depth.',
+  localEnhancement: (clean) => `${clean}, expressive concept art, rich painterly brush strokes, vibrant color harmony, atmospheric lighting, detailed composition`
+});
+
+registerPromptArchetypeStrategy({
+  id: 'product',
+  label: 'Product Shot',
+  icon: 'Box',
+  guidance: 'Emphasize commercial product photography: studio softbox illumination, clean rim highlights, pristine reflections, neutral cyclorama backdrop, commercial catalog sharpness.',
+  localEnhancement: (clean) => `${clean}, professional studio product photography, clean reflections, softbox illumination, minimal cyclorama backdrop, catalog grade`
+});
+
+registerPromptArchetypeStrategy({
+  id: 'render_3d',
+  label: '3D Octane',
+  icon: 'Sparkles',
+  guidance: 'Emphasize high-end 3D digital art: Octane/Blender render, subsurface scattering, ambient occlusion, physically based rendering (PBR), and volumetric caustics.',
+  localEnhancement: (clean) => `${clean}, 3D Octane render, smooth ray tracing, subsurface scattering, ambient occlusion, physically based shaders, 8k masterpiece`
+});
+
+registerPromptArchetypeStrategy({
+  id: 'vector_graphic',
+  label: 'Vector Graphic',
+  icon: 'Edit',
+  guidance: 'Emphasize modern graphic design: clean vector line work, bold flat colors, geometric balance, modern SVG illustration aesthetic.',
+  localEnhancement: (clean) => `${clean}, clean modern vector illustration, bold graphic lines, minimalist geometric styling, vibrant flat color palette, SVG vector`
+});
+
 const getArchetypeGuidance = (archetype?: string): string => {
-  switch (archetype) {
-    case 'cinematic':
-      return 'Emphasize cinematic photography: 85mm f/1.4 lens optics, shallow depth of field, natural volumetric lighting, subtle film grain, 8k resolution, photorealistic realism.';
-    case 'artistic':
-      return 'Emphasize artistic painterly qualities: expressive brushstrokes, tactile canvas texture, rich color harmonies, and atmospheric emotional depth.';
-    case 'product':
-      return 'Emphasize commercial product photography: studio softbox illumination, clean rim highlights, pristine reflections, neutral cyclorama backdrop, commercial catalog sharpness.';
-    case 'render_3d':
-      return 'Emphasize high-end 3D digital art: Octane/Blender render, subsurface scattering, ambient occlusion, physically based rendering (PBR), and volumetric caustics.';
-    case 'vector_graphic':
-      return 'Emphasize modern graphic design: clean vector line work, bold flat colors, geometric balance, modern SVG illustration aesthetic.';
-    default:
-      return 'Include lighting, style, composition, camera perspective, and mood keywords.';
-  }
+  if (!archetype) return 'Include lighting, style, composition, camera perspective, and mood keywords.';
+  const strategy = promptArchetypeStrategies.get(archetype);
+  if (strategy) return strategy.guidance;
+  return 'Include lighting, style, composition, camera perspective, and mood keywords.';
 };
 
 export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
@@ -548,20 +604,13 @@ export const enhancePromptWithArchetype = async (simplePrompt: string, archetype
 
 const enhancePromptLocally = (simplePrompt: string, archetype?: string): string => {
   const clean = simplePrompt.trim();
-  switch (archetype) {
-    case 'cinematic':
-      return `${clean}, cinematic 35mm photography, natural volumetric lighting, shallow depth of field, f/1.8 aperture, 8k resolution, ultra detailed, photorealistic`;
-    case 'artistic':
-      return `${clean}, expressive concept art, rich painterly brush strokes, vibrant color harmony, atmospheric lighting, detailed composition`;
-    case 'product':
-      return `${clean}, professional studio product photography, clean reflections, softbox illumination, minimal cyclorama backdrop, catalog grade`;
-    case 'render_3d':
-      return `${clean}, 3D Octane render, smooth ray tracing, subsurface scattering, ambient occlusion, physically based shaders, 8k masterpiece`;
-    case 'vector_graphic':
-      return `${clean}, clean modern vector illustration, bold graphic lines, minimalist geometric styling, vibrant flat color palette, SVG vector`;
-    default:
-      return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
+  if (archetype) {
+    const strategy = promptArchetypeStrategies.get(archetype);
+    if (strategy) {
+      return strategy.localEnhancement(clean);
+    }
   }
+  return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
 };
 
 export const enhancePrompt = async (simplePrompt: string, archetype?: string): Promise<string> => {
