@@ -46,8 +46,8 @@ function buildTargets(
     if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) {
       continue;
     }
-    const w = (l as any).width || 0;
-    const h = (l as any).height || 0;
+    const w = l.width || 0;
+    const h = l.height || 0;
 
     targetsX.push({ value: l.x, origin: l.y, extent: h });
     targetsX.push({ value: l.x + w, origin: l.y, extent: h });
@@ -128,8 +128,8 @@ export class SnappingOracle {
     for (const l of movingLayers) {
       minX = Math.min(minX, l.x);
       minY = Math.min(minY, l.y);
-      const w = (l as any).width || 0;
-      const h = (l as any).height || 0;
+      const w = l.width || 0;
+      const h = l.height || 0;
       maxX = Math.max(maxX, l.x + w);
       maxY = Math.max(maxY, l.y + h);
     }
@@ -204,7 +204,7 @@ export class SnappingOracle {
     if (!xSnap && movingLayers.length === 1) {
       const otherLayersX = allLayers
         .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
-        .map((l) => ({ x: l.x, right: l.x + ((l as any).width || 0), y: l.y, height: (l as any).height || 0 }))
+        .map((l) => ({ x: l.x, right: l.x + (l.width || 0), y: l.y, height: l.height || 0 }))
         .sort((a, b) => a.x - b.x);
 
       for (let i = 0; i < otherLayersX.length - 1; i++) {
@@ -231,7 +231,7 @@ export class SnappingOracle {
     if (!ySnap && movingLayers.length === 1) {
       const otherLayersY = allLayers
         .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
-        .map((l) => ({ y: l.y, bottom: l.y + ((l as any).height || 0), x: l.x, width: (l as any).width || 0 }))
+        .map((l) => ({ y: l.y, bottom: l.y + (l.height || 0), x: l.x, width: l.width || 0 }))
         .sort((a, b) => a.y - b.y);
 
       for (let i = 0; i < otherLayersY.length - 1; i++) {
