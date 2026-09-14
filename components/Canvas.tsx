@@ -26,6 +26,7 @@ import { generateLayerId } from '../utils/layers/layerUtils';
 import { BrushFilters } from '../services/brushEngine';
 import { useSmartInteraction } from '../hooks/useSmartInteraction';
 import { boundingBox, pointInBox } from '../geometry/bounding';
+import { getCanvasCursor } from '../utils/cursors';
 
 interface CanvasProps {
   zoom: number;
@@ -108,18 +109,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     [artboards, activeArtboardId]
   );
   const sceneGraph = useSceneGraph(activeArtboardLayers);
-
-  // Eraser cursor preview: compute SVG cursor when eraser is active
-  const eraserCursor = useMemo(() => {
-    if (!isDrawing || brushType !== 'eraser') {
-      return null;
-    }
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
-    const size = Math.max(4, brushSize * zoom * dpr);
-    const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}'><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23fff' stroke-width='1.5'/><circle cx='${size / 2}' cy='${size / 2}' r='${size / 2 - 1}' fill='none' stroke='%23000' stroke-width='0.5' stroke-dasharray='2,2'/></svg>`;
-    const b64 = btoa(svg);
-    return `url("data:image/svg+xml;base64,${b64}") ${Math.round(size / 2)} ${Math.round(size / 2)}, crosshair`;
-  }, [isDrawing, brushType, brushSize, zoom]);
 
   const [activeVectorPath, setActiveVectorPath] = useState<VectorPath | null>(null);
   const [selectedVectorPointIndices, setSelectedVectorPointIndices] = useState<number[]>([]);
@@ -279,10 +268,25 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     (updates: Record<string, Partial<Layer>>) => useStore.getState().updateLayers(updates),
     []
   );
-  const handleSelectLayer = useCallback((id: string | null) => useStore.getState().selectLayer(id), []);
+  const handleSelectLayer = useCallback(
+    (id: string | null) => {
+      if (id) {
+        select(id);
+      } else {
+        clearSelection();
+      }
+    },
+    [select, clearSelection]
+  );
   const handleMultiSelectLayer = useCallback(
-    (id: string, shift: boolean) => useStore.getState().multiSelectLayer(id, shift),
-    []
+    (id: string, shift: boolean) => {
+      if (shift) {
+        multiSelect(id);
+      } else {
+        select(id);
+      }
+    },
+    [select, multiSelect]
   );
   const handleSetSelectedLayerIds = useCallback((ids: string[]) => useStore.getState().setSelectedLayerIds(ids), []);
   const handleContextMenuCanvas = useCallback(
@@ -645,11 +649,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           ref={viewportRef}
           className="flex-1 overflow-hidden relative bg-surface-dark-0 touch-none select-none canvas-container"
           style={{
-            cursor: isPanning
-              ? 'grabbing'
-              : isSpacePressed
-                ? 'grab'
-                : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
+            cursor: getCanvasCursor({
+              isPanning,
+              isSpacePressed,
+              isDrawing,
+              brushType,
+              brushSize,
+              zoom,
+            }),
           }}
           onPointerDown={isDrawing && brushType === 'vector_pencil' ? undefined : (handleMouseDownCombined as any)}
           onDragOver={handleCanvasDragOver}

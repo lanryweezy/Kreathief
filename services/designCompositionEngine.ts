@@ -8,6 +8,7 @@
 import { Layer, Gradient } from '../types';
 import { ArtboardDesignResult } from './aiDesignDirector';
 import { resolveHeroPhoto } from './visualAssetDirector';
+import { estimateTextDimensions } from '../utils/designPolish';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface CompositionOptions {
@@ -15,7 +16,40 @@ export interface CompositionOptions {
   width: number;
   height: number;
   prompt: string;
+  brandKit?: import('../types').BrandKit | null;
 }
+
+// Context-aware specs for card templates (replaces generic hardcoded text)
+export const ARCHETYPE_SPECS: Record<string, string> = {
+  food: '★ 4.9 Rating · Authentic Naija Recipe · Fresh & Hot Daily',
+  event: '★ Live Performance · VIP Passes Available · Doors Open 6PM',
+  fitness: '★ High-Intensity Training · Certified Elite Coaches · 24/7 Access',
+  saas: '★ 99.99% Uptime SLA · Enterprise Security · Real-time Analytics',
+  fashion: '★ Limited Edition Drop · Premium Quality Fabric · Global Delivery',
+  cyberpunk: '★ Tokyo Neo-Noir Streetwear · Limited Edition · 100% Cotton',
+  luxury: '★ Handcrafted Masterpiece · Rare Ingredients · Artisanal Edition',
+  africanMarket: '★ 100% Authentic Lagos Flavors · Premium Recipe · Served Fresh',
+  education: '★ Industry-Accredited Curriculum · Hands-On Projects · Mentorship',
+  realEstate: '★ Prime Metropolitan Location · Architectural Excellence · Private Tour',
+  ecommerce: '★ Verified Customer Favorite · Fast Global Shipping · 30-Day Guarantee',
+  editorial: '★ Curated Exhibition · Limited Edition Catalogue · Exclusive Access',
+};
+
+// Context-aware subheads
+export const ARCHETYPE_SUBHEADS: Record<string, string> = {
+  food: 'Indulge in authentic signature dishes, smoky firewood aromas, and unforgettable culinary heritage.',
+  event: 'Experience high-energy live sound, world-class stage production, and an electric night crowd.',
+  fitness: 'Transform your physical power with science-backed conditioning and relentless coaching.',
+  saas: 'Automate complex mission-critical workflows with sub-second intelligence and unified observability.',
+  fashion: 'Structured tailoring meets contemporary streetwear silhouettes for the modern style vanguard.',
+  cyberpunk: 'Engineered for neon dystopia. Heavyweight dropped-shoulder construction with technical resilience.',
+  luxury: 'A transcendent sensory journey crafted with obsessive precision for the most discerning connoisseurs.',
+  africanMarket: 'Celebrate vibrant African creativity, rich cultural rhythm, and authentic entrepreneurship.',
+  education: 'Master in-demand creative and technical skills through immersive cohort-driven curriculum.',
+  realEstate: 'Discover world-class architectural sanctuaries framed by panoramic natural vistas.',
+  ecommerce: 'Engineered for exceptional everyday performance with durable, aerospace-grade materials.',
+  editorial: 'An unfiltered visual dialogue exploring the tension between minimalist form and cultural identity.',
+};
 
 // Color palettes for composition styling
 const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDark: string; bgLight: string; textMuted: string }> = {
@@ -39,8 +73,24 @@ const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDa
  * Right or Bottom: Typography lockup, pill tag, proof badge, and CTA
  */
 export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDesignResult {
-  const { width, height, prompt, archetype } = opts;
-  const pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
+  const { width, height, prompt, archetype, brandKit } = opts;
+  
+  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
+  let fontHeading = 'Outfit';
+  let fontBody = 'Inter';
+
+  if (brandKit) {
+    pal = {
+      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
+      accent: brandKit.colors[1] || pal.accent,
+      bgDark: brandKit.colors[0] || pal.bgDark,
+      bgLight: brandKit.colors[3] || pal.bgLight,
+      textMuted: brandKit.colors[1] || pal.textMuted,
+    };
+    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
+    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+  }
+
   const photo = resolveHeroPhoto(archetype, prompt);
   const isLandscape = width >= height;
 
@@ -119,132 +169,198 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       visible: true,
     } as any,
 
-    // 5. Eyebrow Category Pill
-    {
-      id: `pill_${uuidv4().slice(0, 8)}`,
-      type: 'rectangle',
-      name: 'Category Pill',
-      x: width * 0.08,
-      y: isLandscape ? height * 0.14 : height * 0.54,
-      width: isLandscape ? width * 0.3 : width * 0.5,
-      height: 32,
-      rotation: 0,
-      opacity: 1,
-      color: 'rgba(255, 255, 255, 0.08)',
-      fill: 'rgba(255, 255, 255, 0.08)',
-      stroke: { color: pal.accent, width: 1 },
-      cornerRadius: 999,
-      locked: false,
-      visible: true,
-    } as any,
-    {
-      id: `pill_text_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Category Pill Text',
-      text: `★ ${archetype.toUpperCase()} SPOTLIGHT`,
-      x: width * 0.08,
-      y: isLandscape ? height * 0.152 : height * 0.552,
-      width: isLandscape ? width * 0.3 : width * 0.5,
-      height: 20,
-      fontSize: Math.max(11, Math.round(width * 0.02)),
-      fontWeight: '800',
-      fontFamily: 'Inter',
-      color: pal.accent,
-      letterSpacing: 2,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
-
-    // 6. Two-Tone Bold Headline
-    {
-      id: `headline_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Primary Headline',
-      text: prompt.toUpperCase().slice(0, 32) || 'ELEVATE YOUR STANDARD',
-      x: width * 0.08,
-      y: isLandscape ? height * 0.24 : height * 0.61,
-      width: isLandscape ? width * 0.4 : width * 0.84,
-      height: isLandscape ? 140 : 80,
-      fontSize: Math.max(28, Math.round(width * 0.065)),
-      fontWeight: '900',
-      fontFamily: 'Outfit',
-      color: '#ffffff',
-      letterSpacing: -1,
-      lineHeight: 1.1,
-      textAlign: 'left',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
-
-    // 7. Subtitle / Value Proposition
-    {
-      id: `sub_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Subtitle Copy',
-      text: 'Precision crafted architecture, high-impact aesthetics, and uncompromising performance tailored for modern creators.',
-      x: width * 0.08,
-      y: isLandscape ? height * 0.52 : height * 0.74,
-      width: isLandscape ? width * 0.38 : width * 0.84,
-      height: 50,
-      fontSize: Math.max(13, Math.round(width * 0.024)),
-      fontWeight: '400',
-      fontFamily: 'Inter',
-      color: pal.textMuted,
-      lineHeight: 1.5,
-      textAlign: 'left',
-      rotation: 0,
-      opacity: 0.9,
-      locked: false,
-      visible: true,
-    } as any,
-
-    // 8. CTA Button
-    {
-      id: `cta_btn_${uuidv4().slice(0, 8)}`,
-      type: 'rectangle',
-      name: 'CTA Button',
-      x: width * 0.08,
-      y: isLandscape ? height * 0.72 : height * 0.85,
-      width: isLandscape ? width * 0.28 : width * 0.55,
-      height: 54,
-      rotation: 0,
-      opacity: 1,
-      color: pal.primary,
-      fill: pal.primary,
-      cornerRadius: 12,
-      shadow: { color: 'rgba(0, 0, 0, 0.35)', blur: 16, offsetX: 0, offsetY: 6 },
-      locked: false,
-      visible: true,
-    } as any,
-    {
-      id: `cta_text_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'CTA Text',
-      text: 'DISCOVER MORE →',
-      x: width * 0.08,
-      y: isLandscape ? height * 0.745 : height * 0.872,
-      width: isLandscape ? width * 0.28 : width * 0.55,
-      height: 24,
-      fontSize: Math.max(13, Math.round(width * 0.026)),
-      fontWeight: '800',
-      fontFamily: 'Outfit',
-      color: '#ffffff',
-      letterSpacing: 1.5,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
+    // 5. Hero Content Stack (Auto Layout Group)
+    ...(() => {
+      const hlText = prompt.toUpperCase().slice(0, 32) || 'ELEVATE YOUR STANDARD';
+      const hlFontSize = Math.max(28, Math.round(width * 0.062));
+      const hlWidth = isLandscape ? width * 0.4 : width * 0.84;
+      
+      const subText = ARCHETYPE_SUBHEADS[archetype] || ARCHETYPE_SUBHEADS.editorial;
+      const subFontSize = Math.max(13, Math.round(width * 0.024));
+      
+      const stackGroupId = `group_stack_${uuidv4().slice(0, 8)}`;
+      const btnGroupId = `group_btn_${uuidv4().slice(0, 8)}`;
+      
+      return [
+        {
+          id: stackGroupId,
+          type: 'group',
+          name: 'Hero Text Stack',
+          x: width * 0.08,
+          y: isLandscape ? height * 0.14 : height * 0.54,
+          width: hlWidth, // It will hug height automatically
+          height: 200, 
+          rotation: 0,
+          opacity: 1,
+          color: 'transparent',
+          fill: 'transparent',
+          locked: false,
+          visible: true,
+          autoLayout: {
+            direction: 'col',
+            padding: 0,
+            spacing: 16,
+            alignment: 'start',
+            sizing: { width: 'fixed', height: 'hug' }
+          }
+        } as any,
+        {
+          id: `pill_${uuidv4().slice(0, 8)}`,
+          type: 'group',
+          name: 'Category Pill',
+          groupId: stackGroupId,
+          x: width * 0.08,
+          y: isLandscape ? height * 0.14 : height * 0.54,
+          width: 150,
+          height: 32,
+          rotation: 0,
+          opacity: 1,
+          color: 'rgba(255, 255, 255, 0.08)',
+          fill: 'rgba(255, 255, 255, 0.08)',
+          stroke: { color: pal.accent, width: 1 },
+          cornerRadius: 999,
+          locked: false,
+          visible: true,
+          autoLayout: {
+            direction: 'row',
+            padding: { top: 6, right: 16, bottom: 6, left: 16 },
+            spacing: 0,
+            alignment: 'center',
+            sizing: { width: 'hug', height: 'hug' }
+          }
+        } as any,
+        {
+          id: `pill_text_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Category Pill Text',
+          groupId: `pill_${uuidv4().slice(0, 8)}`, // Will be fixed below by matching ID
+          text: `★ ${archetype.toUpperCase()} SPOTLIGHT`,
+          x: 0,
+          y: 0,
+          width: 150,
+          height: 20,
+          fontSize: Math.max(11, Math.round(width * 0.02)),
+          fontWeight: '800',
+          fontFamily: fontBody,
+          color: pal.accent,
+          letterSpacing: 2,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `headline_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Primary Headline',
+          groupId: stackGroupId,
+          text: hlText,
+          x: width * 0.08,
+          y: 0,
+          width: hlWidth,
+          height: 60,
+          fontSize: hlFontSize,
+          fontWeight: '900',
+          fontFamily: fontHeading,
+          color: '#ffffff',
+          letterSpacing: -1,
+          lineHeight: 1.1,
+          textAlign: 'left',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+          autoLayout: {
+            sizing: { width: 'fill', height: 'hug' }
+          }
+        } as any,
+        {
+          id: `sub_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Subtitle Copy',
+          groupId: stackGroupId,
+          text: subText,
+          x: width * 0.08,
+          y: 0,
+          width: hlWidth,
+          height: 40,
+          fontSize: subFontSize,
+          fontWeight: '400',
+          fontFamily: fontBody,
+          color: pal.textMuted,
+          lineHeight: 1.4,
+          textAlign: 'left',
+          rotation: 0,
+          opacity: 0.9,
+          locked: false,
+          visible: true,
+          autoLayout: {
+            sizing: { width: 'fill', height: 'hug' }
+          }
+        } as any,
+        {
+          id: btnGroupId,
+          type: 'group',
+          name: 'CTA Button',
+          groupId: stackGroupId,
+          x: width * 0.08,
+          y: 0,
+          width: 200,
+          height: 50,
+          rotation: 0,
+          opacity: 1,
+          color: pal.primary,
+          fill: pal.primary,
+          cornerRadius: 12,
+          shadow: { color: 'rgba(0, 0, 0, 0.35)', blur: 16, offsetX: 0, offsetY: 6 },
+          locked: false,
+          visible: true,
+          autoLayout: {
+            direction: 'row',
+            padding: { top: 14, right: 32, bottom: 14, left: 32 },
+            spacing: 0,
+            alignment: 'center',
+            sizing: { width: 'hug', height: 'hug' }
+          }
+        } as any,
+        {
+          id: `cta_text_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'CTA Text',
+          groupId: btnGroupId,
+          text: 'DISCOVER MORE →',
+          x: width * 0.08,
+          y: 0,
+          width: 150,
+          height: 20,
+          fontSize: Math.max(13, Math.round(width * 0.024)),
+          fontWeight: '800',
+          fontFamily: fontHeading,
+          color: '#ffffff',
+          letterSpacing: 1.5,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+        } as any,
+      ];
+    })(),
   ];
+
+  // Fix pill text reference
+  const pillIdx = layers.findIndex(l => l.name === 'Category Pill');
+  if (pillIdx > -1) {
+    const pillId = layers[pillIdx].id;
+    const pillTextIdx = layers.findIndex(l => l.name === 'Category Pill Text');
+    if (pillTextIdx > -1) {
+      layers[pillTextIdx].groupId = pillId;
+    }
+  }
 
   return {
     title: `${photo.alt} (Hero Split)`,
@@ -270,9 +386,26 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
  * + bold focal typography + floating dynamic discount/status badge
  */
 export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): ArtboardDesignResult {
-  const { width, height, prompt, archetype } = opts;
-  const pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.event;
+  const { width, height, prompt, archetype, brandKit } = opts;
+  
+  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
+  let fontHeading = 'Space Grotesk';
+  let fontBody = 'Inter';
+
+  if (brandKit) {
+    pal = {
+      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
+      accent: brandKit.colors[1] || pal.accent,
+      bgDark: brandKit.colors[0] || pal.bgDark,
+      bgLight: brandKit.colors[3] || pal.bgLight,
+      textMuted: brandKit.colors[1] || pal.textMuted,
+    };
+    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
+    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+  }
+
   const photo = resolveHeroPhoto(archetype, prompt);
+  const isLandscape = width >= height;
 
   const layers: Layer[] = [
     // 1. Full-Bleed Background Photo
@@ -348,7 +481,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       height: 22,
       fontSize: Math.max(11, Math.round(width * 0.022)),
       fontWeight: '900',
-      fontFamily: 'Outfit',
+      fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
       color: '#090812',
       letterSpacing: 2,
       textAlign: 'center',
@@ -371,7 +504,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       height: 24,
       fontSize: Math.max(12, Math.round(width * 0.024)),
       fontWeight: '800',
-      fontFamily: 'Inter',
+      fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
       color: pal.primary,
       letterSpacing: 4,
       textAlign: 'left',
@@ -382,92 +515,110 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       visible: true,
     } as any,
 
-    // 5. Massive Hero Headline
-    {
-      id: `headline_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Main Headline',
-      text: prompt.toUpperCase().slice(0, 28) || 'UNFORGETTABLE MOMENTS',
-      x: width * 0.08,
-      y: height * 0.52,
-      width: width * 0.84,
-      height: 140,
-      fontSize: Math.max(36, Math.round(width * 0.09)),
-      fontWeight: '900',
-      fontFamily: 'Outfit',
-      color: '#ffffff',
-      letterSpacing: -1,
-      lineHeight: 1.05,
-      textAlign: 'left',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-      textShadow: { color: 'rgba(0, 0, 0, 0.8)', blur: 20, offsetX: 0, offsetY: 6 },
-    } as any,
+    // 5. Dynamic Hero Headline
+    (() => {
+      const hlText = prompt.toUpperCase().slice(0, 32) || 'UNFORGETTABLE MOMENTS';
+      const hlFontSize = Math.max(30, Math.round(width * 0.072));
+      const hlWidth = isLandscape ? width * 0.44 : width * 0.84;
+      const hlEst = estimateTextDimensions(hlText, hlFontSize, hlWidth, 1.08);
+      const hlY = isLandscape ? height * 0.22 : height * 0.51;
+      const hlHeight = hlEst.height;
 
-    // 6. Subhead
-    {
-      id: `sub_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Supporting Subhead',
-      text: 'Experience visionary production, immersive audio, and unforgettable creative atmosphere.',
-      x: width * 0.08,
-      y: height * 0.74,
-      width: width * 0.65,
-      height: 48,
-      fontSize: Math.max(14, Math.round(width * 0.027)),
-      fontWeight: '500',
-      fontFamily: 'Inter',
-      color: '#e2e8f0',
-      lineHeight: 1.4,
-      textAlign: 'left',
-      rotation: 0,
-      opacity: 0.95,
-      locked: false,
-      visible: true,
-    } as any,
+      const subText = ARCHETYPE_SUBHEADS[archetype] || 'Experience visionary production, immersive audio, and unforgettable creative atmosphere.';
+      const subFontSize = Math.max(13, Math.round(width * 0.025));
+      const subWidth = isLandscape ? width * 0.40 : width * 0.70;
+      const subEst = estimateTextDimensions(subText, subFontSize, subWidth, 1.35);
+      const subY = hlY + hlHeight + 14;
+      const subHeight = subEst.height;
 
-    // 7. Full-bleed CTA Button
-    {
-      id: `cta_btn_${uuidv4().slice(0, 8)}`,
-      type: 'rectangle',
-      name: 'CTA Button',
-      x: width * 0.08,
-      y: height * 0.84,
-      width: width * 0.45,
-      height: 56,
-      rotation: 0,
-      opacity: 1,
-      color: pal.primary,
-      fill: pal.primary,
-      cornerRadius: 10,
-      shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 20, offsetX: 0, offsetY: 6 },
-      locked: false,
-      visible: true,
-    } as any,
-    {
-      id: `cta_text_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'CTA Text',
-      text: 'GET ACCESS NOW →',
-      x: width * 0.08,
-      y: height * 0.865,
-      width: width * 0.45,
-      height: 24,
-      fontSize: Math.max(13, Math.round(width * 0.028)),
-      fontWeight: '800',
-      fontFamily: 'Outfit',
-      color: '#ffffff',
-      letterSpacing: 1.5,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
+      const btnY = subY + subHeight + 18;
+      const btnH = 50;
+      const btnTextY = btnY + Math.round((btnH - 18) / 2);
+
+      return [
+        {
+          id: `headline_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Main Headline',
+          text: hlText,
+          x: width * 0.08,
+          y: hlY,
+          width: hlWidth,
+          height: hlHeight,
+          fontSize: hlFontSize,
+          fontWeight: '900',
+          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          color: '#ffffff',
+          letterSpacing: -1,
+          lineHeight: 1.05,
+          textAlign: 'left',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+          textShadow: { color: 'rgba(0, 0, 0, 0.8)', blur: 20, offsetX: 0, offsetY: 6 },
+        } as any,
+        {
+          id: `sub_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Supporting Subhead',
+          text: subText,
+          x: width * 0.08,
+          y: subY,
+          width: subWidth,
+          height: subHeight,
+          fontSize: subFontSize,
+          fontWeight: '500',
+          fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+          color: '#e2e8f0',
+          lineHeight: 1.35,
+          textAlign: 'left',
+          rotation: 0,
+          opacity: 0.95,
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `cta_btn_${uuidv4().slice(0, 8)}`,
+          type: 'rectangle',
+          name: 'CTA Button',
+          x: width * 0.08,
+          y: btnY,
+          width: isLandscape ? width * 0.28 : width * 0.44,
+          height: btnH,
+          rotation: 0,
+          opacity: 1,
+          color: pal.primary,
+          fill: pal.primary,
+          cornerRadius: 10,
+          shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 20, offsetX: 0, offsetY: 6 },
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `cta_text_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'CTA Text',
+          text: 'GET ACCESS NOW →',
+          x: width * 0.08,
+          y: btnTextY,
+          width: isLandscape ? width * 0.28 : width * 0.44,
+          height: 20,
+          fontSize: Math.max(12, Math.round(width * 0.024)),
+          fontWeight: '800',
+          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          color: '#ffffff',
+          letterSpacing: 1.5,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+        } as any,
+      ];
+    })(),
   ];
 
   return {
@@ -581,7 +732,7 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
       height: 22,
       fontSize: Math.max(11, Math.round(width * 0.022)),
       fontWeight: '700',
-      fontFamily: 'Inter',
+      fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
       color: pal.primary,
       letterSpacing: 3,
       textAlign: 'left',
@@ -592,89 +743,106 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
       visible: true,
     } as any,
 
-    // 6. Refined Headline
-    {
-      id: `title_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Curated Title',
-      text: prompt.slice(0, 32) || 'Modern Architectural Showcase',
-      x: cardX + cardW * 0.06,
-      y: cardY + cardH * 0.62,
-      width: cardW * 0.88,
-      height: 70,
-      fontSize: Math.max(28, Math.round(width * 0.062)),
-      fontWeight: '700',
-      fontFamily: 'Playfair Display',
-      color: '#ffffff',
-      letterSpacing: -0.5,
-      lineHeight: 1.15,
-      textAlign: 'left',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
+    // 6. Dynamically stacked headline, specs, and CTA
+    ...(() => {
+      const titleText = prompt.slice(0, 36) || 'Modern Architectural Showcase';
+      const titleFontSize = Math.max(26, Math.round(width * 0.056));
+      const titleWidth = cardW * 0.88;
+      const titleEst = estimateTextDimensions(titleText, titleFontSize, titleWidth, 1.15);
+      const titleY = cardY + cardH * 0.58;
+      const titleHeight = titleEst.height;
 
-    // 7. Stat / Rating line
-    {
-      id: `stats_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Key Specs',
-      text: '★ 4.98 Rating · Verified Authentic · Bespoke Architecture',
-      x: cardX + cardW * 0.06,
-      y: cardY + cardH * 0.76,
-      width: cardW * 0.88,
-      height: 24,
-      fontSize: Math.max(12, Math.round(width * 0.024)),
-      fontWeight: '500',
-      fontFamily: 'Inter',
-      color: pal.textMuted,
-      textAlign: 'left',
-      rotation: 0,
-      opacity: 0.9,
-      locked: false,
-      visible: true,
-    } as any,
+      const specsText = ARCHETYPE_SPECS[archetype] || ARCHETYPE_SPECS.editorial;
+      const specsFontSize = Math.max(11, Math.round(width * 0.022));
+      const specsEst = estimateTextDimensions(specsText, specsFontSize, cardW * 0.88, 1.3);
+      const specsY = titleY + titleHeight + 14;
+      const specsHeight = specsEst.height;
 
-    // 8. Elevated Action CTA Button
-    {
-      id: `cta_btn_${uuidv4().slice(0, 8)}`,
-      type: 'rectangle',
-      name: 'Action Button',
-      x: cardX + cardW * 0.06,
-      y: cardY + cardH * 0.83,
-      width: cardW * 0.45,
-      height: 48,
-      rotation: 0,
-      opacity: 1,
-      color: pal.primary,
-      fill: pal.primary,
-      cornerRadius: 10,
-      shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 16, offsetX: 0, offsetY: 6 },
-      locked: false,
-      visible: true,
-    } as any,
-    {
-      id: `cta_text_${uuidv4().slice(0, 8)}`,
-      type: 'text',
-      name: 'Action Button Text',
-      text: 'RESERVE EXPERIENCE →',
-      x: cardX + cardW * 0.06,
-      y: cardY + cardH * 0.852,
-      width: cardW * 0.45,
-      height: 22,
-      fontSize: Math.max(12, Math.round(width * 0.024)),
-      fontWeight: '800',
-      fontFamily: 'Outfit',
-      color: '#090812',
-      letterSpacing: 1.5,
-      textAlign: 'center',
-      textTransform: 'uppercase',
-      rotation: 0,
-      opacity: 1,
-      locked: false,
-      visible: true,
-    } as any,
+      const btnY = specsY + specsHeight + 16;
+      const btnH = 46;
+      const btnTextY = btnY + Math.round((btnH - 18) / 2);
+
+      return [
+        {
+          id: `title_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Curated Title',
+          text: titleText,
+          x: cardX + cardW * 0.06,
+          y: titleY,
+          width: titleWidth,
+          height: titleHeight,
+          fontSize: titleFontSize,
+          fontWeight: '700',
+          fontFamily: 'Playfair Display',
+          color: '#ffffff',
+          letterSpacing: -0.5,
+          lineHeight: 1.15,
+          textAlign: 'left',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `stats_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Key Specs',
+          text: specsText,
+          x: cardX + cardW * 0.06,
+          y: specsY,
+          width: cardW * 0.88,
+          height: specsHeight,
+          fontSize: specsFontSize,
+          fontWeight: '500',
+          fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+          color: pal.textMuted,
+          textAlign: 'left',
+          rotation: 0,
+          opacity: 0.9,
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `cta_btn_${uuidv4().slice(0, 8)}`,
+          type: 'rectangle',
+          name: 'Action Button',
+          x: cardX + cardW * 0.06,
+          y: btnY,
+          width: cardW * 0.45,
+          height: btnH,
+          rotation: 0,
+          opacity: 1,
+          color: pal.primary,
+          fill: pal.primary,
+          cornerRadius: 10,
+          shadow: { color: 'rgba(0, 0, 0, 0.4)', blur: 16, offsetX: 0, offsetY: 6 },
+          locked: false,
+          visible: true,
+        } as any,
+        {
+          id: `cta_text_${uuidv4().slice(0, 8)}`,
+          type: 'text',
+          name: 'Action Button Text',
+          text: 'RESERVE EXPERIENCE →',
+          x: cardX + cardW * 0.06,
+          y: btnTextY,
+          width: cardW * 0.45,
+          height: 18,
+          fontSize: Math.max(11, Math.round(width * 0.022)),
+          fontWeight: '800',
+          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          color: '#090812',
+          letterSpacing: 1.5,
+          textAlign: 'center',
+          textTransform: 'uppercase',
+          rotation: 0,
+          opacity: 1,
+          locked: false,
+          visible: true,
+        } as any,
+      ];
+    })(),
   ];
 
   return {

@@ -24,7 +24,12 @@ vi.mock('@google/generative-ai', () => ({
 
 // Mock global fetch
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+if (typeof window !== 'undefined') {
+  (window as any).fetch = mockFetch;
+}
+(globalThis as any).fetch = mockFetch;
+(global as any).fetch = mockFetch;
+vi.spyOn(globalThis, 'fetch').mockImplementation(mockFetch);
 
 describe('GeminiService', () => {
   beforeEach(() => {

@@ -805,6 +805,7 @@ export interface AIAssistantState {
   isActive: boolean;
   isAnalyzing: boolean;
   currentCritique?: DesignCritique;
+  enhancedCritique?: any; // DesignCritiqueResult from designCritiqueEngine
   conversationHistory: any[];
   lastAnalysis: number;
   autoSuggest: boolean;

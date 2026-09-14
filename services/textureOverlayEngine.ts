@@ -282,6 +282,29 @@ export const TEXTURE_DEFINITIONS: Record<string, TextureDefinition> = {
         </svg>
       `),
   },
+
+  // 11. 2026 Tactile Grainy Blur
+  grainyBlur: {
+    id: 'grainyBlur',
+    name: 'Grainy Blur',
+    category: 'grunge',
+    icon: '🌫️',
+    description: '2026 sensory texture with soft out-of-focus blur and high-frequency noise',
+    defaultBlendMode: 'soft-light',
+    defaultOpacity: 0.65,
+    generateSvgUri: () =>
+      svgToDataUri(`
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+          <filter id="grainyBlurFilter">
+            <feGaussianBlur stdDeviation="8" result="blur" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" result="noise" />
+            <feColorMatrix type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.5 0" in="noise" result="coloredNoise" />
+            <feBlend mode="overlay" in="coloredNoise" in2="blur" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grainyBlurFilter)" fill="#ffffff" opacity="0.9" />
+        </svg>
+      `),
+  },
 };
 
 export const ALL_TEXTURE_DEFINITIONS = Object.values(TEXTURE_DEFINITIONS);

@@ -2405,8 +2405,8 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['cheap', 'discount', 'budget', 'gaming'],
   },
   food: {
-    primary: ['food', 'restaurant', 'menu', 'recipe', 'cafe', 'bakery', 'chef', 'kitchen'],
-    secondary: ['eat', 'drink', 'cuisine', 'dining', 'brunch', 'organic', 'farm', 'gourmet', 'dessert', 'pizza', 'burger'],
+    primary: ['food', 'restaurant', 'menu', 'recipe', 'cafe', 'bakery', 'chef', 'kitchen', 'jollof', 'suya', 'grill', 'bbq', 'barbecue', 'dining'],
+    secondary: ['eat', 'drink', 'cuisine', 'brunch', 'organic', 'farm', 'gourmet', 'dessert', 'pizza', 'burger', 'rice', 'smokey', 'delicious', 'fest'],
     negative: ['tech', 'software', 'coding'],
   },
   africanMarket: {
@@ -2420,8 +2420,8 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['food', 'restaurant'],
   },
   fashion: {
-    primary: ['fashion', 'clothing', 'outfit', 'style', 'collection', 'runway', 'model', 'streetwear'],
-    secondary: ['designer', 'lookbook', 'vogue', 'trend', 'wear', 'apparel', 'drop', 'sneaker', 'merch'],
+    primary: ['fashion', 'clothing', 'outfit', 'style', 'collection', 'runway', 'model', 'streetwear', 'hoodie', 'apparel'],
+    secondary: ['designer', 'lookbook', 'vogue', 'trend', 'wear', 'drop', 'sneaker', 'merch', 'oversized', 'boxy'],
     negative: ['tech', 'software'],
   },
   realEstate: {
@@ -2430,9 +2430,9 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: [],
   },
   event: {
-    primary: ['event', 'concert', 'festival', 'party', 'conference', 'wedding', 'gala', 'summit'],
-    secondary: ['ticket', 'invite', 'celebration', 'show', 'live', 'meetup', 'birthday', 'anniversary'],
-    negative: [],
+    primary: ['event', 'concert', 'festival', 'party', 'conference', 'wedding', 'gala', 'summit', 'afrobeats'],
+    secondary: ['ticket', 'invite', 'celebration', 'show', 'live', 'meetup', 'birthday', 'anniversary', 'night'],
+    negative: ['food', 'recipe', 'dining'],
   },
   education: {
     primary: ['education', 'course', 'learning', 'school', 'university', 'webinar', 'bootcamp'],
@@ -2454,13 +2454,26 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
 export function classifyDesignIntent(prompt: string): string {
   const pLower = prompt.toLowerCase();
 
-  // First check the comprehensive style database (65+ styles)
+  // 1. Direct archetype keyword matching (high precision)
+  const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
+    let score = 0;
+    kw.primary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 3; });
+    kw.secondary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 1; });
+    kw.negative.forEach((k) => { if (pLower.includes(k.toLowerCase())) score -= 2; });
+    return { archetype, score };
+  });
+
+  scores.sort((a, b) => b.score - a.score);
+  if (scores[0].score >= 3) {
+    return scores[0].archetype;
+  }
+
+  // 2. Comprehensive style database check (65+ styles) as secondary guidance
   const styleMatch = classifyStyleFromPrompt(prompt);
   if (styleMatch) {
     const style = getStyleById(styleMatch);
     if (style) {
       log.info(`[DesignDirector] Style database match: ${style.name} (${styleMatch})`);
-      // Map style categories to archetypes for backward compatibility
       const categoryToArchetype: Record<string, string> = {
         classical: 'luxury',
         modernist: 'editorial',
@@ -2478,16 +2491,6 @@ export function classifyDesignIntent(prompt: string): string {
     }
   }
 
-  // Fallback to archetype keyword matching
-  const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
-    let score = 0;
-    kw.primary.forEach((k) => { if (pLower.includes(k)) score += 3; });
-    kw.secondary.forEach((k) => { if (pLower.includes(k)) score += 1; });
-    kw.negative.forEach((k) => { if (pLower.includes(k)) score -= 2; });
-    return { archetype, score };
-  });
-
-  scores.sort((a, b) => b.score - a.score);
   return scores[0].score > 0 ? scores[0].archetype : 'editorial';
 }
 

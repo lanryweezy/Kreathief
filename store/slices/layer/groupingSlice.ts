@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Layer, Artboard } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
+import { ungroupLayerWithSceneGraph } from '../../../utils/sceneGraph';
+
 export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set, get) => ({
   groupSelected: () => {
     const { selectedLayerIds, activeArtboardId } = get();
@@ -109,8 +111,13 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
 
         const groupIdsToUngroup = new Set<string>();
         a.layers.forEach((l: Layer) => {
-          if (selectedIdsSet.has(l.id) && l.groupId) {
-            groupIdsToUngroup.add(l.groupId);
+          if (selectedIdsSet.has(l.id)) {
+            if (l.groupId) {
+              groupIdsToUngroup.add(l.groupId);
+            }
+            if ((l as any).isGroup) {
+              groupIdsToUngroup.add(l.id);
+            }
           }
         });
 
@@ -118,22 +125,12 @@ export const createGroupingSlice: StateCreator<StoreState, [], [], Partial<Layer
           return a;
         }
 
-        const newLayers: Layer[] = [];
-        a.layers.forEach((l: Layer) => {
-          if (groupIdsToUngroup.has(l.id)) {
-            // Drop group markers entirely
-            return;
-          }
+        let updatedLayers = a.layers;
+        for (const gid of groupIdsToUngroup) {
+          updatedLayers = ungroupLayerWithSceneGraph(updatedLayers, gid);
+        }
 
-          if (l.groupId && groupIdsToUngroup.has(l.groupId)) {
-            const { groupId: _groupId, ...rest } = l;
-            newLayers.push(rest as Layer);
-          } else {
-            newLayers.push(l);
-          }
-        });
-
-        return { ...a, layers: newLayers };
+        return { ...a, layers: updatedLayers };
       }),
       selectedLayerIds: [],
     }));

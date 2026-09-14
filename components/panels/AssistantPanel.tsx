@@ -35,8 +35,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     conversationHistory,
     isAnalyzing,
     currentCritique,
+    enhancedCritique,
     sendMessage,
     analyzeCurrentDesign,
+    analyzeDesignEnhanced,
     clearConversation,
     applySuggestion,
     dismissSuggestion,
@@ -60,8 +62,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       conversationHistory: state.conversationHistory,
       isAnalyzing: state.isAnalyzing,
       currentCritique: state.currentCritique,
+      enhancedCritique: state.enhancedCritique,
       sendMessage: state.sendMessage,
       analyzeCurrentDesign: state.analyzeCurrentDesign,
+      analyzeDesignEnhanced: state.analyzeDesignEnhanced,
       clearConversation: state.clearConversation,
       applySuggestion: state.applySuggestion,
       dismissSuggestion: state.dismissSuggestion,
@@ -455,6 +459,58 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
           </div>
         )}
 
+        {/* Enhanced Critique Results */}
+        {enhancedCritique && (
+          <div className="space-y-3 mt-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">12-Dimension Analysis</h4>
+              <span className={`text-lg font-black ${
+                enhancedCritique.overallScore >= 80 ? 'text-green-400' :
+                enhancedCritique.overallScore >= 60 ? 'text-yellow-400' :
+                enhancedCritique.overallScore >= 40 ? 'text-orange-400' : 'text-red-400'
+              }`}>
+                {enhancedCritique.letterGrade}
+              </span>
+            </div>
+
+            {/* Quick wins */}
+            {enhancedCritique.quickWins.length > 0 && (
+              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/20">
+                <p className="text-[9px] font-bold text-green-400 mb-1.5 uppercase tracking-wider">Quick Wins</p>
+                {enhancedCritique.quickWins.map((w, i) => (
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">→ {w}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Critical issues */}
+            {enhancedCritique.criticalIssues.length > 0 && (
+              <div className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/20">
+                <p className="text-[9px] font-bold text-red-400 mb-1.5 uppercase tracking-wider">Critical Issues</p>
+                {enhancedCritique.criticalIssues.map((issue, i) => (
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">! {issue}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Dimension scores (compact) */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {enhancedCritique.dimensions.map(dim => (
+                <div key={dim.id} className="flex items-center gap-1.5">
+                  <div className="w-8 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
+                    <div
+                      className={`h-full rounded-full ${dim.score >= 80 ? 'bg-green-500' : dim.score >= 60 ? 'bg-yellow-500' : dim.score >= 40 ? 'bg-orange-500' : 'bg-red-500'}`}
+                      style={{ width: `${dim.score}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-gray-500 truncate">{dim.name}</span>
+                  <span className="text-[8px] font-bold text-gray-400 ml-auto">{dim.score}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Workflow Status */}
         {(agentStatus === 'strategy' || agentStatus === 'creative' || agentStatus === 'searching' || agentStatus === 'rendering' || agentStatus === 'critic' || agentStatus === 'performance') && (
           <div className="space-y-2">
@@ -598,7 +654,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
             <div className="flex gap-2">
               <button
-                onClick={() => analyzeCurrentDesign()}
+                onClick={() => analyzeDesignEnhanced()}
                 disabled={isAnalyzing}
                 className="px-2.5 py-1.5 flex items-center gap-1.5 bg-white/5 hover:bg-brand-500/20 rounded-lg text-[9px] font-black text-gray-400 hover:text-brand-400 uppercase tracking-widest transition-colors disabled:opacity-40"
               >

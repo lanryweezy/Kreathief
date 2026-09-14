@@ -90,7 +90,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
 
   const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
   const timeoutMs = isTest ? 100 : 60000;
-  const retries = isTest ? 0 : 3;
+  const retries = isTest ? 1 : 3;
   const backoffMs = isTest ? 10 : 1000;
 
   return retryWithBackoff(

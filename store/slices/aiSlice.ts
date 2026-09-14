@@ -102,7 +102,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   isGenerating: false,
   lastGeneratedImageUrl: null,
   selectedImageModel: DEFAULT_IMAGE_MODEL,
-  useBrandInPrompts: false,
+  useBrandInPrompts: true,
   styleReference: null,
   referenceStrength: 'balanced',
   promptArchetype: 'cinematic',

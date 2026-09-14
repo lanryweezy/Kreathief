@@ -14,6 +14,7 @@ import { resolveHeroPhoto } from './visualAssetDirector';
 import { v4 as uuidv4 } from 'uuid';
 import { createTextureOverlayConfig } from './textureOverlayEngine';
 import { TEXT_EFFECT_PRESETS } from './textEffectPresets';
+import { estimateTextDimensions } from '../utils/designPolish';
 
 export type GraphicDesignStyleCategory = 'trends2026' | 'movements' | 'retroSubculture' | 'minimalDigital';
 
@@ -2826,7 +2827,7 @@ function internalBuildComposition(
             type: 'rectangle',
             name: `${s.name} Badge`,
             x: width * 0.08,
-            y: height * 0.65,
+            y: height * 0.60,
             width: width * 0.36,
             height: 32,
             color: s.palette.surface,
@@ -2844,7 +2845,7 @@ function internalBuildComposition(
             name: `${s.name} Badge Text`,
             text: s.badge,
             x: width * 0.08,
-            y: height * 0.665,
+            y: height * 0.608,
             width: width * 0.36,
             height: 18,
             fontSize: 11,
@@ -2859,64 +2860,79 @@ function internalBuildComposition(
             locked: false,
             visible: true,
           } as any,
-          {
-            id: `headline_${uuidv4().slice(0, 8)}`,
-            type: 'text',
-            name: `${s.name} Headline`,
-            text: prompt.length > 4 ? prompt.toUpperCase().slice(0, 26) : s.tagline.toUpperCase().slice(0, 26),
-            x: width * 0.08,
-            y: height * 0.72,
-            width: width * 0.84,
-            height: 64,
-            fontSize: Math.max(30, Math.round(width * 0.058)),
-            fontWeight: s.typography.headlineWeight as any,
-            fontFamily: s.typography.headlineFont,
-            color: s.palette.text,
-            letterSpacing: s.typography.letterSpacing,
-            textAlign: 'left',
-            textTransform: s.typography.textTransform,
-            rotation: 0,
-            opacity: 1,
-            locked: false,
-            visible: true,
-          } as any,
-          {
-            id: `cta_btn_${uuidv4().slice(0, 8)}`,
-            type: 'rectangle',
-            name: `${s.name} CTA Button`,
-            x: width * 0.08,
-            y: height * 0.84,
-            width: width * 0.38,
-            height: 48,
-            color: s.palette.primary,
-            fill: s.palette.primary,
-            cornerRadius: styleId === 'flat' ? 12 : 4,
-            opacity: 1,
-            locked: false,
-            visible: true,
-            rotation: 0,
-          } as any,
-          {
-            id: `cta_text_${uuidv4().slice(0, 8)}`,
-            type: 'text',
-            name: `${s.name} CTA Text`,
-            text: 'EXPLORE DESIGN →',
-            x: width * 0.08,
-            y: height * 0.86,
-            width: width * 0.38,
-            height: 20,
-            fontSize: 13,
-            fontWeight: '800',
-            fontFamily: s.typography.headlineFont,
-            color: s.palette.surface === '#ffffff' ? '#ffffff' : '#000000',
-            letterSpacing: 1,
-            textAlign: 'center',
-            textTransform: 'uppercase',
-            rotation: 0,
-            opacity: 1,
-            locked: false,
-            visible: true,
-          } as any,
+          ...(() => {
+            const hlText = prompt.length > 4 ? prompt.toUpperCase().slice(0, 32) : s.tagline.toUpperCase().slice(0, 32);
+            const hlFontSize = Math.max(26, Math.round(width * 0.052));
+            const hlWidth = width * 0.84;
+            const hlEst = estimateTextDimensions(hlText, hlFontSize, hlWidth, 1.15, s.typography.letterSpacing);
+            const hlY = height * 0.66;
+            const hlH = hlEst.height;
+
+            const btnY = hlY + hlH + 20;
+            const btnH = 46;
+            const btnTextY = btnY + Math.round((btnH - 18) / 2);
+
+            return [
+              {
+                id: `headline_${uuidv4().slice(0, 8)}`,
+                type: 'text',
+                name: `${s.name} Headline`,
+                text: hlText,
+                x: width * 0.08,
+                y: hlY,
+                width: hlWidth,
+                height: hlH,
+                fontSize: hlFontSize,
+                fontWeight: s.typography.headlineWeight as any,
+                fontFamily: s.typography.headlineFont,
+                color: s.palette.text,
+                letterSpacing: s.typography.letterSpacing,
+                textAlign: 'left',
+                textTransform: s.typography.textTransform,
+                rotation: 0,
+                opacity: 1,
+                locked: false,
+                visible: true,
+              } as any,
+              {
+                id: `cta_btn_${uuidv4().slice(0, 8)}`,
+                type: 'rectangle',
+                name: `${s.name} CTA Button`,
+                x: width * 0.08,
+                y: btnY,
+                width: width * 0.38,
+                height: btnH,
+                color: s.palette.primary,
+                fill: s.palette.primary,
+                cornerRadius: styleId === 'flat' ? 12 : 4,
+                opacity: 1,
+                locked: false,
+                visible: true,
+                rotation: 0,
+              } as any,
+              {
+                id: `cta_text_${uuidv4().slice(0, 8)}`,
+                type: 'text',
+                name: `${s.name} CTA Text`,
+                text: 'EXPLORE DESIGN →',
+                x: width * 0.08,
+                y: btnTextY,
+                width: width * 0.38,
+                height: 18,
+                fontSize: 12,
+                fontWeight: '800',
+                fontFamily: s.typography.headlineFont,
+                color: s.palette.surface === '#ffffff' ? '#ffffff' : '#000000',
+                letterSpacing: 1,
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                rotation: 0,
+                opacity: 1,
+                locked: false,
+                visible: true,
+              } as any,
+            ];
+          })(),
         ],
       };
     }
@@ -2927,11 +2943,12 @@ function attachMovementTextureAndEffects(
   styleId: GraphicDesignStyleId,
   result: ArtboardDesignResult
 ): ArtboardDesignResult {
-  // 1. Text Effect Presets
+  // 1. Title/Headline Text Effects
   const textPresetMap: Partial<Record<GraphicDesignStyleId, string>> = {
-    popArt: 'comicBoom',
-    y2k: 'liquidChrome',
-    aurora: 'liquidChrome',
+    y2k: 'liquidChrome', // or kineticStretch
+    punk: 'distortedCut', // New 2026 Trend
+    bauhaus: 'bauhausConstruct',
+    aurora: 'kineticStretch', // New 2026 Trend
     artDeco: 'goldFoil',
     luxuryTypography: 'goldFoil',
     neoBrutalism: 'neoBrutalistBlock',
@@ -2939,6 +2956,7 @@ function attachMovementTextureAndEffects(
     risograph: 'risographHalftone',
     psychedelic: 'psychedelicTrippy',
     minimalism: 'minimalHollow',
+    popArt: 'comicBoom',
   };
 
   const presetId = textPresetMap[styleId];
@@ -2968,10 +2986,10 @@ function attachMovementTextureAndEffects(
     artDeco: { id: 'paperGrain', opacity: 0.22, blendMode: 'multiply' },
     bauhaus: { id: 'paperGrain', opacity: 0.2, blendMode: 'multiply' },
     y2k: { id: 'holographicFoil', opacity: 0.3, blendMode: 'screen' },
-    aurora: { id: 'holographicFoil', opacity: 0.25, blendMode: 'screen' },
-    punk: { id: 'grungeScratches', opacity: 0.35, blendMode: 'overlay' },
+    aurora: { id: 'grainyBlur', opacity: 0.65, blendMode: 'soft-light' }, // New 2026 Trend
+    punk: { id: 'grungeScratches', opacity: 0.45, blendMode: 'overlay' },
     synthwave: { id: 'filmGrain', opacity: 0.22, blendMode: 'overlay' },
-    contemporary: { id: 'filmGrain', opacity: 0.18, blendMode: 'overlay' },
+    contemporary: { id: 'grainyBlur', opacity: 0.45, blendMode: 'overlay' }, // New 2026 Trend
     micrographics: { id: 'blueprintGrid', opacity: 0.28, blendMode: 'overlay' },
     bentoGrid: { id: 'blueprintGrid', opacity: 0.2, blendMode: 'overlay' },
     luxuryTypography: { id: 'goldFoilTexture', opacity: 0.25, blendMode: 'overlay' },
@@ -3014,7 +3032,7 @@ export function classifyDesignMovement(prompt: string): GraphicDesignStyleId | n
   if (/bento|bento grid|bento-grid|modular card|compartment|apple keynote grid/.test(p)) {
     return 'bentoGrid';
   }
-  if (/aurora|ethereal|northern light|iridescent|glowing gradient|dreamy mist/.test(p)) {
+  if (/aurora|ethereal|northern light|iridescent|glowing gradient|dreamy mist|liquid glass|kinetic stretch|calm ui/.test(p)) {
     return 'aurora';
   }
   if (/neo-brutal|neobrutal|hard shadow|4px border|bold solid color|brutalist web/.test(p)) {
@@ -3047,7 +3065,7 @@ export function classifyDesignMovement(prompt: string): GraphicDesignStyleId | n
   if (/maximalis|more is more|pattern overload|color explosion/.test(p)) {
     return 'maximalism';
   }
-  if (/punk|grunge|photocopier|anti-polish|zine|distressed/.test(p)) {
+  if (/punk|grunge|photocopier|anti-polish|zine|distressed|distorted cut|raw edge|imperfect|broken/.test(p)) {
     return 'punk';
   }
   if (/art nouveau|art-nouveau|mucha|whiplash|botanical curve|organic floral/.test(p)) {

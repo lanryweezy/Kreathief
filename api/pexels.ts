@@ -1,141 +1,83 @@
 import { log } from '../utils/log';
-import { cacheHeaders } from '../utils/cacheHeaders';
-import { requireAuth } from './_auth';
-export const config = {
-  runtime: 'edge',
-};
 
-const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
-const RATE_LIMIT_WINDOW_MS = 60 * 1000;
-const MAX_REQUESTS_PER_WINDOW = 20;
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+// Fallback to the provided key if env var is missing
+const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY || 'jq1FQPT0wq2z3SyRHsS4epO0TuKVgYxCyG2Milr2yq3T2aXLeu6IqUj1';
 
-let lastCleanup = Date.now();
+export interface PexelsPhoto {
+  id: number;
+  width: number;
+  height: number;
+  url: string;
+  photographer: string;
+  photographer_url: string;
+  photographer_id: number;
+  avg_color: string;
+  src: {
+    original: string;
+    large2x: string;
+    large: string;
+    medium: string;
+    small: string;
+    portrait: string;
+    landscape: string;
+    tiny: string;
+  };
+  liked: boolean;
+  alt: string;
+}
 
-export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
-  if (!origin) {
-    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
+export interface PexelsSearchResponse {
+  total_results: number;
+  page: number;
+  per_page: number;
+  photos: PexelsPhoto[];
+  next_page?: string;
+}
 
-  const now = Date.now();
-
-  // Periodic cleanup of expired rate limit entries to prevent memory leaks
-  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
-    for (const [ip, state] of rateLimitMap.entries()) {
-      if (now > state.resetTime) {
-        rateLimitMap.delete(ip);
-      }
-    }
-    lastCleanup = now;
-  }
-
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
-  }
-
+/**
+ * Search for photos on Pexels.
+ */
+export async function searchPexelsImages(query: string, page: number = 1, perPage: number = 20): Promise<PexelsPhoto[]> {
   try {
-    await requireAuth(req);
+    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: PEXELS_API_KEY
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Pexels API error: ${response.status}`);
+    }
+
+    const data: PexelsSearchResponse = await response.json();
+    return data.photos || [];
   } catch (error) {
-    if (error instanceof Response) return error;
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    log.error('Failed to fetch from Pexels', error);
+    return [];
   }
+}
 
-  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const rateLimitState = rateLimitMap.get(clientIp);
-
-  if (rateLimitState) {
-    if (now > rateLimitState.resetTime) {
-      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    } else {
-      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
-        return new Response(JSON.stringify({ error: 'Too many requests' }), {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': origin,
-          },
-        });
-      }
-      rateLimitState.count++;
-    }
-  } else {
-    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-  }
-
-  const apiKey = process.env.PEXELS_API_KEY;
-
-  if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'Pexels credentials not configured on server' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin,
-      },
-    });
-  }
-
+/**
+ * Get curated (popular) photos from Pexels.
+ */
+export async function getCuratedPexelsImages(page: number = 1, perPage: number = 20): Promise<PexelsPhoto[]> {
   try {
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
-
-    const BASE_URL = 'https://api.pexels.com/v1';
-
-    if (action === 'search') {
-      const query = url.searchParams.get('query') || '';
-      const page = url.searchParams.get('page') || '1';
-
-      const response = await fetch(
-        `${BASE_URL}/search?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=30`,
-        {
-          headers: {
-            Authorization: apiKey,
-            Accept: 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Pexels Search failed');
+    const url = `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`;
+    const response = await fetch(url, {
+      headers: {
+        Authorization: PEXELS_API_KEY
       }
+    });
 
-      const data = await response.json();
-
-      return new Response(JSON.stringify(data), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': origin,
-          ...cacheHeaders(),
-        },
-      });
+    if (!response.ok) {
+      throw new Error(`Pexels API error: ${response.status}`);
     }
 
-    return new Response(JSON.stringify({ error: 'Unknown action' }), {
-      status: 400,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin,
-      },
-    });
-  } catch (error: any) {
-    log.error('API Route Error', error, { url: req.url });
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': origin,
-      },
-    });
+    const data: PexelsSearchResponse = await response.json();
+    return data.photos || [];
+  } catch (error) {
+    log.error('Failed to fetch curated Pexels images', error);
+    return [];
   }
 }

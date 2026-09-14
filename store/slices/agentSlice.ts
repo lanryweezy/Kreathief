@@ -183,7 +183,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
       let draftedVariants;
       try {
-        draftedVariants = await creativeAgentDraft(composedIntent, canvasSize, 3, strategy);
+        draftedVariants = await creativeAgentDraft(composedIntent, canvasSize, 3, strategy, brandKit);
       } finally {
         clearInterval(draftingInterval);
       }

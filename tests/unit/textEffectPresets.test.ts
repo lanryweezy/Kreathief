@@ -8,9 +8,9 @@ import {
 import { TextLayer } from '../../types';
 
 describe('TextEffectPresets Engine', () => {
-  it('should have exactly 10 signature design presets', () => {
-    expect(TEXT_EFFECT_PRESET_LIST).toHaveLength(10);
-    expect(Object.keys(TEXT_EFFECT_PRESETS)).toHaveLength(10);
+  it('should have at least 10 signature design presets', () => {
+    expect(TEXT_EFFECT_PRESET_LIST.length).toBeGreaterThanOrEqual(10);
+    expect(Object.keys(TEXT_EFFECT_PRESETS).length).toBeGreaterThanOrEqual(10);
   });
 
   it('should contain all signature preset IDs', () => {
@@ -40,7 +40,7 @@ describe('TextEffectPresets Engine', () => {
 
   it('should filter presets by category properly', () => {
     const all = getPresetsByCategory('all');
-    expect(all).toHaveLength(10);
+    expect(all).toHaveLength(TEXT_EFFECT_PRESET_LIST.length);
 
     const popular = getPresetsByCategory('popular');
     expect(popular.length).toBeGreaterThan(0);

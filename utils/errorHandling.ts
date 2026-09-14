@@ -74,14 +74,15 @@ export const retryWithBackoff = async <T>(
   baseDelay: number = 1000
 ): Promise<T> => {
   let lastError: unknown;
+  const attempts = Math.max(1, maxRetries);
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error;
 
-      if (!isRetryableError(error) || attempt === maxRetries - 1) {
+      if (!isRetryableError(error) || attempt === attempts - 1) {
         break;
       }
 

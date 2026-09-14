@@ -3,6 +3,7 @@ import { Button } from '../Button';
 import { Icons } from '../../constants';
 import { templateMarketplace, MarketplaceTemplate } from '../../services/templateMarketplace';
 import TemplateSubmitModal from '../modals/TemplateSubmitModal';
+import { AITemplateGeneratorModal } from '../modals/AITemplateGeneratorModal';
 
 interface Props {
   onApplyTemplate: (t: MarketplaceTemplate) => void;
@@ -19,6 +20,7 @@ const TemplateMarketplacePage: React.FC<Props> = ({ onApplyTemplate }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [showSubmit, setShowSubmit] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
 
   const fetchTemplates = useCallback(
     async (p: number, reset = false) => {
@@ -70,9 +72,19 @@ const TemplateMarketplacePage: React.FC<Props> = ({ onApplyTemplate }) => {
             Discover and apply community-created templates
           </p>
         </div>
-        <Button onClick={() => setShowSubmit(true)} size="sm">
-          Submit Template
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setShowAIGenerator(true)}
+            size="sm"
+            className="bg-purple-600 hover:bg-purple-500 flex items-center gap-1.5"
+          >
+            <Icons.Magic className="w-3.5 h-3.5" />
+            AI Generate Template
+          </Button>
+          <Button onClick={() => setShowSubmit(true)} size="sm" variant="secondary">
+            Submit Template
+          </Button>
+        </div>
       </div>
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 relative z-10">
         <div className="relative w-full max-w-md">
@@ -203,6 +215,12 @@ const TemplateMarketplacePage: React.FC<Props> = ({ onApplyTemplate }) => {
       <TemplateSubmitModal
         isOpen={showSubmit}
         onClose={() => setShowSubmit(false)}
+        onSuccess={() => fetchTemplates(1, true)}
+      />
+      <AITemplateGeneratorModal
+        isOpen={showAIGenerator}
+        onClose={() => setShowAIGenerator(false)}
+        onApplyTemplate={onApplyTemplate}
         onSuccess={() => fetchTemplates(1, true)}
       />
     </div>

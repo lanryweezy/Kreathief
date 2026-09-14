@@ -3,6 +3,7 @@ import * as unsplashService from './unsplashService';
 import * as freepikService from './freepikService';
 import { iconScoutService } from './iconScoutService';
 import { getFallbackPhotos } from './fallbackPhotos';
+import * as pexelsApi from '../api/pexels';
 
 export interface NormalizedAsset {
   id: string;
@@ -101,16 +102,10 @@ registerSearchProvider({
   id: 'pexels',
   search: async (query) => {
     try {
-      const res = await fetch(`/api/pexels?action=search&query=${encodeURIComponent(query)}`);
-      if (!res.ok) {
-        if (res.status === 429) log.warn('Pexels rate limited, falling back');
-        else log.warn(`Pexels API error: ${res.status}`);
-        return getFallbackPhotos(query, 'pexels');
-      }
-      const data = await res.json();
-      if (!data.photos) return getFallbackPhotos(query, 'pexels');
+      const data = await pexelsApi.searchPexelsImages(query, 1, 20);
+      if (!data || data.length === 0) return getFallbackPhotos(query, 'pexels');
 
-      return data.photos.map((p: any) => ({
+      return data.map((p) => ({
         id: `px-${p.id}`,
         url: p.src.original,
         thumbnail: p.src.medium,

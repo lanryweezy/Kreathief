@@ -25,6 +25,7 @@ const ShareModal = React.lazy(() =>
   import('./modals/ShareModal').then((m) => ({ default: m.ShareModal }))
 );
 import { MockupPanel } from './panels/MockupPanel';
+import { ComponentPropertiesPanel } from './panels/ComponentPropertiesPanel';
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
@@ -483,6 +484,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             )}
           </div>
         </div>
+
+        {/* Floating Panels */}
+        {!isMobile && <ComponentPropertiesPanel />}
 
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && !isMobile && (

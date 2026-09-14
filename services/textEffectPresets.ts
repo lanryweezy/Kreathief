@@ -433,6 +433,63 @@ export const TEXT_EFFECT_PRESETS: Record<string, TextEffectPreset> = {
       fontFamily: 'Inter',
     },
   },
+
+  // 11. 2026 Distorted Cut
+  distortedCut: {
+    id: 'distortedCut',
+    name: 'Distorted Cut',
+    category: 'popular',
+    icon: '✂️',
+    tagline: '2026 anti-perfection trend: harsh jagged waves and tight negative tracking',
+    previewColor: '#09090b',
+    previewBg: '#e2e8f0',
+    previewTextShadow: '2px 4px 0px rgba(0,0,0,0.2)',
+    previewBorder: 'none',
+    changes: {
+      color: '#09090b',
+      gradient: undefined,
+      textStroke: undefined,
+      textShadow: {
+        offsetX: 2,
+        offsetY: 4,
+        blur: 0,
+        color: 'rgba(0, 0, 0, 0.2)',
+      },
+      neonGlow: { enabled: false, color: '#000', intensity: 0, spread: 0, flicker: false },
+      warpStyle: 'arc',
+      curve: -15,
+      letterSpacing: -2.5,
+      textTransform: 'uppercase',
+      fontWeight: '900',
+    },
+  },
+
+  // 12. 2026 Kinetic Stretch
+  kineticStretch: {
+    id: 'kineticStretch',
+    name: 'Kinetic Stretch',
+    category: 'futuristic',
+    icon: '🌪️',
+    tagline: 'High-energy stretched typography driving the motion-led branding era',
+    previewColor: 'transparent',
+    previewBg: '#1e1b4b',
+    previewTextShadow: 'none',
+    previewBorder: '2px solid #818cf8',
+    changes: {
+      color: 'transparent',
+      textStroke: {
+        width: 2,
+        color: '#818cf8',
+      },
+      textShadow: undefined,
+      neonGlow: { enabled: true, color: '#818cf8', intensity: 40, spread: 10, flicker: false },
+      warpStyle: 'wave',
+      curve: 20,
+      letterSpacing: 6,
+      textTransform: 'uppercase',
+      fontWeight: '800',
+    },
+  },
 };
 
 export const TEXT_EFFECT_PRESET_LIST = Object.values(TEXT_EFFECT_PRESETS);

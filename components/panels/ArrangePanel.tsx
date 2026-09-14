@@ -2,6 +2,7 @@ import React from 'react';
 import { Icons } from '../../constants';
 import { Layer } from '../../types';
 import { alignLayers, distributeLayers, AlignmentType, DistributionType, tidyUpLayers } from '../../utils/layoutUtils';
+import { AutoLayoutSection } from './AutoLayoutSection';
 
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -287,6 +288,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
             </div>
           </div>
         )}
+        <AutoLayoutSection selectedLayers={selectedLayers} onUpdateLayers={onUpdateLayers} />
       </div>
 
       {/* Footer / Snapping Toggles */}

@@ -5,13 +5,12 @@ import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
+import { CommandManager } from '../../commands/CommandManager';
 import type { StoreState } from '../useStore';
 
 export interface HistoryEntry {
   timestamp: number;
   type: 'snapshot' | 'patch';
-  state?: HistoryState; // Full state for snapshots
-  patch?: Operation[]; // Diffs for patches
 }
 
 export interface HistorySlice {
@@ -39,219 +38,26 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
   __hasPendingBatchChange: false,
   __lastStateSnapshot: null,
 
-  saveToHistory: (() => {
-    let lastSavedTimestamp = 0;
-    const DEBOUNCE_MS = process.env.NODE_ENV === 'test' ? 0 : 250;
-    const MAX_HISTORY = 200;
-    const SNAPSHOT_INTERVAL = 10;
-
-    return () => {
-      // If batching, mark pending change and exit
-      if (get().__batchDepth > 0) {
-        set({ __hasPendingBatchChange: true });
-        return;
-      }
-      const now = Date.now();
-      if (now - lastSavedTimestamp < DEBOUNCE_MS) {
-        return;
-      }
-      lastSavedTimestamp = now;
-
-      const stateNow = get();
-      const currentState: HistoryState = {
-        artboards: stateNow.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
-        activeArtboardId: stateNow.activeArtboardId,
-        canvasBackgroundColor: stateNow.canvasBackgroundColor,
-        canvasFilters: stateNow.canvasFilters ? { ...stateNow.canvasFilters } : (undefined as any),
-        canvasSize: stateNow.canvasSize ? { ...stateNow.canvasSize } : undefined,
-        selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
-      };
-
-      set((state) => {
-        let entry: HistoryEntry;
-        const lastSnapshot = state.__lastStateSnapshot;
-        const shouldMakeSnapshot = !lastSnapshot || state.past.length % SNAPSHOT_INTERVAL === 0;
-
-        let nextSnapshot = lastSnapshot;
-
-        if (shouldMakeSnapshot) {
-          entry = { timestamp: now, type: 'snapshot', state: currentState };
-          nextSnapshot = currentState;
-        } else {
-          const patch = compare(lastSnapshot, currentState);
-          entry = { timestamp: now, type: 'patch', patch };
-        }
-
-        const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
-
-        return { past: newPast, future: [], __lastStateSnapshot: nextSnapshot, hasUnsavedChanges: true };
-      });
-
-      // Mirror to IndexedDB outside the set() updater (updaters must stay pure),
-      // including the updated undo/redo stacks so they survive reloads.
-      const { projectId, past, future } = get();
-      const currentName = (get() as any).projectTitle || (get() as any).currentProjectName || (get() as any).projectName;
-      if (projectId) {
-        storageService
-          .saveSessionMirror(projectId, currentState, past, future, currentName)
-          .catch((err) => log.error('[Resilience] Session mirror failed', err, { projectId }));
-      }
-    };
-  })(),
+  saveToHistory: () => {
+    // Legacy generic save. We will now prefer direct CommandManager.executeCommand
+    // This is kept as a no-op to prevent existing calls from crashing until fully migrated.
+  },
 
   beginBatch: () => {
-    const depth = (get().__batchDepth || 0) + 1;
-    set({ __batchDepth: depth });
+    CommandManager.beginBatch();
   },
 
   endBatch: () => {
-    const depth = Math.max(0, (get().__batchDepth || 0) - 1);
-    const hadPending = get().__hasPendingBatchChange;
-    set({ __batchDepth: depth });
-    if (depth === 0 && hadPending) {
-      const now = Date.now();
-      set((state) => {
-        const currentState: HistoryState = {
-          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
-          activeArtboardId: state.activeArtboardId,
-          canvasBackgroundColor: state.canvasBackgroundColor,
-          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : (undefined as any),
-          canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
-          selectedLayerIds: [...(state.selectedLayerIds || [])],
-        };
-        const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
-        const MAX_HISTORY = 200;
-        const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
-        return { past: newPast, future: [], __hasPendingBatchChange: false, __lastStateSnapshot: currentState };
-      });
-    }
+    CommandManager.endBatch('Batch Operation');
   },
 
   undo: () => {
-    const { past, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } =
-      get();
-    if (past.length === 0) {
-      return;
-    }
-
-    const currentFullState: HistoryState = {
-      artboards: artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
-      activeArtboardId,
-      canvasBackgroundColor,
-      canvasFilters: (canvasFilters ? { ...canvasFilters } : undefined) as any,
-      canvasSize: canvasSize ? { ...canvasSize } : undefined,
-      selectedLayerIds: [...(selectedLayerIds || [])],
-    };
-
-    const lastEntry = past[past.length - 1];
-    const newPast = past.slice(0, -1);
-
-    let targetState: HistoryState;
-    let nextLastSnapshot = get().__lastStateSnapshot;
-
-    if (lastEntry.type === 'snapshot') {
-      targetState = lastEntry.state!;
-      // Need to find the previous snapshot to update __lastStateSnapshot
-      let prevSnapshotIdx = -1;
-      for (let i = newPast.length - 1; i >= 0; i--) {
-        if (newPast[i].type === 'snapshot') {
-          prevSnapshotIdx = i;
-          break;
-        }
-      }
-      if (prevSnapshotIdx !== -1) {
-        nextLastSnapshot = newPast[prevSnapshotIdx].state!;
-      } else {
-        nextLastSnapshot = null;
-      }
-    } else {
-      let lastSnapshotIdx = -1;
-      for (let i = newPast.length - 1; i >= 0; i--) {
-        if (newPast[i].type === 'snapshot') {
-          lastSnapshotIdx = i;
-          break;
-        }
-      }
-
-      if (lastSnapshotIdx === -1) {
-        // No snapshot found to reconstruct from — try full-state snapshot as last resort
-        if (newPast.length > 0 && newPast[0].type === 'snapshot') {
-          targetState = newPast[0].state!;
-        } else {
-          get().addToast?.('Nothing to undo', 'info');
-          return;
-        }
-      } else {
-        try {
-          // Patches are cumulative diffs against the preceding snapshot, so the
-          // entry's own patch alone reconstructs its state. Replaying the
-          // intermediate patches double-applied array ops (duplicated layers)
-          // and skipping lastEntry's patch made undo jump one extra step back.
-          targetState = structuredClone(newPast[lastSnapshotIdx].state!);
-          applyPatch(targetState, lastEntry.patch!);
-        } catch (error) {
-          log.error('History patch application failed during undo', error, {
-            action: 'undo',
-            snapshotIdx: lastSnapshotIdx,
-            pastLength: newPast.length,
-          });
-          get().addToast?.('Undo failed — state corrupted', 'error');
-          return;
-        }
-      }
-    }
-
-    set({
-      ...targetState,
-      past: newPast,
-      future: [{ timestamp: Date.now(), type: 'snapshot', state: currentFullState }, ...get().future],
-      __lastStateSnapshot: nextLastSnapshot,
-    });
+    CommandManager.undo();
     get().addToast?.('Action Undone', 'info');
   },
 
   redo: () => {
-    const { future, artboards, activeArtboardId, canvasBackgroundColor, canvasFilters, canvasSize, selectedLayerIds } =
-      get();
-    if (future.length === 0) {
-      return;
-    }
-
-    const currentFullState: HistoryState = {
-      artboards: structuredClone(artboards),
-      activeArtboardId,
-      canvasBackgroundColor,
-      canvasFilters: structuredClone(canvasFilters),
-      canvasSize: structuredClone(canvasSize),
-      selectedLayerIds: [...(selectedLayerIds || [])],
-    };
-
-    const nextEntry = future[0];
-    const newFuture = future.slice(1);
-
-    let targetState: HistoryState;
-    try {
-      if (nextEntry.type === 'snapshot') {
-        targetState = nextEntry.state!;
-      } else {
-        targetState = structuredClone(currentFullState);
-        applyPatch(targetState, nextEntry.patch!);
-      }
-    } catch (error) {
-      log.error('History patch application failed during redo', error, {
-        action: 'redo',
-        futureLength: future.length,
-      });
-      get().addToast?.('Redo failed — state corrupted', 'error');
-      return;
-    }
-
-    set({
-      ...targetState,
-      past: [...get().past, { timestamp: Date.now(), type: 'snapshot', state: currentFullState }],
-      future: newFuture,
-      __lastStateSnapshot: currentFullState,
-    });
+    CommandManager.redo();
     get().addToast?.('Action Redone', 'info');
   },
 
