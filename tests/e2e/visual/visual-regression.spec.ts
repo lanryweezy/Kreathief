@@ -137,7 +137,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.locator('[data-testid="add-heading-btn"]');
     await addHeading.click();
     await page.waitForTimeout(1000);
 
@@ -171,7 +171,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.locator('button:has-text("Heading")').click();
+    await page.locator('[data-testid="add-heading-btn"]').click();
     await page.waitForTimeout(500);
 
     // Add shape
@@ -218,6 +218,9 @@ test.describe('Visual Regression Tests', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
+    // Go to dashboard
+    await page.goto('/');
+
     // Reload to apply viewport
     await page.reload();
     await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
@@ -233,6 +236,9 @@ test.describe('Visual Regression Tests', () => {
   test('should match tablet viewport screenshot', async ({ page }) => {
     // Set tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
+
+    // Go to dashboard
+    await page.goto('/');
 
     // Reload to apply viewport
     await page.reload();
