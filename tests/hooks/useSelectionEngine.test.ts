@@ -68,10 +68,18 @@ describe('useSelectionEngine', () => {
     expect(mockMultiSelectLayer).not.toHaveBeenCalled();
   });
   it('marqueeSelect selects layers in rect and excludes locked', () => {
-    const { result } = renderHook(() => useSelectionEngine());
+    const { result, rerender } = renderHook(() => useSelectionEngine());
     act(() => result.current.marqueeSelect({ x: 0, y: 0, width: 100, height: 100 }));
     expect(mockSetSelectedLayerIds).toHaveBeenCalledWith(expect.arrayContaining(['l1']));
-    mockState.artboards[0].layers[0] = layer({ id: 'l1', locked: true });
+
+    // Update layer in store and trigger a re-render to simulate React state updating,
+    // which useSelectionEngine needs to pick up in its useMemo hook.
+    mockState = {
+      ...mockState,
+      artboards: [{ id: 'ab1', layers: [layer({ id: 'l1', locked: true }), layer({ id: 'l2', x: 200, y: 200 })] }]
+    };
+    rerender();
+
     act(() => result.current.marqueeSelect({ x: 0, y: 0, width: 100, height: 100 }));
     expect(mockSetSelectedLayerIds.mock.calls[1][0]).not.toContain('l1');
   });

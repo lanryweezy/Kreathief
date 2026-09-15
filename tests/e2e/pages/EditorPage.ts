@@ -8,6 +8,7 @@ export class EditorPage {
   readonly projectTitleDisplay: Locator;
   readonly exportButton: Locator;
   readonly layersPanel: Locator;
+  readonly toolbar: Locator;
   readonly sidebar: Locator;
 
   constructor(page: Page) {
@@ -18,6 +19,7 @@ export class EditorPage {
     this.projectTitleDisplay = page.getByTestId('project-title-display');
     this.exportButton = page.getByRole('button', { name: 'Export' });
     this.layersPanel = page.getByTestId('layers-panel');
+    this.toolbar = page.locator(".toolbar, [data-testid=\"toolbar\"]").first();
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
   }
 

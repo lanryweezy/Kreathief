@@ -270,17 +270,22 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
       layers = fixOverlappingText(layers, polishedResult.height || 1080);
     }
 
-    // 5. Ensure text defaults
+    // 5. Ensure text defaults and final snap
     layers = layers.map(layer => {
-      if (layer.type === 'text') {
-        const tl = layer as any;
-        return {
-          ...layer,
+      let l = { ...layer };
+      if (l.type === 'text') {
+        const tl = l as any;
+        l = {
+          ...l,
           fontFamily: tl.fontFamily || 'Inter',
           textAlign: tl.textAlign || 'left',
-        } as Layer;
+        };
       }
-      return layer;
+      return {
+        ...l,
+        x: snapToGrid(l.x),
+        y: snapToGrid(l.y),
+      };
     });
 
     polishedResult.layers = layers;
