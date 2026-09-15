@@ -6,6 +6,8 @@
  * Each style includes: name, category, era, description, palette, typography, keywords, mood.
  */
 
+import { fuzzyMatch } from '../utils/search';
+
 export interface DesignStyleEntry {
   id: string;
   name: string;
@@ -893,14 +895,14 @@ export function getStyleById(id: string): DesignStyleEntry | undefined {
  * Search styles by keyword/mood/use-case
  */
 export function searchStyles(query: string): DesignStyleEntry[] {
-  const q = query.toLowerCase();
+  // 🌸 Bloom: Replaced exact substring matching with fuzzyMatch for typo tolerance
   return Object.values(DESIGN_STYLE_DATABASE).filter(s =>
-    s.keywords.some(k => k.includes(q)) ||
-    s.mood.some(m => m.includes(q)) ||
-    s.bestFor.some(b => b.includes(q)) ||
-    s.name.toLowerCase().includes(q) ||
-    s.description.toLowerCase().includes(q) ||
-    s.category.includes(q)
+    s.keywords.some(k => fuzzyMatch(query, k)) ||
+    s.mood.some(m => fuzzyMatch(query, m)) ||
+    s.bestFor.some(b => fuzzyMatch(query, b)) ||
+    fuzzyMatch(query, s.name) ||
+    fuzzyMatch(query, s.description) ||
+    fuzzyMatch(query, s.category)
   );
 }
 
