@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useStore } from '../store/useStore';
 import { Layer } from '../types';
 import { buildSceneGraph } from '../types/sceneGraph';
@@ -39,22 +39,24 @@ export function useSelectionEngine() {
     return ab?.layers ?? [];
   })();
 
+  // ⚡ Bolt: Memoize the scene graph to prevent O(N) rebuilds on every isLocked/isVisible check
+  const graph = useMemo(() => buildSceneGraph(activeLayers), [activeLayers]);
+
   const isLocked = useCallback(
     (id: string): boolean => {
-      const graph = buildSceneGraph(activeLayers);
       const node = graph.nodeMap.get(id);
       if (node) {
         return isNodeEffectivelyLocked(node);
       }
+      // Fallback in case layer was just added and graph hasn't rebuilt yet
       const layer = activeLayers.find((l) => l.id === id);
       return layer?.locked ?? false;
     },
-    [activeLayers]
+    [activeLayers, graph]
   );
 
   const isVisible = useCallback(
     (id: string): boolean => {
-      const graph = buildSceneGraph(activeLayers);
       const node = graph.nodeMap.get(id);
       if (node) {
         return isNodeEffectivelyVisible(node);
@@ -62,12 +64,12 @@ export function useSelectionEngine() {
       const layer = activeLayers.find((l) => l.id === id);
       return layer?.visible !== false;
     },
-    [activeLayers]
+    [activeLayers, graph]
   );
 
   const select = useCallback(
     (id: string) => {
-      if (isLocked(id)) return;
+      if (isLocked(id)) {return;}
       useStore.getState().selectLayer(id);
     },
     [isLocked]
@@ -75,7 +77,7 @@ export function useSelectionEngine() {
 
   const multiSelect = useCallback(
     (id: string) => {
-      if (isLocked(id)) return;
+      if (isLocked(id)) {return;}
       useStore.getState().multiSelectLayer(id, true);
     },
     [isLocked]
@@ -107,7 +109,7 @@ export function useSelectionEngine() {
     (point: { x: number; y: number }): string | null => {
       // Find all unlocked, visible layers that contain this point
       const candidates = activeLayers.filter((l) => {
-        if (isLocked(l.id) || !isVisible(l.id)) return false;
+        if (isLocked(l.id) || !isVisible(l.id)) {return false;}
         return pointInLayer(point, l);
       });
 
@@ -120,10 +122,7 @@ export function useSelectionEngine() {
 
       // Check if clicking at approximately the same point (within 5px)
       const lastPoint = lastCyclePointRef.current;
-      const isSameLocation =
-        lastPoint &&
-        Math.abs(lastPoint.x - point.x) <= 5 &&
-        Math.abs(lastPoint.y - point.y) <= 5;
+      const isSameLocation = lastPoint && Math.abs(lastPoint.x - point.x) <= 5 && Math.abs(lastPoint.y - point.y) <= 5;
 
       let nextIndex = 0;
       if (isSameLocation && lastCycleIndexRef.current !== -1) {

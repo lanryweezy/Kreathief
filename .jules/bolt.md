@@ -214,3 +214,7 @@
 
 **Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
 **Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
+
+## 2026-09-15 - Explicit rerender required in test hook caches
+**Learning:** When testing React hooks that cache derived state using `useMemo` based on a mocked external store (like Zustand), direct mutations to the mocked store object (e.g. `mockState = { ...mockState }`) will not automatically trigger recalculation in the hook context.
+**Action:** You must explicitly call the `rerender()` function returned by `@testing-library/react`'s `renderHook` to simulate a React state update and force `useMemo` dependencies to re-evaluate.
