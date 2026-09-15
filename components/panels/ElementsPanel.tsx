@@ -494,7 +494,7 @@ export const ElementsPanel = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
+    <div data-testid="elements-panel" className="elements-panel flex flex-col h-full bg-surface-dark-2 overflow-hidden">
       <PanelHeader title="Elements" icon={<Icons.Shapes className="w-5 h-5 text-accent" />} />
 
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-4">

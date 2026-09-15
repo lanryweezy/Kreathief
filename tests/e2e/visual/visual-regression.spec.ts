@@ -32,7 +32,7 @@ test.describe('Visual Regression Tests', () => {
     await page.goto('/');
 
     // Wait for dashboard to load
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-testid="dashboard-templates-grid"]')).toBeVisible({ timeout: 15000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('dashboard-load.png', {
@@ -137,7 +137,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(1000);
 
@@ -171,7 +171,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.locator('button:has-text("Heading")').click();
+    await page.getByTestId('add-heading-btn').click();
     await page.waitForTimeout(500);
 
     // Add shape
@@ -218,9 +218,10 @@ test.describe('Visual Regression Tests', () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // Reload to apply viewport
-    await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    // Navigate to dashboard
+    await page.goto('/');
+
+    await expect(page.locator('[data-testid="dashboard-templates-grid"]')).toBeVisible({ timeout: 15000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
@@ -234,9 +235,10 @@ test.describe('Visual Regression Tests', () => {
     // Set tablet viewport
     await page.setViewportSize({ width: 768, height: 1024 });
 
-    // Reload to apply viewport
-    await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    // Navigate to dashboard
+    await page.goto('/');
+
+    await expect(page.locator('[data-testid="dashboard-templates-grid"]')).toBeVisible({ timeout: 15000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('tablet-dashboard.png', {
