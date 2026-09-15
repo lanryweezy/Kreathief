@@ -57,3 +57,7 @@
 
 **Learning:** When generating a list of active grid guides in `GridGuidesPanel`, the button to remove each guide was a simple "×" without an `aria-label`. This caused screen readers to announce it as an unlabeled button, making it difficult for visually impaired users to understand its function or differentiate it from other buttons.
 **Action:** Always add a descriptive `aria-label` (e.g., `aria-label="Remove guide"`) to icon-only buttons used in lists to delete or remove items, ensuring screen reader users understand the action being performed.
+
+## 2026-09-15 - Screen Reader Accessibility for Video Agent Action Buttons
+**Learning:** When generating video results in the `VideoAgentPanel`, the secondary actions that appear on hover (such as "Add to canvas" with a plus icon, or "Download" with a download icon) lacked textual labels. Because they are icon-only buttons (`<Button size="icon">`), they are completely inaccessible to screen readers without an explicit `aria-label`.
+**Action:** Always include a context-specific `aria-label` (and `title` for visual hover support) on icon-only buttons used for result actions (e.g., `aria-label="Add to canvas"`), ensuring visually impaired users can identify and perform actions on AI-generated content.

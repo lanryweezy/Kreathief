@@ -157,10 +157,10 @@ export const VideoAgentPanel: React.FC = () => {
             <div className="rounded-xl overflow-hidden border border-white/10 bg-black aspect-video relative group">
               <video src={videoResult} autoPlay loop muted controls className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md">
+                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" aria-label="Add to canvas" title="Add to canvas">
                   <Icons.Plus className="w-3.5 h-3.5" />
                 </Button>
-                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md">
+                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" aria-label="Download video" title="Download video">
                   <Icons.Download className="w-3.5 h-3.5" />
                 </Button>
               </div>
