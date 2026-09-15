@@ -1090,11 +1090,13 @@ export const retouchImage = async (base64Image: string): Promise<string> => {
 export const suggestFontPairing = async (primaryFont: string): Promise<string> => {
   try {
     const availableFonts = FONT_FAMILIES.join(', ');
-    const prompt = `Given the primary font "${primaryFont}", suggest one perfect complementary secondary font from this list: ${availableFonts}. 
-    Consider visual contrast, hierarchy, and harmony. Return ONLY the font name as a JSON string.`;
+    // 🤖 Astra: Sanitize user input and separate system instructions from user prompt to prevent prompt injection
+    const sanitizedFont = primaryFont.trim().substring(0, 100);
+    const systemInstruction = `You are a typography expert. Given a primary font, suggest one perfect complementary secondary font from this list: ${availableFonts}. Consider visual contrast, hierarchy, and harmony. Return ONLY the font name as a JSON string.`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
+      systemInstruction,
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -1102,7 +1104,7 @@ export const suggestFontPairing = async (primaryFont: string): Promise<string> =
           description: 'The exact name of the suggested complementary font.',
         },
       },
-      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      contents: [{ role: 'user', parts: [{ text: `Primary font: "${sanitizedFont}"` }] }],
     });
 
     // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '""' to prevent silent failures on empty LLM output and ensure error catching logic executes.

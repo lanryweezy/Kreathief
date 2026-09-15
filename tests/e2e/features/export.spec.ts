@@ -132,14 +132,14 @@ test.describe('Export Features', () => {
 
   test('should export with multiple layers', async ({ page }) => {
     // Add text layer
-    const textTab = page.getByRole('button', { name: 'Text' });
+    const textTab = page.getByRole('button', { name: 'Text', exact: true });
     await textTab.click();
     const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 
     // Add shape
-    const elementsTab = page.getByRole('button', { name: 'Components' });
+    const elementsTab = page.getByRole('button', { name: 'Elements' });
     await elementsTab.click();
     const shapeBtn = page.getByTestId(/shape-btn-/).first();
     if (await shapeBtn.isVisible()) {
@@ -164,7 +164,7 @@ test.describe('Export Features', () => {
     await editor.setProjectTitle('Export Test Design');
 
     // Add text
-    const textTab = page.getByRole('button', { name: 'Text' });
+    const textTab = page.getByRole('button', { name: 'Text', exact: true });
     await textTab.click();
     await page.getByTestId('add-heading-btn').click();
     await page.waitForTimeout(500);
