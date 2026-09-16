@@ -1,3 +1,5 @@
+import { fuzzyMatch } from "../utils/search";
+
 /**
  * Comprehensive Design Style Database (65+ styles)
  * Compiled from Kittl, Behance, It's Nice That, UX Planet, Design Pickle, Looka research
@@ -894,13 +896,15 @@ export function getStyleById(id: string): DesignStyleEntry | undefined {
  */
 export function searchStyles(query: string): DesignStyleEntry[] {
   const q = query.toLowerCase();
+  // 🌸 Bloom: Replaced exact string `.includes()` with `fuzzyMatch` for robust typo tolerance.
+  // This prevents short queries or minor misspellings from returning zero results.
   return Object.values(DESIGN_STYLE_DATABASE).filter(s =>
-    s.keywords.some(k => k.includes(q)) ||
-    s.mood.some(m => m.includes(q)) ||
-    s.bestFor.some(b => b.includes(q)) ||
-    s.name.toLowerCase().includes(q) ||
-    s.description.toLowerCase().includes(q) ||
-    s.category.includes(q)
+    s.keywords.some(k => fuzzyMatch(query, k)) ||
+    s.mood.some(m => fuzzyMatch(query, m)) ||
+    s.bestFor.some(b => fuzzyMatch(query, b)) ||
+    fuzzyMatch(query, s.name) ||
+    fuzzyMatch(query, s.category) ||
+    s.description.toLowerCase().includes(q)
   );
 }
 
