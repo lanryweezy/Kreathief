@@ -1,6 +1,6 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../useStore';
-import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage } from '../../types';
+import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage, GuideLine } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
 import { DEFAULT_MODEL } from '../../config/aiModels';
@@ -20,6 +20,10 @@ export interface UISlice {
   showRulers: boolean;
   snapToGrid: boolean;
   snapToObjects: boolean;
+  gridSize: number;
+  gridColor: string;
+  gridStyle: 'lines' | 'dots';
+  guides: GuideLine[];
   showShortcuts: boolean;
   fontPreview: string | null;
   customFonts: string[];
@@ -81,6 +85,13 @@ export interface UISlice {
   setShowRulers: (show: boolean) => void;
   setSnapToGrid: (snap: boolean) => void;
   setSnapToObjects: (snap: boolean) => void;
+  setGridSize: (size: number) => void;
+  setGridColor: (color: string) => void;
+  setGridStyle: (style: 'lines' | 'dots') => void;
+  addGuide: (type: 'horizontal' | 'vertical', position: number) => void;
+  removeGuide: (idOrIndex: string | number) => void;
+  updateGuide: (id: string, position: number) => void;
+  clearGuides: () => void;
   setShowShortcuts: (show: boolean) => void;
   setShowShareModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
@@ -137,6 +148,10 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   showRulers: false,
   snapToGrid: true,
   snapToObjects: true,
+  gridSize: 20,
+  gridColor: '#7c3aed',
+  gridStyle: 'lines',
+  guides: [],
   showShortcuts: false,
   fontPreview: null,
   customFonts: [],
@@ -222,6 +237,32 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setShowRulers: (show) => set({ showRulers: show }),
   setSnapToGrid: (snap) => set({ snapToGrid: snap }),
   setSnapToObjects: (snap) => set({ snapToObjects: snap }),
+  setGridSize: (size) => set({ gridSize: Math.max(5, Math.min(200, size)) }),
+  setGridColor: (color) => set({ gridColor: color }),
+  setGridStyle: (style) => set({ gridStyle: style }),
+  addGuide: (type, position) =>
+    set((state) => ({
+      guides: [
+        ...state.guides,
+        {
+          id: `guide-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          type,
+          position: Math.round(position),
+        },
+      ],
+    })),
+  removeGuide: (idOrIndex) =>
+    set((state) => ({
+      guides:
+        typeof idOrIndex === 'number'
+          ? state.guides.filter((_, idx) => idx !== idOrIndex)
+          : state.guides.filter((g) => g.id !== idOrIndex),
+    })),
+  updateGuide: (id, position) =>
+    set((state) => ({
+      guides: state.guides.map((g) => (g.id === id ? { ...g, position: Math.round(position) } : g)),
+    })),
+  clearGuides: () => set({ guides: [] }),
   setShowShortcuts: (show) => set({ showShortcuts: show }),
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),

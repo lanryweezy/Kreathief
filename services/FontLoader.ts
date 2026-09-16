@@ -14,7 +14,7 @@ const customFonts = new Set<string>();
 const failedFonts = new Set<string>();
 
 // Fonts already loaded globally via fonts.css
-const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003'];
+const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003', 'Kreathief004'];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;

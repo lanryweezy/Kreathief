@@ -513,6 +513,12 @@ export interface CanvasFilters {
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
 }
 
+export interface GuideLine {
+  id: string;
+  type: 'horizontal' | 'vertical';
+  position: number; // in artboard coordinate space (px)
+}
+
 export interface HistoryState {
   artboards: Artboard[];
   activeArtboardId?: string;
@@ -521,6 +527,9 @@ export interface HistoryState {
   canvasSize?: { width: number; height: number; name: string };
   showGrid?: boolean;
   showRulers?: boolean;
+  guides?: GuideLine[];
+  gridSize?: number;
+  gridColor?: string;
   brandKits?: BrandKit[];
   selectedLayerIds?: string[];
 }

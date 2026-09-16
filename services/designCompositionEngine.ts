@@ -636,8 +636,24 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
  * Mood backdrop photo + frosted glass card container + inset hero visual + refined serif/sans copy
  */
 export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDesignResult {
-  const { width, height, prompt, archetype } = opts;
-  const pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.luxury;
+  const { width, height, prompt, archetype, brandKit } = opts;
+  
+  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.saas;
+  let fontHeading = 'Outfit';
+  let fontBody = 'Inter';
+
+  if (brandKit) {
+    pal = {
+      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
+      accent: brandKit.colors[1] || pal.accent,
+      bgDark: brandKit.colors[0] || pal.bgDark,
+      bgLight: brandKit.colors[3] || pal.bgLight,
+      textMuted: brandKit.colors[1] || pal.textMuted,
+    };
+    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
+    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+  }
+
   const photo = resolveHeroPhoto(archetype, prompt);
 
   const cardW = width * 0.86;
