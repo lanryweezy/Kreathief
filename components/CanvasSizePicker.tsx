@@ -29,7 +29,19 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
     }
   };
 
-  const categories = Array.from(new Set(CANVAS_SIZE_PRESETS.map((p) => p.category)));
+  // ⚡ Bolt Optimization: Pre-categorize presets to avoid inline O(N) array allocations
+  const categorizedPresets = React.useMemo(() => {
+    const categories: Record<string, typeof CANVAS_SIZE_PRESETS> = {};
+    for (const preset of CANVAS_SIZE_PRESETS) {
+      if (!categories[preset.category]) {
+        categories[preset.category] = [];
+      }
+      categories[preset.category].push(preset);
+    }
+    return categories;
+  }, []);
+
+  const categories = Object.keys(categorizedPresets);
 
   return (
     <div className="relative">
@@ -82,7 +94,7 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                   {cat}
                 </div>
                 <div className="space-y-0.5">
-                  {CANVAS_SIZE_PRESETS.filter((p) => p.category === cat).map((preset) => (
+                  {categorizedPresets[cat].map((preset) => (
                     <button
                       key={preset.id}
                       onClick={() => {

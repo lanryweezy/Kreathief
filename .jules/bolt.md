@@ -214,3 +214,7 @@
 
 **Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
 **Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
+
+## 2026-09-17 - Groundedness Rule for planning replacements
+**Learning:** Assuming variable declarations based on truncated output leads to hallucinated replacement commands that fail during code review.
+**Action:** Always run a more tightly scoped command or use the `read_file` tool to confirm the exact definition of variables before proposing code replacements in the plan.
