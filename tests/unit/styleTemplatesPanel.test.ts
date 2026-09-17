@@ -65,6 +65,11 @@ describe('Style Templates Generator & Library', () => {
     expect(searchResults.length).toBeGreaterThan(0);
     expect(searchResults.some((s) => s.id === 'bauhaus')).toBe(true);
 
+    // 🌸 Bloom: Test typo tolerance
+    const typoSearchResults = searchStyles('bauhauss');
+    expect(typoSearchResults.length).toBeGreaterThan(0);
+    expect(typoSearchResults.some((s) => s.id === 'bauhaus')).toBe(true);
+
     const goldSearch = searchStyles('gold');
     expect(goldSearch.length).toBeGreaterThan(0);
   });
