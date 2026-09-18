@@ -1,5 +1,4 @@
 import { StateCreator } from 'zustand';
-import { compare, applyPatch, Operation } from 'fast-json-patch';
 import { HistoryState, DesignSnapshot, Artboard } from '../../types';
 import { storageService } from '../../services/storageService';
 import { v4 as uuidv4 } from 'uuid';
@@ -52,13 +51,17 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
   },
 
   undo: () => {
-    CommandManager.undo();
-    get().addToast?.('Action Undone', 'info');
+    const undone = CommandManager.undo();
+    if (undone) {
+      get().addToast?.('Action Undone', 'info');
+    }
   },
 
   redo: () => {
-    CommandManager.redo();
-    get().addToast?.('Action Redone', 'info');
+    const redone = CommandManager.redo();
+    if (redone) {
+      get().addToast?.('Action Redone', 'info');
+    }
   },
 
   fetchSnapshots: async () => {

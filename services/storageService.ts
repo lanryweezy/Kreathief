@@ -14,7 +14,7 @@ import {
 import { logger } from './logger';
 import { log } from '../utils/log';
 import type { Project, HistoryState } from '../types';
-import { db as supabase } from '../lib/supabase/client';
+import { db as supabase, isSupabaseConfigured } from '../lib/supabase/client';
 import { authService } from './authService';
 import { storage as storageConfig } from '../config';
 
@@ -212,7 +212,7 @@ class StorageService {
    * Sync offline changes to Supabase when back online
    */
   private async syncOfflineChanges(): Promise<void> {
-    if (!this.isOnline || this.isSyncing || this.pendingChanges.size === 0) {
+    if (!isSupabaseConfigured || !this.isOnline || this.isSyncing || this.pendingChanges.size === 0) {
       return;
     }
 
@@ -226,12 +226,13 @@ class StorageService {
 
     let successCount = 0;
     let failCount = 0;
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
     for (const op of operationsToSync) {
       try {
         const userId = await this.getUserId();
-        if (!userId) {
-          log.warn('[Storage] No user ID, skipping sync', { projectId: op.projectId });
+        if (!userId || !UUID_REGEX.test(userId)) {
+          // Guests and non-UUID accounts are local-first; stored safely in IndexedDB
           this.pendingChanges.delete(op.projectId);
           continue;
         }
@@ -255,7 +256,8 @@ class StorageService {
       } catch (err) {
         failCount++;
         const baseDelay = 2000;
-        const retryDelay = baseDelay * Math.pow(2, op.retryCount);
+        const jitter = Math.floor(Math.random() * 1000);
+        const retryDelay = Math.min(30000, baseDelay * Math.pow(2, op.retryCount) + jitter);
 
         log.error('[Storage] Sync failed, retrying later', err, {
           projectId: op.projectId,
@@ -633,6 +635,8 @@ class StorageService {
           // Remove from pending changes if synced successfully
           this.pendingChanges.delete(project.id);
           await this.persistPendingChanges();
+          // Keep local IndexedDB in sync with remote save
+          await this.saveProjectIndexedDB(project);
           return;
         }
         logger.warn('Supabase save failed, falling back to IndexedDB', { error: error.message });
@@ -1342,7 +1346,13 @@ class StorageService {
 
   // ===== Session Mirror (Crash Recovery) =====
 
-  async saveSessionMirror(projectId: string, state: HistoryState, past?: any[], future?: any[], projectName?: string): Promise<void> {
+  async saveSessionMirror(
+    projectId: string,
+    state: HistoryState,
+    past?: any[],
+    future?: any[],
+    projectName?: string
+  ): Promise<void> {
     const store = await this.getStore('session_mirror', 'readwrite');
     return new Promise((resolve, reject) => {
       const request = store.put({

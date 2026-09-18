@@ -291,7 +291,10 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
 
           <label className="text-xs font-bold text-gray-400 mb-3 block uppercase tracking-wider">Vector Tools</label>
           <div className="grid grid-cols-2 gap-2">
-            {[{ id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Pen }].map((type) => (
+            {[
+              { id: BrushType.VECTOR_PENCIL, name: 'Vector Pen', icon: Icons.Pen },
+              { id: BrushType.MARKER, name: 'Freehand Marker', icon: Icons.Brush },
+            ].map((type) => (
               <button
                 key={type.id}
                 onClick={() => {

@@ -62,5 +62,7 @@ spoof.cjs
 scratch/
 after_wait.png
 header_verified.png
-screenshots/
-
+dev-dist/
+patch_*.sh
+*.diff
+elite_gallery.html

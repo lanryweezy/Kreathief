@@ -31,7 +31,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-white/[0.06]">
               <h3 className="text-base font-bold text-white">Settings</h3>
-              <button onClick={onClose} aria-label="Close settings" className="text-white/40 hover:text-white transition-colors">
+              <button
+                onClick={onClose}
+                aria-label="Close settings"
+                className="text-white/40 hover:text-white transition-colors"
+              >
                 <Icons.X className="w-5 h-5" />
               </button>
             </div>
@@ -65,10 +69,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <div>
                     <div className="text-sm font-bold text-white">{user?.plan} Plan</div>
                     <div className="text-xs text-white/50">
-                      {user?.plan === 'Free' ? 'Upgrade for more features' : 'All features unlocked'}
+                      {user?.plan === 'free' ? 'Upgrade for more features' : 'All features unlocked'}
                     </div>
                   </div>
-                  {user?.plan === 'Free' && (
+                  {user?.plan === 'free' && (
                     <button className="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-[10px] font-bold rounded-lg transition-colors uppercase tracking-wider">
                       Upgrade
                     </button>
@@ -83,7 +87,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                   <span className="text-xs font-bold text-white uppercase tracking-widest">Billing</span>
                 </div>
                 <div className="text-sm text-white/60">
-                  {user?.plan === 'Free' ? 'No active subscriptions' : 'Manage your subscription and payment methods'}
+                  {user?.plan === 'free' ? 'No active subscriptions' : 'Manage your subscription and payment methods'}
                 </div>
               </div>
             </div>

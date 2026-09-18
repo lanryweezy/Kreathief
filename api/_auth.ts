@@ -2,9 +2,9 @@ import { jwtVerify } from 'jose';
 
 const jwtSecretRaw = process.env.SUPABASE_JWT_SECRET;
 if (!jwtSecretRaw) {
-  console.error('[Auth] SUPABASE_JWT_SECRET is not set — all auth will fail');
+  console.error('[Auth] FATAL: SUPABASE_JWT_SECRET is not configured.');
 }
-const SUPABASE_JWT_SECRET = new TextEncoder().encode(jwtSecretRaw || 'REQUIRES_SUPABASE_JWT_SECRET');
+const SUPABASE_JWT_SECRET = jwtSecretRaw ? new TextEncoder().encode(jwtSecretRaw) : null;
 
 interface AuthUser {
   id: string;
@@ -38,6 +38,13 @@ export async function requireAuth(request: Request): Promise<AuthUser> {
   if (!token) {
     throw new Response(JSON.stringify({ error: 'Authentication required' }), {
       status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!SUPABASE_JWT_SECRET) {
+    throw new Response(JSON.stringify({ error: 'Authentication service configuration error' }), {
+      status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }

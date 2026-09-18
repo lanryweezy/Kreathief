@@ -40,7 +40,13 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
     };
   }
 
-  if (errorMessage.includes('too large') || errorMessage.includes('size')) {
+  if (
+    errorMessage.includes('too large') ||
+    errorMessage.includes('file size') ||
+    errorMessage.includes('exceeds maximum') ||
+    errorMessage.includes('exceeds max') ||
+    errorMessage.includes('max size')
+  ) {
     return {
       code: ErrorCode.FILE_TOO_LARGE,
       message: 'File size too large',
@@ -79,7 +85,12 @@ export function getErrorDetails(error: Error | unknown): ErrorDetails {
   }
 
   // Permission errors
-  if (errorMessage.includes('permission') || errorMessage.includes('denied') || errorMessage.includes('blocked')) {
+  if (
+    errorMessage.includes('permission denied') ||
+    errorMessage.includes('not allowed') ||
+    errorMessage.includes('access denied') ||
+    errorMessage.includes('access blocked')
+  ) {
     return {
       code: ErrorCode.PERMISSION_DENIED,
       message: 'Permission denied',

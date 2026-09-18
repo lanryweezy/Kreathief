@@ -14,6 +14,7 @@ import { generateImageWithModel, composeGenerationPrompt } from '../services/ima
 import { ModelPicker } from './ModelPicker';
 import { AspectRatio } from '../types';
 import { EmptyState } from './EmptyState';
+import { DashboardSkeleton } from './DashboardSkeleton';
 import { Button } from './Button';
 import { log } from '../utils/log';
 import { getErrorDetails } from '../utils/errorMessages';
@@ -25,7 +26,7 @@ import { TemplatePreview } from './TemplatePreview';
 import { StyleChip } from './panels/StylePicker';
 import type { DesignStyleEntry } from '../services/designStyleDatabase';
 
-const StylePicker = lazy(() => import('./panels/StylePicker').then(m => ({ default: m.StylePicker })));
+const StylePicker = lazy(() => import('./panels/StylePicker').then((m) => ({ default: m.StylePicker })));
 
 interface DashboardProps {
   user: User;
@@ -69,7 +70,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     }))
   );
 
-  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
+  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community' | 'brand' | 'pipelines'>(
+    'projects'
+  );
+  const [activeContextMenu, setActiveContextMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
@@ -103,7 +107,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [showStylePicker, setShowStylePicker] = useState(false);
 
   const [showNodeGraph, setShowNodeGraph] = useState(false);
-  const aiInputRef = useRef<HTMLTextAreaElement>(null);
+  const aiInputRef = useRef<HTMLInputElement>(null);
+  const profileDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(e.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+
+    if (profileDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [profileDropdownOpen]);
 
   const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
     { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
@@ -114,14 +134,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     { label: 'Presentation', size: { width: 1920, height: 1080, name: 'Presentation' } },
   ];
 
-  const STYLE_SUGGESTIONS = [
-    'Art Deco',
-    'Minimalism',
-    'Brutalism',
-    'Y2K',
-    'Kawaii',
-    'Synthwave',
-  ];
+  const STYLE_SUGGESTIONS = ['Art Deco', 'Minimalism', 'Brutalism', 'Y2K', 'Kawaii', 'Synthwave'];
 
   // Design mode: create an empty project, open the editor, and hand the prompt
   // to the 3-stage agent pipeline so the result is fully editable layers.
@@ -144,7 +157,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       const store = useStore.getState();
       store.setShowAIOverlay(true, 'assistant');
       // Prepend style guidance if a style is selected
-      const stylePrefix = selectedStyle ? `[Style: ${selectedStyle.name}] ${selectedStyle.tagline}. Use ${selectedStyle.typography.headlineFont} for headlines, ${selectedStyle.typography.bodyFont} for body. ` : '';
+      const stylePrefix = selectedStyle
+        ? `[Style: ${selectedStyle.name}] ${selectedStyle.tagline}. Use ${selectedStyle.typography.headlineFont} for headlines, ${selectedStyle.typography.bodyFont} for body. `
+        : '';
       store.runAgenticWorkflow(stylePrefix + aiPrompt.trim());
 
       addToast('Design Agent is building your layout...', 'info');
@@ -468,6 +483,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     setTemplatePage(1);
   }, [searchQuery, templateCategory, templateSort]);
 
+  if (isLoading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="min-h-screen bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
@@ -506,15 +525,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             />
           </div>
 
+          {/* New Canvas Button */}
+          <button
+            id="create-btn"
+            data-testid="create-btn"
+            onClick={handleCreateClick}
+            className="flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-full text-xs font-black uppercase tracking-wider shadow-lg shadow-brand-600/30 hover:shadow-brand-500/50 hover:scale-105 active:scale-95 transition-all cursor-pointer shrink-0"
+            title="Start a new blank design or pick a canvas size"
+          >
+            <Icons.Plus className="w-4 h-4" />
+            <span>Blank Canvas</span>
+          </button>
+
           <div className="h-8 w-px bg-white/10 mx-2"></div>
 
           <div
             className="flex items-center gap-4 group relative"
-            onMouseLeave={() => {
-              if (profileDropdownOpen) {
-                setProfileDropdownOpen(false);
-              }
-            }}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget as Node)) {
                 setProfileDropdownOpen(false);
@@ -562,6 +588,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   role="menu"
                   aria-label="Profile menu"
                   tabIndex={-1}
+                  ref={profileDropdownRef}
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') {
                       setProfileDropdownOpen(false);
@@ -635,7 +662,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-widest text-red-400 hover:bg-red-500/10 rounded-xl flex items-center gap-3 transition-colors focus-visible:outline-none focus-visible:bg-red-500/10"
                     role="menuitem"
                   >
-                    <Icons.MicOff className="w-4 h-4" /> Sign Out
+                    <Icons.LogOut className="w-4 h-4" /> Sign Out
                   </button>
                 </motion.div>
               )}
@@ -653,148 +680,179 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       </a>
 
       <main id="dashboard-content" className="flex-1 flex overflow-hidden">
+        {/* Sidebar Nav */}
+        <aside className="hidden md:flex flex-col w-64 bg-surface-dark-1/50 border-r border-white/5 py-8 px-4 shrink-0">
+          <nav className="flex flex-col gap-1">
+            <button
+              onClick={() => setSidebarTab('projects')}
+              onKeyDown={(e) => e.key === 'Enter' && setSidebarTab('projects')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${sidebarTab === 'projects' ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-muted hover:text-white hover:bg-white/5'}`}
+            >
+              <Icons.Folder className="w-5 h-5" /> Projects
+            </button>
+            <button
+              onClick={() => setSidebarTab('templates')}
+              onKeyDown={(e) => e.key === 'Enter' && setSidebarTab('templates')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${sidebarTab === 'templates' ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-muted hover:text-white hover:bg-white/5'}`}
+            >
+              <Icons.Templates className="w-5 h-5" /> Templates
+            </button>
+            <button
+              onClick={() => setSidebarTab('community')}
+              onKeyDown={(e) => e.key === 'Enter' && setSidebarTab('community')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${sidebarTab === 'community' ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-muted hover:text-white hover:bg-white/5'}`}
+            >
+              <Icons.Users className="w-5 h-5" /> Community
+            </button>
+            <button
+              onClick={() => setSidebarTab('brand')}
+              onKeyDown={(e) => e.key === 'Enter' && setSidebarTab('brand')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${sidebarTab === 'brand' ? 'bg-brand-600 text-white shadow-glow-brand' : 'text-muted hover:text-white hover:bg-white/5'}`}
+            >
+              <Icons.Star className="w-5 h-5" /> Brand Kits
+            </button>
+            <div className="my-2 border-t border-white/5"></div>
+            <button
+              onClick={() => setShowNodeGraph(true)}
+              onKeyDown={(e) => e.key === 'Enter' && setShowNodeGraph(true)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all text-muted hover:text-white hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+            >
+              <Icons.GitMerge className="w-5 h-5 text-emerald-400" /> AI Pipelines
+            </button>
+          </nav>
+        </aside>
+
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
-          <div className="max-w-[1200px] mx-auto">
+          <div className="max-w-[1200px] mx-auto" onClick={() => setActiveContextMenu(null)}>
             {/* AI Prompt */}
-            <div className="relative mb-10">
-              <div className="max-w-3xl mx-auto">
-                <div className="text-center mb-6">
-                  <h1 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tight">
-                    <span className="bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent">
-                      What do you want to create?
-                    </span>
-                  </h1>
-                  <p className="text-sm text-muted">Describe your vision and AI will bring it to life</p>
-                </div>
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-brand-600/20 via-accent/20 to-brand-600/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-                  <div className="relative bg-surface-dark-1 border border-white/10 rounded-xl p-4 group-focus-within:border-brand-500/50 transition-all duration-300">
-                    <textarea
-                      ref={aiInputRef}
-                      value={aiPrompt}
-                      onChange={(e) => setAiPrompt(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (generationMode === 'design') {
-                            handleDesignGenerate();
-                          } else {
-                            handleAIGenerate();
-                          }
-                        }
-                      }}
-                      onFocus={() => setShowSuggestions(true)}
-                      onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      placeholder="A bold fitness gym ad with dark background and neon accents..."
-                      rows={2}
-                      className="w-full bg-transparent text-white text-base placeholder:text-muted/50 resize-none focus:outline-none font-medium leading-relaxed"
-                      disabled={isGenerating}
-                    />
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        {FORMAT_OPTIONS.map((format, idx) => (
-                          <button
-                            key={format.label}
-                            onClick={() => setSelectedFormat(idx)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFormat === idx ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'}`}
-                          >
-                            {format.label}
-                          </button>
-                        ))}
-                        {/* Style Picker Button */}
-                        <button
-                          onClick={() => setShowStylePicker(!showStylePicker)}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            selectedStyle
-                              ? 'border border-brand-500/50 bg-brand-500/10 text-brand-300'
-                              : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'
-                          }`}
-                        >
-                          {selectedStyle ? (
-                            <>
-                              <span
-                                className="w-3 h-3 rounded-full shrink-0"
-                                style={{ background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})` }}
-                              />
-                              {selectedStyle.icon} {selectedStyle.name}
-                            </>
-                          ) : (
-                            <>
-                              <Icons.Palette className="w-3 h-3" />
-                              Style
-                            </>
-                          )}
-                        </button>
-                        {selectedStyle && (
-                          <button
-                            onClick={() => setSelectedStyle(null)}
-                            className="text-[10px] text-gray-500 hover:text-white transition-colors"
-                            title="Clear style"
-                          >
-                            <Icons.X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {/* Brand Kit Dropdown */}
-                        {brandKits && brandKits.length > 0 && (
-                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/10 ml-2">
-                            <Icons.Star className="w-3 h-3 text-yellow-400" />
-                            <select
-                              value={activeBrandKitId || ''}
-                              onChange={(e) => setActiveBrandKit(e.target.value || null)}
-                              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
-                              title="Select which Brand Kit to apply to this generation"
-                            >
-                              <option value="" className="bg-surface-dark-1">No Brand Kit</option>
-                              {brandKits.map((kit) => (
-                                <option key={kit.id} value={kit.id} className="bg-surface-dark-1 text-white">
-                                  {kit.name}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        )}
+            {(sidebarTab === 'projects' || sidebarTab === 'templates') && (
+              <div className="relative mb-10">
+                <div className="max-w-[1100px] mx-auto">
+                  <div className="text-center mb-8">
+                    <h1 className="text-3xl md:text-4xl font-black text-white mb-3 tracking-tight">
+                      <span className="bg-gradient-to-r from-white via-brand-200 to-white bg-clip-text text-transparent">
+                        What do you want to create?
+                      </span>
+                    </h1>
+                    <p className="text-sm text-gray-400 font-medium">
+                      Describe your vision and AI will bring it to life
+                    </p>
+                  </div>
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-brand-600/30 via-accent/30 to-brand-600/30 rounded-[28px] blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+                    <div className="relative bg-surface-dark-1/80 backdrop-blur-xl border border-white/10 rounded-[24px] p-2 flex flex-col md:flex-row items-center gap-2 group-focus-within:border-brand-500/50 group-focus-within:bg-surface-dark-1 transition-all duration-300 shadow-2xl">
+                      <div className="pl-4 shrink-0 text-brand-400 hidden md:block">
+                        <Icons.Magic className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center gap-2 ml-3 shrink-0">
-                        {/* Design = agent-built editable layers; Image = single flat AI image */}
-                        <div className="flex items-center bg-white/5 border border-white/10 rounded-lg p-0.5">
+                      <input
+                        ref={aiInputRef}
+                        type="text"
+                        value={aiPrompt}
+                        onChange={(e) => setAiPrompt(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (generationMode === 'design') {
+                              handleDesignGenerate();
+                            } else {
+                              handleAIGenerate();
+                            }
+                          }
+                        }}
+                        onFocus={() => setShowSuggestions(true)}
+                        onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                        placeholder="A bold fitness gym ad with dark background and neon accents..."
+                        className="flex-1 w-full bg-transparent text-white text-base placeholder:text-gray-500 focus:outline-none font-medium h-12 px-4 md:px-0"
+                        disabled={isGenerating}
+                      />
+
+                      {/* Mobile controls row */}
+                      <div className="flex w-full md:w-auto items-center justify-between md:justify-start gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+                        {/* Format Selector */}
+                        <div className="flex items-center bg-black/40 rounded-xl p-1 border border-white/5 shrink-0">
+                          {FORMAT_OPTIONS.map((format, idx) => (
+                            <button
+                              key={format.label}
+                              onClick={() => setSelectedFormat(idx)}
+                              className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedFormat === idx ? 'bg-surface-dark-3 text-white shadow-sm' : 'text-gray-500 hover:text-white'}`}
+                              title={format.label}
+                            >
+                              {format.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="w-px h-8 bg-white/10 hidden xl:block"></div>
+
+                        <div className="hidden xl:flex items-center gap-2">
+                          {/* Style Picker Button */}
+                          <button
+                            onClick={() => setShowStylePicker(!showStylePicker)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                              selectedStyle
+                                ? 'border border-brand-500/50 bg-brand-500/10 text-brand-300'
+                                : 'bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                            }`}
+                          >
+                            {selectedStyle ? (
+                              <>
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                                  style={{
+                                    background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})`,
+                                  }}
+                                />
+                                {selectedStyle.name}
+                              </>
+                            ) : (
+                              <>
+                                <Icons.Palette className="w-3.5 h-3.5" /> Style
+                              </>
+                            )}
+                          </button>
+                          {selectedStyle && (
+                            <button
+                              onClick={() => setSelectedStyle(null)}
+                              className="text-gray-500 hover:text-white transition-colors"
+                            >
+                              <Icons.X className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="w-px h-8 bg-white/10 hidden md:block"></div>
+
+                        <div className="flex items-center gap-1 shrink-0 bg-white/5 rounded-xl p-1 border border-white/5">
                           <button
                             onClick={() => setGenerationMode('design')}
-                            title="Agent builds a fully editable layered design"
-                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${generationMode === 'design' ? 'bg-brand-600 text-white shadow' : 'text-muted hover:text-white'}`}
+                            title="Generate a fully editable layered design"
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${generationMode === 'design' ? 'bg-brand-600 text-white shadow' : 'text-gray-400 hover:text-white'}`}
                           >
-                            <Icons.Layers className="w-3 h-3" />
-                            Design
+                            <Icons.Layers className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Design</span>
                           </button>
                           <button
                             onClick={() => setGenerationMode('image')}
-                            title="Generate a single AI image as the background"
-                            className={`flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-black uppercase tracking-wider transition-all ${generationMode === 'image' ? 'bg-brand-600 text-white shadow' : 'text-muted hover:text-white'}`}
+                            title="Generate a single AI image"
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${generationMode === 'image' ? 'bg-accent text-white shadow' : 'text-gray-400 hover:text-white'}`}
                           >
-                            <Icons.Image className="w-3 h-3" />
-                            Image
+                            <Icons.Image className="w-3.5 h-3.5" /> <span className="hidden lg:inline">Image</span>
                           </button>
                         </div>
-
-                        {/* Model Picker Dropdown — shared with the editor's Image Gen panel */}
-                        {generationMode === 'image' && (
-                          <ModelPicker value={selectedImageModel} onChange={setSelectedImageModel} dropDirection="up" />
-                        )}
 
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={generationMode === 'design' ? handleDesignGenerate : handleAIGenerate}
                           disabled={!aiPrompt.trim() || isGenerating}
-                          className="px-4 py-2 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
+                          className="px-6 py-3 md:ml-1 bg-white text-black hover:bg-gray-100 rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-xl hover:shadow-2xl transition-all h-full shrink-0"
                         >
                           {isGenerating ? (
-                            <>
-                              <div className="w-3 h-3 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              Generating
-                            </>
+                            <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
                           ) : (
-                            <>Generate</>
+                            <>
+                              Generate <Icons.ArrowRight className="w-4 h-4 ml-2 hidden sm:block" />
+                            </>
                           )}
                         </motion.button>
                       </div>
@@ -812,11 +870,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="mt-3 rounded-2xl border border-white/10 overflow-hidden bg-surface-dark-1 shadow-2xl"
                     >
-                      <Suspense fallback={
-                        <div className="flex items-center justify-center h-full">
-                          <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                      }>
+                      <Suspense
+                        fallback={
+                          <div className="flex items-center justify-center h-full">
+                            <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      >
                         <StylePicker
                           onSelectStyle={(style) => {
                             setSelectedStyle(style);
@@ -862,216 +922,292 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   )}
                 </AnimatePresence>
               </div>
-            </div>
+            )}
 
             {/* Recent Projects */}
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-5">
-                <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Recent</span>
-              </div>
-              {projects.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                  {projects.map((project) => (
-                    <motion.div
-                      layout
-                      key={project.id}
-                      data-testid={`project-card-${project.id}`}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => {
-                        loadProject(project.id);
-                        onOpenProject(project);
-                      }}
-                      className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-                    >
-                      <div className="aspect-[16/10] bg-surface-dark-3 relative overflow-hidden">
-                        <div className="absolute top-3 right-3 z-10">
-                          <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
-                            {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
-                          </span>
-                        </div>
-                        <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-                          <div
-                            style={{
-                              width: `${project.state.canvasSize?.width || 1080}px`,
-                              height: `${project.state.canvasSize?.height || 1080}px`,
-                              transform: `scale(${Math.min(280 / (project.state.canvasSize?.width || 1080), 180 / (project.state.canvasSize?.height || 1080))})`,
-                              transformOrigin: 'center',
-                              backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
-                            }}
-                            className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
-                          >
-                            <StaticLayerRenderer
-                              layers={project.state.artboards?.[0]?.layers || (project.state as any).layers || []}
-                              scale={1}
-                              width={project.state.canvasSize?.width || 1080}
-                              height={project.state.canvasSize?.height || 1080}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 flex items-start justify-between">
-                        <div className="min-w-0 flex-1">
-                          <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
-                            {editingProjectId === project.id ? (
-                              <input
-                                autoFocus
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                onBlur={() => handleRename(project.id)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleRename(project.id);
-                                  }
-                                  if (e.key === 'Escape') {
-                                    setEditingProjectId(null);
-                                  }
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="bg-black/50 border border-brand-500 rounded px-2 py-0.5 text-white w-full h-6 text-sm"
-                              />
-                            ) : (
-                              project.name
-                            )}
-                          </div>
-                          <div className="text-xs text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
-                        </div>
-                        <div className="relative group/menu ml-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Toggle might be handled by focus/hover, no-op here
-                            }}
-                            className="p-1 rounded bg-transparent hover:bg-white/10 text-gray-400 hover:text-white"
-                          >
-                            <Icons.MoreHorizontal className="w-4 h-4" />
-                          </button>
-                          <div className="absolute bottom-full right-0 mb-1 w-32 bg-surface-dark-2 border border-white/10 rounded-lg shadow-xl opacity-0 invisible group-focus-within/menu:opacity-100 group-focus-within/menu:visible group-hover/menu:opacity-100 group-hover/menu:visible transition-all z-20 overflow-hidden">
-                            <button
-                              onClick={(e) => startRenaming(e, project)}
-                              className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white"
-                            >
-                              Rename
-                            </button>
-                            <button
-                              onClick={(e) => handleDuplicate(e, project)}
-                              className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-white/5 hover:text-white"
-                            >
-                              Duplicate
-                            </button>
-                            <div className="h-px bg-white/10 w-full" />
-                            <button
-                              onClick={(e) => handleDelete(e, project.id)}
-                              className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-400/10 hover:text-red-300"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+            {sidebarTab === 'projects' && (
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-5">
+                  <span className="text-xs font-black text-muted uppercase tracking-[0.2em]">Recent</span>
                 </div>
-              ) : !isLoading ? (
-                <EmptyState
-                  icon={Icons.FolderPlus}
-                  title="No projects yet"
-                  description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
-                  action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
-                />
-              ) : null}
-            </div>
+                {projects.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                    {projects.map((project) => (
+                      <motion.div
+                        layout
+                        key={project.id}
+                        data-testid={`project-card-${project.id}`}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          loadProject(project.id);
+                          onOpenProject(project);
+                        }}
+                        className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                      >
+                        <div className="aspect-[16/10] bg-surface-dark-3 relative overflow-hidden">
+                          <div className="absolute top-3 right-3 z-10">
+                            <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
+                              {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
+                            </span>
+                          </div>
+                          <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+                            {(() => {
+                              const layers =
+                                project.state.artboards?.[0]?.layers || (project.state as any).layers || [];
+                              if (layers.length > 0) {
+                                return (
+                                  <div
+                                    style={{
+                                      width: `${project.state.canvasSize?.width || 1080}px`,
+                                      height: `${project.state.canvasSize?.height || 1080}px`,
+                                      transform: `scale(${Math.min(280 / (project.state.canvasSize?.width || 1080), 180 / (project.state.canvasSize?.height || 1080))})`,
+                                      transformOrigin: 'center',
+                                      backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
+                                    }}
+                                    className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
+                                  >
+                                    <StaticLayerRenderer
+                                      layers={layers}
+                                      scale={1}
+                                      width={project.state.canvasSize?.width || 1080}
+                                      height={project.state.canvasSize?.height || 1080}
+                                    />
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div className="w-full h-full rounded-lg bg-[radial-gradient(circle_at_50%_50%,_var(--tw-gradient-stops))] from-brand-900/20 via-surface-dark-3 to-surface-dark-4 flex flex-col items-center justify-center border border-white/5 opacity-60 relative overflow-hidden">
+                                    <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] bg-repeat opacity-30"></div>
+                                    <Icons.Image className="w-8 h-8 text-gray-500 mb-2 relative z-10" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-600 relative z-10">
+                                      Empty Project
+                                    </span>
+                                  </div>
+                                );
+                              }
+                            })()}
+                          </div>
+                        </div>
+                        <div className="p-4 flex items-start justify-between">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-bold text-sm text-white truncate mb-1 group-hover:text-accent transition-colors">
+                              {editingProjectId === project.id ? (
+                                <input
+                                  autoFocus
+                                  value={newName}
+                                  onChange={(e) => setNewName(e.target.value)}
+                                  onBlur={() => handleRename(project.id)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleRename(project.id);
+                                    }
+                                    if (e.key === 'Escape') {
+                                      setEditingProjectId(null);
+                                    }
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-black/50 border border-brand-500 rounded px-2 py-0.5 text-white w-full h-6 text-sm"
+                                />
+                              ) : (
+                                project.name
+                              )}
+                            </div>
+                            <div className="text-xs text-muted">{new Date(project.updatedAt).toLocaleDateString()}</div>
+                          </div>
+                          <div className="relative ml-2">
+                            <button
+                              aria-haspopup="menu"
+                              aria-expanded={activeContextMenu === project.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveContextMenu(activeContextMenu === project.id ? null : project.id);
+                              }}
+                              className={`p-1 rounded bg-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${activeContextMenu === project.id ? 'bg-white/10 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100'}`}
+                            >
+                              <Icons.MoreHorizontal className="w-4 h-4" />
+                            </button>
+
+                            <AnimatePresence>
+                              {activeContextMenu === project.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                                  transition={{ duration: 0.15 }}
+                                  className="absolute bottom-full right-0 mb-1 w-32 bg-surface-dark-1 border border-white/10 rounded-lg shadow-xl z-20 overflow-hidden"
+                                >
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveContextMenu(null);
+                                      startRenaming(e, project);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                  >
+                                    Rename
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveContextMenu(null);
+                                      handleDuplicate(e, project);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                  >
+                                    Duplicate
+                                  </button>
+                                  <div className="h-px bg-white/10 w-full" />
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveContextMenu(null);
+                                      handleDelete(e, project.id);
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-xs font-bold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                                  >
+                                    Delete
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : !isLoading ? (
+                  <EmptyState
+                    icon={Icons.FolderPlus}
+                    title="No projects yet"
+                    description="Start creating amazing designs with AI-powered tools. Your projects will appear here."
+                    action={{ label: 'Create Your First Project', onClick: handleCreateClick }}
+                  />
+                ) : null}
+              </div>
+            )}
 
             {/* Templates */}
-            <div className="mb-10">
-              <div className="flex items-center justify-between mb-5">
-                <span
-                  data-testid="nav-templates"
-                  className="text-xs font-black text-muted uppercase tracking-[0.2em]"
-                  onClick={() => setSidebarTab('templates')}
-                >
-                  Templates
-                </span>
-                <div className="flex items-center gap-2">
-                  {['All', 'Social', 'Business', 'Video', 'Personal'].map((cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setTemplateCategory(cat)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${templateCategory === cat ? 'bg-brand-600 text-white' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'}`}
+            {sidebarTab === 'templates' && (
+              <div className="mb-10">
+                <div className="flex items-center justify-between mb-5">
+                  <span
+                    data-testid="nav-templates"
+                    className="text-xs font-black text-muted uppercase tracking-[0.2em]"
+                    onClick={() => setSidebarTab('templates')}
+                  >
+                    Templates
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {['All', 'Social', 'Business', 'Video', 'Personal'].map((cat) => (
+                      <button
+                        key={cat}
+                        onClick={() => setTemplateCategory(cat)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${templateCategory === cat ? 'bg-brand-600 text-white' : 'bg-white/5 text-muted hover:text-white hover:bg-white/10'}`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                    <select
+                      value={templateSort}
+                      onChange={(e) => setTemplateSort(e.target.value as 'newest' | 'popular' | 'name')}
+                      aria-label="Sort templates"
+                      className="ml-2 px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 border border-white/10 focus:outline-none focus:border-brand-500 transition-all cursor-pointer [&>option]:bg-surface-dark-1 [&>option]:text-white"
                     >
-                      {cat}
+                      <option value="newest">Newest</option>
+                      <option value="popular">Popular</option>
+                      <option value="name">Name</option>
+                    </select>
+                  </div>
+                </div>
+                <div
+                  id="templates-grid"
+                  data-testid="dashboard-templates-grid"
+                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                >
+                  {pagedTemplates.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      data-testid={`dashboard-template-btn-${tmpl.id}`}
+                      onClick={() => handleStartFromTemplate(tmpl.id)}
+                      className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    >
+                      <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
+                        <TemplatePreview template={tmpl} containerWidth={260} containerHeight={195} className="p-2" />
+                        <div className="absolute top-2 left-2 z-10">
+                          <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
+                            {tmpl.category}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-3">
+                        <div className="font-bold text-sm text-white truncate group-hover:text-accent transition-colors">
+                          {tmpl.name}
+                        </div>
+                        <div className="text-xs text-muted mt-0.5">{tmpl.size.name}</div>
+                      </div>
                     </button>
                   ))}
-                  <select
-                    value={templateSort}
-                    onChange={(e) => setTemplateSort(e.target.value as 'newest' | 'popular' | 'name')}
-                    aria-label="Sort templates"
-                    className="ml-2 px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 border border-white/10 focus:outline-none focus:border-brand-500 transition-all cursor-pointer [&>option]:bg-surface-dark-1 [&>option]:text-white"
-                  >
-                    <option value="newest">Newest</option>
-                    <option value="popular">Popular</option>
-                    <option value="name">Name</option>
-                  </select>
                 </div>
+                {sortedTemplates.length === 0 && (
+                  <div className="py-12">
+                    <EmptyState
+                      icon={Icons.Search}
+                      title="No templates found"
+                      description="We couldn't find any templates matching your search criteria. Try a different keyword or category."
+                      action={{
+                        label: 'Clear Filters',
+                        onClick: () => {
+                          setSearchQuery('');
+                          setTemplateCategory('All');
+                        },
+                      }}
+                    />
+                  </div>
+                )}
+                {templatePageCount > 1 && (
+                  <div className="flex items-center justify-center gap-3 mt-5">
+                    <button
+                      onClick={() => setTemplatePage(currentTemplatePage - 1)}
+                      disabled={currentTemplatePage === 1}
+                      className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      Prev
+                    </button>
+                    <span className="text-xs font-bold text-muted">
+                      Page {currentTemplatePage} of {templatePageCount}
+                    </span>
+                    <button
+                      onClick={() => setTemplatePage(currentTemplatePage + 1)}
+                      disabled={currentTemplatePage === templatePageCount}
+                      className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
               </div>
-              <div
-                id="templates-grid"
-                data-testid="dashboard-templates-grid"
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
-              >
-                {pagedTemplates.map((tmpl) => (
-                  <button
-                    key={tmpl.id}
-                    data-testid={`dashboard-template-btn-${tmpl.id}`}
-                    onClick={() => handleStartFromTemplate(tmpl.id)}
-                    className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
-                      <TemplatePreview template={tmpl} containerWidth={260} containerHeight={195} className="p-2" />
-                      <div className="absolute top-2 left-2 z-10">
-                        <span className="bg-brand-600 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
-                          {tmpl.category}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <div className="font-bold text-sm text-white truncate group-hover:text-accent transition-colors">
-                        {tmpl.name}
-                      </div>
-                      <div className="text-xs text-muted mt-0.5">{tmpl.size.name}</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-              {sortedTemplates.length === 0 && (
-                <div className="text-center py-8 text-muted text-xs">
-                  No templates match your search. Try a different keyword or category.
-                </div>
-              )}
-              {templatePageCount > 1 && (
-                <div className="flex items-center justify-center gap-3 mt-5">
-                  <button
-                    onClick={() => setTemplatePage(currentTemplatePage - 1)}
-                    disabled={currentTemplatePage === 1}
-                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >
-                    Prev
-                  </button>
-                  <span className="text-xs font-bold text-muted">
-                    Page {currentTemplatePage} of {templatePageCount}
-                  </span>
-                  <button
-                    onClick={() => setTemplatePage(currentTemplatePage + 1)}
-                    disabled={currentTemplatePage === templatePageCount}
-                    className="px-3 py-1.5 rounded-full text-xs font-bold bg-white/5 text-muted hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
 
-            {/* Removed empty state from bottom, now correctly placed in Recent Projects block */}
+            {/* Community/Brand sections */}
+            {sidebarTab === 'community' && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Icons.Users className="w-16 h-16 text-muted mb-4" />
+                <h2 className="text-xl font-black text-white mb-2">Community Gallery</h2>
+                <p className="text-muted text-sm max-w-md">
+                  Discover templates and designs created by the Kreathief community. Coming soon in a future update.
+                </p>
+              </div>
+            )}
+            {sidebarTab === 'brand' && (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <Icons.Star className="w-16 h-16 text-muted mb-4" />
+                <h2 className="text-xl font-black text-white mb-2">Brand Kits</h2>
+                <p className="text-muted text-sm max-w-md">
+                  Manage your brand colors, fonts, and logos to keep your designs consistent. (Coming soon)
+                </p>
+              </div>
+            )}
 
             {/* Loading State */}
             {isLoading && (

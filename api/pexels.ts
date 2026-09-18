@@ -1,7 +1,6 @@
 import { log } from '../utils/log';
 
-// Fallback to the provided key if env var is missing
-const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY || 'jq1FQPT0wq2z3SyRHsS4epO0TuKVgYxCyG2Milr2yq3T2aXLeu6IqUj1';
+const PEXELS_API_KEY = import.meta.env.VITE_PEXELS_API_KEY || '';
 
 export interface PexelsPhoto {
   id: number;
@@ -37,13 +36,17 @@ export interface PexelsSearchResponse {
 /**
  * Search for photos on Pexels.
  */
-export async function searchPexelsImages(query: string, page: number = 1, perPage: number = 20): Promise<PexelsPhoto[]> {
+export async function searchPexelsImages(
+  query: string,
+  page: number = 1,
+  perPage: number = 20
+): Promise<PexelsPhoto[]> {
   try {
     const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}`;
     const response = await fetch(url, {
       headers: {
-        Authorization: PEXELS_API_KEY
-      }
+        Authorization: PEXELS_API_KEY,
+      },
     });
 
     if (!response.ok) {
@@ -66,8 +69,8 @@ export async function getCuratedPexelsImages(page: number = 1, perPage: number =
     const url = `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`;
     const response = await fetch(url, {
       headers: {
-        Authorization: PEXELS_API_KEY
-      }
+        Authorization: PEXELS_API_KEY,
+      },
     });
 
     if (!response.ok) {

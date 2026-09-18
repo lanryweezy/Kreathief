@@ -1,5 +1,6 @@
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { Routes, Route, useNavigate, Navigate, useLocation, useParams } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ToastContainer } from './components/Toast';
 import { OnboardingTour } from './components/OnboardingTour';
 import { useStore } from './store/useStore';
@@ -17,12 +18,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { parseShareLink } from './utils/shareUtils';
 
 // Lazy load all route-level and modal components for code splitting
-const LandingPage = React.lazy(() =>
-  import('./components/LandingPage').then((m) => ({ default: m.LandingPage }))
-);
-const BlogList = React.lazy(() =>
-  import('./components/blog/BlogList').then((m) => ({ default: m.BlogList }))
-);
+const LandingPage = React.lazy(() => import('./components/LandingPage').then((m) => ({ default: m.LandingPage })));
+const BlogList = React.lazy(() => import('./components/blog/BlogList').then((m) => ({ default: m.BlogList })));
 const BlogPostView = React.lazy(() =>
   import('./components/blog/BlogPostView').then((m) => ({ default: m.BlogPostView }))
 );
@@ -41,15 +38,11 @@ const VersionDiffModal = React.lazy(() =>
 const UserProfilePage = React.lazy(() =>
   import('./components/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 );
-const AboutPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.AboutPage }))
-);
+const AboutPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.AboutPage })));
 const PrivacyPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.PrivacyPage }))
 );
-const TermsPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.TermsPage }))
-);
+const TermsPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.TermsPage })));
 const SecurityPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.SecurityPage }))
 );
@@ -62,9 +55,7 @@ const HelpCenterPage = React.lazy(() =>
 const ChangelogPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.ChangelogPage }))
 );
-const APIPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage }))
-);
+const APIPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage })));
 
 function ProfileRoute() {
   const { userId } = useParams();
@@ -91,24 +82,65 @@ const AudienceView = React.lazy(() =>
   }))
 );
 import { EditorSkeleton } from './components/EditorSkeleton';
+import { DashboardSkeleton } from './components/DashboardSkeleton';
 
-const LoadingFallback = () => (
-  <div className="flex h-screen w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
-    <div className="w-8 h-8 rounded-full border-4 border-[#7d2ae8] border-t-transparent animate-spin"></div>
-    <div className="text-gray-400 font-medium animate-pulse">Loading Kreathief...</div>
-  </div>
-);
+const LoadingFallback = () => {
+  const isDashboard = typeof window !== 'undefined' && window.location.pathname.startsWith('/dashboard');
+  const isEditor = typeof window !== 'undefined' && window.location.pathname.startsWith('/editor');
+
+  if (isDashboard) {
+    return <DashboardSkeleton />;
+  }
+  if (isEditor) {
+    return <EditorSkeleton />;
+  }
+
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-surface-dark-0 flex-col gap-6">
+      <div className="relative flex items-center justify-center">
+        <div className="w-12 h-12 rounded-xl border border-white/10 shadow-glow-brand flex items-center justify-center relative overflow-hidden bg-surface-dark-1">
+          <img src="/logo.svg" alt="Kreathief" className="w-8 h-8 object-contain z-10" />
+          <div className="absolute inset-0 bg-brand-500/20 animate-pulse-soft" />
+        </div>
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <div className="text-white font-black uppercase tracking-widest text-sm animate-pulse-soft">
+          Loading Kreathief...
+        </div>
+        <div className="w-48 h-1 bg-surface-dark-3 rounded-full overflow-hidden relative">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-brand-600 to-accent rounded-full w-1/2 animate-[shimmer_1.5s_infinite_linear]"
+            style={{ backgroundSize: '200% 100%' }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const App: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const user = useStore((state) => state.user);
+
+  useEffect(() => {
+    // Expose store for E2E/dev tooling only — never in production
+    if (import.meta.env.DEV && typeof window !== 'undefined') {
+      (window as any).__store = useStore;
+      return () => {
+        delete (window as any).__store;
+      };
+    }
+    return undefined;
+  }, []);
+
   const setUser = useStore((state) => state.setUser);
   const toasts = useStore((state) => state.toasts);
   const removeToast = useStore((state) => state.removeToast);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
@@ -276,17 +308,29 @@ const App: React.FC = () => {
 
   const handleOpenProject = (project: Project) => {
     setCurrentProject(project);
-    navigate('/editor');
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/editor');
+      setTimeout(() => setIsTransitioning(false), 200);
+    }, 400);
   };
 
   const handleCreateProject = () => {
     setCurrentProject(undefined);
-    navigate('/editor');
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/editor');
+      setTimeout(() => setIsTransitioning(false), 200);
+    }, 400);
   };
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard');
-    setCurrentProject(undefined);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      navigate('/dashboard');
+      setCurrentProject(undefined);
+      setTimeout(() => setIsTransitioning(false), 200);
+    }, 400);
   };
 
   const handleStartTour = () => {
@@ -400,7 +444,14 @@ const App: React.FC = () => {
     <ErrorBoundary componentName="App Root" variant="full">
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<Suspense fallback={<LoadingFallback />}><LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} /></Suspense>} />
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} />
+              </Suspense>
+            }
+          />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
@@ -434,20 +485,119 @@ const App: React.FC = () => {
               )
             }
           />
-          <Route path="/blog" element={<Suspense fallback={<LoadingFallback />}><BlogList /></Suspense>} />
-          <Route path="/blog/:id" element={<Suspense fallback={<LoadingFallback />}><BlogPostView /></Suspense>} />
-          <Route path="/profile/:userId" element={<Suspense fallback={<LoadingFallback />}><ProfileRoute /></Suspense>} />
+          <Route
+            path="/blog"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <BlogList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/blog/:id"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <BlogPostView />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ProfileRoute />
+              </Suspense>
+            }
+          />
 
-          <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
-          <Route path="/privacy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPage /></Suspense>} />
-          <Route path="/terms" element={<Suspense fallback={<LoadingFallback />}><TermsPage /></Suspense>} />
-          <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><SecurityPage /></Suspense>} />
-          <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><ContactPage /></Suspense>} />
-          <Route path="/help" element={<Suspense fallback={<LoadingFallback />}><HelpCenterPage /></Suspense>} />
-          <Route path="/changelog" element={<Suspense fallback={<LoadingFallback />}><ChangelogPage /></Suspense>} />
-          <Route path="/api" element={<Suspense fallback={<LoadingFallback />}><APIPage /></Suspense>} />
+          <Route
+            path="/about"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AboutPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <PrivacyPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <TermsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/security"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <SecurityPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ContactPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/help"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <HelpCenterPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/changelog"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ChangelogPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/api"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <APIPage />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+
+        <AnimatePresence>
+          {isTransitioning && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 z-[9999] bg-surface-dark-0 flex items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 1.1, opacity: 0 }}
+                className="w-12 h-12 rounded-xl border border-white/10 shadow-glow-brand flex items-center justify-center relative overflow-hidden bg-surface-dark-1"
+              >
+                <img src="/logo.svg" alt="Kreathief" className="w-8 h-8 object-contain z-10" />
+                <div className="absolute inset-0 bg-brand-500/20 animate-pulse-soft" />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {location.pathname === '/dashboard' && user && showWelcome && (
           <WelcomeModal

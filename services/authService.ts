@@ -80,14 +80,17 @@ export class AuthService {
     }
   }
   private isQABypassActive(): boolean {
+    // SECURITY: Production builds must never bypass authentication under any circumstances.
+    if (import.meta.env.PROD) {
+      return false;
+    }
     if (import.meta.env.VITE_QA_BYPASS === 'false' || import.meta.env.VITE_USE_QA_BYPASS === 'false') {
       return false;
     }
     return (
-      (import.meta.env.DEV || import.meta.env.MODE === 'test') &&
-      (import.meta.env.VITE_QA_BYPASS === 'true' ||
-        import.meta.env.VITE_USE_QA_BYPASS === 'true' ||
-        (typeof window !== 'undefined' && Boolean((window as any).VITE_QA_BYPASS)))
+      import.meta.env.VITE_QA_BYPASS === 'true' ||
+      import.meta.env.VITE_USE_QA_BYPASS === 'true' ||
+      import.meta.env.MODE === 'test'
     );
   }
 
@@ -313,6 +316,19 @@ export class AuthService {
         }
         // Bypass disabled in production: purge the stale session
         localStorage.removeItem('kreathief_qa_session');
+      }
+
+      if (useQABypass) {
+        const defaultQAUser: User = {
+          id: 'qa_default_user',
+          email: 'qa@kreathief.app',
+          name: 'QA Tester',
+          plan: 'pro',
+          avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=qa_tester',
+        };
+        localStorage.setItem('kreathief_qa_session', JSON.stringify(defaultQAUser));
+        log.info('[AuthService] Auto-provisioned QA session');
+        return defaultQAUser;
       }
 
       // Check for Guest session

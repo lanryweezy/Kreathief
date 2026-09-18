@@ -25,18 +25,32 @@ export class CommandManager {
     }
   }
 
-  static undo() {
-    if (this.past.length === 0) return;
+  static canUndo(): boolean {
+    return this.past.length > 0;
+  }
+
+  static canRedo(): boolean {
+    return this.future.length > 0;
+  }
+
+  static undo(): boolean {
+    if (this.past.length === 0) {
+      return false;
+    }
     const command = this.past.pop()!;
     command.undo();
     this.future.push(command);
+    return true;
   }
 
-  static redo() {
-    if (this.future.length === 0) return;
+  static redo(): boolean {
+    if (this.future.length === 0) {
+      return false;
+    }
     const command = this.future.pop()!;
     command.execute();
     this.past.push(command);
+    return true;
   }
 
   static beginBatch() {
@@ -56,7 +70,7 @@ export class CommandManager {
       this.pendingBatch = [];
     }
   }
-  
+
   static clear() {
     this.past = [];
     this.future = [];

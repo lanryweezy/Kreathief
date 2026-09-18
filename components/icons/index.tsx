@@ -1702,3 +1702,12 @@ export const Component = (props: React.SVGProps<SVGSVGElement>) =>
     React.createElement('path', { d: 'M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z' }),
     React.createElement('path', { d: 'm12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z' })
   );
+
+export const LogOut = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4' }),
+    React.createElement('polyline', { points: '16 17 21 12 16 7' }),
+    React.createElement('line', { x1: '21', y1: '12', x2: '9', y2: '12' })
+  );

@@ -12,6 +12,8 @@ import {
   GraphicDesignStyleCategory,
   GRAPHIC_DESIGN_STYLES,
 } from '../../services/graphicDesignStyles';
+import { DesignIntelligenceEngine } from '../../services/designIntelligenceEngine';
+import { mapASTToLayers } from '../../utils/astToZustandMapper';
 
 interface AssistantPanelProps {
   getCanvasSnapshot: () => Promise<string>;
@@ -30,7 +32,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     applyAgentVariant,
     resetAgentState,
     selectedLayerIds,
-    
+
     // AI Assistant (Chat/Critique) state
     conversationHistory,
     isAnalyzing,
@@ -45,6 +47,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     artboards,
     activeArtboardId,
     runMotionDirector,
+    autoFixDesignFlaws,
   } = useStore(
     useShallow((state) => ({
       agentStatus: state.agentStatus,
@@ -58,7 +61,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       applyAgentVariant: state.applyAgentVariant,
       resetAgentState: state.resetAgentState,
       selectedLayerIds: state.selectedLayerIds,
-      
+
       conversationHistory: state.conversationHistory,
       isAnalyzing: state.isAnalyzing,
       currentCritique: state.currentCritique,
@@ -66,6 +69,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       sendMessage: state.sendMessage,
       analyzeCurrentDesign: state.analyzeCurrentDesign,
       analyzeDesignEnhanced: state.analyzeDesignEnhanced,
+      autoFixDesignFlaws: state.autoFixDesignFlaws,
       clearConversation: state.clearConversation,
       applySuggestion: state.applySuggestion,
       dismissSuggestion: state.dismissSuggestion,
@@ -96,13 +100,118 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     }
   }, [thinkingLog]);
 
-  const handleStartWorkflow = () => {
+  const handleStartWorkflow = async () => {
     if (!input.trim()) {
       return;
     }
-    const finalPrompt = selectedStyleId
-      ? `${input} style: ${selectedStyleId} movement`
-      : input;
+
+    // AI Pipeline Native Integration Intercept
+    // If we detect the user wants a promo or layout, use our new native pipeline.
+    const isLayoutRequest =
+      input.toLowerCase().includes('promo') ||
+      input.toLowerCase().includes('banner') ||
+      input.toLowerCase().includes('poster');
+
+    if (isLayoutRequest && activeArtboard) {
+      // 1. Mock the VLM Intelligence Output for SPADE.NG
+      const mockPayload = {
+        schemaVersion: '1.0.0',
+        name: 'SPADE.NG VLM Generated',
+        document: {
+          id: 'doc1',
+          canvas: {
+            width: activeArtboard.width,
+            height: activeArtboard.height,
+            aspectRatio: '1:1',
+            orientation: 'square',
+          },
+        },
+        composition: { layoutType: 'promotional', focalPoints: [], grid: { columns: 12, rows: 12 } },
+        background: {
+          type: 'gradient',
+          color: '#00E050',
+          gradient: {
+            type: 'radial',
+            stops: [
+              { offset: 0, color: '#00E050' },
+              { offset: 1, color: '#004D18' },
+            ],
+          },
+        },
+        colorSystem: { dominantColors: ['#00E050', '#590DF2'], accentColors: ['#FFFFFF'], backgroundColors: [] },
+        typography: {
+          textBlocks: [
+            {
+              id: 't1',
+              content: '₦300,000',
+              fontFamily: 'Clash Display',
+              fontWeight: 900,
+              fontSize: 160,
+              color: '#590DF2',
+              position: { normalizedX: 0.5, normalizedY: 0.5 },
+              dimensions: { normalizedWidth: 0.8, normalizedHeight: 0.2 },
+              effects: [
+                { type: 'extrusion', depth: 20, color: '#31058A' },
+                { type: 'stroke', width: 15, color: '#FFF' },
+              ],
+            },
+            {
+              id: 't2',
+              content: 'WELCOME BONUS',
+              fontFamily: 'Inter',
+              fontWeight: 900,
+              fontSize: 50,
+              color: '#FFF',
+              position: { normalizedX: 0.5, normalizedY: 0.8 },
+              dimensions: { normalizedWidth: 0.7, normalizedHeight: 0.1 },
+            },
+          ],
+        },
+        objects: [
+          {
+            id: 'o1',
+            name: '3D Gift Box',
+            type: '3DObject',
+            position: { normalizedX: 0.35, normalizedY: 0.15 },
+            dimensions: { normalizedWidth: 0.3, normalizedHeight: 0.25 },
+            rotation: -10,
+            zIndex: 25,
+          },
+        ],
+        shapesAndGeometry: [
+          {
+            id: 'ribbon',
+            type: 'shape',
+            position: { normalizedX: 0.15, normalizedY: 0.75 },
+            dimensions: { normalizedWidth: 0.7, normalizedHeight: 0.1 },
+            fill: { type: 'solid', color: '#590DF2' },
+            cornerRadius: 20,
+            zIndex: 15,
+          },
+        ],
+        brandIdentity: { logos: [] },
+      };
+
+      // 2. Run Intelligence Engine
+      const engine = new DesignIntelligenceEngine();
+      const ast = engine.compileToAST(mockPayload as any);
+
+      // 3. Map AST to Native Zustand Layers
+
+      const newLayers = mapASTToLayers(ast, activeArtboard.width, activeArtboard.height);
+
+      // 4. Inject directly into React Canvas State
+      useStore.getState().setLayers(newLayers);
+
+      // Update background color to match VLM output
+      useStore.setState({ canvasBackgroundColor: mockPayload.background.color });
+
+      useStore.getState().addToast('Native AST Render Complete', 'success');
+      setInput('');
+      return;
+    }
+
+    const finalPrompt = selectedStyleId ? `${input} style: ${selectedStyleId} movement` : input;
 
     if (isRefining) {
       runAgenticRefine(finalPrompt, selectedLayerIds);
@@ -114,7 +223,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
   const handleSendChat = () => {
     const message = input.trim();
-    if (!message || isAnalyzing) return;
+    if (!message || isAnalyzing) {
+      return;
+    }
     sendMessage(message);
     setInput('');
   };
@@ -133,7 +244,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       <div className="space-y-6 py-4">
         <div className="space-y-4">
           {steps.map((step, i) => {
-            const stepOrder = steps.map(s => s.id);
+            const stepOrder = steps.map((s) => s.id);
             const currentIndex = stepOrder.indexOf(agentStatus as any);
             const isActive = agentStatus === step.id;
             const isDone = agentStatus === 'done' || (currentIndex > -1 && currentIndex > i);
@@ -224,9 +335,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               <AgentIcons.Sparkles className="w-8 h-8 text-white animate-pulse" />
             </div>
             <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-wider">
-                Agent
-              </h2>
+              <h2 className="text-sm font-black text-white uppercase tracking-wider">Agent</h2>
               <p className="text-gray-400 text-[11px] mt-1.5 font-medium max-w-[240px] mx-auto leading-relaxed">
                 Describe your vision. The AI will generate a complete, multi-slide campaign instantly.
               </p>
@@ -272,19 +381,23 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 {[
                   {
                     label: '✨ Tech Summit Launch Poster',
-                    prompt: 'Futuristic African AI Summit poster in Lagos, deep violet with electric cyan nodes, gigantic bold headline and 3 feature cards',
+                    prompt:
+                      'Futuristic African AI Summit poster in Lagos, deep violet with electric cyan nodes, gigantic bold headline and 3 feature cards',
                   },
                   {
                     label: '🎵 Afrobeats Concert Story',
-                    prompt: 'High-energy Afrobeats live concert Instagram story, bold typography, warm neon orange highlights, ticket CTA',
+                    prompt:
+                      'High-energy Afrobeats live concert Instagram story, bold typography, warm neon orange highlights, ticket CTA',
                   },
                   {
                     label: '💎 Luxury Real Estate Listing',
-                    prompt: 'Minimalist editorial real estate flyer for luxury duplex in Abuja, price badge, clean feature list, schedule viewing CTA',
+                    prompt:
+                      'Minimalist editorial real estate flyer for luxury duplex in Abuja, price badge, clean feature list, schedule viewing CTA',
                   },
                   {
                     label: '💼 SaaS Product Feature Banner',
-                    prompt: 'Clean modern Stripe-style feature announcement banner, 60/40 layout, dark mode, high-contrast register button',
+                    prompt:
+                      'Clean modern Stripe-style feature announcement banner, 60/40 layout, dark mode, high-contrast register button',
                   },
                 ].map((preset, idx) => (
                   <button
@@ -295,9 +408,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                     <span className="text-[10px] font-bold text-gray-300 group-hover:text-brand-300 block">
                       {preset.label}
                     </span>
-                    <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">
-                      {preset.prompt}
-                    </span>
+                    <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">{preset.prompt}</span>
                   </button>
                 ))}
               </div>
@@ -311,16 +422,35 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { label: 'Brutalist', prompt: 'Redesign with a Brutalist aesthetic: raw edges, bold typography, high contrast, neo-grotesque fonts.' },
-                    { label: 'Swiss Minimalist', prompt: 'Redesign with a Swiss Minimalist aesthetic: strict grid, ample negative space, clean sans-serif typography, restrained palette.' },
-                    { label: 'Cyberpunk', prompt: 'Redesign with a Neon Cyberpunk style: dark mode, glowing neon accents, futuristic glitch effects, tech typography.' },
-                    { label: 'Editorial', prompt: 'Redesign with an Elegant Editorial style: refined serif fonts, muted warm tones, sophisticated magazine layout, classic hierarchy.' },
+                    {
+                      label: 'Brutalist',
+                      prompt:
+                        'Redesign with a Brutalist aesthetic: raw edges, bold typography, high contrast, neo-grotesque fonts.',
+                    },
+                    {
+                      label: 'Swiss Minimalist',
+                      prompt:
+                        'Redesign with a Swiss Minimalist aesthetic: strict grid, ample negative space, clean sans-serif typography, restrained palette.',
+                    },
+                    {
+                      label: 'Cyberpunk',
+                      prompt:
+                        'Redesign with a Neon Cyberpunk style: dark mode, glowing neon accents, futuristic glitch effects, tech typography.',
+                    },
+                    {
+                      label: 'Editorial',
+                      prompt:
+                        'Redesign with an Elegant Editorial style: refined serif fonts, muted warm tones, sophisticated magazine layout, classic hierarchy.',
+                    },
                   ].map((style, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
                         setInput(style.prompt);
-                        runAgenticRefine(style.prompt, activeArtboard.layers.map((l: any) => l.id));
+                        runAgenticRefine(
+                          style.prompt,
+                          activeArtboard.layers.map((l: any) => l.id)
+                        );
                       }}
                       className="text-left px-2 py-1.5 bg-brand-500/10 hover:bg-brand-500/25 border border-brand-500/20 hover:border-brand-500/40 rounded-xl transition-all group flex flex-col justify-center"
                     >
@@ -464,11 +594,17 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
           <div className="space-y-3 mt-4">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">12-Dimension Analysis</h4>
-              <span className={`text-lg font-black ${
-                enhancedCritique.overallScore >= 80 ? 'text-green-400' :
-                enhancedCritique.overallScore >= 60 ? 'text-yellow-400' :
-                enhancedCritique.overallScore >= 40 ? 'text-orange-400' : 'text-red-400'
-              }`}>
+              <span
+                className={`text-lg font-black ${
+                  enhancedCritique.overallScore >= 80
+                    ? 'text-green-400'
+                    : enhancedCritique.overallScore >= 60
+                      ? 'text-yellow-400'
+                      : enhancedCritique.overallScore >= 40
+                        ? 'text-orange-400'
+                        : 'text-red-400'
+                }`}
+              >
                 {enhancedCritique.letterGrade}
               </span>
             </div>
@@ -478,7 +614,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/20">
                 <p className="text-[9px] font-bold text-green-400 mb-1.5 uppercase tracking-wider">Quick Wins</p>
                 {enhancedCritique.quickWins.map((w, i) => (
-                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">→ {w}</p>
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">
+                    → {w}
+                  </p>
                 ))}
               </div>
             )}
@@ -488,14 +626,16 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               <div className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/20">
                 <p className="text-[9px] font-bold text-red-400 mb-1.5 uppercase tracking-wider">Critical Issues</p>
                 {enhancedCritique.criticalIssues.map((issue, i) => (
-                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">! {issue}</p>
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">
+                    ! {issue}
+                  </p>
                 ))}
               </div>
             )}
 
             {/* Dimension scores (compact) */}
             <div className="grid grid-cols-2 gap-1.5">
-              {enhancedCritique.dimensions.map(dim => (
+              {enhancedCritique.dimensions.map((dim) => (
                 <div key={dim.id} className="flex items-center gap-1.5">
                   <div className="w-8 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
                     <div
@@ -508,11 +648,26 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 </div>
               ))}
             </div>
+
+            {/* 1-Click Auto-Fix Master Action */}
+            <button
+              onClick={() => autoFixDesignFlaws()}
+              disabled={isAnalyzing}
+              className="w-full mt-3 py-2.5 px-3 rounded-xl bg-gradient-to-r from-purple-600 via-brand-500 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-purple-500/25 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-40"
+            >
+              <AgentIcons.Sparkles className="w-3.5 h-3.5" />
+              Auto-Fix All Flaws (1-Click Polish)
+            </button>
           </div>
         )}
 
         {/* Workflow Status */}
-        {(agentStatus === 'strategy' || agentStatus === 'creative' || agentStatus === 'searching' || agentStatus === 'rendering' || agentStatus === 'critic' || agentStatus === 'performance') && (
+        {(agentStatus === 'strategy' ||
+          agentStatus === 'creative' ||
+          agentStatus === 'searching' ||
+          agentStatus === 'rendering' ||
+          agentStatus === 'critic' ||
+          agentStatus === 'performance') && (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-black text-purple-400 uppercase">Orchestration in progress</span>
@@ -594,47 +749,54 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
           {/* Horizontal Chips Bar */}
           <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1.5 pt-0.5">
-            {GRAPHIC_DESIGN_STYLE_LIST.filter(
-              (s) => activeCategory === 'all' || s.category === activeCategory
-            ).map((style) => {
-              const isSelected = selectedStyleId === style.id;
-              return (
-                <button
-                  key={style.id}
-                  onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
-                  title={`${style.name} (${style.era}): ${style.tagline}`}
-                  className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
-                    isSelected
-                      ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
-                      : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
-                  }`}
-                >
-                  <span className="text-xs">{style.icon}</span>
-                  <span>{style.name}</span>
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
-                    style={{ backgroundColor: style.palette.primary }}
-                  />
-                </button>
-              );
-            })}
+            {GRAPHIC_DESIGN_STYLE_LIST.filter((s) => activeCategory === 'all' || s.category === activeCategory).map(
+              (style) => {
+                const isSelected = selectedStyleId === style.id;
+                return (
+                  <button
+                    key={style.id}
+                    onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
+                    title={`${style.name} (${style.era}): ${style.tagline}`}
+                    className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
+                      isSelected
+                        ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
+                        : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
+                    }`}
+                  >
+                    <span className="text-xs">{style.icon}</span>
+                    <span>{style.name}</span>
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                      style={{ backgroundColor: style.palette.primary }}
+                    />
+                  </button>
+                );
+              }
+            )}
           </div>
 
           {/* Selected Style Indicator Pill */}
-          {selectedStyleId && (() => {
-            const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
-            if (!activeMeta) return null;
-            return (
-              <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
-                <span className="text-brand-300 font-bold truncate">
-                  Locked: <span className="text-white">{activeMeta.icon} {activeMeta.name}</span> — <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
-                </span>
-                <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
-                  {activeMeta.era}
-                </span>
-              </div>
-            );
-          })()}
+          {selectedStyleId &&
+            (() => {
+              const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
+              if (!activeMeta) {
+                return null;
+              }
+              return (
+                <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
+                  <span className="text-brand-300 font-bold truncate">
+                    Locked:{' '}
+                    <span className="text-white">
+                      {activeMeta.icon} {activeMeta.name}
+                    </span>{' '}
+                    — <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
+                  </span>
+                  <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
+                    {activeMeta.era}
+                  </span>
+                </div>
+              );
+            })()}
         </div>
 
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
@@ -673,7 +835,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               </button>
               <button
                 onClick={handleStartWorkflow}
-                disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
+                disabled={
+                  !input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')
+                }
                 aria-label="Start AI Design Workflow"
                 className="px-3 py-1.5 bg-gradient-to-br from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group text-[10px] font-bold gap-1.5"
               >

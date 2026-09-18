@@ -19,7 +19,7 @@ import { useTouchGestures } from '../hooks/useTouchGestures';
 import { useSelectionEngine } from '../hooks/useSelectionEngine';
 import { useSceneGraph } from '../hooks/useSceneGraph';
 import { Icons } from '../constants';
-import { PathEditorOverlay } from './VectorEditor/PathEditorOverlay';
+import { VectorDrawingOverlay } from './canvas/VectorDrawingOverlay';
 import { VectorPath } from '../types';
 import { VectorUtils } from '../utils/vectorUtils';
 import { generateLayerId } from '../utils/layers/layerUtils';
@@ -124,82 +124,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   );
   const sceneGraph = useSceneGraph(activeArtboardLayers);
 
-  const [activeVectorPath, setActiveVectorPath] = useState<VectorPath | null>(null);
-  const [selectedVectorPointIndices, setSelectedVectorPointIndices] = useState<number[]>([]);
-
-  useEffect(() => {
-    if (isDrawing && brushType === ('vector_pencil' as any)) {
-      if (!activeVectorPath) {
-        setActiveVectorPath({
-          points: [],
-          isClosed: false,
-        });
-      }
-    } else if (!isDrawing) {
-      if (activeVectorPath && activeVectorPath.points.length > 1) {
-        let minX = Infinity;
-        let minY = Infinity;
-        let maxX = -Infinity;
-        let maxY = -Infinity;
-        activeVectorPath.points.forEach((p) => {
-          minX = Math.min(minX, p.x);
-          minY = Math.min(minY, p.y);
-          maxX = Math.max(maxX, p.x);
-          maxY = Math.max(maxY, p.y);
-        });
-
-        if (minX !== Infinity) {
-          const width = Math.max(1, maxX - minX);
-          const height = Math.max(1, maxY - minY);
-          const shiftedPoints = activeVectorPath.points.map((p) => ({
-            ...p,
-            x: p.x - minX,
-            y: p.y - minY,
-          }));
-
-          const committedPath = { points: shiftedPoints, isClosed: activeVectorPath.isClosed };
-          const newLayer: ShapeLayer = {
-            id: generateLayerId('path'),
-            type: 'path',
-            name: 'Vector Path',
-            x: minX,
-            y: minY,
-            width,
-            height,
-            rotation: 0,
-            opacity: 1,
-            locked: false,
-            visible: true,
-            color: brushColor,
-            cornerRadius: 0,
-            viewBox: `0 0 ${width} ${height}`,
-            vectorPath: committedPath,
-            pathData: VectorUtils.serializePath(committedPath),
-            filters: {
-              brightness: 100,
-              contrast: 100,
-              saturation: 100,
-              grayscale: 0,
-              sepia: 0,
-              blur: 0,
-              hueRotate: 0,
-              vignette: 0,
-              opacity: 1,
-            },
-            blendMode: 'normal',
-            skewX: 0,
-            skewY: 0,
-            perspective: 0,
-            rotateX: 0,
-            rotateY: 0,
-          };
-          useStore.getState().addLayer(newLayer);
-        }
-      }
-      setActiveVectorPath(null);
-    }
-  }, [isDrawing, brushType]);
-
   const activeArtboard = useMemo(
     () => artboards.find((a) => a.id === activeArtboardId) || artboards[0],
     [artboards, activeArtboardId]
@@ -216,17 +140,16 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
     for (let i = 0; i < artboards.length; i++) {
       const layers = artboards[i].layers;
-      if (!layers) continue;
+      if (!layers) {
+        continue;
+      }
       for (let j = 0; j < layers.length; j++) {
         const layer = layers[j];
         newLayers.push(layer);
 
         // If we haven't already found a difference, check this layer
         if (!isDifferent) {
-          if (
-            prevIndex >= allLayersRef.current.length ||
-            allLayersRef.current[prevIndex].id !== layer.id
-          ) {
+          if (prevIndex >= allLayersRef.current.length || allLayersRef.current[prevIndex].id !== layer.id) {
             isDifferent = true;
           }
         }
@@ -265,14 +188,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     updateSize();
 
     // Use ResizeObserver on the viewport element (detects sidebar toggle, panel resize)
-    const observer = new ResizeObserver(updateSize);
-    if (viewportRef.current) {
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(updateSize) : null;
+    if (observer && viewportRef.current) {
       observer.observe(viewportRef.current);
     }
     // Fallback for window resize
     window.addEventListener('resize', updateSize);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       window.removeEventListener('resize', updateSize);
     };
   }, []);
@@ -464,7 +387,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           const estimatedWidth = Math.max(60, Math.round(newText.length * (fontSize * 0.6)));
           const updates: Partial<TextLayer> = {
             text: newText,
-            width: currentLayer.groupId ? estimatedWidth : (currentLayer.width || estimatedWidth),
+            width: currentLayer.groupId ? estimatedWidth : currentLayer.width || estimatedWidth,
             name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
           };
           onUpdateLayers?.({ [editingTextId]: updates });
@@ -527,11 +450,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   const onAddArtboard = useCallback(() => useStore.getState().addArtboard(), []);
   const onDeleteArtboard = useCallback((id: string) => useStore.getState().deleteArtboard(id), []);
 
-  const handleUpdateVectorPath = useCallback(
-    (newPath: any) => setActiveVectorPath(newPath as VectorPath),
-    [setActiveVectorPath]
-  );
-  const handleClosePenMode = useCallback(() => setPenMode(false), [setPenMode]);
+  const handleClosePenMode = useCallback(() => {
+    setPenMode(false);
+  }, [setPenMode]);
 
   // Drag & drop onto the canvas: OS files and Media Library thumbnails (text/plain URLs)
   const handleCanvasDragOver = useCallback((e: React.DragEvent) => {
@@ -761,6 +682,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               <CanvasGuides
                 snapLines={snapLines}
                 guides={guides}
+                zoom={zoom}
                 artboardWidth={activeArtboard?.width || canvasSize.width}
                 artboardHeight={activeArtboard?.height || canvasSize.height}
                 onUpdateGuide={updateGuide}
@@ -789,28 +711,6 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             />
           )}
         </div>
-
-        {/* PathEditorOverlay is rendered OUTSIDE the zoom transform — coordinates are computed manually */}
-        {isDrawing && brushType === 'vector_pencil' && activeVectorPath && (
-          <div
-            className="absolute inset-0 z-modal pointer-events-none"
-            style={{
-              transform: `translate(var(--pan-x, ${panOffset.x}px), var(--pan-y, ${panOffset.y}px)) scale(var(--zoom, ${zoom}))`,
-              transformOrigin: '0 0',
-            }}
-          >
-            <PathEditorOverlay
-              path={activeVectorPath}
-              zoom={zoom}
-              onUpdate={handleUpdateVectorPath}
-              onSelectPoint={setSelectedVectorPointIndices}
-              selectedPointIndices={selectedVectorPointIndices}
-              onClose={handleClosePenMode}
-            />
-          </div>
-        )}
-        {/* Centralized stable SVG filters */}
-        <BrushFilters />
       </div>
     </ErrorBoundary>
   );
