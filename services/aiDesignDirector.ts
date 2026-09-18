@@ -4,7 +4,7 @@ import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
 import { v4 as uuidv4 } from 'uuid';
 import { polishDesignOutput } from '../utils/designPolish';
-import { buildCompositionForArchetype } from './designCompositionEngine';
+import { buildCompositionForArchetype, buildSemanticHybridComposition } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
 import { recommendPairingForStyle } from './typographyPairingEngine';
@@ -2859,7 +2859,12 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
     if (movement) {
       return polishDesignOutput(buildCompositionByStyleId(movement, width, height, prompt));
     }
-    return polishDesignOutput(buildCompositionForArchetype(archetype, width, height, prompt));
+    try {
+      const hybridComp = await buildSemanticHybridComposition({ prompt, width, height, archetype });
+      return polishDesignOutput(hybridComp);
+    } catch {
+      return polishDesignOutput(buildCompositionForArchetype(archetype, width, height, prompt));
+    }
   } catch (compErr) {
     log.warn('[aiDesignDirector] Photographic composition failed, falling back to shape archetype', compErr);
     const fallbackFn = FALLBACK_ARCHETYPES[archetype] || FALLBACK_ARCHETYPES.editorial;

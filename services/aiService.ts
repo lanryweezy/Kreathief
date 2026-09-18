@@ -19,6 +19,7 @@ import { classifyDesignIntent, FALLBACK_ARCHETYPES } from './aiDesignDirector';
 import { polishDesignOutput } from '../utils/designPolish';
 import {
   buildHeroSplitComposition,
+  buildSemanticHybridCompositionSync,
   buildFullBleedAtmosphericComposition,
   buildGlassCardComposition,
   ARCHETYPE_SPECS,
@@ -733,16 +734,16 @@ export function generateProceduralDrafts(
   const frameworks = [
     {
       build: (arch: string) =>
-        buildHeroSplitComposition({
+        buildSemanticHybridCompositionSync({
           archetype: arch,
           width: canvasSize.width,
           height: canvasSize.height,
           prompt: intent,
           brandKit,
         }),
-      styleName: '50/50 Hero Split',
+      styleName: 'Hybrid Hero + Vector Copy',
       rationale:
-        'Dual-zone balanced editorial layout with high-definition hero photography, category pill, and elevated CTA.',
+        'Modern high-impact composition pairing an isolated hero visual with crisp semantic typography, atmospheric glow, and 16-point burst badge.',
     },
     {
       build: (arch: string) =>

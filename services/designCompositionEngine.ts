@@ -10,6 +10,9 @@ import { ArtboardDesignResult } from './aiDesignDirector';
 import { resolveHeroPhoto } from './visualAssetDirector';
 import { estimateTextDimensions } from '../utils/designPolish';
 import { v4 as uuidv4 } from 'uuid';
+import { recommendPairingForStyle } from './typographyPairingEngine';
+import { buildSemanticHybridCompositionSync, buildSemanticHybridComposition } from './semanticCompositionEngine';
+export { buildSemanticHybridComposition, buildSemanticHybridCompositionSync } from './semanticCompositionEngine';
 
 export interface CompositionOptions {
   archetype: string;
@@ -52,7 +55,10 @@ export const ARCHETYPE_SUBHEADS: Record<string, string> = {
 };
 
 // Color palettes for composition styling
-const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDark: string; bgLight: string; textMuted: string }> = {
+const ARCHETYPE_PALETTES: Record<
+  string,
+  { primary: string; accent: string; bgDark: string; bgLight: string; textMuted: string }
+> = {
   fitness: { primary: '#ff3344', accent: '#a3ff12', bgDark: '#0b0b14', bgLight: '#181829', textMuted: '#94a3b8' },
   realEstate: { primary: '#c8a87c', accent: '#3b82f6', bgDark: '#1a3c34', bgLight: '#f5f0eb', textMuted: '#a3b899' },
   fashion: { primary: '#ffffff', accent: '#ff2d55', bgDark: '#09090b', bgLight: '#18181b', textMuted: '#71717a' },
@@ -74,10 +80,11 @@ const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDa
  */
 export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
-  
+
   let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
-  let fontHeading = 'Outfit';
-  let fontBody = 'Inter';
+  const pairing = recommendPairingForStyle(archetype);
+  let fontHeading = pairing.heading || 'Outfit';
+  let fontBody = pairing.body || 'Inter';
 
   if (brandKit) {
     pal = {
@@ -87,8 +94,12 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       bgLight: brandKit.colors[3] || pal.bgLight,
       textMuted: brandKit.colors[1] || pal.textMuted,
     };
-    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
-    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+    if (brandKit.fonts.length > 0) {
+      fontHeading = brandKit.fonts[0];
+    }
+    if (brandKit.fonts.length > 1) {
+      fontBody = brandKit.fonts[1];
+    }
   }
 
   const photo = resolveHeroPhoto(archetype, prompt);
@@ -174,13 +185,13 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       const hlText = prompt.toUpperCase().slice(0, 32) || 'ELEVATE YOUR STANDARD';
       const hlFontSize = Math.max(28, Math.round(width * 0.062));
       const hlWidth = isLandscape ? width * 0.4 : width * 0.84;
-      
+
       const subText = ARCHETYPE_SUBHEADS[archetype] || ARCHETYPE_SUBHEADS.editorial;
       const subFontSize = Math.max(13, Math.round(width * 0.024));
-      
+
       const stackGroupId = `group_stack_${uuidv4().slice(0, 8)}`;
       const btnGroupId = `group_btn_${uuidv4().slice(0, 8)}`;
-      
+
       return [
         {
           id: stackGroupId,
@@ -189,7 +200,7 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           x: width * 0.08,
           y: isLandscape ? height * 0.14 : height * 0.54,
           width: hlWidth, // It will hug height automatically
-          height: 200, 
+          height: 200,
           rotation: 0,
           opacity: 1,
           color: 'transparent',
@@ -201,8 +212,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
             padding: 0,
             spacing: 16,
             alignment: 'start',
-            sizing: { width: 'fixed', height: 'hug' }
-          }
+            sizing: { width: 'fixed', height: 'hug' },
+          },
         } as any,
         {
           id: `pill_${uuidv4().slice(0, 8)}`,
@@ -226,8 +237,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
             padding: { top: 6, right: 16, bottom: 6, left: 16 },
             spacing: 0,
             alignment: 'center',
-            sizing: { width: 'hug', height: 'hug' }
-          }
+            sizing: { width: 'hug', height: 'hug' },
+          },
         } as any,
         {
           id: `pill_text_${uuidv4().slice(0, 8)}`,
@@ -274,8 +285,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           locked: false,
           visible: true,
           autoLayout: {
-            sizing: { width: 'fill', height: 'hug' }
-          }
+            sizing: { width: 'fill', height: 'hug' },
+          },
         } as any,
         {
           id: `sub_${uuidv4().slice(0, 8)}`,
@@ -298,8 +309,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           locked: false,
           visible: true,
           autoLayout: {
-            sizing: { width: 'fill', height: 'hug' }
-          }
+            sizing: { width: 'fill', height: 'hug' },
+          },
         } as any,
         {
           id: btnGroupId,
@@ -323,8 +334,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
             padding: { top: 14, right: 32, bottom: 14, left: 32 },
             spacing: 0,
             alignment: 'center',
-            sizing: { width: 'hug', height: 'hug' }
-          }
+            sizing: { width: 'hug', height: 'hug' },
+          },
         } as any,
         {
           id: `cta_text_${uuidv4().slice(0, 8)}`,
@@ -353,10 +364,10 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
   ];
 
   // Fix pill text reference
-  const pillIdx = layers.findIndex(l => l.name === 'Category Pill');
+  const pillIdx = layers.findIndex((l) => l.name === 'Category Pill');
   if (pillIdx > -1) {
     const pillId = layers[pillIdx].id;
-    const pillTextIdx = layers.findIndex(l => l.name === 'Category Pill Text');
+    const pillTextIdx = layers.findIndex((l) => l.name === 'Category Pill Text');
     if (pillTextIdx > -1) {
       layers[pillTextIdx].groupId = pillId;
     }
@@ -387,10 +398,11 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
  */
 export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
-  
+
   let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
-  let fontHeading = 'Space Grotesk';
-  let fontBody = 'Inter';
+  const pairing = recommendPairingForStyle(archetype);
+  let fontHeading = pairing.heading || 'Space Grotesk';
+  let fontBody = pairing.body || 'Inter';
 
   if (brandKit) {
     pal = {
@@ -400,8 +412,12 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       bgLight: brandKit.colors[3] || pal.bgLight,
       textMuted: brandKit.colors[1] || pal.textMuted,
     };
-    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
-    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+    if (brandKit.fonts.length > 0) {
+      fontHeading = brandKit.fonts[0];
+    }
+    if (brandKit.fonts.length > 1) {
+      fontBody = brandKit.fonts[1];
+    }
   }
 
   const photo = resolveHeroPhoto(archetype, prompt);
@@ -481,7 +497,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       height: 22,
       fontSize: Math.max(11, Math.round(width * 0.022)),
       fontWeight: '900',
-      fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+      fontFamily: typeof fontHeading !== 'undefined' ? fontHeading : 'Outfit',
       color: '#090812',
       letterSpacing: 2,
       textAlign: 'center',
@@ -504,7 +520,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       height: 24,
       fontSize: Math.max(12, Math.round(width * 0.024)),
       fontWeight: '800',
-      fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+      fontFamily: typeof fontBody !== 'undefined' ? fontBody : 'Inter',
       color: pal.primary,
       letterSpacing: 4,
       textAlign: 'left',
@@ -524,9 +540,11 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
       const hlY = isLandscape ? height * 0.22 : height * 0.51;
       const hlHeight = hlEst.height;
 
-      const subText = ARCHETYPE_SUBHEADS[archetype] || 'Experience visionary production, immersive audio, and unforgettable creative atmosphere.';
+      const subText =
+        ARCHETYPE_SUBHEADS[archetype] ||
+        'Experience visionary production, immersive audio, and unforgettable creative atmosphere.';
       const subFontSize = Math.max(13, Math.round(width * 0.025));
-      const subWidth = isLandscape ? width * 0.40 : width * 0.70;
+      const subWidth = isLandscape ? width * 0.4 : width * 0.7;
       const subEst = estimateTextDimensions(subText, subFontSize, subWidth, 1.35);
       const subY = hlY + hlHeight + 14;
       const subHeight = subEst.height;
@@ -547,7 +565,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
           height: hlHeight,
           fontSize: hlFontSize,
           fontWeight: '900',
-          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          fontFamily: typeof fontHeading !== 'undefined' ? fontHeading : 'Outfit',
           color: '#ffffff',
           letterSpacing: -1,
           lineHeight: 1.05,
@@ -570,7 +588,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
           height: subHeight,
           fontSize: subFontSize,
           fontWeight: '500',
-          fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+          fontFamily: typeof fontBody !== 'undefined' ? fontBody : 'Inter',
           color: '#e2e8f0',
           lineHeight: 1.35,
           textAlign: 'left',
@@ -607,7 +625,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
           height: 20,
           fontSize: Math.max(12, Math.round(width * 0.024)),
           fontWeight: '800',
-          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          fontFamily: typeof fontHeading !== 'undefined' ? fontHeading : 'Outfit',
           color: '#ffffff',
           letterSpacing: 1.5,
           textAlign: 'center',
@@ -637,10 +655,11 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
  */
 export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
-  
+
   let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.saas;
-  let fontHeading = 'Outfit';
-  let fontBody = 'Inter';
+  const pairing = recommendPairingForStyle(archetype);
+  let fontHeading = pairing.heading || 'Outfit';
+  let fontBody = pairing.body || 'Inter';
 
   if (brandKit) {
     pal = {
@@ -650,8 +669,12 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
       bgLight: brandKit.colors[3] || pal.bgLight,
       textMuted: brandKit.colors[1] || pal.textMuted,
     };
-    if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
-    if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
+    if (brandKit.fonts.length > 0) {
+      fontHeading = brandKit.fonts[0];
+    }
+    if (brandKit.fonts.length > 1) {
+      fontBody = brandKit.fonts[1];
+    }
   }
 
   const photo = resolveHeroPhoto(archetype, prompt);
@@ -748,7 +771,7 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
       height: 22,
       fontSize: Math.max(11, Math.round(width * 0.022)),
       fontWeight: '700',
-      fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+      fontFamily: typeof fontBody !== 'undefined' ? fontBody : 'Inter',
       color: pal.primary,
       letterSpacing: 3,
       textAlign: 'left',
@@ -811,7 +834,7 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
           height: specsHeight,
           fontSize: specsFontSize,
           fontWeight: '500',
-          fontFamily: typeof fontBody !== "undefined" ? fontBody : "Inter",
+          fontFamily: typeof fontBody !== 'undefined' ? fontBody : 'Inter',
           color: pal.textMuted,
           textAlign: 'left',
           rotation: 0,
@@ -847,7 +870,7 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
           height: 18,
           fontSize: Math.max(11, Math.round(width * 0.022)),
           fontWeight: '800',
-          fontFamily: typeof fontHeading !== "undefined" ? fontHeading : "Outfit",
+          fontFamily: typeof fontHeading !== 'undefined' ? fontHeading : 'Outfit',
           color: '#090812',
           letterSpacing: 1.5,
           textAlign: 'center',
@@ -872,6 +895,175 @@ export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDes
 }
 
 /**
+ * Composition Style 4: Avant-Garde / Elite Design
+ * Implements the critique engine's elite rules:
+ * - High-contrast monochromatic or solid backgrounds
+ * - Extreme typography scale (massive background text + tiny microcopy)
+ * - Asymmetrical grid-breaking placement
+ * - Overlapping elements with dynamic rotation
+ */
+export function buildAvantGardeComposition(opts: CompositionOptions): ArtboardDesignResult {
+  const { width, height, prompt, archetype, brandKit } = opts;
+
+  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.editorial;
+  let fontHeading = 'Space Grotesk';
+  let fontBody = 'Inter';
+
+  if (brandKit) {
+    pal = {
+      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
+      accent: brandKit.colors[1] || pal.accent,
+      bgDark: brandKit.colors[0] || pal.bgDark,
+      bgLight: brandKit.colors[3] || pal.bgLight,
+      textMuted: brandKit.colors[1] || pal.textMuted,
+    };
+    if (brandKit.fonts.length > 0) {
+      fontHeading = brandKit.fonts[0];
+    }
+    if (brandKit.fonts.length > 1) {
+      fontBody = brandKit.fonts[1];
+    }
+  }
+
+  const photo = resolveHeroPhoto(archetype, prompt);
+  const isLandscape = width >= height;
+
+  const headline = prompt.toUpperCase().slice(0, 20) || 'RADICAL SHIFT';
+  const massiveTextSize = Math.max(120, Math.round(width * 0.25));
+
+  const layers: Layer[] = [
+    // 1. Solid High-Contrast Background
+    {
+      id: `bg_${uuidv4().slice(0, 8)}`,
+      type: 'rectangle',
+      name: 'Solid Base',
+      x: 0,
+      y: 0,
+      width,
+      height,
+      color: pal.bgDark,
+      fill: pal.bgDark,
+      opacity: 1,
+      locked: true,
+      visible: true,
+      rotation: 0,
+    } as any,
+
+    // 2. Massive Background Typography Bleeding Off-Edge
+    {
+      id: `bg_text_${uuidv4().slice(0, 8)}`,
+      type: 'text',
+      name: 'Macro Typography',
+      text: headline,
+      x: -width * 0.1,
+      y: height * 0.15,
+      width: width * 1.5,
+      height: massiveTextSize * 1.2,
+      fontSize: massiveTextSize,
+      fontWeight: '900',
+      fontFamily: fontHeading,
+      color: pal.accent,
+      textAlign: 'left',
+      letterSpacing: -0.05 * massiveTextSize,
+      lineHeight: 0.85,
+      rotation: 0,
+      opacity: 0.1,
+      locked: false,
+      visible: true,
+    } as any,
+
+    // 3. Grid-Breaking Image placement
+    {
+      id: `hero_img_${uuidv4().slice(0, 8)}`,
+      type: 'image',
+      name: `Focal Photo — ${photo.alt}`,
+      src: photo.url,
+      x: isLandscape ? width * 0.45 : width * 0.15,
+      y: isLandscape ? height * 0.2 : height * 0.35,
+      width: isLandscape ? width * 0.45 : width * 0.85,
+      height: isLandscape ? height * 0.9 : height * 0.55,
+      rotation: -3,
+      opacity: 1,
+      cornerRadius: 0, // Brutalist sharp edges
+      shadow: { color: 'rgba(0, 0, 0, 0.8)', blur: 40, offsetX: 20, offsetY: 20 },
+      locked: false,
+      visible: true,
+    } as any,
+
+    // 4. Overlapping Main Headline
+    {
+      id: `headline_${uuidv4().slice(0, 8)}`,
+      type: 'text',
+      name: 'Main Headline',
+      text: headline,
+      x: width * 0.05,
+      y: height * 0.4,
+      width: width * 0.8,
+      height: massiveTextSize * 0.8,
+      fontSize: massiveTextSize * 0.6,
+      fontWeight: '900',
+      fontFamily: fontHeading,
+      color: pal.primary,
+      textAlign: 'left',
+      letterSpacing: -2,
+      lineHeight: 0.9,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+    } as any,
+
+    // 5. Tiny Tracking-Heavy Microcopy (Tension!)
+    {
+      id: `micro_${uuidv4().slice(0, 8)}`,
+      type: 'text',
+      name: 'Tracking-Heavy Microcopy',
+      text: (ARCHETYPE_SPECS[archetype] || 'VISIONARY · ELITE · AVANT-GARDE').toUpperCase(),
+      x: width * 0.05,
+      y: height * 0.35,
+      width: width * 0.6,
+      height: 24,
+      fontSize: Math.max(10, Math.round(width * 0.015)),
+      fontWeight: '700',
+      fontFamily: fontBody,
+      color: pal.accent,
+      textAlign: 'left',
+      letterSpacing: 8,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+    } as any,
+
+    // 6. Asymmetrical Accent Graphic
+    {
+      id: `accent_${uuidv4().slice(0, 8)}`,
+      type: 'rectangle',
+      name: 'Grid Breaker Block',
+      x: width * 0.85,
+      y: height * 0.1,
+      width: width * 0.2,
+      height: 12,
+      color: pal.accent,
+      fill: pal.accent,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+    } as any,
+  ];
+
+  return {
+    title: `${headline} (Avant-Garde)`,
+    description: `Elite high-tension composition breaking the grid with massive typographic contrast.`,
+    width,
+    height,
+    backgroundColor: pal.bgDark,
+    layers,
+  };
+}
+
+/**
  * Intelligent Composition Selector
  * Routes semantic archetypes to their optimal visual layout framework
  */
@@ -880,8 +1072,11 @@ export function buildCompositionForArchetype(
   width: number,
   height: number,
   prompt: string,
-  stylePreference?: 'heroSplit' | 'fullBleed' | 'glassCard'
+  stylePreference?: 'heroSplit' | 'fullBleed' | 'glassCard' | 'avantGarde' | 'semanticHybrid'
 ): ArtboardDesignResult {
+  if (stylePreference === 'semanticHybrid') {
+    return buildSemanticHybridCompositionSync({ archetype, width, height, prompt });
+  }
   if (stylePreference === 'heroSplit') {
     return buildHeroSplitComposition({ archetype, width, height, prompt });
   }
@@ -891,17 +1086,32 @@ export function buildCompositionForArchetype(
   if (stylePreference === 'glassCard') {
     return buildGlassCardComposition({ archetype, width, height, prompt });
   }
+  if (stylePreference === 'avantGarde') {
+    return buildAvantGardeComposition({ archetype, width, height, prompt });
+  }
 
   // Curated style mappings matching each category's strongest visual format
+  const hybridArchetypes = ['saas', 'ecommerce', 'fitness'];
   const glassArchetypes = ['luxury', 'realEstate', 'editorial'];
-  const fullBleedArchetypes = ['event', 'cyberpunk', 'food', 'fashion'];
+  const fullBleedArchetypes = ['food', 'fashion'];
+  const avantGardeArchetypes = ['event', 'cyberpunk', 'abstract', 'modern', 'tech'];
+
+  if (hybridArchetypes.includes(archetype)) {
+    return buildSemanticHybridCompositionSync({ archetype, width, height, prompt });
+  }
 
   if (glassArchetypes.includes(archetype)) {
     return buildGlassCardComposition({ archetype, width, height, prompt });
   }
+
+  if (avantGardeArchetypes.includes(archetype)) {
+    return buildAvantGardeComposition({ archetype, width, height, prompt });
+  }
+
   if (fullBleedArchetypes.includes(archetype)) {
     return buildFullBleedAtmosphericComposition({ archetype, width, height, prompt });
   }
-  return buildHeroSplitComposition({ archetype, width, height, prompt });
-}
 
+  // Default fallback: Semantic Hybrid for modern high-converting layouts
+  return buildSemanticHybridCompositionSync({ archetype, width, height, prompt });
+}
