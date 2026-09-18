@@ -40,10 +40,18 @@ describe('AI Robustness & Procedural Fallbacks', () => {
 
   it('should generate category-specific color palettes and copy in procedural drafts', () => {
     const coffeeDrafts = generateProceduralDrafts('Artisan Espresso Cafe', { width: 1080, height: 1080 });
-    expect(coffeeDrafts[0].layers.some((l: any) => l.text?.includes('ROAST') || l.text?.includes('Espresso') || l.name?.includes('Card'))).toBe(true);
+    expect(
+      coffeeDrafts[0].layers.some(
+        (l: any) => l.text?.includes('ROAST') || l.text?.includes('Espresso') || l.name?.includes('Card')
+      )
+    ).toBe(true);
 
     const techDrafts = generateProceduralDrafts('SaaS AI Platform', { width: 1080, height: 1080 });
-    expect(techDrafts[0].layers.some((l: any) => l.text?.includes('AI-POWERED') || l.text?.includes('Platform') || l.name?.includes('Card'))).toBe(true);
+    expect(
+      techDrafts[0].layers.some(
+        (l: any) => l.text?.includes('AI-POWERED') || l.text?.includes('Platform') || l.name?.includes('Card')
+      )
+    ).toBe(true);
   });
 
   it('should generate high quality SVG procedural artwork when cloud image APIs fail', async () => {
@@ -95,5 +103,45 @@ describe('AI Robustness & Procedural Fallbacks', () => {
     expect(theme.backgroundColor).toBeTruthy();
     expect(theme.primaryColor).toBeTruthy();
     expect(theme.headingFont).toBeTruthy();
+  });
+
+  it('should validate and auto-repair malformed AI multi-layer design JSON using Zod', async () => {
+    const { MultiLayerDesignSchema } = await import('../../services/aiDesignDirector');
+
+    const malformedJson = {
+      // Missing title and backgroundColor
+      layers: [
+        {
+          type: 'text',
+          name: 'Headline',
+          x: '150', // string number
+          y: '220', // string number
+          width: '800',
+          height: '120',
+          text: 'Autonomous AI Design',
+          fontSize: '48',
+        },
+        {
+          type: 'rect',
+          name: 'Badge',
+          x: 40,
+          y: 40,
+          width: 160,
+          height: 36,
+          color: '#3b82f6',
+        },
+      ],
+    };
+
+    const parsed = MultiLayerDesignSchema.safeParse(malformedJson);
+    expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.title).toBe('AI Generated Artboard');
+      expect(parsed.data.backgroundColor).toBe('#0f172a');
+      expect(parsed.data.layers[0].x).toBe(150);
+      expect(typeof parsed.data.layers[0].x).toBe('number');
+      expect(parsed.data.layers[0].fontSize).toBe(48);
+      expect(typeof parsed.data.layers[0].fontSize).toBe('number');
+    }
   });
 });

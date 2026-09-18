@@ -3,6 +3,53 @@ import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
+
+export const MultiLayerDesignSchema = z.object({
+  title: z.string().catch('AI Generated Artboard'),
+  description: z.string().catch(''),
+  backgroundColor: z.string().catch('#0f172a'),
+  backgroundGradient: z
+    .object({
+      type: z.enum(['linear', 'radial']).catch('linear'),
+      angle: z.coerce.number().catch(135),
+      colors: z.array(z.object({ color: z.string(), position: z.coerce.number() })).catch([]),
+    })
+    .optional(),
+  layers: z
+    .array(
+      z.object({
+        type: z.string().catch('rect'),
+        name: z.string().optional(),
+        x: z.coerce.number().catch(0),
+        y: z.coerce.number().catch(0),
+        width: z.coerce.number().catch(100),
+        height: z.coerce.number().catch(100),
+        rotation: z.coerce.number().catch(0),
+        opacity: z.coerce.number().catch(1),
+        color: z.string().optional(),
+        cornerRadius: z.any().optional(),
+        gradient: z.any().optional(),
+        stroke: z.any().optional(),
+        shadow: z.any().optional(),
+        blendMode: z.any().optional(),
+        pathData: z.string().optional(),
+        viewBox: z.string().optional(),
+        src: z.string().optional(),
+        strokeDasharray: z.string().optional(),
+        text: z.any().optional(),
+        fontSize: z.coerce.number().optional(),
+        fontWeight: z.any().optional(),
+        fontFamily: z.string().optional(),
+        textAlign: z.any().optional(),
+        letterSpacing: z.coerce.number().optional(),
+        lineHeight: z.coerce.number().optional(),
+        textTransform: z.any().optional(),
+        textShadow: z.any().optional(),
+      })
+    )
+    .catch([]),
+});
 import { polishDesignOutput } from '../utils/designPolish';
 import { buildCompositionForArchetype, buildSemanticHybridComposition } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
@@ -2755,7 +2802,9 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
     }
 
     const parsed = safeParseJSON<any>(rawText, null);
-    if (parsed && Array.isArray(parsed.layers) && parsed.layers.length > 0) {
+    const validated = parsed ? MultiLayerDesignSchema.safeParse(parsed) : null;
+    const finalDesign = validated && validated.success ? validated.data : parsed;
+    if (finalDesign && Array.isArray(finalDesign.layers) && finalDesign.layers.length > 0) {
       const validShapes = new Set([
         'rect',
         'ellipse',
@@ -2772,7 +2821,7 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
         'path',
       ]);
 
-      const sanitizedLayers: Layer[] = parsed.layers.map((l: any, i: number) => {
+      const sanitizedLayers: Layer[] = finalDesign.layers.map((l: any, i: number) => {
         const id = `${l.type || 'layer'}_${uuidv4().slice(0, 8)}`;
         const base = {
           id,
@@ -2838,12 +2887,12 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       });
 
       return polishDesignOutput({
-        title: parsed.title || 'AI Generated Artboard',
-        description: parsed.description || prompt,
+        title: finalDesign.title || 'AI Generated Artboard',
+        description: finalDesign.description || prompt,
         width,
         height,
-        backgroundColor: parsed.backgroundColor || '#0f172a',
-        backgroundGradient: parsed.backgroundGradient,
+        backgroundColor: finalDesign.backgroundColor || '#0f172a',
+        backgroundGradient: finalDesign.backgroundGradient,
         layers: sanitizedLayers,
       });
     }
