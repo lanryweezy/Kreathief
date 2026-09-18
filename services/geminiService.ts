@@ -275,10 +275,15 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
 
 export const generateText = async (
   currentText: string,
-  instruction: string = 'Rewrite this to be more creative and catchy.'
+  instruction: string = 'Rewrite this to be more creative and catchy.',
+  systemPromptOverride?: string
 ): Promise<string> => {
   try {
-    const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text.`;
+    const sanitizedText = currentText.trim().substring(0, 1000);
+    const sanitizedInstruction = instruction.trim().substring(0, 1000);
+    const systemInstruction = systemPromptOverride
+      ? systemPromptOverride
+      : `You are a creative copywriter.\nMaintain the original language. Keep it concise. Return ONLY the rewritten text.`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
@@ -292,7 +297,7 @@ export const generateText = async (
       contents: [
         {
           role: 'user',
-          parts: [{ text: `Input Text: "${currentText}"\n\nOutput:` }],
+          parts: [{ text: `Instruction: ${sanitizedInstruction}\n\nInput Text: "${sanitizedText}"\n\nOutput:` }],
         },
       ],
       systemInstruction: systemInstruction,

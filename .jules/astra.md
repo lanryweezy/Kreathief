@@ -133,3 +133,7 @@
 
 **Learning:** Omitting `responseSchema` on complex nested LLM generations (like generating multi-layer structured artboards in `aiDesignDirector.ts`) causes unpredictable property omissions and format variations that lead to mapping failures. Additionally, interpolating raw `prompt` directly into the payload poses injection risks.
 **Action:** Always provide a fully populated `responseSchema` (using `SchemaType.OBJECT`) alongside `responseMimeType: 'application/json'` that matches the expected interface for complex output, and sanitize user prompts using `.trim().substring(0, 1000)` before use.
+
+## 2026-09-10 - Parameterize system instructions in generic text helpers
+**Learning:** Hardcoding `systemInstruction` with a specific persona (like "creative copywriter") in a generic helper like `generateText` forces callers (e.g., Tone Rewrite, Font Pairing) to concatenate their own personas into the `instruction` payload, leading to context confusion and poor model adherence to the intended task.
+**Action:** When creating generic AI text generation helpers, allow an optional `systemInstruction` override parameter, and ensure raw user inputs (like text and instructions) are sanitized and placed exclusively in the `contents` array, separate from system rules.

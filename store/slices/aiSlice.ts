@@ -126,7 +126,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
   applyPresetStyleReference: (presetId) => {
     const preset = CURATED_STYLE_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {return;}
     const ref = presetToStyleReference(preset);
     ref.strength = get().referenceStrength;
     set({ styleReference: ref });
@@ -541,7 +541,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     const { updateLayer, artboards, activeArtboardId } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {return;}
 
     set({ isGenerating: true });
     try {
@@ -553,8 +553,8 @@ If the instruction involves "African Context", "Nigerian Context", or "Localized
 
 Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
 
-      const fullInstruction = `System: ${systemPrompt}\n\nInstruction: ${instruction}`;
-      const response = await geminiService.generateText(currentText, fullInstruction);
+
+      const response = await geminiService.generateText(currentText, instruction, systemPrompt);
       
       updateLayer(id, { text: response.trim() });
       get().addToast?.('Magic Rewrite applied!', 'success');
@@ -570,7 +570,7 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
     const { updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {return;}
 
     set({ isGenerating: true });
     try {
@@ -583,8 +583,8 @@ Choose ONLY ONE from this curated list of premium Google Fonts:
 
 Return ONLY the exact font name. Nothing else.`;
 
-      const fullInstruction = `${systemPrompt}\n\nInstruction: Suggest a font for this text`;
-      const suggestedFont = await geminiService.generateText(currentText, fullInstruction);
+
+      const suggestedFont = await geminiService.generateText(currentText, 'Suggest a font for this text', systemPrompt);
       const cleanFont = suggestedFont.replace(/["']/g, '').trim();
       
       saveToHistory?.();
