@@ -26,7 +26,6 @@ import {
 } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GRAPHIC_DESIGN_STYLES } from './graphicDesignStyles';
 
-
 // ─── Cache ───────────────────────────────────────────────────────────────────
 
 const _cache = new Map<string, { data: any; timestamp: number }>();
@@ -348,25 +347,39 @@ Return ONLY JSON array of 3 objects with these keys.`;
       // Inject AI-generated copy into the 3 composition frameworks
       const enriched = proceduralVariants.map((variant, idx) => {
         const copy = parsedCopy[idx];
-        if (!copy) return variant;
+        if (!copy) {
+          return variant;
+        }
 
         const assignedHeadline = (copy.headline || '').trim();
 
         // Helper: word-level similarity — returns true if ≥60% of subtitle words appear in headline
         const isTooSimilar = (sub: string, head: string): boolean => {
-          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+          const normalize = (s: string) =>
+            s
+              .toLowerCase()
+              .replace(/[^a-z0-9\s]/g, '')
+              .trim();
           const cleanSub2 = normalize(sub).replace(/[^a-z0-9]/g, '');
           const cleanHead2 = normalize(head).replace(/[^a-z0-9]/g, '');
-          if (cleanSub2 === cleanHead2) return true;
-          const subWords = normalize(sub).split(/\s+/).filter(w => w.length > 2);
+          if (cleanSub2 === cleanHead2) {
+            return true;
+          }
+          const subWords = normalize(sub)
+            .split(/\s+/)
+            .filter((w) => w.length > 2);
           const headWords = new Set(normalize(head).split(/\s+/));
-          if (subWords.length === 0) return false;
-          const overlap = subWords.filter(w => headWords.has(w)).length;
+          if (subWords.length === 0) {
+            return false;
+          }
+          const overlap = subWords.filter((w) => headWords.has(w)).length;
           return overlap / subWords.length >= 0.6;
         };
 
         const updatedLayers = variant.layers.map((layer) => {
-          if (layer.type !== 'text') return layer;
+          if (layer.type !== 'text') {
+            return layer;
+          }
           const name = (layer.name || '').toLowerCase();
           let newText = (layer as any).text;
 
@@ -380,9 +393,16 @@ Return ONLY JSON array of 3 objects with these keys.`;
             if (rawSub && rawSub.length > 5 && !isTooSimilar(rawSub, assignedHeadline)) {
               newText = rawSub;
             } else {
-              newText = ARCHETYPE_SUBHEADS[primaryArch] || 'Engineered with relentless precision, authentic materials, and uncompromising aesthetic clarity.';
+              newText =
+                ARCHETYPE_SUBHEADS[primaryArch] ||
+                'Engineered with relentless precision, authentic materials, and uncompromising aesthetic clarity.';
             }
-          } else if (name.includes('metric') || name.includes('spec') || name.includes('rating') || name.includes('stat')) {
+          } else if (
+            name.includes('metric') ||
+            name.includes('spec') ||
+            name.includes('rating') ||
+            name.includes('stat')
+          ) {
             newText = copy.metric || ARCHETYPE_SPECS[primaryArch] || newText;
           } else if (name.includes('cta') || name.includes('action') || name.includes('button text')) {
             const cleanCta = (copy.cta || 'EXPLORE NOW').replace(/→/g, '').trim().toUpperCase();
@@ -643,7 +663,11 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
   }
 }
 
-export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }, brandKit?: import('../types').BrandKit | null): AgentVariant[] {
+export function generateProceduralDrafts(
+  intent: string,
+  canvasSize: { width: number; height: number },
+  brandKit?: import('../types').BrandKit | null
+): AgentVariant[] {
   const movement = classifyDesignMovement(intent);
   const primaryArchetype = classifyDesignIntent(intent);
 
@@ -689,17 +713,20 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
     ecommerce: ['saas', 'fitness'],
   };
 
-  const selectedArchetypes = [
-    primaryArchetype,
-    ...(alternativeMap[primaryArchetype] || ['editorial', 'saas']),
-  ].slice(0, 3);
+  const selectedArchetypes = [primaryArchetype, ...(alternativeMap[primaryArchetype] || ['editorial', 'saas'])].slice(
+    0,
+    3
+  );
 
   // Guarantee 3 unique archetypes
   const pool = ['editorial', 'saas', 'cyberpunk', 'luxury', 'event', 'fitness', 'fashion', 'ecommerce'];
   while (selectedArchetypes.length < 3) {
     const candidate = pool.find((a) => !selectedArchetypes.includes(a));
-    if (candidate) selectedArchetypes.push(candidate);
-    else break;
+    if (candidate) {
+      selectedArchetypes.push(candidate);
+    } else {
+      break;
+    }
   }
 
   // 3 Distinct Agency-Grade Graphic Design Composition Styles with photography & scrims
@@ -714,7 +741,8 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
           brandKit,
         }),
       styleName: '50/50 Hero Split',
-      rationale: 'Dual-zone balanced editorial layout with high-definition hero photography, category pill, and elevated CTA.',
+      rationale:
+        'Dual-zone balanced editorial layout with high-definition hero photography, category pill, and elevated CTA.',
     },
     {
       build: (arch: string) =>
@@ -795,5 +823,51 @@ export async function motionDirectorAgent(
   layers: any[],
   canvasSize: { width: number; height: number }
 ): Promise<any[]> {
-  return layers;
+  if (!Array.isArray(layers) || layers.length === 0) {
+    return layers;
+  }
+
+  return layers.map((layer, idx) => {
+    const isText = layer.type === 'text';
+    const isBackground = idx === 0 || layer.name?.toLowerCase().includes('background');
+    const isButton = layer.name?.toLowerCase().includes('button') || layer.name?.toLowerCase().includes('cta');
+    const isBadge = layer.name?.toLowerCase().includes('badge') || layer.name?.toLowerCase().includes('pill');
+
+    let animType: any = 'fade';
+    let animDir: any = 'up';
+    let delay = 0.05 * idx;
+    let duration = 0.5;
+
+    if (isBackground) {
+      animType = 'fade';
+      delay = 0;
+      duration = 0.8;
+    } else if (isButton || isBadge) {
+      animType = 'bounce';
+      delay = Math.min(0.8, 0.15 * idx);
+      duration = 0.6;
+    } else if (isText) {
+      animType = 'slide';
+      animDir = 'up';
+      delay = Math.min(0.6, 0.1 * idx);
+      duration = 0.5;
+    } else {
+      animType = 'zoom';
+      animDir = 'in';
+      delay = Math.min(0.5, 0.08 * idx);
+      duration = 0.5;
+    }
+
+    return {
+      ...layer,
+      animation: {
+        type: animType,
+        direction: animDir,
+        duration,
+        delay: Math.round(delay * 100) / 100,
+        easing: 'ease-out',
+        iterationCount: 1,
+      },
+    };
+  });
 }

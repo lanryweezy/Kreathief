@@ -11,7 +11,6 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
 
-
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
   const messages: { role: string; content: string | any[] }[] = [];
 
@@ -69,19 +68,21 @@ export const callBackendGeminiAPI = async (payload: any) => {
     'claude-opus-4': 'anthropic/claude-opus-4',
     'gpt-4o': 'openai/gpt-4o',
     'gpt-4o-mini': 'openai/gpt-4o-mini',
-    'o3': 'openai/o3',
+    o3: 'openai/o3',
     'llama-4-scout': 'meta-llama/llama-4-scout',
   };
-  const rawModel = payload.modelName || (() => {
-    try {
-      // Lazily import store to avoid circular deps — safe because this is always called at runtime
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { useStore } = require('../store/useStore');
-      return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
-    } catch {
-      return 'google/gemini-2.5-flash';
-    }
-  })();
+  const rawModel =
+    payload.modelName ||
+    (() => {
+      try {
+        // Lazily import store to avoid circular deps — safe because this is always called at runtime
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { useStore } = require('../store/useStore');
+        return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
+      } catch {
+        return 'google/gemini-2.5-flash';
+      }
+    })();
   // If the model already looks like an OpenRouter path (contains '/'), use it directly.
   const model = rawModel.includes('/') ? rawModel : (modelMap[rawModel] ?? 'google/gemini-2.5-flash');
 
@@ -100,6 +101,9 @@ export const callBackendGeminiAPI = async (payload: any) => {
 
       try {
         const reqBody: any = { model, messages, max_tokens };
+        if (typeof payload.generationConfig?.temperature === 'number') {
+          reqBody.temperature = payload.generationConfig.temperature;
+        }
         if (isJSON) {
           reqBody.response_format = { type: 'json_object' };
         }
@@ -119,8 +123,13 @@ export const callBackendGeminiAPI = async (payload: any) => {
           let text = data.choices?.[0]?.message?.content ?? data.text ?? '';
 
           // Strip markdown codeblocks if the caller expects pure JSON
-          if (isJSON && text.startsWith('```')) {
-            text = text.replace(/^```[a-z]*\n/i, '').replace(/\n```$/i, '');
+          if (isJSON) {
+            const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+            if (fenceMatch) {
+              text = fenceMatch[1].trim();
+            } else {
+              text = text.trim();
+            }
           }
 
           return { text, candidates: [{ content: { parts: [{ text }] } }] };
@@ -417,9 +426,7 @@ export const generateAltText = async (src: string): Promise<string> => {
       b64 = cleanBase64(dataUrl);
     }
 
-    const parts = [
-      { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
-    ];
+    const parts = [{ inlineData: { mimeType: b64!.mimeType, data: b64!.data } }];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
       // 🤖 Astra: Moved persona and rules to native systemInstruction field to prevent context confusion

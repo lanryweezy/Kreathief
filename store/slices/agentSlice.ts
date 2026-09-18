@@ -127,16 +127,6 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       // Phase 0: Research & Strategy (always runs — provides the creative brief for Phase 1)
       set({ agentStatus: 'strategy' });
       get().addThinkingEvent('Strategy Agent', 'Researching domain, audience, and visual language...');
-      const researchInterval = setInterval(() => {
-        const thoughts = [
-          'Decoding audience psychology...',
-          'Identifying category clichés to avoid...',
-          'Selecting typographic register...',
-          'Defining spacing philosophy...',
-          'Establishing core visual metaphor...',
-        ];
-        get().addThinkingEvent('Strategy Agent', thoughts[Math.floor(Math.random() * thoughts.length)]);
-      }, 3500);
 
       let strategy: import('../../types').DesignStrategy = {
         designObjective: `Communicate the core message of: ${intent}`,
@@ -160,42 +150,15 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
       } catch (strategyErr) {
         // Strategy agent failed (timeout / parse error) — fall back to default so Phase 1 still runs
         get().addThinkingEvent('Strategy Agent', 'Strategy brief synthesized from design principles (fast-path).');
-      } finally {
-        clearInterval(researchInterval);
       }
 
-      // Phase 1: Creative Drafting (executes the researched strategy)
       set({ agentStatus: 'creative' });
-      get().addThinkingEvent('Creative Agent', 'Art directing layouts from the strategy brief...');
+      get().addThinkingEvent('Creative Agent', 'Synthesizing layout hierarchy and visual compositions...');
 
-      const draftingInterval = setInterval(() => {
-        const thoughts = [
-          'Applying modular typographic scale...',
-          'Injecting spatial tension...',
-          'Constructing layer hierarchy...',
-          'Encoding Gestalt principles...',
-          'Art directing image prompts...',
-          'Generating layout variants...',
-        ];
-        const randomThought = thoughts[Math.floor(Math.random() * thoughts.length)];
-        get().addThinkingEvent('Creative Agent', randomThought);
-      }, 4000);
+      const draftedVariants = await creativeAgentDraft(composedIntent, canvasSize, 3, strategy, brandKit);
 
-      let draftedVariants;
-      try {
-        draftedVariants = await creativeAgentDraft(composedIntent, canvasSize, 3, strategy, brandKit);
-      } finally {
-        clearInterval(draftingInterval);
-      }
-
-      set({ agentStatus: 'searching' });
-      get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
-      get().addThinkingEvent('Creative Agent', 'Searching and rendering image assets...');
-
-      // Simulate rendering/searching time if needed, or simply step through
-      await new Promise((r) => setTimeout(r, 1500));
       set({ agentStatus: 'rendering' });
-      await new Promise((r) => setTimeout(r, 1500));
+      get().addThinkingEvent('Creative Agent', `Drafted ${draftedVariants.length} distinct layout directions.`);
 
       set({ agentVariants: draftedVariants });
 
@@ -384,7 +347,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
       for (const sourceArtboard of artboardsToApply) {
         newArtboards.push({
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           name: sourceArtboard.name,
           width: state.canvasSize.width,
           height: state.canvasSize.height,

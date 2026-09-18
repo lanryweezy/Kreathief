@@ -7,7 +7,7 @@ import { polishDesignOutput } from '../utils/designPolish';
 import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
-
+import { recommendPairingForStyle } from './typographyPairingEngine';
 
 export interface MultiLayerDesignNode {
   type: 'shape' | 'text' | 'container';
@@ -61,7 +61,10 @@ export interface ArtboardDesignResult {
 /**
  * Curated Archetype Fallback Presets for offline or instant multi-layer designs
  */
-export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt: string) => ArtboardDesignResult> = {
+export const FALLBACK_ARCHETYPES: Record<
+  string,
+  (width: number, height: number, prompt: string) => ArtboardDesignResult
+> = {
   cyberpunk: (width, height, prompt) => {
     const bgGrad: Gradient = {
       type: 'linear',
@@ -2366,7 +2369,8 @@ export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number,
 
     return {
       title: 'High-Conversion E-Commerce Flash Sale',
-      description: 'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
+      description:
+        'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
       width,
       height,
       backgroundColor: '#0b0f19',
@@ -2405,8 +2409,38 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['cheap', 'discount', 'budget', 'gaming'],
   },
   food: {
-    primary: ['food', 'restaurant', 'menu', 'recipe', 'cafe', 'bakery', 'chef', 'kitchen', 'jollof', 'suya', 'grill', 'bbq', 'barbecue', 'dining'],
-    secondary: ['eat', 'drink', 'cuisine', 'brunch', 'organic', 'farm', 'gourmet', 'dessert', 'pizza', 'burger', 'rice', 'smokey', 'delicious', 'fest'],
+    primary: [
+      'food',
+      'restaurant',
+      'menu',
+      'recipe',
+      'cafe',
+      'bakery',
+      'chef',
+      'kitchen',
+      'jollof',
+      'suya',
+      'grill',
+      'bbq',
+      'barbecue',
+      'dining',
+    ],
+    secondary: [
+      'eat',
+      'drink',
+      'cuisine',
+      'brunch',
+      'organic',
+      'farm',
+      'gourmet',
+      'dessert',
+      'pizza',
+      'burger',
+      'rice',
+      'smokey',
+      'delicious',
+      'fest',
+    ],
     negative: ['tech', 'software', 'coding'],
   },
   africanMarket: {
@@ -2420,7 +2454,18 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['food', 'restaurant'],
   },
   fashion: {
-    primary: ['fashion', 'clothing', 'outfit', 'style', 'collection', 'runway', 'model', 'streetwear', 'hoodie', 'apparel'],
+    primary: [
+      'fashion',
+      'clothing',
+      'outfit',
+      'style',
+      'collection',
+      'runway',
+      'model',
+      'streetwear',
+      'hoodie',
+      'apparel',
+    ],
     secondary: ['designer', 'lookbook', 'vogue', 'trend', 'wear', 'drop', 'sneaker', 'merch', 'oversized', 'boxy'],
     negative: ['tech', 'software'],
   },
@@ -2457,9 +2502,21 @@ export function classifyDesignIntent(prompt: string): string {
   // 1. Direct archetype keyword matching (high precision)
   const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
     let score = 0;
-    kw.primary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 3; });
-    kw.secondary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 1; });
-    kw.negative.forEach((k) => { if (pLower.includes(k.toLowerCase())) score -= 2; });
+    kw.primary.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score += 3;
+      }
+    });
+    kw.secondary.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score += 1;
+      }
+    });
+    kw.negative.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score -= 2;
+      }
+    });
     return { archetype, score };
   });
 
@@ -2500,31 +2557,35 @@ export function classifyDesignIntent(prompt: string): string {
  */
 export function getMatchedStyle(prompt: string): DesignStyleEntry | null {
   const styleId = classifyStyleFromPrompt(prompt);
-  return styleId ? getStyleById(styleId) ?? null : null;
+  return styleId ? (getStyleById(styleId) ?? null) : null;
 }
 
 // ─── Typography Pairing Rules ────────────────────────────────────────────────
 
 const TYPOGRAPHY_PAIRINGS: Record<string, { headline: string; body: string; accent: string }> = {
-  cyberpunk:     { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  editorial:     { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  saas:          { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  luxury:        { headline: 'Cinzel',           body: 'Cormorant Garamond', accent: 'Cinzel' },
-  food:          { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  africanMarket: { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  fitness:       { headline: 'Montserrat',       body: 'Inter',            accent: 'Space Grotesk' },
-  fashion:       { headline: 'DM Sans',          body: 'Inter',            accent: 'Bebas Neue' },
-  realEstate:    { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  event:         { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  education:     { headline: 'Sora',             body: 'Inter',            accent: 'Inter' },
-  ecommerce:     { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
+  cyberpunk: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  editorial: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  saas: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  luxury: { headline: 'Cinzel', body: 'Cormorant Garamond', accent: 'Cinzel' },
+  food: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  africanMarket: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  fitness: { headline: 'Montserrat', body: 'Inter', accent: 'Space Grotesk' },
+  fashion: { headline: 'DM Sans', body: 'Inter', accent: 'Bebas Neue' },
+  realEstate: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  event: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  education: { headline: 'Sora', body: 'Inter', accent: 'Inter' },
+  ecommerce: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
 };
 
-function getTypographyConstraint(archetype: string): string {
-  const pairing = TYPOGRAPHY_PAIRINGS[archetype] || TYPOGRAPHY_PAIRINGS.editorial;
+export function getTypographyConstraint(archetype: string): string {
+  const dynamic = recommendPairingForStyle(archetype);
+  const pairing = dynamic
+    ? { headline: dynamic.heading, body: dynamic.body, accent: dynamic.accent }
+    : TYPOGRAPHY_PAIRINGS[archetype] || TYPOGRAPHY_PAIRINGS.editorial;
+
   return `TYPOGRAPHY PAIRING for this design:
-- Headlines: "${pairing.headline}" (weight 700-900, large size)
-- Body/Subtitle: "${pairing.body}" (weight 400-500)
+- Headlines: "${pairing.headline}" (weight 700-900, large display scale)
+- Body/Subtitle: "${pairing.body}" (weight 400-500, ultra-readable)
 - Eyebrows/Tags/Accents: "${pairing.accent}" (weight 600-700, UPPERCASE, letter-spacing 2-4px)
 - NEVER use the same font for headlines and body text.`;
 }
@@ -2550,6 +2611,7 @@ EXAMPLE OUTPUT (your output should have 10-15+ layers with this level of detail)
     { "type": "rect", "name": "CTA Button", "x": 340, "y": 700, "width": 400, "height": 60, "opacity": 1, "color": "#7c3aed", "cornerRadius": {"tl":12,"tr":12,"br":12,"bl":12}, "shadow": {"color": "rgba(124,58,237,0.5)", "blur": 24, "offsetX": 0, "offsetY": 8} },
     { "type": "text", "name": "CTA Text", "text": "START FREE TRIAL →", "x": 340, "y": 720, "width": 400, "height": 24, "fontSize": 16, "fontWeight": "800", "fontFamily": "Inter", "color": "#ffffff", "letterSpacing": 1.5, "lineHeight": 1.2, "textAlign": "center", "textTransform": "uppercase" },
     { "type": "text", "name": "Footnote", "text": "No credit card required • 14-day full access", "x": 300, "y": 790, "width": 480, "height": 20, "fontSize": 13, "fontWeight": "500", "fontFamily": "Inter", "color": "#64748b", "letterSpacing": 0, "lineHeight": 1.2, "textAlign": "center" },
+    { "type": "star_4", "name": "Sparkle Accent", "x": 120, "y": 200, "width": 36, "height": 36, "color": "#f59e0b", "opacity": 0.8 },
     { "type": "rect", "name": "Bottom Accent", "x": 400, "y": 900, "width": 280, "height": 2, "opacity": 0.4, "color": "#7c3aed" }
   ]
 }`;
@@ -2578,25 +2640,27 @@ export const generateMultiLayerDesign = async (
 
   // Try calling AI structured output model
   try {
-    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister). 
+    const systemInstruction = `You are a visionary consortium of the world's absolute best graphic designers, combining the stark editorial minimalism and grid systems of New York (Pentagram/Sagmeister), the expressive, fluid maximalism and dense typography of contemporary Chinese design (Tencent/Alibaba), and the aggressively vibrant, high-contrast, rhythm-driven aesthetics of Nigerian Afrofuturism and Lagos creative studios.
 
-Your job: given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, PRODUCTION-READY EDITABLE MULTI-LAYER artboard in JSON.
+Your mission: Given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, AVANT-GARDE, PRODUCTION-READY MULTI-LAYER artboard in JSON.
+
+WE ABSOLUTELY FORBID "GENERIC AI-ISH" DESIGNS. Do NOT make the typical "purple/teal gradient with a glow orb" unless specifically asked. Push far beyond the comfort zone. Create breathtaking, culturally resonant masterpieces that humans have never seen before.
 
 DETECTED DESIGN CATEGORY: ${archetype.toUpperCase()}
 
 DESIGN RULES — MANDATORY:
 1. NEVER generate flat single-image layers. ALL layers must be coordinate-placed rectangles, ellipses, or text.
-2. Build a full VISUAL HIERARCHY with at least 10–15 layers: background → decorative glow elements → content frame → eyebrow tag → headline → subtitle → body (optional) → floating badge → CTA button + text → footer accent.
-3. Use RICH COLOR PALETTES — no plain primary colors. Use brand-specific palettes with HSL precision (e.g. #1a0533, #ff006e, #e8ff45, #003049).
-4. Apply LAYERED DEPTH using background shapes, mid-ground decorative elements, and foreground content layers.
-5. ${typographyConstraint}
-6. EVERY design must include: background fill/gradient, at least 2 decorative shapes (glow orbs, accent lines, frames), eyebrow pill/tag, main headline (large, bold), supporting subtitle, and a CTA button shape + CTA text.
-7. Use SHADOWS generously to create depth. Use GRADIENTS on backgrounds and key shapes.
-8. CORNERRADIUS: pills = 999, cards = 16–24, buttons = 12, tags = 8.
+2. BREAK THE GRID: Use asymmetric layouts, overlapping elements, varying typographic scales (massive display text interacting with tiny tracking-heavy micro-copy).
+3. WORLD-CLASS COLOR PALETTES: Merge Nigerian vibrant earth and neon tones, Chinese imperial and hyper-modern digital hues, and American stark editorial contrasts. (e.g. #FF3B30 against #0D0D12 with #FFD700 accents, or #00FFAA over #1C1C1E).
+4. Apply LAYERED DEPTH: Use background textures (via multiple overlapping low-opacity shapes), mid-ground structural frames, and foreground typography that breaks container boundaries.
+5. ${typographyConstraint} Mix and match font weights heavily (e.g., 900 weight headline with a 300 weight italic subtitle intersecting it).
+6. EVERY design must include: 15 to 25 layers. Do not stop at basic. Include: macro-typography (huge background text with low opacity), structural grid lines (1px strokes), floating graphic accents (rotated stars/rectangles), and compelling, real-world copywriting.
+7. Use SHADOWS and BLEND MODES generously (multiply, screen, overlay) to create organic, rich depth.
+8. CORNERRADIUS: Mix sharp edges (0px) with pill shapes (999px) for brutalist/modernist tension.
 9. PRECISE COORDINATES: place every layer pixel-perfectly relative to ${width}x${height}. Use percentages of canvas dimensions for responsive positioning.
-10. ANTI-AI-SLOP: Avoid purple/teal generic gradients and generic AI illustrations. Use curated, campaign-quality colors specific to the "${archetype}" category.
-11. TEXT CONTENT must feel REAL and campaign-ready — not placeholder text. Write compelling copy that matches the prompt's intent.
-12. FLOATING BADGES and ACCENT ELEMENTS should have slight rotation (-3 to -8 degrees) for visual dynamism.
+10. ANTI-AI-SLOP: Avoid centering everything. Use dynamic tension. Align text hard-left or hard-right. Let elements bleed off the edges (negative coordinates or width > canvas).
+11. TEXT CONTENT must feel like an award-winning ad campaign. Real, poetic, or aggressive copy—never placeholder.
+12. FLOATING ELEMENTS: Add geometric primitives (stars, circles, intersecting lines) to guide the eye, applying rotation for dynamism.
 
 LAYER COMPOSITION GUIDELINES for ${width}x${height}:
 - Background gradient shape (full-bleed): x=0, y=0, w=${width}, h=${height}
@@ -2625,7 +2689,10 @@ Return ONLY valid JSON, no markdown, no explanation:
   },
   "layers": [
     {
-      "type": "rect" | "ellipse" | "text",
+      "type": "rect" | "ellipse" | "text" | "star" | "star_4" | "star_8" | "polygon" | "triangle" | "path" | "image",
+      "pathData": string (optional SVG path for custom flourishes/dividers if type is 'path'),
+      "viewBox": string (optional, e.g. '0 0 24 24'),
+      "src": string (optional URL if type is 'image'),
       "name": string (descriptive layer name),
       "x": number,
       "y": number,
@@ -2689,11 +2756,26 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
 
     const parsed = safeParseJSON<any>(rawText, null);
     if (parsed && Array.isArray(parsed.layers) && parsed.layers.length > 0) {
+      const validShapes = new Set([
+        'rect',
+        'ellipse',
+        'polygon',
+        'star',
+        'triangle',
+        'arrow',
+        'line',
+        'heart',
+        'shield',
+        'plus',
+        'star_4',
+        'star_8',
+        'path',
+      ]);
+
       const sanitizedLayers: Layer[] = parsed.layers.map((l: any, i: number) => {
         const id = `${l.type || 'layer'}_${uuidv4().slice(0, 8)}`;
-        return {
+        const base = {
           id,
-          type: l.type || 'rect',
           name: l.name || `Layer ${i + 1}`,
           x: Math.max(-width * 0.5, Math.min(width * 1.5, Number(l.x) || 0)),
           y: Math.max(-height * 0.5, Math.min(height * 1.5, Number(l.y) || 0)),
@@ -2701,28 +2783,58 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
           height: Math.max(10, Math.min(height * 3, Number(l.height) || 50)),
           rotation: Number(l.rotation) || 0,
           opacity: typeof l.opacity === 'number' ? Math.max(0, Math.min(1, l.opacity)) : 1,
-          color: l.color || '#3b82f6',
           locked: false,
           visible: true,
-          cornerRadius: l.cornerRadius
+          blendMode: l.blendMode,
+          shadow: l.shadow,
+          stroke: l.stroke,
+        };
+
+        if (l.type === 'text') {
+          return {
+            ...base,
+            type: 'text',
+            text: String(l.text || 'Text'),
+            fontSize: Number(l.fontSize) || 24,
+            fontWeight: String(l.fontWeight || '600'),
+            fontFamily: l.fontFamily || 'Inter',
+            color: l.color || '#ffffff',
+            textAlign: l.textAlign || 'center',
+            letterSpacing: Number(l.letterSpacing) || 0,
+            lineHeight: Number(l.lineHeight) || 1.2,
+            textTransform: l.textTransform || 'none',
+            textShadow: l.textShadow,
+          } as any;
+        }
+
+        if (l.type === 'image' && l.src) {
+          return {
+            ...base,
+            type: 'image',
+            src: l.src,
+          } as any;
+        }
+
+        const shapeType = validShapes.has(l.type) ? l.type : 'rect';
+        const numRadius = typeof l.cornerRadius === 'number' ? l.cornerRadius : 0;
+        const cornerRadiusPerCorner =
+          l.cornerRadius && typeof l.cornerRadius === 'object'
             ? l.cornerRadius
             : typeof l.cornerRadius === 'number'
               ? { tl: l.cornerRadius, tr: l.cornerRadius, br: l.cornerRadius, bl: l.cornerRadius }
-              : undefined,
+              : undefined;
+
+        return {
+          ...base,
+          type: shapeType,
+          color: l.color || '#3b82f6',
+          cornerRadius: numRadius,
+          cornerRadiusPerCorner,
           gradient: l.gradient,
-          stroke: l.stroke,
-          shadow: l.shadow,
-          blendMode: l.blendMode,
-          text: l.text,
-          fontSize: l.fontSize || 24,
-          fontWeight: l.fontWeight || '600',
-          fontFamily: l.fontFamily || 'Inter',
-          textAlign: l.textAlign || 'center',
-          letterSpacing: l.letterSpacing || 0,
-          lineHeight: l.lineHeight || 1.2,
-          textTransform: l.textTransform || 'none',
-          textShadow: l.textShadow,
-        } as Layer;
+          pathData: l.pathData,
+          viewBox: l.viewBox,
+          strokeDasharray: l.strokeDasharray,
+        } as any;
       });
 
       return polishDesignOutput({

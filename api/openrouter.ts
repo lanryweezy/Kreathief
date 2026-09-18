@@ -14,11 +14,11 @@ const MAX_REQUESTS_PER_WINDOW = 20;
 setInterval(() => {
   const now = Date.now();
   for (const [key, value] of rateLimitMap) {
-    if (now > value.resetTime) rateLimitMap.delete(key);
+    if (now > value.resetTime) {
+      rateLimitMap.delete(key);
+    }
   }
 }, RATE_LIMIT_WINDOW_MS);
-
-
 
 export default async function handler(req: Request) {
   // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
@@ -27,11 +27,12 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
 
-
   try {
     await requireAuth(req);
   } catch (error) {
-    if (error instanceof Response) return error;
+    if (error instanceof Response) {
+      return error;
+    }
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -124,7 +125,9 @@ export default async function handler(req: Request) {
         model,
         messages,
         max_tokens,
+        ...(typeof body.temperature === 'number' && { temperature: body.temperature }),
         ...(body.response_format && { response_format: body.response_format }),
+        ...(typeof body.seed === 'number' && { seed: body.seed }),
       }),
     });
 
