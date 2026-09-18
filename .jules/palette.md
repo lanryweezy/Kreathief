@@ -57,3 +57,7 @@
 
 **Learning:** When generating a list of active grid guides in `GridGuidesPanel`, the button to remove each guide was a simple "×" without an `aria-label`. This caused screen readers to announce it as an unlabeled button, making it difficult for visually impaired users to understand its function or differentiate it from other buttons.
 **Action:** Always add a descriptive `aria-label` (e.g., `aria-label="Remove guide"`) to icon-only buttons used in lists to delete or remove items, ensuring screen reader users understand the action being performed.
+## 2026-09-17 - Do not remove existing aria-labels arbitrarily
+
+**Learning:** While redundant `aria-label`s on elements with inner text are not ideal, arbitrarily removing them during unrelated UX improvements can cause unexpected regressions, especially if the button is used in different contexts.
+**Action:** When making targeted micro-UX improvements (like adding `aria-pressed`), only modify what is strictly necessary for the current fix. Avoid "drive-by" deletions of existing ARIA attributes unless explicitly investigating them.
