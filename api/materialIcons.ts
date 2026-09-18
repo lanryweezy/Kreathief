@@ -1,5 +1,6 @@
 import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
+import { fuzzyMatch } from '../utils/search';
 
 export const config = { runtime: 'edge' };
 
@@ -65,7 +66,7 @@ export default async function handler(req: Request) {
       names.add(m[1]);
     }
     const allIcons = [...names];
-    const filtered = query ? allIcons.filter((n) => n.toLowerCase().includes(query.toLowerCase())) : allIcons;
+    const filtered = query ? allIcons.filter((n) => fuzzyMatch(query, n)) : allIcons;
 
     iconCache.set(query.toLowerCase(), { data: filtered, expiry: Date.now() + CACHE_TTL });
     return new Response(JSON.stringify({ icons: filtered }), {
