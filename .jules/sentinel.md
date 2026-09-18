@@ -300,3 +300,8 @@
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint contained an insecure CORS fallback (`req.headers.get('origin') || '*'`). A naive fix (restricting the origin strictly to `VITE_FRONTEND_URL`) broke preview deployments because it removed the necessary `VERCEL_URL` check.
 **Learning:** In Vercel environments, `VERCEL_URL` is dynamically generated for preview deployments, while `VITE_FRONTEND_URL` is typically only set for production. Removing the `VERCEL_URL` fallback completely breaks preview environments. However, falling back to the `Origin` header blindly or using a wildcard `*` allows any malicious site to exploit the proxy.
 **Prevention:** When securing CORS in Vercel API routes, require `VITE_FRONTEND_URL` in production, but safely fall back to `VERCEL_URL` if present. Never echo the request's `Origin` header blindly (`req.headers.get('origin')`) or default to a wildcard `*` on sensitive proxy endpoints.
+
+## 2026-09-19 - Prevent Error Information Leakage in Icon APIs
+**Vulnerability:** The API endpoints `api/lucideIcons.ts`, `api/materialIcons.ts`, and `api/phosphorIcons.ts` directly returned `err.message` within their 500 status HTTP JSON responses upon catching errors.
+**Learning:** Returning raw system error messages directly to the client can inadvertently expose sensitive implementation details, stack traces, or environment paths. This information leakage can be leveraged by attackers to better understand the system architecture and discover further vulnerabilities.
+**Prevention:** Catch blocks in API routes should log the detailed `error` internally (e.g., using `console.error` or a secure logging service) but always return generic error messages (like `'Internal server error'`) in HTTP responses sent to users.

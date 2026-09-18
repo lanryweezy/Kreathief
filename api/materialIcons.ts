@@ -73,7 +73,7 @@ export default async function handler(req: Request) {
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin, ...cacheHeaders(86400) },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Internal error', icons: [] }), {
+    return new Response(JSON.stringify({ error: 'Internal server error', icons: [] }), {
       status: 500,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
     });
