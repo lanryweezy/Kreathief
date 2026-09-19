@@ -16,7 +16,7 @@ import { AspectRatio } from '../types';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
 import { log } from '../utils/log';
-import { getErrorDetails } from '../utils/errorMessages';
+import { getErrorDetails, getAIErrorMessage } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
 import { importPdfAsArtboards } from '../utils/pdfImport';
@@ -151,8 +151,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       onOpenProject(created);
     } catch (error) {
       log.error('[DashboardAI] Design generation failed', error);
-      const details = getErrorDetails(error);
-      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
+      addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGenerating(false);
     }
@@ -264,8 +263,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       }
     } catch (error) {
       log.error('[DashboardAI] Generation failed', error);
-      const details = getErrorDetails(error);
-      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
+      addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGenerating(false);
     }
