@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { db as supabase } from '../lib/supabase/client';
 import { useStore } from '../store/useStore';
+import { getErrorDetails } from '../utils/errorMessages';
 
 export const AuthCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +14,8 @@ export const AuthCallback: React.FC = () => {
       const { data, error } = await supabase.auth.getSession();
 
       if (error) {
-        addToast('Authentication failed. Please try again.', 'error');
+        const details = getErrorDetails(error);
+        addToast(`Authentication failed: ${details.message}. ${details.suggestion}`, 'error');
         navigate('/auth');
         return;
       }
