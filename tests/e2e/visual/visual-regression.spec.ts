@@ -144,8 +144,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.getByTestId('add-heading-btn');
-    await addHeading.click();
+    await page.locator('[data-testid="add-heading-btn"]').click();
     await page.waitForTimeout(1000);
 
     // Take screenshot
@@ -178,7 +177,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.getByTestId('add-heading-btn').click();
+    await page.locator('[data-testid="add-heading-btn"]').click();
     await page.waitForTimeout(500);
 
     // Add shape
