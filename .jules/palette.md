@@ -57,3 +57,7 @@
 
 **Learning:** When generating a list of active grid guides in `GridGuidesPanel`, the button to remove each guide was a simple "×" without an `aria-label`. This caused screen readers to announce it as an unlabeled button, making it difficult for visually impaired users to understand its function or differentiate it from other buttons.
 **Action:** Always add a descriptive `aria-label` (e.g., `aria-label="Remove guide"`) to icon-only buttons used in lists to delete or remove items, ensuring screen reader users understand the action being performed.
+
+## 2025-01-20 - Screen Reader Accessibility for Mobile Menu Toggles
+**Learning:** When using an icon-only button to toggle a mobile navigation menu, it requires an `aria-expanded` attribute to convey its state to screen readers, along with an `aria-label`. Without these, visually impaired users cannot determine if the menu is open or what the button does.
+**Action:** Always include `aria-expanded={boolean}` and a descriptive `aria-label` (e.g., `aria-label="Toggle mobile menu"`) on icon-only menu toggle buttons to ensure accessibility.

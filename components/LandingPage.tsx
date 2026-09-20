@@ -107,6 +107,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
             <button
               className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <Icons.X className="w-6 h-6" /> : <Icons.Menu className="w-6 h-6" />}
             </button>
