@@ -32,7 +32,7 @@ test.describe('Visual Regression Tests', () => {
     await page.goto('/');
 
     // Wait for dashboard to load
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 15000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('dashboard-load.png', {
@@ -66,7 +66,7 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test('should match toolbar screenshot', async () => {
-    const toolbar = editor.toolbar;
+    const toolbar = page.getByTestId('toolbar');
     await expect(toolbar).toBeVisible();
 
     // Take screenshot of toolbar
@@ -91,7 +91,7 @@ test.describe('Visual Regression Tests', () => {
     // Open text panel
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Take screenshot
     const textPanel = page.locator('[data-testid="text-panel"], .text-panel');
@@ -105,7 +105,7 @@ test.describe('Visual Regression Tests', () => {
     // Open elements panel
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
 
     // Take screenshot
     const elementsPanel = page.locator('[data-testid="elements-panel"], .elements-panel');
@@ -144,7 +144,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    const addHeading = page.locator('button:has-text("Heading")');
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(1000);
 
@@ -178,7 +178,7 @@ test.describe('Visual Regression Tests', () => {
     // Add text
     const textTab = editor.sidebar.locator('button[aria-label="Text"]');
     await textTab.click();
-    await page.locator('button:has-text("Heading")').click();
+    await page.getByTestId('add-heading-btn').click();
     await page.waitForTimeout(500);
 
     // Add shape
@@ -229,7 +229,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
@@ -245,7 +245,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Reload to apply viewport
     await page.reload();
-    await expect(page.locator('#templates-grid')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByTestId('dashboard-templates-grid')).toBeVisible({ timeout: 10000 });
 
     // Take screenshot
     await expect(page).toHaveScreenshot('tablet-dashboard.png', {
