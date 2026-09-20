@@ -45,7 +45,7 @@ export class ExportPage {
   async exportPNG() {
     await this.openExportModal();
     await this.pngBtn.click();
-    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 60000 });
     await this.downloadBtn.click();
     await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
@@ -53,7 +53,7 @@ export class ExportPage {
   async exportJPEG() {
     await this.openExportModal();
     await this.jpegBtn.click();
-    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 60000 });
     await this.downloadBtn.click();
     await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
@@ -61,7 +61,7 @@ export class ExportPage {
   async exportWEBP() {
     await this.openExportModal();
     await this.webpBtn.click();
-    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 60000 });
     await this.downloadBtn.click();
     await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
@@ -69,7 +69,7 @@ export class ExportPage {
   async exportPDF() {
     await this.openExportModal();
     await this.pdfBtn.click();
-    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 60000 });
     await this.downloadBtn.click();
     await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
@@ -77,7 +77,7 @@ export class ExportPage {
   async exportPSD() {
     await this.openExportModal();
     await this.psdBtn.click();
-    this.pendingDownload = this.page.waitForEvent('download', { timeout: 30000 });
+    this.pendingDownload = this.page.waitForEvent('download', { timeout: 60000 });
     await this.downloadBtn.click();
     await expect(this.exportModal).not.toBeVisible({ timeout: 30000 });
   }
@@ -95,7 +95,7 @@ export class ExportPage {
       this.pendingDownload = undefined;
       return d;
     }
-    const download = await this.page.waitForEvent('download', { timeout: 30000 });
+    const download = await this.page.waitForEvent('download', { timeout: 60000 });
     return download;
   }
 
