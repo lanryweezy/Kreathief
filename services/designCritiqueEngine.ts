@@ -80,7 +80,7 @@ function extractDesignData(artboard: Artboard, context: DesignContext, brandKit?
   const layerPositions: Array<{ x: number; y: number; w: number; h: number; type: string }> = [];
 
   for (const layer of layers) {
-    if (layer.color) colors.add(layer.color);
+    if ('color' in layer && typeof (layer as any).color === 'string') colors.add((layer as any).color);
     if (layer.type === 'text') {
       textLayers++;
       if ((layer as any).fontFamily) fonts.add((layer as any).fontFamily);
@@ -91,7 +91,7 @@ function extractDesignData(artboard: Artboard, context: DesignContext, brandKit?
       }
     }
     if (layer.type === 'image') imageLayers++;
-    if (layer.type === 'shape' || layer.type === 'ellipse' || layer.type === 'rect') shapeLayers++;
+    if (['rectangle', 'circle', 'triangle', 'polygon', 'path', 'star', 'line'].includes(layer.type)) shapeLayers++;
 
     layerPositions.push({
       x: layer.x, y: layer.y, w: layer.width, h: layer.height,

@@ -51,35 +51,90 @@ export function addMissingShadows(layers: Layer[]): Layer[] {
   });
 }
 
+// Cached offscreen context for fast, accurate text measurement
+let textMeasureCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null;
+function getMeasureContext(): CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null {
+  if (textMeasureCtx) return textMeasureCtx;
+  try {
+    if (typeof OffscreenCanvas !== 'undefined') {
+      const canvas = new OffscreenCanvas(1, 1);
+      textMeasureCtx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D;
+    } else if (typeof document !== 'undefined') {
+      const canvas = document.createElement('canvas');
+      textMeasureCtx = canvas.getContext('2d');
+    }
+  } catch (e) {
+    console.warn('Failed to initialize text measurement canvas', e);
+  }
+  return textMeasureCtx;
+}
+
 export function estimateTextDimensions(
   text: string,
   fontSize: number,
   maxWidth: number,
   lineHeightMultiplier: number = 1.2,
-  letterSpacing: number = 0
-): { lines: number; height: number } {
-  if (!text) return { lines: 1, height: Math.ceil(fontSize * lineHeightMultiplier) };
+  letterSpacing: number = 0,
+  fontFamily: string = 'system-ui',
+  fontWeight: string | number = 400
+): { lines: number; height: number; width: number } {
+  if (!text) return { lines: 1, height: Math.ceil(fontSize * lineHeightMultiplier), width: 0 };
   const clean = text.trim();
-  if (clean.length === 0) return { lines: 1, height: Math.ceil(fontSize * lineHeightMultiplier) };
+  if (clean.length === 0) return { lines: 1, height: Math.ceil(fontSize * lineHeightMultiplier), width: 0 };
 
-  const effectiveLetterSpacing = Math.max(0, letterSpacing);
-  const charWidth = Math.max(1, fontSize * 0.54 + effectiveLetterSpacing);
-  const maxCharsPerLine = Math.max(1, Math.floor(maxWidth / charWidth));
-  const words = clean.split(/\s+/);
-
+  const ctx = getMeasureContext();
+  let maxLineWidth = 0;
   let lines = 1;
-  let lineLen = 0;
-  for (const w of words) {
-    if (lineLen + w.length > maxCharsPerLine && lineLen > 0) {
-      lines++;
-      lineLen = w.length + 1;
-    } else {
-      lineLen += w.length + 1;
+
+  if (ctx) {
+    // Precise canvas-based measurement (works in Web Worker via OffscreenCanvas)
+    ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+    
+    // Fallback letter spacing if canvas API doesn't support it natively
+    const effectiveLetterSpacing = Math.max(0, letterSpacing);
+    const words = clean.split(/\s+/);
+    
+    let currentLineWidth = 0;
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      // measureText provides exact pixel width for the word
+      const wordWidth = ctx.measureText(word).width + (word.length * effectiveLetterSpacing);
+      const spaceWidth = ctx.measureText(' ').width + effectiveLetterSpacing;
+      
+      if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0) {
+        // Wrap to next line
+        lines++;
+        maxLineWidth = Math.max(maxLineWidth, currentLineWidth - spaceWidth);
+        currentLineWidth = wordWidth + spaceWidth;
+      } else {
+        currentLineWidth += wordWidth + spaceWidth;
+      }
     }
+    maxLineWidth = Math.max(maxLineWidth, currentLineWidth - (ctx.measureText(' ').width + effectiveLetterSpacing));
+  } else {
+    // Fallback to naive character counting if Canvas is unavailable
+    const effectiveLetterSpacing = Math.max(0, letterSpacing);
+    const charWidth = Math.max(1, fontSize * 0.54 + effectiveLetterSpacing);
+    const maxCharsPerLine = Math.max(1, Math.floor(maxWidth / charWidth));
+    const words = clean.split(/\s+/);
+
+    let lineLen = 0;
+    for (const w of words) {
+      if (lineLen + w.length > maxCharsPerLine && lineLen > 0) {
+        lines++;
+        lineLen = w.length + 1;
+      } else {
+        lineLen += w.length + 1;
+      }
+    }
+    maxLineWidth = Math.min(maxWidth, lineLen * charWidth);
   }
+
   return {
     lines,
     height: Math.ceil(lines * fontSize * lineHeightMultiplier),
+    width: Math.ceil(maxLineWidth)
   };
 }
 
@@ -281,15 +336,22 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
       };
 
     // 6. Ensure text defaults
+    // 5. Ensure text defaults and final grid alignment
+    layers = layers.map(layer => {
+      const base = {
+        ...layer,
+        x: snapToGrid(layer.x),
+        y: snapToGrid(layer.y),
+      };
       if (layer.type === 'text') {
         const tl = layer as any;
         return {
-          ...layer,
+          ...base,
           fontFamily: tl.fontFamily || 'Inter',
           textAlign: tl.textAlign || 'left',
         } as Layer;
       }
-      return layer;
+      return base as Layer;
     });
 
     polishedResult.layers = layers;

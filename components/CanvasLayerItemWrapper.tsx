@@ -6,7 +6,7 @@ import { log } from '../utils/log';
 
 import React, { useMemo } from 'react';
 import { Layer, TextLayer, ShapeLayer, ImageLayer, AnimationSettings } from '../types';
-import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem } from './canvas/LayerItems';
+import { ImageLayerItem, ShapeLayerItem, TextLayerItem, AdjustmentLayerItem, GroupLayerItem } from './canvas/LayerItems';
 import { useLayerMask, useProcessedImage } from '../hooks/useLayerWorker';
 import { Icons } from '../constants';
 
@@ -65,6 +65,7 @@ interface CanvasLayerItemWrapperProps {
   zoom: number;
   isInteracting?: boolean;
   previewAnimation?: AnimationSettings;
+  children?: React.ReactNode;
 }
 
 export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = React.memo(
@@ -196,6 +197,18 @@ export const CanvasLayerItemWrapper: React.FC<CanvasLayerItemWrapperProps> = Rea
 
       if (l.type === 'adjustment') {
         return <AdjustmentLayerItem ref={(el) => setLayerRef(l.id, el)} layer={l as any} {...commonProps} />;
+      }
+
+      if (l.type === 'group') {
+        return (
+          <GroupLayerItem
+            ref={(el) => setLayerRef(l.id, el)}
+            layer={l}
+            {...commonProps}
+          >
+            {props.children}
+          </GroupLayerItem>
+        );
       }
 
       // Default: Shape Layer

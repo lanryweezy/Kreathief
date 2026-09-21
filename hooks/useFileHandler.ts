@@ -90,22 +90,83 @@ const exportStrategies: ExportStrategy[] = [
 const fallbackExportStrategy: ExportStrategy = {
   canHandle: () => true,
   export: async (ctx) => {
-    const blob = await exportService.exportDesignToImage(ctx.originalLayers || ctx.scaledLayers, {
-      width: ctx.exportWidth,
-      height: ctx.exportHeight,
-      format: ctx.format,
-      quality: ctx.quality,
-      background: ctx.bgColor !== 'transparent',
-      backgroundColor: ctx.bgColor,
-      artboardId: ctx.artboardId,
-      baseWidth: ctx.sourceWidth,
-      baseHeight: ctx.sourceHeight,
-    });
-    const downloadUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `${ctx.fileName}.${ctx.format}`;
-    link.click();
+    // Determine mime type and whether background should be rendered
+    const mimeType = ctx.format === 'jpg' ? 'jpeg' : ctx.format;
+    const includeBg = ctx.bgColor !== 'transparent';
+    const fillBg = includeBg ? ctx.bgColor : 'transparent';
+    
+    try {
+      // 1. Generate pristine SVG from layer geometry
+      // We use originalLayers if available to prevent double-scaling if SVG does its own relative bounds mapping,
+      // but exportToSVG expects exact dimensions, so we pass scaledLayers.
+      const layersToExport = ctx.scaledLayers;
+      const svgString = await exportService.exportToSVG(
+        ctx.exportWidth,
+        ctx.exportHeight,
+        fillBg,
+        layersToExport
+      );
+      
+      // 2. Draw SVG to Canvas for High-DPI rasterization without HTML2Canvas DOM overhead
+      const canvas = document.createElement('canvas');
+      canvas.width = ctx.exportWidth;
+      canvas.height = ctx.exportHeight;
+      const canvasCtx = canvas.getContext('2d');
+      if (!canvasCtx) throw new Error('Could not get 2D canvas context');
+      
+      // Paint background manually if format is JPEG since it doesn't support transparency
+      if (mimeType === 'jpeg' && !includeBg) {
+        canvasCtx.fillStyle = '#ffffff';
+        canvasCtx.fillRect(0, 0, ctx.exportWidth, ctx.exportHeight);
+      }
+
+      const img = new Image();
+      // Ensure cross-origin data urls work properly
+      img.crossOrigin = 'anonymous'; 
+      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          canvasCtx.drawImage(img, 0, 0);
+          resolve();
+        };
+        img.onerror = () => reject(new Error('Failed to rasterize pristine SVG to Canvas'));
+      });
+
+      // 3. Convert Canvas to requested raster format (PNG/JPEG/WEBP)
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (b) => {
+            if (b) resolve(b);
+            else reject(new Error('Canvas toBlob conversion failed'));
+          },
+          `image/${mimeType}`,
+          ctx.quality || 0.95
+        );
+      });
+
+      // 4. Download
+      exportService.downloadBlob(blob, `${ctx.fileName}.${ctx.format}`);
+    } catch (e) {
+      log.warn('[ExportStrategy] Pure SVG Rasterization failed, falling back to legacy DOM capture:', e);
+      // Absolute fallback to legacy DOM approach if SVG raster fails (e.g. font loading edge cases)
+      const blob = await exportService.exportDesignToImage(ctx.originalLayers || ctx.scaledLayers, {
+        width: ctx.exportWidth,
+        height: ctx.exportHeight,
+        format: ctx.format,
+        quality: ctx.quality,
+        background: ctx.bgColor !== 'transparent',
+        backgroundColor: ctx.bgColor,
+        artboardId: ctx.artboardId,
+        baseWidth: ctx.sourceWidth,
+        baseHeight: ctx.sourceHeight,
+      });
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${ctx.fileName}.${ctx.format}`;
+      link.click();
+    }
   },
 };
 

@@ -47,6 +47,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     toggleFavoriteProject,
     shareToCommunity,
     addToast,
+    brandKits,
+    activeBrandKitId,
+    setActiveBrandKit,
   } = useStore(
     useShallow((state) => ({
       projects: state.projects,
@@ -60,6 +63,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       toggleFavoriteProject: state.toggleFavoriteProject,
       shareToCommunity: state.shareToCommunity,
       addToast: state.addToast,
+      brandKits: state.brandKits,
+      activeBrandKitId: state.activeBrandKitId,
+      setActiveBrandKit: state.setActiveBrandKit,
     }))
   );
 
@@ -728,6 +734,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           >
                             <Icons.X className="w-3.5 h-3.5" />
                           </button>
+                        )}
+                        {/* Brand Kit Dropdown */}
+                        {brandKits && brandKits.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/10 ml-2">
+                            <Icons.Star className="w-3 h-3 text-yellow-400" />
+                            <select
+                              value={activeBrandKitId || ''}
+                              onChange={(e) => setActiveBrandKit(e.target.value || null)}
+                              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+                              title="Select which Brand Kit to apply to this generation"
+                            >
+                              <option value="" className="bg-surface-dark-1">No Brand Kit</option>
+                              {brandKits.map((kit) => (
+                                <option key={kit.id} value={kit.id} className="bg-surface-dark-1 text-white">
+                                  {kit.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2 ml-3 shrink-0">

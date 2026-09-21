@@ -40,6 +40,9 @@ interface CanvasRendererProps {
   setHoveredLayerId: (id: string | null) => void;
   setActiveArtboardId: (id: string) => void;
   showGrid: boolean;
+  gridSize?: number;
+  gridColor?: string;
+  gridStyle?: 'lines' | 'dots';
   isDrawing: boolean;
   isRefining: boolean;
   isVectorPenMode?: boolean;
@@ -87,6 +90,9 @@ interface ArtboardItemProps {
   setHoveredLayerId: (id: string | null) => void;
   setActiveArtboardId: (id: string) => void;
   showGrid: boolean;
+  gridSize?: number;
+  gridColor?: string;
+  gridStyle?: 'lines' | 'dots';
   isDrawing: boolean;
   isRefining: boolean;
   isInteracting?: boolean;
@@ -131,6 +137,9 @@ const ArtboardItem = React.memo(
     setHoveredLayerId,
     setActiveArtboardId,
     showGrid,
+    gridSize = 20,
+    gridColor = '#7c3aed',
+    gridStyle = 'lines',
     isDrawing,
     isRefining,
     isVectorPenMode = false,
@@ -317,11 +326,14 @@ const ArtboardItem = React.memo(
             <>
               {showGrid && (
                 <div
-                  className="absolute inset-0 pointer-events-none z-[60] opacity-10"
+                  className="absolute inset-0 pointer-events-none z-[60]"
                   style={{
+                    opacity: 0.25,
                     backgroundImage:
-                      'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)',
-                    backgroundSize: '100px 100px',
+                      gridStyle === 'dots'
+                        ? `radial-gradient(${gridColor} 1.5px, transparent 1.5px)`
+                        : `linear-gradient(${gridColor} 1px, transparent 1px), linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
+                    backgroundSize: `${gridSize}px ${gridSize}px`,
                   }}
                 />
               )}
@@ -416,6 +428,9 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     setHoveredLayerId,
     setActiveArtboardId,
     showGrid,
+    gridSize,
+    gridColor,
+    gridStyle,
     isDrawing,
     isRefining,
     drawingCanvasRef,
@@ -466,6 +481,9 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
             setHoveredLayerId={setHoveredLayerId}
             setActiveArtboardId={setActiveArtboardId}
             showGrid={showGrid}
+            gridSize={gridSize}
+            gridColor={gridColor}
+            gridStyle={gridStyle}
             isDrawing={isDrawing}
             isRefining={isRefining}
             drawingCanvasRef={drawingCanvasRef}

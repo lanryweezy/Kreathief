@@ -193,6 +193,64 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   return deepEqual(p, n);
 };
 
+export const GroupLayerItem = React.memo(
+  React.forwardRef<HTMLDivElement, LayerItemProps & { children?: React.ReactNode }>(
+    (
+      {
+        layer,
+        isSelected,
+        isHovered,
+        onPointerDown,
+        onResize,
+        onRotate,
+        onContextMenu,
+        previewAnimation,
+        maskPath,
+        zoom,
+        isInteracting,
+        children
+      },
+      ref
+    ) => {
+      const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : layer.animation);
+
+      return (
+        <div
+          ref={ref}
+          className={`absolute ${isHovered && !isSelected && !isInteracting ? 'ring-1 ring-brand-400' : ''}`}
+          style={{
+            ...getLayerStyle(layer, animStyle),
+            clipPath: maskPath,
+            WebkitClipPath: maskPath,
+            pointerEvents: 'none', // Groups typically pass clicks through to children
+          }}
+          onPointerDown={(e) => {
+            // Re-enable pointer events on the wrapper if you need to select the group as a whole
+            onPointerDown(e, layer);
+          }}
+          onContextMenu={(e) => onContextMenu(e, layer.id)}
+          data-layer-id={layer.id}
+          data-type="group"
+        >
+          {/* Render nested children */}
+          <div className="relative w-full h-full pointer-events-none">
+            {children}
+          </div>
+
+          <SelectionHandles
+            layer={layer}
+            isSelected={isSelected}
+            zoom={zoom || 1}
+            onResize={onResize}
+            onRotate={onRotate}
+          />
+        </div>
+      );
+    }
+  ),
+  layerPropsAreEqual
+);
+
 /**
  * Image Layer Item
  */

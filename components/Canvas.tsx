@@ -81,6 +81,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     brushColor,
     brushSize,
     canvasSize,
+    gridSize,
+    gridColor,
+    gridStyle,
+    guides,
+    addGuide,
+    removeGuide,
+    updateGuide,
   } = useStore(
     useShallow((state) => ({
       artboards: state.artboards || [],
@@ -91,6 +98,13 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       showGrid: state.showGrid || false,
       showRulers: state.showRulers || false,
       showGoldenRatio: state.showGoldenRatio || false,
+      gridSize: state.gridSize || 20,
+      gridColor: state.gridColor || '#7c3aed',
+      gridStyle: state.gridStyle || 'lines',
+      guides: state.guides || [],
+      addGuide: state.addGuide,
+      removeGuide: state.removeGuide,
+      updateGuide: state.updateGuide,
       isDrawing: state.isPenMode || false,
       setPenMode: state.setPenMode,
       brushType: state.brushType,
@@ -665,14 +679,15 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           {/* Global Workspace Grid - Responds to Zoom */}
           {showGrid && (
             <div
-              className="absolute inset-0 pointer-events-none opacity-[0.03]"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage: `
-                  linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)
-                `,
-                backgroundSize: `${100 * zoom}px ${100 * zoom}px`,
-                backgroundPosition: `var(--pan-x, ${panOffset.x}px) var(--pan-y, ${panOffset.y}px)`,
+                opacity: 0.2,
+                backgroundImage:
+                  gridStyle === 'dots'
+                    ? `radial-gradient(${gridColor} 1.5px, transparent 1.5px)`
+                    : `linear-gradient(${gridColor} 1px, transparent 1px), linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
+                backgroundSize: `${gridSize * zoom}px ${gridSize * zoom}px`,
+                backgroundPosition: `${(activeArtboard?.x || 0) * zoom + panOffset.x}px ${(activeArtboard?.y || 0) * zoom + panOffset.y}px`,
               }}
             />
           )}
@@ -711,6 +726,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 setHoveredLayerId={setHoveredLayerId}
                 setActiveArtboardId={setActiveArtboardId}
                 showGrid={showGrid}
+                gridSize={gridSize}
+                gridColor={gridColor}
+                gridStyle={gridStyle}
                 isDrawing={isDrawing}
                 isVectorPenMode={isDrawing && brushType === 'vector_pencil'}
                 isRefining={false}
@@ -740,7 +758,14 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
                 setContextMenu={setContextMenu}
               />
 
-              <CanvasGuides snapLines={snapLines} />
+              <CanvasGuides
+                snapLines={snapLines}
+                guides={guides}
+                artboardWidth={activeArtboard?.width || canvasSize.width}
+                artboardHeight={activeArtboard?.height || canvasSize.height}
+                onUpdateGuide={updateGuide}
+                onRemoveGuide={removeGuide}
+              />
 
               {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
@@ -760,6 +785,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               artboardY={activeArtboard?.y || 0}
               visible={showRulers}
               unit={useStore.getState().unit || 'px'}
+              onAddGuide={addGuide}
             />
           )}
         </div>

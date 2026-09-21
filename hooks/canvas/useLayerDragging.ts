@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Layer, Artboard } from '../../types';
-import { SnapLine } from '../../utils/snappingOracle';
+import { SnapLine, SnappingOracle } from '../../utils/snappingOracle';
 import { calculateSnaps as wasmCalculateSnaps, initEngine } from '../../utils/geometry-wasm';
 import { SNAP_THRESHOLD } from '../../components/canvas/CanvasConstants';
 import { haptics } from '../../utils/haptics';
+import { useStore } from '../../store/useStore';
 
 interface UseLayerDraggingProps {
   layers: Layer[];
@@ -217,12 +218,18 @@ export const useLayerDragging = ({
           y: currentDragState.initialPositions[l.id].y + dy,
         }));
 
-        const snap = wasmCalculateSnaps(
+        const state = useStore.getState();
+        const guides = state.guides || [];
+        const snapToGrid = state.snapToGrid;
+        const gridSize = state.gridSize || 20;
+
+        const snap = SnappingOracle.calculateSnaps(
           currentMovingLayers,
           layersRef.current,
           currentActiveArtboard,
           SNAP_THRESHOLD,
-          zoomRef.current
+          zoomRef.current,
+          guides
         );
 
         setSnapLines(snap.lines);
@@ -244,8 +251,24 @@ export const useLayerDragging = ({
           minInitialY = Math.min(minInitialY, currentDragState.initialPositions[l.id].y);
         });
 
-        const finalDx = dx + (snap.x !== null ? snap.x - (minInitialX + dx) : 0);
-        const finalDy = dy + (snap.y !== null ? snap.y - (minInitialY + dy) : 0);
+        let finalDx = dx + (snap.x !== null ? snap.x - (minInitialX + dx) : 0);
+        let finalDy = dy + (snap.y !== null ? snap.y - (minInitialY + dy) : 0);
+
+        // Snap to Grid when not snapped to an edge or guide
+        if (snapToGrid && snap.x === null) {
+          const rawX = minInitialX + dx;
+          const gridX = Math.round(rawX / gridSize) * gridSize;
+          if (Math.abs(rawX - gridX) <= SNAP_THRESHOLD / zoomRef.current) {
+            finalDx = gridX - minInitialX;
+          }
+        }
+        if (snapToGrid && snap.y === null) {
+          const rawY = minInitialY + dy;
+          const gridY = Math.round(rawY / gridSize) * gridSize;
+          if (Math.abs(rawY - gridY) <= SNAP_THRESHOLD / zoomRef.current) {
+            finalDy = gridY - minInitialY;
+          }
+        }
 
         const buffer = dragUpdateBuffer.current;
         for (const key in buffer) {
