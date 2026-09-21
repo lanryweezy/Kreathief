@@ -2,6 +2,7 @@ import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
+import { promptArchetypeStrategies, DEFAULT_ARCHETYPE_GUIDANCE, DEFAULT_ARCHETYPE_LOCAL_SUFFIX } from './promptArchetypes';
 import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
@@ -490,20 +491,10 @@ const ENHANCE_PROMPT_SYSTEM_V1 = `
 You are an expert prompt engineer for AI image generators.
 `;
 const getArchetypeGuidance = (archetype?: string): string => {
-  switch (archetype) {
-    case 'cinematic':
-      return 'Emphasize cinematic photography: 85mm f/1.4 lens optics, shallow depth of field, natural volumetric lighting, subtle film grain, 8k resolution, photorealistic realism.';
-    case 'artistic':
-      return 'Emphasize artistic painterly qualities: expressive brushstrokes, tactile canvas texture, rich color harmonies, and atmospheric emotional depth.';
-    case 'product':
-      return 'Emphasize commercial product photography: studio softbox illumination, clean rim highlights, pristine reflections, neutral cyclorama backdrop, commercial catalog sharpness.';
-    case 'render_3d':
-      return 'Emphasize high-end 3D digital art: Octane/Blender render, subsurface scattering, ambient occlusion, physically based rendering (PBR), and volumetric caustics.';
-    case 'vector_graphic':
-      return 'Emphasize modern graphic design: clean vector line work, bold flat colors, geometric balance, modern SVG illustration aesthetic.';
-    default:
-      return 'Include lighting, style, composition, camera perspective, and mood keywords.';
+  if (archetype && promptArchetypeStrategies.has(archetype)) {
+    return promptArchetypeStrategies.get(archetype)!.guidance;
   }
+  return DEFAULT_ARCHETYPE_GUIDANCE;
 };
 
 export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
@@ -548,20 +539,10 @@ export const enhancePromptWithArchetype = async (simplePrompt: string, archetype
 
 const enhancePromptLocally = (simplePrompt: string, archetype?: string): string => {
   const clean = simplePrompt.trim();
-  switch (archetype) {
-    case 'cinematic':
-      return `${clean}, cinematic 35mm photography, natural volumetric lighting, shallow depth of field, f/1.8 aperture, 8k resolution, ultra detailed, photorealistic`;
-    case 'artistic':
-      return `${clean}, expressive concept art, rich painterly brush strokes, vibrant color harmony, atmospheric lighting, detailed composition`;
-    case 'product':
-      return `${clean}, professional studio product photography, clean reflections, softbox illumination, minimal cyclorama backdrop, catalog grade`;
-    case 'render_3d':
-      return `${clean}, 3D Octane render, smooth ray tracing, subsurface scattering, ambient occlusion, physically based shaders, 8k masterpiece`;
-    case 'vector_graphic':
-      return `${clean}, clean modern vector illustration, bold graphic lines, minimalist geometric styling, vibrant flat color palette, SVG vector`;
-    default:
-      return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
+  if (archetype && promptArchetypeStrategies.has(archetype)) {
+    return `${clean}${promptArchetypeStrategies.get(archetype)!.localSuffix}`;
   }
+  return `${clean}${DEFAULT_ARCHETYPE_LOCAL_SUFFIX}`;
 };
 
 export const enhancePrompt = async (simplePrompt: string, archetype?: string): Promise<string> => {
