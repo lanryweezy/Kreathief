@@ -1,11 +1,13 @@
-🔍 Gap: The dashboard displays a generic "Failed to import PDF" error toast when a PDF file fails to import, making it difficult for the user to understand what went wrong (e.g. file too large, invalid format, corrupted file).
+### 💡 What
+Extracted redundant `if ('vibrate' in navigator)` checks and inconsistent `try/catch` logic across seven different methods in `utils/haptics.ts` into a single, shared private helper function `vibrate(pattern)`. Also added robust unit tests for the utility.
 
-💡 Improvement: Updated `components/Dashboard.tsx` to use the `getErrorDetails` utility function from `utils/errorMessages.ts` for PDF import errors, providing users with a specific message and actionable suggestion.
+### 🎯 Why
+The file contained identical boilerplate checking for browser capability in every single exported function. Some functions used `try/catch` to suppress potential errors, while others did not. This consolidation provides a single source of truth, guarantees consistent error suppression, and makes the utility safer for SSR/Node environments by checking `typeof navigator !== 'undefined'`.
 
-🔓 Interface: The external interface of the component and function remains unchanged.
+### 🔓 Behavior
+The observable behavior remains identical. The utility still safely ignores calls if the API is missing, and triggers identical vibration patterns when supported.
 
-📊 Before / After:
-Before: `addToast('Failed to import PDF', 'error');`
-After: `const details = getErrorDetails(err); addToast(\`Failed to import PDF: ${details.message}. ${details.suggestion}\`, 'error');`
-
-✅ Verification: Check the toast message by forcing a PDF import error.
+### ✅ Verification
+- Wrote and ran `tests/unit/utils/haptics.test.ts` (10 passing tests covering all paths and failure modes).
+- Ran `pnpm lint utils/haptics.ts` (0 errors).
+- Ran `pnpm build` successfully.
