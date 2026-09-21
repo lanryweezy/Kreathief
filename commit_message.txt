@@ -1,3 +1,7 @@
-Extract duplicate capability checks in haptics utility
+🔩 Hinge: TextWarpEngine Strategy Registry
 
-Extracted redundant `if ('vibrate' in navigator)` checks and inconsistent `try/catch` blocks into a single shared `vibrate` helper function. This simplifies the module, standardizes error handling, and improves SSR/test safety by explicitly checking for `navigator`. Also added a comprehensive test suite for `utils/haptics.ts`.
+🔍 Pressure: The `warpPoint` function relied on a hard-coded switch statement with 5 cases ('arch', 'flag', 'rise', 'wave', 'bulge').
+💡 Extension point: Extracted the logic into a `TextWarpStrategy` interface and a `textWarpStrategies` registry Map.
+🔒 Additive: Existing callers of `warpPoint` require zero changes.
+📋 Contract: Implementors provide a `warp` method that takes (x, y, nx, ny, magnitude) and returns the modified {x, y} coordinates.
+✅ Verification: Migrated all 5 existing implementations to the registry. Unit tests pass successfully.
