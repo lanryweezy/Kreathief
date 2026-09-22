@@ -1,9 +1,15 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../useStore';
-import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage, GuideLine } from '../../types';
+import { NavTab, AppMode, DesignComment, Toast, ToastType, ImageLayer, GeneratedImage, GuideLine, User } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { storageService } from '../../services/storageService';
 import { DEFAULT_MODEL } from '../../config/aiModels';
+import {
+  fetchCreditsFromSupabase,
+  deductCreditsInSupabase,
+  writeCreditsToSupabase,
+  DEFAULT_FREE_CREDITS,
+} from '../../services/billingService';
 
 export interface UISlice {
   activeTab: NavTab;
@@ -25,6 +31,14 @@ export interface UISlice {
   gridStyle: 'lines' | 'dots';
   guides: GuideLine[];
   showShortcuts: boolean;
+  showPricingModal: boolean;
+  credits: number;
+  creditsLoading: boolean;
+  setShowPricingModal: (show: boolean) => void;
+  setCredits: (amount: number) => void;
+  /** Load credits from Supabase for the given userId and sync into local state */
+  loadCredits: (userId: string) => Promise<void>;
+  deductCredit: (amount?: number) => boolean;
   fontPreview: string | null;
   customFonts: string[];
   uploads: string[];
@@ -50,10 +64,10 @@ export interface UISlice {
   isPublished: boolean;
   isCommandPaletteOpen: boolean;
   showAIOverlay: boolean;
-  aiOverlayTab: 'generate' | 'assistant' | 'chat';
+  aiOverlayTab: 'generate' | 'assistant' | 'campaign' | 'chat';
   showVersionDiff: boolean;
   versionDiffSnapshotId: string | null;
-  user: any | null;
+  user: User | null;
   isSmartMaskMode?: boolean;
   hoveredMaskBoundary?: any;
   aspectLocked?: boolean;
@@ -68,12 +82,12 @@ export interface UISlice {
 
   setActiveTab: (tab: NavTab) => void;
   setMode: (mode: AppMode) => void;
-  setUser: (user: any | null) => void;
+  setUser: (user: User | null) => void;
   setIsProcessing: (isProcessing: boolean) => void;
   setIsExporting: (isExporting: boolean) => void;
   setCommandPaletteOpen: (isOpen: boolean) => void;
-  setShowAIOverlay: (show: boolean, tab?: 'generate' | 'assistant' | 'chat') => void;
-  setAIOverlayTab: (tab: 'generate' | 'assistant' | 'chat') => void;
+  setShowAIOverlay: (show: boolean, tab?: 'generate' | 'assistant' | 'campaign' | 'chat') => void;
+  setAIOverlayTab: (tab: 'generate' | 'assistant' | 'campaign' | 'chat') => void;
   setHistory: (history: GeneratedImage[] | ((prev: GeneratedImage[]) => GeneratedImage[])) => void;
   clearHistory: () => void;
   handleFileUpload: (files: File[]) => void;
@@ -153,6 +167,9 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   gridStyle: 'lines',
   guides: [],
   showShortcuts: false,
+  showPricingModal: false,
+  credits: DEFAULT_FREE_CREDITS,
+  creditsLoading: false,
   fontPreview: null,
   customFonts: [],
   uploads: [],
@@ -264,6 +281,45 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     })),
   clearGuides: () => set({ guides: [] }),
   setShowShortcuts: (show) => set({ showShortcuts: show }),
+  setShowPricingModal: (show) => set({ showPricingModal: show }),
+  setCredits: (amount) => set({ credits: amount }),
+  loadCredits: async (userId: string) => {
+    set({ creditsLoading: true });
+    try {
+      const balance = await fetchCreditsFromSupabase(userId);
+      // balance is null when the user has no subscription row yet (brand-new user)
+      set({ credits: balance ?? DEFAULT_FREE_CREDITS, creditsLoading: false });
+      if (balance === null) {
+        // Provision the row so the webhook can upsert into it later
+        await writeCreditsToSupabase(userId, DEFAULT_FREE_CREDITS);
+      }
+    } catch {
+      set({ creditsLoading: false });
+    }
+  },
+  deductCredit: (amount = 1) => {
+    const state = get();
+    if (state.credits >= amount) {
+      const newBalance = state.credits - amount;
+      set({ credits: newBalance });
+
+      // Fire-and-forget server-side deduction. We use the atomic RPC so
+      // concurrent browser tabs / device sessions don't double-spend.
+      const userId = state.user?.id;
+      if (userId) {
+        deductCreditsInSupabase(userId, amount).then((serverBalance) => {
+          // If the server returned a different balance (e.g. another tab spent
+          // some credits concurrently), reconcile local state to match.
+          if (serverBalance !== null && serverBalance !== newBalance) {
+            set({ credits: serverBalance });
+          }
+        });
+      }
+      return true;
+    }
+    set({ showPricingModal: true });
+    return false;
+  },
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
   setShowProfileModal: (show) => set({ showProfileModal: show }),

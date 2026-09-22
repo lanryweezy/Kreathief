@@ -90,8 +90,7 @@ const exportStrategies: ExportStrategy[] = [
 const fallbackExportStrategy: ExportStrategy = {
   canHandle: () => true,
   export: async (ctx) => {
-    // Determine mime type and whether background should be rendered
-    const mimeType = ctx.format === 'jpg' ? 'jpeg' : ctx.format;
+    const mimeType = ctx.format === 'jpeg' ? 'jpeg' : ctx.format;
     const includeBg = ctx.bgColor !== 'transparent';
     const fillBg = includeBg ? ctx.bgColor : 'transparent';
     
@@ -112,7 +111,7 @@ const fallbackExportStrategy: ExportStrategy = {
       canvas.width = ctx.exportWidth;
       canvas.height = ctx.exportHeight;
       const canvasCtx = canvas.getContext('2d');
-      if (!canvasCtx) throw new Error('Could not get 2D canvas context');
+      if (!canvasCtx) {throw new Error('Could not get 2D canvas context');}
       
       // Paint background manually if format is JPEG since it doesn't support transparency
       if (mimeType === 'jpeg' && !includeBg) {
@@ -137,8 +136,8 @@ const fallbackExportStrategy: ExportStrategy = {
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => {
-            if (b) resolve(b);
-            else reject(new Error('Canvas toBlob conversion failed'));
+            if (b) {resolve(b);}
+            else {reject(new Error('Canvas toBlob conversion failed'));}
           },
           `image/${mimeType}`,
           ctx.quality || 0.95
@@ -204,19 +203,19 @@ export const useFileHandler = () => {
       })
     );
 
-    const readers: Promise<string>[] = compressedFiles.map(
-      (file) =>
-        new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve((e.target?.result as string) || '');
-          reader.readAsDataURL(file);
-        })
-    );
+    // Create lightweight Object URLs instead of base64 data URLs.
+    // A blob:// URL is just a 60-character string; a base64-encoded image
+    // can be hundreds of kilobytes. Storing base64 in layer state means every
+    // structuredClone in the undo/redo stack deep-copies those giant strings.
+    // Object URLs point to the same underlying Blob in memory, so 100 history
+    // entries all reference the same bytes rather than copying them 100 times.
+    const objectUrls: string[] = compressedFiles.map((file) => URL.createObjectURL(file));
 
-    Promise.all(readers).then(async (urls: string[]) => {
-      const validUrls = urls.filter((u) => u);
+    await (async () => {
+      const validUrls = objectUrls.filter((u) => u);
       if (validUrls.length > 0) {
-        // Local-First: Cache assets in IndexedDB
+        // storageService.cacheAsset passes blob:// URLs through unchanged (starts with 'blob:')
+        // so the Object URL is preserved in layer state.
         const cachedUrls = await Promise.all(validUrls.map((url) => storageService.cacheAsset(url)));
 
         // Cascade placement based on existing layer count so consecutive uploads
@@ -278,6 +277,9 @@ export const useFileHandler = () => {
           }
         }
       }
+    })().catch((err) => {
+      log.error('[FileHandler] File upload failed', err);
+      addToast?.('Failed to upload one or more files. Please try again.', 'error');
     });
   };
 
@@ -353,18 +355,42 @@ export const useFileHandler = () => {
       const scaleX = exportWidth / sourceWidth;
       const scaleY = exportHeight / sourceHeight;
 
-      const scaledLayers = targetLayers.map((l) => ({
-        ...l,
-        x: l.x * scaleX,
-        y: l.y * scaleY,
-        width: l.width * scaleX,
-        height: (l as any).height
-          ? (l as any).height * scaleY
-          : l.type === 'text'
-            ? (l as any).fontSize * 1.2
-            : l.width * scaleX,
-        ...(l.type === 'text' ? { fontSize: (l as any).fontSize * scaleY } : {}),
-      })) as any[];
+      const scaledLayers = targetLayers.map((l) => {
+        const scale = Math.min(scaleX, scaleY); // uniform scale for dimension-invariant properties
+        const scaled: any = {
+          ...l,
+          x: l.x * scaleX,
+          y: l.y * scaleY,
+          width: l.width * scaleX,
+          height: (l as any).height
+            ? (l as any).height * scaleY
+            : l.type === 'text'
+              ? (l as any).fontSize * 1.2
+              : l.width * scaleX,
+          ...(l.type === 'text' ? {
+            fontSize: (l as any).fontSize * scaleY,
+            letterSpacing: (l as any).letterSpacing != null ? (l as any).letterSpacing * scale : (l as any).letterSpacing,
+          } : {}),
+          // Scale stroke width proportionally
+          ...(l.stroke?.width != null ? {
+            stroke: { ...l.stroke, width: l.stroke.width * scale },
+          } : {}),
+          // Scale shadow offsets and blur
+          ...(l.shadow ? {
+            shadow: {
+              ...l.shadow,
+              offsetX: (l.shadow.offsetX ?? 0) * scale,
+              offsetY: (l.shadow.offsetY ?? 0) * scale,
+              blur: (l.shadow.blur ?? 0) * scale,
+            },
+          } : {}),
+          // Scale cornerRadius (number form — per-corner CornerRadius object is already a number map)
+          ...((l as any).cornerRadius != null && typeof (l as any).cornerRadius === 'number' ? {
+            cornerRadius: (l as any).cornerRadius * scale,
+          } : {}),
+        };
+        return scaled;
+      }) as any[];
 
       const bgColor = transparentBg && format === 'png' ? 'transparent' : canvasBackgroundColor;
 

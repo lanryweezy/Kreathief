@@ -35,6 +35,9 @@ const PresentationModal = React.lazy(() =>
 const VersionDiffModal = React.lazy(() =>
   import('./components/modals/VersionDiffModal').then((m) => ({ default: m.VersionDiffModal }))
 );
+const PricingModal = React.lazy(() =>
+  import('./components/modals/PricingModal').then((m) => ({ default: m.PricingModal }))
+);
 const UserProfilePage = React.lazy(() =>
   import('./components/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 );
@@ -135,6 +138,7 @@ const App: React.FC = () => {
   }, []);
 
   const setUser = useStore((state) => state.setUser);
+  const loadCredits = useStore((state) => state.loadCredits);
   const toasts = useStore((state) => state.toasts);
   const removeToast = useStore((state) => state.removeToast);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
@@ -177,6 +181,10 @@ const App: React.FC = () => {
         const savedUser = await authService.getSession();
         if (savedUser) {
           setUser(savedUser);
+          // Load credit balance from Supabase — guests use DEFAULT_FREE_CREDITS
+          if (savedUser.id !== 'guest' && !(savedUser as any).isGuest) {
+            loadCredits(savedUser.id);
+          }
         }
 
         const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
@@ -218,12 +226,16 @@ const App: React.FC = () => {
       }
     };
     initApp();
-  }, [setUser]); // Only run on mount (setUser is stable)
+  }, [setUser, loadCredits]); // Only run on mount (setUser and loadCredits are stable)
 
   useEffect(() => {
     // Listen for auth state changes
     const unsubscribe = authService.onAuthChange((updatedUser) => {
       setUser(updatedUser);
+      // Sync credits whenever auth state changes (login, token refresh)
+      if (updatedUser && updatedUser.id !== 'guest' && !(updatedUser as any).isGuest) {
+        loadCredits(updatedUser.id);
+      }
       if (updatedUser && location.pathname === '/auth') {
         navigate('/dashboard');
       }
@@ -631,6 +643,7 @@ const App: React.FC = () => {
         <ProfileModal />
         <PresentationModal />
         <VersionDiffModal />
+        <PricingModal />
       </Suspense>
     </ErrorBoundary>
   );

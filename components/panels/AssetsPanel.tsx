@@ -52,6 +52,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   const [photos, setPhotos] = useState<PhotoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [activeSource, setActiveSource] = useState<string>(provider || 'unsplash');
   const searchTimeoutRef = useRef<any>(null);
   const tabCacheRef = useRef<Record<string, { photos: PhotoItem[]; query: string }>>({});
@@ -85,6 +86,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
     }
     setIsLoading(true);
     setHasSearched(true);
+    setSearchError(null);
     try {
       const results = await searchAllProviders(q, activeSource);
       
@@ -131,6 +133,8 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
       tabCacheRef.current[activeSource] = { photos: finalPhotos, query: q };
     } catch (e) {
       log.error('[AssetsPanel] Search error', e);
+      setSearchError('Could not load photos. Check your connection and try again.');
+      setPhotos([]);
     } finally {
       setIsLoading(false);
     }
@@ -223,9 +227,21 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
             </div>
           ) : (
             hasSearched && (
-              <div className="text-center text-gray-500 mt-10">
-                <p className="text-sm">No photos found for &quot;{query}&quot;</p>
-              </div>
+              searchError ? (
+                <div className="flex flex-col items-center justify-center h-40 gap-3 text-center px-4">
+                  <p className="text-xs text-red-400">{searchError}</p>
+                  <button
+                    onClick={() => handleSearch(query || 'abstract')}
+                    className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-300 rounded text-xs transition-colors"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center text-gray-500 mt-10">
+                  <p className="text-sm">No photos found for &quot;{query}&quot;</p>
+                </div>
+              )
             )
           )}
         </div>

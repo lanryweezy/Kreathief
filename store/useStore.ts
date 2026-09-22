@@ -12,6 +12,7 @@ import { createCollaborationSlice, CollaborationSlice } from './slices/collabora
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
 import { createIntentSlice, IntentSlice } from './slices/intentSlice';
 import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
+import { CommandManager } from '../commands/CommandManager';
 import type { NavTab } from '../types';
 
 // Merged type for the full store state
@@ -48,6 +49,11 @@ export const useStore = create<StoreState>()((set, get, store) => ({
   // Common action to reset the store completely
   reset: () => {
     get().stopAutoSave?.();
+    // Clear the static CommandManager stacks — they survive Zustand resets
+    // because they live on the class itself, not in the store state tree.
+    // Without this, old history from the previous project/session lingers in
+    // memory until the page is refreshed.
+    CommandManager.clear();
     set({
       // UI Slice
       activeTab: 'TEMPLATES' as NavTab,

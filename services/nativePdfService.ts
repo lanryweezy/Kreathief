@@ -37,7 +37,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
 }
 
 function parseColor(color: string): { r: number; g: number; b: number; a: number } {
-  if (!color) return { r: 0, g: 0, b: 0, a: 1 };
+  if (!color) {return { r: 0, g: 0, b: 0, a: 1 };}
 
   if (color.startsWith('#')) {
     const rgb = hexToRgb(color);
@@ -79,28 +79,28 @@ function parseColor(color: string): { r: number; g: number; b: number; a: number
  * Checks if a layer has complex effects that require raster fallback.
  */
 function hasComplexEffects(layer: Layer): boolean {
-  if ((layer as any).blendMode && (layer as any).blendMode !== 'normal') return true;
-  if ((layer as any).maskPath || (layer as any).maskDataURL) return true;
+  if ((layer as any).blendMode && (layer as any).blendMode !== 'normal') {return true;}
+  if ((layer as any).maskPath || (layer as any).maskDataURL) {return true;}
   if ((layer as any).filters) {
     const f = (layer as any).filters;
-    if (f.blur > 0 || f.grayscale > 0 || f.sepia > 0 || f.hueRotate !== 0) return true;
+    if (f.blur > 0 || f.grayscale > 0 || f.sepia > 0 || f.hueRotate !== 0) {return true;}
   }
-  if ((layer as any).shadow) return true;
+  if ((layer as any).shadow) {return true;}
   if (layer.type === 'text') {
     const tl = layer as TextLayer;
-    if (tl.gradient?.enabled) return true;
-    if (tl.curve && tl.curve !== 0) return true;
-    if (tl.warpStyle && tl.warpStyle !== 'none') return true;
-    if (tl.styleType && tl.styleType !== 'normal') return true;
-    if (tl.textPath) return true;
-    if (tl.neonGlow?.enabled) return true;
+    if (tl.gradient?.enabled) {return true;}
+    if (tl.curve && tl.curve !== 0) {return true;}
+    if (tl.warpStyle && tl.warpStyle !== 'none') {return true;}
+    if (tl.styleType && tl.styleType !== 'normal') {return true;}
+    if (tl.textPath) {return true;}
+    if (tl.neonGlow?.enabled) {return true;}
   }
   const type = layer.type as any;
   if (type === 'rectangle' || type === 'circle' || type === 'path' || type === 'triangle' || type === 'star' || type === 'polygon') {
     const sl = layer as ShapeLayer;
-    if (sl.gradient?.enabled) return true;
-    if (sl.imageFill) return true;
-    if (sl.backgroundImage) return true;
+    if (sl.gradient?.enabled) {return true;}
+    if (sl.imageFill) {return true;}
+    if (sl.backgroundImage) {return true;}
   }
   return false;
 }
@@ -176,8 +176,8 @@ function drawTextLayer(pdf: jsPDF, layer: TextLayer): void {
   }
 
   let text = layer.text || '';
-  if (layer.textTransform === 'uppercase') text = text.toUpperCase();
-  if (layer.textTransform === 'lowercase') text = text.toLowerCase();
+  if (layer.textTransform === 'uppercase') {text = text.toUpperCase();}
+  if (layer.textTransform === 'lowercase') {text = text.toLowerCase();}
 
   const lines = resolveTextLines(layer);
   const lineHeight = layer.fontSize * (layer.lineHeight || 1.2);
@@ -341,7 +341,7 @@ function drawSvgPathToPdf(
  */
 function drawPolygonToPdf(pdf: jsPDF, clipPath: string, layer: ShapeLayer, drawMode: 'F' | 'S' | 'FD'): void {
   const match = clipPath.match(/polygon\((.*)\)/);
-  if (!match) return;
+  if (!match) {return;}
 
   const { r, g, b } = parseColor(layer.color);
   pdf.setFillColor(r, g, b);
@@ -354,7 +354,7 @@ function drawPolygonToPdf(pdf: jsPDF, clipPath: string, layer: ShapeLayer, drawM
     };
   });
 
-  if (points.length < 3) return;
+  if (points.length < 3) {return;}
 
   if (points.length === 3) {
     pdf.triangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y, drawMode);
@@ -370,10 +370,10 @@ function drawPolygonToPdf(pdf: jsPDF, clipPath: string, layer: ShapeLayer, drawM
  * Draw an image layer to jsPDF, with optional Pro auto-upscale for low-DPI images.
  */
 async function drawImageLayer(pdf: jsPDF, layer: ImageLayer, isPro = false): Promise<void> {
-  if (!layer.src) return;
+  if (!layer.src) {return;}
 
   try {
-    let srcToEmbed = layer.src;
+    const srcToEmbed = layer.src;
 
     if (isPro) {
       // Upscale service not available — use original image
@@ -516,7 +516,7 @@ export async function exportArtboardToNativePdf(
   const visibleLayers = (artboard.layers || []).filter((l: any) => l.visible !== false);
 
   for (const layer of visibleLayers) {
-    if (layer.type === 'adjustment' || layer.type === 'group') continue;
+    if (layer.type === 'adjustment' || layer.type === 'group') {continue;}
 
     // Apply opacity via graphics state
     const opacity = layer.opacity !== undefined ? layer.opacity : 1;
@@ -677,7 +677,7 @@ export async function exportToNativePdf(
     const visibleLayers = (artboard.layers || []).filter((l: any) => l.visible !== false);
 
     for (const layer of visibleLayers) {
-      if (layer.type === 'adjustment' || layer.type === 'group') continue;
+      if (layer.type === 'adjustment' || layer.type === 'group') {continue;}
 
       const opacity = layer.opacity !== undefined ? layer.opacity : 1;
       if (opacity < 1) {

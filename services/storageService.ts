@@ -509,9 +509,12 @@ class StorageService {
       });
 
       if (cached) {
-        // Timed revoke after 5 minutes to avoid memory leaks
+        // Return a persistent Object URL for this blob. We do NOT set a timed
+        // revoke here — auto-revoking after 5 minutes caused silent broken-image
+        // renders when the URL was still held by a layer, an undo snapshot, or
+        // an <img> element. Revocation is handled by AssetCacheService's LRU
+        // eviction, which checks live references before calling revokeObjectURL.
         const cachedUrl = URL.createObjectURL(cached.blob);
-        setTimeout(() => URL.revokeObjectURL(cachedUrl), 300000);
         return cachedUrl;
       }
 
@@ -521,7 +524,6 @@ class StorageService {
       await this.addToStore(store, { id, url, blob, timestamp: Date.now() });
 
       const newUrl = URL.createObjectURL(blob);
-      setTimeout(() => URL.revokeObjectURL(newUrl), 300000);
       return newUrl;
     } catch (err) {
       log.warn('[Storage] Failed to cache asset', { url, error: err });

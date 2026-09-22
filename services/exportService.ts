@@ -21,6 +21,7 @@ export interface ExportOptions {
   selectionOnly: boolean;
   quality: number;
   background: boolean;
+  externalCtx?: CanvasRenderingContext2D;
 }
 
 // ── Shared helpers (used by both SVG and Canvas export) ──────────────
@@ -921,6 +922,14 @@ export async function exportToCanvas(
     )
   );
 
+  // Wait for all fonts to finish loading before drawing text to the canvas.
+  // Paths A and B (html2canvas) already await document.fonts.ready; this guard
+  // covers Path C (the manual 2D canvas fallback) which previously had none,
+  // causing custom fonts to render as the OS fallback if they hadn't loaded yet.
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+
   return new Promise((resolve) => {
     const nodes = allNodes;
     if (nodes.length === 0) {
@@ -933,16 +942,20 @@ export async function exportToCanvas(
     const w = canvas.width * scale;
     const h = canvas.height * scale;
 
-    const offscreen = document.createElement('canvas');
-    offscreen.width = Math.max(1, Math.round(w));
-    offscreen.height = Math.max(1, Math.round(h));
-    const ctx = offscreen.getContext('2d');
+    let ctx = options.externalCtx;
+    let offscreen: HTMLCanvasElement | null = null;
+    
     if (!ctx) {
-      resolve(null);
-      return;
+      offscreen = document.createElement('canvas');
+      offscreen.width = Math.max(1, Math.round(w));
+      offscreen.height = Math.max(1, Math.round(h));
+      ctx = offscreen.getContext('2d')!;
+      if (!ctx) {
+        resolve(null);
+        return;
+      }
+      ctx.scale(scale, scale);
     }
-
-    ctx.scale(scale, scale);
 
     if (options.background) {
       const bgVal =
@@ -1446,6 +1459,11 @@ export async function exportToCanvas(
     const qualityValue =
       typeof options.quality === 'number' ? (options.quality > 1 ? options.quality / 100 : options.quality) : 0.95;
 
+    if (!offscreen) {
+      resolve(null);
+      return;
+    }
+
     offscreen.toBlob((blob) => resolve(blob), mimeType, qualityValue);
   });
 }
@@ -1589,7 +1607,10 @@ export async function exportDesignToImage(
       if (sourceArtboardEl && !hasOverrideLayers(nodes, sourceArtboardEl)) {
         const baseWidth = parseFloat(sourceArtboardEl.style.width) || sourceArtboardEl.offsetWidth || options.width;
         const baseHeight = parseFloat(sourceArtboardEl.style.height) || sourceArtboardEl.offsetHeight || options.height;
-        const scale = options.width / baseWidth;
+        // Multiply by devicePixelRatio so HiDPI/Retina screens produce a sharp export
+        // at the true physical resolution, not the CSS pixel size.
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+        const scale = (options.width / baseWidth) * dpr;
 
         const clone = sourceArtboardEl.cloneNode(true) as HTMLElement;
         // Strip out interactive chrome, selection handles, and rings
@@ -1634,7 +1655,10 @@ export async function exportDesignToImage(
             height: baseHeight,
             scale: scale > 0 ? scale : 1,
             useCORS: true,
-            allowTaint: true,
+            // allowTaint removed: setting both useCORS and allowTaint simultaneously is
+            // contradictory — allowTaint wins and permanently taints the canvas, making
+            // toBlob() return null silently. useCORS alone is the correct setting; images
+            // without CORS headers will fall through to Path B gracefully.
             backgroundColor: options.background === false ? null : (options.backgroundColor || '#ffffff'),
             logging: false,
           });
@@ -1655,7 +1679,9 @@ export async function exportDesignToImage(
       if (Array.isArray(nodes) && nodes.length > 0 && typeof createRoot === 'function') {
         const baseWidth = options.baseWidth || options.width;
         const baseHeight = options.baseHeight || options.height;
-        const scale = options.width / baseWidth;
+        // Same DPR upscaling as Path A so offscreen renders are also HiDPI-correct
+        const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) || 1;
+        const scale = (options.width / baseWidth) * dpr;
 
         const wrapper = document.createElement('div');
         wrapper.style.position = 'fixed';
@@ -1719,7 +1745,7 @@ export async function exportDesignToImage(
             height: baseHeight,
             scale: scale > 0 ? scale : 1,
             useCORS: true,
-            allowTaint: true,
+            // allowTaint removed — see Path A comment above
             backgroundColor: options.background === false ? null : options.backgroundColor || '#ffffff',
             logging: false,
           });
@@ -1760,7 +1786,7 @@ export async function exportDesignToImage(
 }
 
 function hasOverrideLayers(nodes: any[], artboardEl: HTMLElement): boolean {
-  if (!Array.isArray(nodes) || nodes.length === 0) return false;
+  if (!Array.isArray(nodes) || nodes.length === 0) {return false;}
   // If count of nodes is different from child layers in the artboard element, it's an override selection
   const layerElements = artboardEl.querySelectorAll(
     '[data-layer-id], .image-layer-item, .text-layer, .shape-layer, .adjustment-layer-item'

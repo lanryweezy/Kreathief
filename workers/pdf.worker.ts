@@ -38,16 +38,63 @@ function hexToCmyk(hex: string): [number, number, number, number] {
   return [(c - k) / (1 - k), (m - k) / (1 - k), (y - k) / (1 - k), k];
 }
 
-// Fetch TTF font. We use a trick to get TTF from Google Fonts CSS API v1
+// Font cache so we don't refetch the same family multiple times per export
+const fontCache = new Map<string, string | null>();
+
+/**
+ * Fetch a TTF font from Google Fonts and return it as a base64 string suitable
+ * for jsPDF's addFileToVFS / addFont APIs.
+ *
+ * Strategy: request the Google Fonts CSS v2 API with a plain Accept header so
+ * the server returns @font-face rules with TTF/OTF URLs (not WOFF2), then fetch
+ * the first font file and convert it to base64.
+ */
 async function fetchFont(fontFamily: string): Promise<string | null> {
+  if (fontCache.has(fontFamily)) return fontCache.get(fontFamily)!;
+
   try {
-    const encodedFamily = fontFamily.replace(/ /g, '+');
-    // Using unpkg or google fonts. For safety, try to load from a raw GitHub repo or use default.
-    // In a real production app, we would have a dedicated TTF endpoint or use pdf-lib with fontkit.
-    // We'll try to fetch CSS without WOFF2 support header if possible, but fetch() forbids modifying User-Agent.
-    // Instead, we just use standard fonts if we can't reliably get TTF.
-    return null;
+    const encodedFamily = encodeURIComponent(fontFamily);
+    // Google Fonts CSS v2 — omitting a modern User-Agent header causes the API
+    // to fall back to TTF/OTF which is what jsPDF needs (not WOFF2).
+    const cssUrl = `https://fonts.googleapis.com/css2?family=${encodedFamily}&display=swap`;
+
+    const cssRes = await fetch(cssUrl, {
+      headers: {
+        // Simulate a legacy browser so Google Fonts returns TTF instead of WOFF2
+        'User-Agent': 'Mozilla/5.0 (compatible; jsPDF/2.0)',
+      },
+    });
+
+    if (!cssRes.ok) {
+      fontCache.set(fontFamily, null);
+      return null;
+    }
+
+    const css = await cssRes.text();
+
+    // Extract the first src: url(...) from the CSS
+    const urlMatch = css.match(/src:\s*url\(([^)]+\.(?:ttf|otf))[^)]*\)/i)
+      || css.match(/url\(([^)]+)\)\s+format\(['"]truetype['"]\)/i)
+      || css.match(/url\(([^)]+)\)/i);
+
+    if (!urlMatch) {
+      fontCache.set(fontFamily, null);
+      return null;
+    }
+
+    const fontUrl = urlMatch[1].replace(/['"]/g, '');
+    const fontRes = await fetch(fontUrl);
+    if (!fontRes.ok) {
+      fontCache.set(fontFamily, null);
+      return null;
+    }
+
+    const buffer = await fontRes.arrayBuffer();
+    const base64 = arrayBufferToBase64(buffer);
+    fontCache.set(fontFamily, base64);
+    return base64;
   } catch (e) {
+    fontCache.set(fontFamily, null);
     return null;
   }
 }
@@ -72,6 +119,30 @@ self.onmessage = async (e: MessageEvent) => {
       title: fileName,
       creator: 'Kreathief Pro Engine',
     });
+
+    // ── Font pre-loading ──────────────────────────────────────────────────────
+    // Collect every unique fontFamily used in text layers, fetch the TTF from
+    // Google Fonts, and register it with jsPDF so text renders in the correct
+    // typeface instead of always falling back to Helvetica.
+    const textLayers = (layers as any[]).filter((l) => l.type === 'text' && l.fontFamily);
+    const uniqueFamilies = [...new Set(textLayers.map((l: any) => l.fontFamily as string))];
+
+    const registeredFonts = new Set<string>();
+    await Promise.all(
+      uniqueFamilies.map(async (family) => {
+        try {
+          const base64 = await fetchFont(family);
+          if (!base64) return;
+          const filename = `${family.replace(/\s+/g, '_')}.ttf`;
+          pdf.addFileToVFS(filename, base64);
+          pdf.addFont(filename, family, 'normal');
+          registeredFonts.add(family);
+        } catch {
+          // Font fetch failed — will fall back to Helvetica for this family
+        }
+      })
+    );
+    // ─────────────────────────────────────────────────────────────────────────
 
     const isCmyk =
       options.colorProfile === 'CMYK' || options.colorProfile === 'FOGRA39' || options.colorProfile === 'SWOP';
@@ -140,6 +211,20 @@ self.onmessage = async (e: MessageEvent) => {
 
         applyColor(pdf, textFill, 'text');
         pdf.setFontSize(fontSize);
+
+        // Use the registered custom font if available, otherwise fall back to Helvetica
+        const family: string = layer.fontFamily || '';
+        const weight = parseInt(layer.fontWeight) || 400;
+        const isItalic = layer.fontStyle === 'italic';
+        if (family && registeredFonts.has(family)) {
+          try {
+            pdf.setFont(family, isItalic ? 'italic' : 'normal');
+          } catch {
+            pdf.setFont('helvetica', weight >= 700 ? (isItalic ? 'bolditalic' : 'bold') : isItalic ? 'italic' : 'normal');
+          }
+        } else {
+          pdf.setFont('helvetica', weight >= 700 ? (isItalic ? 'bolditalic' : 'bold') : isItalic ? 'italic' : 'normal');
+        }
 
         // Split text by resolving wrap
         const lines = resolveTextLines(layer);

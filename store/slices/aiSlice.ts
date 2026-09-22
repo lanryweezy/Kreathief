@@ -29,6 +29,26 @@ import { VectorUtils } from '../../utils/vectorUtils';
 import { getErrorDetails } from '../../utils/errorMessages';
 import { generateImageWithModel, composeGenerationPrompt } from '../../services/imageGenService';
 import { DEFAULT_IMAGE_MODEL } from '../../config/imageModels';
+import { log } from '../../utils/log';
+
+// ── Credit costs per AI operation ─────────────────────────────────────────────
+// These mirror the server-side cost table. Keep them in sync.
+const CREDIT_COSTS = {
+  generateImage:      3,  // Full image generation via fal.ai / Gemini
+  imageToImage:       2,  // BG removal, expand, enhance, upscale, remix, vectorize
+  textOperation:      1,  // Tone rewrite, font pairing, text texture, auto-rename
+} as const;
+
+/**
+ * Guard helper — deducts credits before an AI action runs.
+ * Returns true if the action may proceed, false if credits were insufficient
+ * (deductCredit already opens the PricingModal in that case).
+ */
+function requireCredits(get: () => StoreState, cost: number): boolean {
+  const deduct = get().deductCredit;
+  if (!deduct) return true; // slice not yet initialised (tests / SSR)
+  return deduct(cost);
+}
 
 export interface AISlice {
   prompt: string;
@@ -126,7 +146,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
   applyPresetStyleReference: (presetId) => {
     const preset = CURATED_STYLE_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {return;}
     const ref = presetToStyleReference(preset);
     ref.strength = get().referenceStrength;
     set({ styleReference: ref });
@@ -201,6 +221,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     if (!prompt) {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.generateImage)) return;
 
     set({ isGenerating: true });
     try {
@@ -250,6 +271,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     if (!layer || layer.type !== 'image') {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -347,10 +369,14 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   },
 
   onRemix: async (id, promptOverride) => {
-    const prompt = promptOverride || window.prompt('Enter a style or description to remix this image:');
-    if (!prompt) {
+    // Require a prompt to be passed — window.prompt() is blocking, breaks in iframes,
+    // and is not available on mobile. Callers must supply the prompt via promptOverride.
+    if (!promptOverride) {
+      get().addToast?.('Please enter a remix description in the toolbar first.', 'info');
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
+    const prompt = promptOverride;
 
     const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
@@ -401,6 +427,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     if (!layer || layer.type !== 'image') {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -437,6 +464,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       updateLayer(id, { isProcessing: false });
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
 
     set({ isGenerating: true, isRemovingBg: true });
     updateLayer(id, { isProcessing: true });
@@ -460,6 +488,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     if (!layer || layer.type !== 'image') {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -483,6 +512,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     if (!layer || layer.type !== 'image') {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.imageToImage)) return;
 
     set({ isGenerating: true });
     updateLayer(id, { isProcessing: true });
@@ -519,29 +549,26 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   },
 
   onRetouch: async (id) => {
-    const { artboards, activeArtboardId, updateLayer, saveToHistory } = get();
+    const { artboards, activeArtboardId, updateLayer } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id) as ImageLayer;
     if (!layer || layer.type !== 'image') {
       return;
     }
 
-    set({ isGenerating: true });
-    // Basic stub - would map to Inpainting or Face Retouch model
-    set({ isGenerating: true });
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      get().addToast?.('Retouch applied', 'success');
-    } finally {
-      set({ isGenerating: false });
-    }
+    // Feature not yet implemented — inform the user instead of faking a result.
+    get().addToast?.(
+      'AI Retouch is coming soon. Use the Draw tool to manually retouch this layer.',
+      'info'
+    );
   },
 
   handleToneRewrite: async (id, instruction) => {
     const { updateLayer, artboards, activeArtboardId } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {return;}
+    if (!requireCredits(get, CREDIT_COSTS.textOperation)) return;
 
     set({ isGenerating: true });
     try {
@@ -570,7 +597,8 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
     const { updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {return;}
+    if (!requireCredits(get, CREDIT_COSTS.textOperation)) return;
 
     set({ isGenerating: true });
     try {
@@ -668,7 +696,11 @@ Return ONLY the exact font name. Nothing else.`;
 
     try {
       const img = new Image();
-      img.crossOrigin = 'Anonymous';
+      // crossOrigin is only needed for HTTP(S) URLs — setting it on data URIs
+      // causes some browsers to reject the load with a CORS error.
+      if (!layer.src.startsWith('data:')) {
+        img.crossOrigin = 'Anonymous';
+      }
       img.src = layer.src;
       await new Promise((resolve, reject) => {
         img.onload = resolve;
@@ -725,6 +757,7 @@ Return ONLY the exact font name. Nothing else.`;
 
   generateTextTexture: async (layerId: string) => {
     const { updateLayer, addToast } = get();
+    if (!requireCredits(get, CREDIT_COSTS.textOperation)) return;
     set({ isGenerating: true });
     try {
       // In a real app we'd prompt the user, but for now let's apply a 3D Liquid Chrome texture
@@ -750,6 +783,7 @@ Return ONLY the exact font name. Nothing else.`;
     if (!artboard || artboard.layers.length === 0) {
       return;
     }
+    if (!requireCredits(get, CREDIT_COSTS.textOperation)) return;
 
     set({ isGenerating: true });
     addToast?.('AI is renaming your layers intelligently...', 'info');

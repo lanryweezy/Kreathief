@@ -66,7 +66,7 @@ export const Header: React.FC<HeaderProps> = ({
   // what used to be 8 separate `useStore` subscriptions into a single one. This groups
   // state evaluation and prevents the Header from re-rendering heavily due to
   // fragmented subscriptions.
-  const { past, future, isSaving, lastSaved, hasUnsavedChanges, projectTitle, showAIOverlay, aiTab } = useStore(
+  const { past, future, isSaving, lastSaved, hasUnsavedChanges, projectTitle, showAIOverlay, aiTab, credits, creditsLoading } = useStore(
     useShallow((state) => ({
       past: state.past,
       future: state.future,
@@ -74,9 +74,10 @@ export const Header: React.FC<HeaderProps> = ({
       lastSaved: state.lastSaved,
       hasUnsavedChanges: state.hasUnsavedChanges,
       projectTitle: state.projectTitle,
-      // AI overlay state lives in the store so Command Palette / other surfaces can open it
       showAIOverlay: state.showAIOverlay,
       aiTab: state.aiOverlayTab,
+      credits: state.credits,
+      creditsLoading: state.creditsLoading,
     }))
   );
 
@@ -219,13 +220,22 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-center w-5 h-5 ml-1 select-none shrink-0" title={getSaveStatus()}>
+          <div className="flex items-center justify-center gap-1.5 ml-2 select-none shrink-0 cursor-help group" title={getSaveStatus()}>
             {isSaving ? (
-              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
+              <>
+                <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse shadow-[0_0_8px_rgba(234,179,8,0.6)]"></div>
+                <span className="text-[10px] text-yellow-500/90 font-bold uppercase tracking-wider hidden sm:block group-hover:text-yellow-400 transition-colors">Saving...</span>
+              </>
             ) : hasUnsavedChanges ? (
-              <div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>
+              <>
+                <div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.6)]"></div>
+                <span className="text-[10px] text-orange-500/90 font-bold uppercase tracking-wider hidden sm:block group-hover:text-orange-400 transition-colors">Unsaved changes</span>
+              </>
             ) : (
-              <Icons.Cloud className="w-3.5 h-3.5 text-gray-500" />
+              <>
+                <Icons.Cloud className="w-3.5 h-3.5 text-gray-500 group-hover:text-gray-400 transition-colors" />
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider hidden sm:block group-hover:text-gray-400 transition-colors">All changes saved</span>
+              </>
             )}
           </div>
         </div>
@@ -250,12 +260,15 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            size="icon"
             onClick={onShowShortcuts}
             title="Keyboard Shortcuts (?)"
             aria-label="Show keyboard shortcuts"
+            className="flex items-center gap-1.5 opacity-80 hover:opacity-100 px-2 group"
           >
-            <Icons.Help className="w-4 h-4" />
+            <Icons.Keyboard className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors" />
+            <div className="hidden sm:flex items-center gap-0.5">
+              <span className="text-[9px] font-bold border border-white/20 rounded px-1 text-gray-400 group-hover:text-white group-hover:border-white/40 transition-all bg-white/5 uppercase">⌘K</span>
+            </div>
           </Button>
 
           <Button
@@ -273,6 +286,27 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="h-4 w-px bg-gray-800"></div>
+
+        {/* Credit balance pill */}
+        <button
+          onClick={() => useStore.getState().setShowPricingModal(true)}
+          title={creditsLoading ? 'Loading credits…' : `${credits} AI credits remaining — click to top up`}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider transition-all ${
+            credits === 0
+              ? 'bg-red-500/20 border border-red-500/40 text-red-400 hover:bg-red-500/30'
+              : credits <= 5
+                ? 'bg-yellow-500/15 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/25'
+                : 'bg-brand-500/10 border border-brand-500/20 text-brand-400 hover:bg-brand-500/20'
+          }`}
+          aria-label={`${credits} credits remaining`}
+        >
+          <Icons.Sparkles className="w-3 h-3" />
+          {creditsLoading ? (
+            <span className="w-8 h-2 bg-current opacity-30 rounded animate-pulse" />
+          ) : (
+            <span>{credits}</span>
+          )}
+        </button>
 
         <ConnectionStatus />
 
