@@ -57,3 +57,8 @@
 
 **Learning:** When generating a list of active grid guides in `GridGuidesPanel`, the button to remove each guide was a simple "×" without an `aria-label`. This caused screen readers to announce it as an unlabeled button, making it difficult for visually impaired users to understand its function or differentiate it from other buttons.
 **Action:** Always add a descriptive `aria-label` (e.g., `aria-label="Remove guide"`) to icon-only buttons used in lists to delete or remove items, ensuring screen reader users understand the action being performed.
+
+## 2024-05-31 - Screen Reader Accessibility for Fullscreen Toggle Buttons
+
+**Learning:** When using an icon-only button to toggle between standard and fullscreen views (like in the MockupModal), screen readers will not announce its purpose without explicit labels. Furthermore, the button's purpose changes based on its state.
+**Action:** Always provide dynamic `aria-label` and `title` attributes that reflect the current state (e.g., "Enter fullscreen" vs "Exit fullscreen") and use `aria-pressed` to convey the active toggle state to assistive technologies.

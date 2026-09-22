@@ -513,6 +513,9 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
               <button
                 onClick={() => setIsFullscreen(!isFullscreen)}
                 className="w-10 h-10 flex items-center justify-center bg-[#1f1f23]/80 backdrop-blur-md hover:bg-white/10 text-white rounded-xl shadow-xl border border-white/5 transition-all"
+                aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                aria-pressed={isFullscreen}
               >
                 {isFullscreen ? <Icons.Minimize className="w-5 h-5" /> : <Icons.Maximize className="w-5 h-5" />}
               </button>

@@ -326,8 +326,8 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
     }
 
     // 5. Ensure final pass grid snapping (in case fixOverlappingText or applyAutoLayout lost snapping)
-    layers = layers.map(layer => {
-      layer = {
+    layers = layers.map((layer) => {
+      const base = {
         ...layer,
         x: snapToGrid(layer.x),
         y: snapToGrid(layer.y),
@@ -335,14 +335,6 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
         height: layer.height !== undefined ? snapToGrid(layer.height) : (layer.height as any),
       };
 
-    // 6. Ensure text defaults
-    // 5. Ensure text defaults and final grid alignment
-    layers = layers.map(layer => {
-      const base = {
-        ...layer,
-        x: snapToGrid(layer.x),
-        y: snapToGrid(layer.y),
-      };
       if (layer.type === 'text') {
         const tl = layer as any;
         return {
