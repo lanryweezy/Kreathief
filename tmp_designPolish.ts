@@ -89,19 +89,19 @@ export function estimateTextDimensions(
   if (ctx) {
     // Precise canvas-based measurement (works in Web Worker via OffscreenCanvas)
     ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-    
+
     // Fallback letter spacing if canvas API doesn't support it natively
     const effectiveLetterSpacing = Math.max(0, letterSpacing);
     const words = clean.split(/\s+/);
-    
+
     let currentLineWidth = 0;
-    
+
     for (let i = 0; i < words.length; i++) {
       const word = words[i];
       // measureText provides exact pixel width for the word
       const wordWidth = ctx.measureText(word).width + (word.length * effectiveLetterSpacing);
       const spaceWidth = ctx.measureText(' ').width + effectiveLetterSpacing;
-      
+
       if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0) {
         // Wrap to next line
         lines++;
@@ -326,14 +326,14 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
     }
 
     // 5. Ensure final pass grid snapping (in case fixOverlappingText or applyAutoLayout lost snapping)
-
-
-
-
-
-
-
-
+    layers = layers.map(layer => {
+      layer = {
+        ...layer,
+        x: snapToGrid(layer.x),
+        y: snapToGrid(layer.y),
+        width: layer.width !== undefined ? snapToGrid(layer.width) : (layer.width as any),
+        height: layer.height !== undefined ? snapToGrid(layer.height) : (layer.height as any),
+      };
 
     // 6. Ensure text defaults
     // 5. Ensure text defaults and final grid alignment
