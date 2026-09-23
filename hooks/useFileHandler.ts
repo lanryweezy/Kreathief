@@ -91,7 +91,7 @@ const fallbackExportStrategy: ExportStrategy = {
   canHandle: () => true,
   export: async (ctx) => {
     // Determine mime type and whether background should be rendered
-    const mimeType = ctx.format === 'jpg' ? 'jpeg' : ctx.format;
+    const mimeType = ctx.format === 'jpeg' ? 'jpeg' : ctx.format;
     const includeBg = ctx.bgColor !== 'transparent';
     const fillBg = includeBg ? ctx.bgColor : 'transparent';
     
