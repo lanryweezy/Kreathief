@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Icons } from '../../constants';
 import { TextLayer } from '../../types';
 import { useStore } from '../../store/useStore';
@@ -53,25 +53,40 @@ export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps
           <Icons.Wand className="w-3 h-3" /> AI Model
         </h4>
         <div className="grid grid-cols-3 gap-1">
-          {Object.entries(MODEL_CATEGORIES).map(([cat, { label }]) => (
-            <div key={cat} className="space-y-1">
-              <div className="text-[8px] font-bold text-gray-500 uppercase text-center">{label}</div>
-              {AI_MODELS.filter((m) => m.category === cat).map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setSelectedAiModel(m.id)}
-                  title={`${m.name} (${m.provider})`}
-                  className={`w-full text-[9px] px-1.5 py-1.5 rounded-lg border transition-all text-left truncate ${
-                    selectedAiModel === m.id
-                      ? 'border-purple-500 bg-purple-500/20 text-purple-200'
-                      : 'border-gray-600 bg-surface-dark-4 text-gray-400 hover:border-gray-400 hover:text-gray-200'
-                  }`}
-                >
-                  <span className="mr-1">{m.icon}</span>{m.name}
-                </button>
-              ))}
-            </div>
-          ))}
+          {(() => {
+            // ⚡ Bolt Optimization: Pre-categorize models to avoid inline O(N) .filter().map() chains in render
+            // especially important here as typing in the custom prompt triggers re-renders
+            const modelsByCategory = useMemo(() => {
+              const dict: Record<string, typeof AI_MODELS> = {};
+              for (const model of AI_MODELS) {
+                if (!dict[model.category]) {
+                  dict[model.category] = [];
+                }
+                dict[model.category].push(model);
+              }
+              return dict;
+            }, []);
+
+            return Object.entries(MODEL_CATEGORIES).map(([cat, { label }]) => (
+              <div key={cat} className="space-y-1">
+                <div className="text-[8px] font-bold text-gray-500 uppercase text-center">{label}</div>
+                {(modelsByCategory[cat] || []).map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => setSelectedAiModel(m.id)}
+                    title={`${m.name} (${m.provider})`}
+                    className={`w-full text-[9px] px-1.5 py-1.5 rounded-lg border transition-all text-left truncate ${
+                      selectedAiModel === m.id
+                        ? 'border-purple-500 bg-purple-500/20 text-purple-200'
+                        : 'border-gray-600 bg-surface-dark-4 text-gray-400 hover:border-gray-400 hover:text-gray-200'
+                    }`}
+                  >
+                    <span className="mr-1">{m.icon}</span>{m.name}
+                  </button>
+                ))}
+              </div>
+            ));
+          })()}
         </div>
         <p className="text-[9px] text-gray-600 text-center">
           Active: <span className="text-purple-400 font-mono">{AI_MODELS.find(m => m.id === selectedAiModel)?.name ?? selectedAiModel}</span>

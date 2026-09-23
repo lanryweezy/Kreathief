@@ -16,7 +16,7 @@ export class TextToolsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.textTab = page.getByRole('button', { name: 'Text' });
+    this.textTab = page.getByRole('button', { name: 'Text', exact: true });
     this.textPanel = page.getByTestId('text-panel');
     this.addHeadingBtn = this.textPanel.getByTestId('add-heading-btn');
     this.addSubheadingBtn = this.textPanel.getByTestId('add-subheading-btn');

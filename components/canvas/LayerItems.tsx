@@ -219,7 +219,7 @@ export const GroupLayerItem = React.memo(
           ref={ref}
           className={`absolute ${isHovered && !isSelected && !isInteracting ? 'ring-1 ring-brand-400' : ''}`}
           style={{
-            ...getLayerStyle(layer, animStyle),
+            ...getLayerStyle(layer),
             clipPath: maskPath,
             WebkitClipPath: maskPath,
             pointerEvents: 'none', // Groups typically pass clicks through to children
@@ -239,8 +239,6 @@ export const GroupLayerItem = React.memo(
 
           <SelectionHandles
             layer={layer}
-            isSelected={isSelected}
-            zoom={zoom || 1}
             onResize={onResize}
             onRotate={onRotate}
           />
