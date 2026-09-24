@@ -2687,7 +2687,8 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       rawText = resAny.choices[0].message.content;
     }
 
-    const parsed = safeParseJSON<any>(rawText, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<any>(rawText || 'null', null);
     if (parsed && Array.isArray(parsed.layers) && parsed.layers.length > 0) {
       const sanitizedLayers: Layer[] = parsed.layers.map((l: any, i: number) => {
         const id = `${l.type || 'layer'}_${uuidv4().slice(0, 8)}`;
