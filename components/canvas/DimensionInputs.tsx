@@ -11,8 +11,8 @@ export const DimensionInputs: React.FC<DimensionInputsProps> = React.memo(({ lay
   const updateLayer = useStore((s) => s.updateLayer);
   const saveToHistory = useStore((s) => s.saveToHistory);
 
-  const w = Math.round(Number((layer as any).width) || 0);
-  const h = Math.round(Number((layer as any).height) || 0);
+  const w = Math.round(Number(layer.width) || 0);
+  const h = Math.round(Number(layer.height) || 0);
   const r = Math.round(layer.rotation || 0);
   const cr = Math.round((layer as any).cornerRadius || 0);
 

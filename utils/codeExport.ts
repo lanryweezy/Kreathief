@@ -122,8 +122,8 @@ export default ${componentName};
 function layerToCode(layer: Layer, styling: string): string | null {
   const x = Math.round(layer.x);
   const y = Math.round(layer.y);
-  const w = Math.round((layer as any).width || 100);
-  const h = Math.round((layer as any).height || 100);
+  const w = Math.round(layer.width || 100);
+  const h = Math.round(layer.height || 100);
   const opacity = layer.opacity ?? 1;
   const rotation = layer.rotation || 0;
 
