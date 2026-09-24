@@ -45,7 +45,7 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
   await page.screenshot({ path: `${artifactDir}/e2e_1_editor.png` });
 
   // Open the Design Agent tab
-  const designAgentTab = page.locator('button:has-text("Design Agent")').first();
+  const designAgentTab = page.locator('button:has-text("Agent")').first();
   if (await designAgentTab.isVisible()) {
     await designAgentTab.click();
     await page.waitForTimeout(1000);
@@ -55,7 +55,7 @@ test('Test 4-Stage Pipeline (Strategy -> Creative -> Critic -> Performance)', as
       await aiBtn.click();
     }
     await page.waitForTimeout(500);
-    const tab2 = page.locator('button:has-text("Design Agent")').first();
+    const tab2 = page.locator('button:has-text("Agent")').first();
     if (await tab2.isVisible()) {
       await tab2.click();
     }

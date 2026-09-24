@@ -48,11 +48,11 @@ test('verify all requested changes', async ({ page }) => {
 
   // 2. Verify AI Assistant behavior
   // Open AI Assistant from sidebar
-  await page.getByRole('button', { name: 'AI Assistants' }).click();
+  await page.locator('button[aria-label="Open AI tools"]').click({ force: true });
 
   // Check if SidePanel is visible and contains Assistant text
   // The header now says "Agentic AI" or similar. Checking for "Agent" or "Design Agents"
-  const assistantPanel = page.getByText('Agentic AI').last();
+  const assistantPanel = page.getByText('Agent').last();
   await expect(assistantPanel).toBeVisible({ timeout: 15000 });
 
   // Ensure no right-side AI panel is popping out
@@ -87,11 +87,11 @@ test('verify all requested changes', async ({ page }) => {
 
   // 4. Verify Selection/Drag behavior
   // Go back to Elements to add a shape
-  await page.getByRole('button', { name: 'Components' }).click();
+  await page.getByRole('button', { name: 'Elements' }).click();
   // Wait for shapes to load
   await page.waitForTimeout(2000);
   // Click on a shape (the first one in the grid)
-  await page.locator('.grid button').first().click();
+  await page.locator('button:has-text("Square")').first().click({ force: true });
 
   // Wait for element to be added
   await page.waitForTimeout(2000);

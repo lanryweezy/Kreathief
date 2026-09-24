@@ -8,7 +8,6 @@ import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
 
-
 export interface MultiLayerDesignNode {
   type: 'shape' | 'text' | 'container';
   name: string;
@@ -61,7 +60,10 @@ export interface ArtboardDesignResult {
 /**
  * Curated Archetype Fallback Presets for offline or instant multi-layer designs
  */
-export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt: string) => ArtboardDesignResult> = {
+export const FALLBACK_ARCHETYPES: Record<
+  string,
+  (width: number, height: number, prompt: string) => ArtboardDesignResult
+> = {
   cyberpunk: (width, height, prompt) => {
     const bgGrad: Gradient = {
       type: 'linear',
@@ -2366,7 +2368,8 @@ export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number,
 
     return {
       title: 'High-Conversion E-Commerce Flash Sale',
-      description: 'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
+      description:
+        'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
       width,
       height,
       backgroundColor: '#0b0f19',
@@ -2405,8 +2408,38 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['cheap', 'discount', 'budget', 'gaming'],
   },
   food: {
-    primary: ['food', 'restaurant', 'menu', 'recipe', 'cafe', 'bakery', 'chef', 'kitchen', 'jollof', 'suya', 'grill', 'bbq', 'barbecue', 'dining'],
-    secondary: ['eat', 'drink', 'cuisine', 'brunch', 'organic', 'farm', 'gourmet', 'dessert', 'pizza', 'burger', 'rice', 'smokey', 'delicious', 'fest'],
+    primary: [
+      'food',
+      'restaurant',
+      'menu',
+      'recipe',
+      'cafe',
+      'bakery',
+      'chef',
+      'kitchen',
+      'jollof',
+      'suya',
+      'grill',
+      'bbq',
+      'barbecue',
+      'dining',
+    ],
+    secondary: [
+      'eat',
+      'drink',
+      'cuisine',
+      'brunch',
+      'organic',
+      'farm',
+      'gourmet',
+      'dessert',
+      'pizza',
+      'burger',
+      'rice',
+      'smokey',
+      'delicious',
+      'fest',
+    ],
     negative: ['tech', 'software', 'coding'],
   },
   africanMarket: {
@@ -2420,7 +2453,18 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
     negative: ['food', 'restaurant'],
   },
   fashion: {
-    primary: ['fashion', 'clothing', 'outfit', 'style', 'collection', 'runway', 'model', 'streetwear', 'hoodie', 'apparel'],
+    primary: [
+      'fashion',
+      'clothing',
+      'outfit',
+      'style',
+      'collection',
+      'runway',
+      'model',
+      'streetwear',
+      'hoodie',
+      'apparel',
+    ],
     secondary: ['designer', 'lookbook', 'vogue', 'trend', 'wear', 'drop', 'sneaker', 'merch', 'oversized', 'boxy'],
     negative: ['tech', 'software'],
   },
@@ -2457,9 +2501,21 @@ export function classifyDesignIntent(prompt: string): string {
   // 1. Direct archetype keyword matching (high precision)
   const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
     let score = 0;
-    kw.primary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 3; });
-    kw.secondary.forEach((k) => { if (pLower.includes(k.toLowerCase())) score += 1; });
-    kw.negative.forEach((k) => { if (pLower.includes(k.toLowerCase())) score -= 2; });
+    kw.primary.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score += 3;
+      }
+    });
+    kw.secondary.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score += 1;
+      }
+    });
+    kw.negative.forEach((k) => {
+      if (pLower.includes(k.toLowerCase())) {
+        score -= 2;
+      }
+    });
     return { archetype, score };
   });
 
@@ -2500,24 +2556,24 @@ export function classifyDesignIntent(prompt: string): string {
  */
 export function getMatchedStyle(prompt: string): DesignStyleEntry | null {
   const styleId = classifyStyleFromPrompt(prompt);
-  return styleId ? getStyleById(styleId) ?? null : null;
+  return styleId ? (getStyleById(styleId) ?? null) : null;
 }
 
 // ─── Typography Pairing Rules ────────────────────────────────────────────────
 
 const TYPOGRAPHY_PAIRINGS: Record<string, { headline: string; body: string; accent: string }> = {
-  cyberpunk:     { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  editorial:     { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  saas:          { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  luxury:        { headline: 'Cinzel',           body: 'Cormorant Garamond', accent: 'Cinzel' },
-  food:          { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  africanMarket: { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  fitness:       { headline: 'Montserrat',       body: 'Inter',            accent: 'Space Grotesk' },
-  fashion:       { headline: 'DM Sans',          body: 'Inter',            accent: 'Bebas Neue' },
-  realEstate:    { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  event:         { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  education:     { headline: 'Sora',             body: 'Inter',            accent: 'Inter' },
-  ecommerce:     { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
+  cyberpunk: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  editorial: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  saas: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  luxury: { headline: 'Cinzel', body: 'Cormorant Garamond', accent: 'Cinzel' },
+  food: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  africanMarket: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  fitness: { headline: 'Montserrat', body: 'Inter', accent: 'Space Grotesk' },
+  fashion: { headline: 'DM Sans', body: 'Inter', accent: 'Bebas Neue' },
+  realEstate: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  event: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  education: { headline: 'Sora', body: 'Inter', accent: 'Inter' },
+  ecommerce: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
 };
 
 function getTypographyConstraint(archetype: string): string {
@@ -2578,7 +2634,7 @@ export const generateMultiLayerDesign = async (
 
   // Try calling AI structured output model
   try {
-    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister). 
+    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister).
 
 Your job: given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, PRODUCTION-READY EDITABLE MULTI-LAYER artboard in JSON.
 
@@ -2687,7 +2743,8 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       rawText = resAny.choices[0].message.content;
     }
 
-    const parsed = safeParseJSON<any>(rawText, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to prevent silent failures on empty LLM output and ensure error catching logic executes.
+    const parsed = safeParseJSON<any>(rawText || 'null', null);
     if (parsed && Array.isArray(parsed.layers) && parsed.layers.length > 0) {
       const sanitizedLayers: Layer[] = parsed.layers.map((l: any, i: number) => {
         const id = `${l.type || 'layer'}_${uuidv4().slice(0, 8)}`;
