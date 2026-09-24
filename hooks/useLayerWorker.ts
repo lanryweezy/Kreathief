@@ -127,8 +127,8 @@ export const useLayerHitTest = () => {
     } catch (err) {
       log.error('Worker HitTest Error:', err);
       // Fallback to simple AABB if worker fails
-      const width = (layer as any).width || 0;
-      const height = (layer as any).height || 0;
+      const width = layer.width || 0;
+      const height = layer.height || 0;
       return x >= layer.x && x <= layer.x + width && y >= layer.y && y <= layer.y + height;
     }
   }, []);

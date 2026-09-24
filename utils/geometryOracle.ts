@@ -87,7 +87,7 @@ export class GeometryOracle {
    */
   static getTransformationBounds(layer: Layer) {
     const { x, y, width, rotation } = layer;
-    const height = (layer as any).height || (layer.type === 'text' ? layer.fontSize : 0);
+    const height = layer.height || (layer.type === 'text' ? layer.fontSize : 0);
 
     // 1. Get local corner points
     const p1 = { x: 0, y: 0 };

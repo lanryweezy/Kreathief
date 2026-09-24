@@ -46,8 +46,8 @@ const isLayerVisible = (
   }
 
   const buffer = Math.min(1000, 200 / Math.max(0.1, zoom));
-  const lw = (layer as any).width || 0;
-  const lh = (layer as any).height || 0;
+  const lw = layer.width || 0;
+  const lh = layer.height || 0;
 
   const isGroup = (layer as any).isGroup;
   const checkBuffer = isGroup ? buffer * 5 : buffer;
@@ -66,8 +66,8 @@ const distanceToViewportCenter = (
 ): number => {
   const cx = viewport.x + viewport.width / 2;
   const cy = viewport.y + viewport.height / 2;
-  const lw = (layer as any).width || 0;
-  const lh = (layer as any).height || 0;
+  const lw = layer.width || 0;
+  const lh = layer.height || 0;
   const lx = layer.x + lw / 2;
   const ly = layer.y + lh / 2;
   const dx = lx - cx;

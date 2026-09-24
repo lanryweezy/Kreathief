@@ -66,11 +66,11 @@ export const useLayerTransformation = ({
     if (layer.id === 'group_proxy') {
       initialChildren = layersRef.current
         .filter((l) => selectedLayerIdsRef.current.includes(l.id))
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
     } else if (layer.isGroup) {
       initialChildren = layersRef.current
         .filter((l) => l.groupId === layer.id)
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
     }
 
     setTransformState({
@@ -81,19 +81,19 @@ export const useLayerTransformation = ({
       startY: e.clientY,
       initialX: layer.x,
       initialY: layer.y,
-      initialWidth: (layer as any).width || 0,
-      initialHeight: (layer as any).height || 0,
+      initialWidth: layer.width || 0,
+      initialHeight: layer.height || 0,
       initialRotation: layer.rotation || 0,
       initialFontSize: layer.type === 'text' ? (layer as any).fontSize || 40 : undefined,
-      aspectRatio: ((layer as any).width || 1) / ((layer as any).height || 1),
+      aspectRatio: (layer.width || 1) / (layer.height || 1),
       initialChildren,
     });
   }, []);
 
   const handleRotateStart = useCallback((e: React.MouseEvent, layer: Layer) => {
     e.stopPropagation();
-    const width = (layer as any).width || 0;
-    const height = (layer as any).height || 0;
+    const width = layer.width || 0;
+    const height = layer.height || 0;
     // Layer coords are artboard-local; add the artboard offset to get world coords
     const artboardX = activeArtboardRef.current?.x || 0;
     const artboardY = activeArtboardRef.current?.y || 0;
@@ -113,11 +113,11 @@ export const useLayerTransformation = ({
     if (layer.id === 'group_proxy') {
       initialChildren = layersRef.current
         .filter((l) => selectedLayerIdsRef.current.includes(l.id))
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
     } else if (layer.isGroup) {
       initialChildren = layersRef.current
         .filter((l) => l.groupId === layer.id)
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: (l as any).width || 0, height: (l as any).height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
     }
 
     setTransformState({

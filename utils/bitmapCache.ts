@@ -25,8 +25,8 @@ export class BitmapCache {
     }
 
     // Render to offscreen canvas
-    const w = Math.max(1, Math.min((layer as any).width || 100, 4096));
-    const h = Math.max(1, Math.min((layer as any).height || 100, 4096));
+    const w = Math.max(1, Math.min(layer.width || 100, 4096));
+    const h = Math.max(1, Math.min(layer.height || 100, 4096));
 
     try {
       // FIX: Add environment check for OffscreenCanvas support to prevent TypeError: canvas.getContext is not a function

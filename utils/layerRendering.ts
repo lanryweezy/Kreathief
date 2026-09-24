@@ -90,15 +90,15 @@ export const isPointInLayer = (x: number, y: number, layer: Layer): boolean => {
     return false;
   }
 
-  return x >= layer.x && x <= layer.x + (layer as any).width && y >= layer.y && y <= layer.y + (layer as any).height;
+  return x >= layer.x && x <= layer.x + layer.width && y >= layer.y && y <= layer.y + layer.height;
 };
 
 /**
  * Gets the visible bounds of a layer considering rotation
  */
 export const getLayerVisibleBounds = (layer: Layer): { x: number; y: number; width: number; height: number } => {
-  const width = (layer as any).width || 0;
-  const height = (layer as any).height || 0;
+  const width = layer.width || 0;
+  const height = layer.height || 0;
 
   // Simple bounding box (ignores rotation for performance)
   return {
