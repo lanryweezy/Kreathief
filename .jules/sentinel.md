@@ -300,3 +300,9 @@
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint contained an insecure CORS fallback (`req.headers.get('origin') || '*'`). A naive fix (restricting the origin strictly to `VITE_FRONTEND_URL`) broke preview deployments because it removed the necessary `VERCEL_URL` check.
 **Learning:** In Vercel environments, `VERCEL_URL` is dynamically generated for preview deployments, while `VITE_FRONTEND_URL` is typically only set for production. Removing the `VERCEL_URL` fallback completely breaks preview environments. However, falling back to the `Origin` header blindly or using a wildcard `*` allows any malicious site to exploit the proxy.
 **Prevention:** When securing CORS in Vercel API routes, require `VITE_FRONTEND_URL` in production, but safely fall back to `VERCEL_URL` if present. Never echo the request's `Origin` header blindly (`req.headers.get('origin')`) or default to a wildcard `*` on sensitive proxy endpoints.
+
+## 2026-09-25 - Fix Memory Leak in OpenRouter Edge Function
+
+**Vulnerability:** The `api/openrouter.ts` edge function used a global `setInterval` to periodically clean up expired entries from the `rateLimitMap`.
+**Learning:** In Vercel Edge and serverless functions, background intervals (`setInterval`) are strongly discouraged. The runtime typically suspends isolates between requests, causing timers to freeze, hang, or execute unpredictably. This behavior causes the `rateLimitMap` to grow uncontrollably across function invocations, eventually causing memory leaks, memory exhaustion, and process crashes (Denial of Service).
+**Prevention:** Avoid background timers for state management in Edge functions. Instead, use passive, request-driven cleanup logic (e.g., checking timestamps on each incoming invocation) to ensure state pruning occurs reliably when the isolate is awake and processing.
