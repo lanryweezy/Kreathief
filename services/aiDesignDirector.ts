@@ -7,6 +7,7 @@ import { polishDesignOutput } from '../utils/designPolish';
 import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
+import { SchemaType } from '@google/generative-ai';
 
 export interface MultiLayerDesignNode {
   type: 'shape' | 'text' | 'container';
@@ -2720,7 +2721,7 @@ Return ONLY valid JSON, no markdown, no explanation:
           role: 'user',
           parts: [
             {
-              text: `Design brief: "${prompt}"
+              text: `Design brief: "${prompt.trim().substring(0, 1000)}"
 Canvas: ${width}x${height}px
 Goal: Production-ready, highly polished multi-layer artboard with at least 10 distinct, well-placed layers. Make it WOW.`,
             },
@@ -2729,6 +2730,56 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       ],
       generationConfig: {
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            title: { type: SchemaType.STRING },
+            description: { type: SchemaType.STRING },
+            backgroundColor: { type: SchemaType.STRING },
+            backgroundGradient: {
+              type: SchemaType.OBJECT,
+              properties: {
+                type: { type: SchemaType.STRING },
+                angle: { type: SchemaType.NUMBER },
+                colors: {
+                  type: SchemaType.ARRAY,
+                  items: {
+                    type: SchemaType.OBJECT,
+                    properties: { color: { type: SchemaType.STRING }, position: { type: SchemaType.NUMBER } },
+                  },
+                },
+              },
+            },
+            layers: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  type: { type: SchemaType.STRING },
+                  name: { type: SchemaType.STRING },
+                  x: { type: SchemaType.NUMBER },
+                  y: { type: SchemaType.NUMBER },
+                  width: { type: SchemaType.NUMBER },
+                  height: { type: SchemaType.NUMBER },
+                  rotation: { type: SchemaType.NUMBER },
+                  opacity: { type: SchemaType.NUMBER },
+                  color: { type: SchemaType.STRING },
+                  blendMode: { type: SchemaType.STRING },
+                  text: { type: SchemaType.STRING },
+                  fontSize: { type: SchemaType.NUMBER },
+                  fontWeight: { type: SchemaType.STRING },
+                  fontFamily: { type: SchemaType.STRING },
+                  textAlign: { type: SchemaType.STRING },
+                  letterSpacing: { type: SchemaType.NUMBER },
+                  lineHeight: { type: SchemaType.NUMBER },
+                  textTransform: { type: SchemaType.STRING },
+                },
+                required: ['type', 'name', 'x', 'y', 'width', 'height'],
+              },
+            },
+          },
+          required: ['title', 'description', 'backgroundColor', 'layers'],
+        },
         temperature: 0.75,
       },
     });
