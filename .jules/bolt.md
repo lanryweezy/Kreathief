@@ -214,3 +214,6 @@
 
 **Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
 **Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
+## 2025-09-25 - Avoid inline array operations in JSX
+**Learning:** Using chained array methods (like `.map()` and `.filter()`) or constructing arrays (like `Array.from(new Set(...))`) directly within JSX render functions or at the root of a component leads to unnecessary intermediate allocations and garbage collection on every re-render.
+**Action:** Pre-compute and categorize data using a single imperative loop inside a `useMemo` hook to minimize object creation during React render cycles.
