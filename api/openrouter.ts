@@ -9,16 +9,9 @@ export const config = {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
-// Periodic cleanup of expired rate limit entries to prevent memory leak
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitMap) {
-    if (now > value.resetTime) rateLimitMap.delete(key);
-  }
-}, RATE_LIMIT_WINDOW_MS);
-
-
+let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
   // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
@@ -27,6 +20,17 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
 
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
 
   try {
     await requireAuth(req);
@@ -57,7 +61,6 @@ export default async function handler(req: Request) {
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const now = Date.now();
 
   // Rate limiting
   const state = rateLimitMap.get(clientIp);
