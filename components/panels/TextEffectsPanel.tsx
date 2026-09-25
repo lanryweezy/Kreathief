@@ -1,3 +1,4 @@
+import { Icons } from '../../constants';
 import React, { useState, useCallback } from 'react';
 import { PanelHeader } from './PanelHeader';
 
@@ -7,6 +8,7 @@ interface TextEffectsPanelProps {
     warpStyle?: 'none' | 'arc' | 'flag' | 'rise' | 'wave' | 'fish' | 'bulge' | 'squeeze' | 'perspective';
     curve?: number;
     depth?: number;
+    isWarpEditing?: boolean;
     neonGlow?: {
       enabled: boolean;
       color: string;
@@ -28,6 +30,9 @@ interface TextEffectsPanelProps {
       rotateX: number;
       rotateY: number;
       perspective: number;
+      is3dExtrusion?: boolean;
+      depth3d?: number;
+      lightAngle?: number;
     };
   };
   onChange: (effects: object) => void;
@@ -61,6 +66,13 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
   const [warpRotateX, setWarpRotateX] = useState(effects.warpParams?.rotateX || 0);
   const [warpRotateY, setWarpRotateY] = useState(effects.warpParams?.rotateY || 0);
   const [warpPerspective, setWarpPerspective] = useState(effects.warpParams?.perspective || 800);
+
+  // 3D extrusion studio — consumed at render by TextWarpControls/LayerItems but
+  // previously had no UI, so only AI-generated designs could ever carry these flags.
+  const [extrusion3d, setExtrusion3d] = useState(!!effects.warpParams?.is3dExtrusion);
+  const [depth3d, setDepth3d] = useState(effects.warpParams?.depth3d ?? 12);
+  const [lightAngle, setLightAngle] = useState(effects.warpParams?.lightAngle ?? 45);
+  const [warpEditing, setWarpEditing] = useState(!!effects.isWarpEditing);
 
   const handleStyleTypeChange = useCallback(
     (type: 'normal' | 'hollow' | 'lift' | 'echo' | 'emboss' | 'deboss') => {
@@ -169,6 +181,24 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
     [effects, warpRotateX, warpRotateY, warpPerspective]
   );
 
+  const handleExtrusionChange = useCallback(
+    (updates: Partial<{ is3dExtrusion: boolean; depth3d: number; lightAngle: number }>) => {
+      const prev = effects.warpParams || { rotateX: warpRotateX, rotateY: warpRotateY, perspective: warpPerspective };
+      const newParams = { ...prev, ...updates };
+      if (updates.is3dExtrusion !== undefined) setExtrusion3d(updates.is3dExtrusion);
+      if (updates.depth3d !== undefined) setDepth3d(updates.depth3d);
+      if (updates.lightAngle !== undefined) setLightAngle(updates.lightAngle);
+      onChange({ ...effects, warpParams: newParams });
+    },
+    [effects, warpRotateX, warpRotateY, warpPerspective, onChange]
+  );
+
+  const handleWarpEditingToggle = useCallback(() => {
+    const next = !warpEditing;
+    setWarpEditing(next);
+    onChange({ ...effects, isWarpEditing: next });
+  }, [warpEditing, effects, onChange]);
+
   const needsWarpParams = warpStyle === 'bulge' || warpStyle === 'squeeze' || warpStyle === 'perspective';
 
   return (
@@ -187,12 +217,12 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
           <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Core Style</label>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { id: 'normal', label: 'Normal', icon: 'A' },
-              { id: 'hollow', label: 'Hollow', icon: '◐' },
-              { id: 'lift', label: 'Lift', icon: '▲' },
-              { id: 'echo', label: 'Echo', icon: '≋' },
-              { id: 'emboss', label: 'Emboss', icon: '⬍' },
-              { id: 'deboss', label: 'Deboss', icon: '⬌' },
+              { id: 'normal', label: 'Normal', icon: <Icons.Type className="w-4 h-4" /> },
+              { id: 'hollow', label: 'Hollow', icon: <Icons.Circle className="w-4 h-4" /> },
+              { id: 'lift', label: 'Lift', icon: <Icons.Square className="w-4 h-4" /> },
+              { id: 'echo', label: 'Echo', icon: <Icons.Copy className="w-4 h-4" /> },
+              { id: 'emboss', label: 'Emboss', icon: <Icons.ArrowUpCircle className="w-4 h-4" /> },
+              { id: 'deboss', label: 'Deboss', icon: <Icons.ArrowDownCircle className="w-4 h-4" /> },
             ].map((type) => (
               <button
                 key={type.id}
@@ -257,6 +287,20 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
                 {type.label}
               </button>
             ))}
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">On-Canvas Bézier Editing</label>
+            <button
+              data-testid="toggle-canvas-warp-editing"
+              onClick={handleWarpEditingToggle}
+              className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${
+                warpEditing
+                  ? 'bg-accent text-white border-cyan-400/50'
+                  : 'bg-white/5 text-gray-500 border-white/5 hover:border-white/10 hover:text-gray-300'
+              }`}
+            >
+              {warpEditing ? 'Disable' : 'Enable'}
+            </button>
           </div>
         </div>
 
@@ -351,6 +395,58 @@ export const TextEffectsPanel: React.FC<TextEffectsPanelProps> = ({ effects = {}
             </div>
           </div>
         )}
+
+        {/* 3D Extrusion Studio */}
+        <div className="space-y-3 bg-white/5 p-3 rounded-xl border border-white/5">
+          <div className="flex items-center justify-between">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">3D Extrusion</label>
+            <button
+              data-testid="toggle-3d-extrusion"
+              onClick={() => handleExtrusionChange({ is3dExtrusion: !extrusion3d })}
+              className={`w-10 h-5 rounded-full relative transition-colors ${extrusion3d ? 'bg-brand-600' : 'bg-white/10'}`}
+            >
+              <div
+                className={`absolute top-1 w-3 h-3 bg-white rounded-full transition-all ${extrusion3d ? 'left-6' : 'left-1'}`}
+              />
+            </button>
+          </div>
+
+          {extrusion3d && (
+            <>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Extrusion Depth</label>
+                  <span className="text-[9px] font-black text-white font-mono">{depth3d}px</span>
+                </div>
+                <input
+                  id="extrusion-depth-input"
+                  aria-label="Extrusion Depth"
+                  type="range"
+                  min="0"
+                  max="60"
+                  value={depth3d}
+                  onChange={(e) => handleExtrusionChange({ depth3d: parseInt(e.target.value, 10) })}
+                  className="w-full accent-brand-600"
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Light Angle</label>
+                  <span className="text-[9px] font-black text-white font-mono">{lightAngle}°</span>
+                </div>
+                <input
+                  aria-label="Light Angle"
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={lightAngle}
+                  onChange={(e) => handleExtrusionChange({ lightAngle: parseInt(e.target.value, 10) })}
+                  className="w-full accent-brand-600"
+                />
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Text Shadow */}
         <div className="border-t border-white/5 pt-6 space-y-4">

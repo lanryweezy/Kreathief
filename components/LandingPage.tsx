@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, useScroll, useSpring } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import { Hero } from './landing/Hero';
 import { LogoTicker } from './landing/LogoTicker';
+import { AgentDemo } from './landing/AgentDemo';
 import { ProblemSolution } from './landing/ProblemSolution';
 import { ReplacementNarrative } from './landing/ReplacementNarrative';
 import { SpeedProof } from './landing/SpeedProof';
@@ -38,7 +39,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
+    <MotionConfig reducedMotion="user">
+      <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
       {/* Global tactile noise overlay */}
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
       <SEO />
@@ -134,10 +136,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <main>
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
+        <AgentDemo onGetStarted={onTryGuest || onGetStarted} />
         <ProblemSolution />
-        <ReplacementNarrative onGetStarted={onTryGuest || onGetStarted} />
         <Features />
-        <SpeedProof />
         <ScrollShowcase />
         <Stats />
         <TemplateGallery onGetStarted={onTryGuest || onGetStarted} />
@@ -152,6 +153,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       </main>
 
       <Footer />
-    </div>
+      </div>
+    </MotionConfig>
   );
 };

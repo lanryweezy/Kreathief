@@ -869,3 +869,23 @@ h4,
     offset-distance: 100%;
   }
 }
+
+/* Infinite Marquee Animations for Showcase & Testimonials */
+@keyframes marqueeRow {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@keyframes marqueeReverseRow {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.animate-marquee-row {
+  display: flex;
+  width: max-content;
+  animation: marqueeRow 35s linear infinite;
+}
+.animate-marquee-reverse-row {
+  display: flex;
+  width: max-content;
+  animation: marqueeReverseRow 35s linear infinite;
+}

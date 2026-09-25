@@ -176,7 +176,9 @@ describe('AI Design System — Semantic Classifier & 12 Archetypes', () => {
       expect(result.backgroundColor).toBeTruthy();
 
       const textLayers = result.layers.filter((l) => l.type === 'text');
-      const shapeLayers = result.layers.filter((l) => l.type === 'rect' || l.type === 'rectangle' || l.type === 'ellipse' || l.type === 'circle');
+      // Raw archetype output uses the DesignNode dialect ('rect'/'ellipse'); polishDesignOutput
+      // normalizes to canvas types ('rectangle'/'circle'), so accept both.
+      const shapeLayers = result.layers.filter((l) => ['rect', 'rectangle', 'ellipse', 'circle'].includes(l.type as string));
 
       expect(textLayers.length).toBeGreaterThanOrEqual(3);
       expect(shapeLayers.length).toBeGreaterThanOrEqual(2);

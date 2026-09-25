@@ -3,6 +3,7 @@ import { Button } from '../Button';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { VariantCard } from '../agent/VariantCard';
+import { ClarificationCard } from '../agent/ClarificationCard';
 
 import { Icons as AgentIcons } from '../../constants';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -23,7 +24,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     runAgenticRefine,
     applyAgentVariant,
     resetAgentState,
-    selectedLayerIds,
+    selectedLayerIds, styleReference, setStyleReference, clearStyleReference,
     
     // AI Assistant (Chat/Critique) state
     conversationHistory,
@@ -37,6 +38,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
     artboards,
     activeArtboardId,
     runMotionDirector,
+    answerClarification,
   } = useStore(
     useShallow((state) => ({
       agentStatus: state.agentStatus,
@@ -50,6 +52,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       applyAgentVariant: state.applyAgentVariant,
       resetAgentState: state.resetAgentState,
       selectedLayerIds: state.selectedLayerIds,
+      styleReference: state.styleReference,
+      setStyleReference: state.setStyleReference,
+      clearStyleReference: state.clearStyleReference,
+      answerClarification: state.answerClarification,
       
       conversationHistory: state.conversationHistory,
       isAnalyzing: state.isAnalyzing,
@@ -71,6 +77,17 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   const [input, setInput] = useState(agentIntent || '');
   const scrollRef = useRef<HTMLDivElement>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReferenceUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      await setStyleReference(dataUrl, file.name);
+    };
+    reader.readAsDataURL(file);
+  };
 
   useEffect(() => {
     if (agentStatus === 'done' && scrollRef.current) {
@@ -86,6 +103,13 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
 
   const handleStartWorkflow = () => {
     if (!input.trim()) {
+      return;
+    }
+    // While clarifying, the composer answers the agent naturally instead of
+    // starting a new run — natural-language answers beat forced forms.
+    if (agentStatus === 'clarifying') {
+      answerClarification(null, input.trim());
+      setInput('');
       return;
     }
     if (isRefining) {
@@ -104,64 +128,46 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   };
 
   const renderStatus = () => {
-    const steps = [
-      { id: 'strategy', label: 'Strategy Agent', sub: 'Researching Brief', icon: AgentIcons.Bot },
-      { id: 'creative', label: 'Ideation Engine', sub: 'Ideating Layouts', icon: AgentIcons.Sparkles },
-      { id: 'searching', label: 'Asset Fetching', sub: 'Sourcing Graphics', icon: AgentIcons.Search },
-      { id: 'rendering', label: 'Compositing', sub: 'Building Vectors', icon: AgentIcons.Image },
-      { id: 'critic', label: 'Design Critic', sub: 'Optimizing Contrast', icon: AgentIcons.Bot },
-      { id: 'performance', label: 'Performance', sub: 'Scoring Impact', icon: AgentIcons.Zap },
+    // Compact pipeline readout: one line + progress segments. The old
+    // six-row animated staircase said the same thing with 6× the pixels.
+    const STAGES: Array<{ id: string; label: string }> = [
+      { id: 'strategy', label: 'Researching brief' },
+      { id: 'creative', label: 'Art-directing layouts' },
+      { id: 'searching', label: 'Sourcing assets' },
+      { id: 'rendering', label: 'Compositing layers' },
+      { id: 'critic', label: 'Visual critics reviewing' },
+      { id: 'performance', label: 'Scoring impact' },
     ];
+    const idx = STAGES.findIndex((s) => s.id === agentStatus);
+    const current = STAGES[idx];
 
     return (
-      <div className="space-y-6 py-4">
-        <div className="space-y-4">
-          {steps.map((step, i) => {
-            const stepOrder = steps.map(s => s.id);
-            const currentIndex = stepOrder.indexOf(agentStatus as any);
-            const isActive = agentStatus === step.id;
-            const isDone = agentStatus === 'done' || (currentIndex > -1 && currentIndex > i);
-
-            return (
-              <div key={step.id} className="relative group">
-                <div
-                  className={`flex items-center gap-4 transition-all duration-500 ${isActive ? 'opacity-100 scale-100' : 'opacity-40 scale-95'}`}
-                >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-xl relative ${isActive ? 'bg-brand-600 text-white animate-pulse' : isDone ? 'bg-emerald-500/20 text-emerald-500' : 'bg-white/5 text-gray-500'}`}
-                  >
-                    {isDone ? <AgentIcons.Check className="w-4 h-4" /> : <step.icon className="w-4 h-4" />}
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-xl border-2 border-brand-600 animate-ping opacity-20" />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h4
-                      className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-gray-400'}`}
-                    >
-                      {step.label}
-                    </h4>
-                    <p className="text-[9px] text-gray-500 font-medium">
-                      {isActive ? step.sub : isDone ? 'Task Completed' : 'Pending Queue'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+      <div className="space-y-4 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-500 animate-pulse" />
+            {current ? current.label : 'Working…'}
+          </span>
+          {idx >= 0 && (
+            <span className="text-[9px] font-mono text-gray-500">{idx + 1}/{STAGES.length}</span>
+          )}
+        </div>
+        <div className="flex gap-1">
+          {STAGES.map((s, i) => (
+            <div
+              key={s.id}
+              className={`h-1 flex-1 rounded-full transition-colors duration-500 ${
+                i < idx ? 'bg-emerald-500/70' : i === idx ? 'bg-brand-500 animate-pulse' : 'bg-white/5'
+              }`}
+            />
+          ))}
         </div>
 
-        {/* Live Thinking Log */}
+        {/* Live Thinking Log — real events only, last 12 visible */}
         <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3 max-h-[200px] overflow-y-auto no-scrollbar shadow-inner">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Logic Trace</span>
-            <div className="flex gap-1">
-              <div className="w-1 h-1 rounded-full bg-purple-500 animate-pulse" />
-              <div className="w-1 h-1 rounded-full bg-purple-500 animate-pulse delay-75" />
-            </div>
-          </div>
+          <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Logic Trace</span>
           <div className="space-y-2">
-            {thinkingLog.map((event: any) => (
+            {thinkingLog.slice(-12).map((event: any) => (
               <div key={event.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div className="w-1 bg-purple-500/30 rounded-full shrink-0" />
                 <div>
@@ -303,7 +309,6 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                     <button
                       key={idx}
                       onClick={() => {
-                        setInput(style.prompt);
                         runAgenticRefine(style.prompt, activeArtboard.layers.map((l: any) => l.id));
                       }}
                       className="text-left px-2 py-1.5 bg-brand-500/10 hover:bg-brand-500/25 border border-brand-500/20 hover:border-brand-500/40 rounded-xl transition-all group flex flex-col justify-center"
@@ -332,10 +337,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                   ].map((style, idx) => (
                     <button
                       key={idx}
-                      onClick={() => {
-                        setInput(style.prompt);
-                        runMotionDirector(style.prompt);
-                      }}
+                      onClick={() => runMotionDirector(style.prompt)}
                       className="text-left px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/25 border border-amber-500/20 hover:border-amber-500/40 rounded-xl transition-all group flex flex-col justify-center"
                     >
                       <span className="text-[10px] font-bold text-amber-300 group-hover:text-amber-200 block text-center w-full">
@@ -348,6 +350,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             )}
           </div>
         )}
+
+        {/* Clarification round — the agent asks before it guesses */}
+        {agentStatus === 'clarifying' && <ClarificationCard />}
 
         {/* Quick Surgical Refinement Chips (when layers are selected or canvas is active) */}
         {isRefining && (
@@ -368,10 +373,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               ].map((chip, idx) => (
                 <button
                   key={idx}
-                  onClick={() => {
-                    setInput(chip);
-                    runAgenticRefine(chip, selectedLayerIds);
-                  }}
+                  onClick={() => runAgenticRefine(chip, selectedLayerIds)}
                   className="px-2 py-1 bg-white/5 hover:bg-brand-500/25 border border-white/10 rounded-lg text-[9px] font-bold text-gray-300 hover:text-white transition-colors"
                 >
                   {chip}
@@ -448,7 +450,6 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-black text-purple-400 uppercase">Orchestration in progress</span>
-              <span className="text-[10px] font-mono text-gray-500">v0.1.0-alpha</span>
             </div>
             {renderStatus()}
           </div>
@@ -459,7 +460,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             <div className="flex items-center justify-between">
               <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Curation Complete</h3>
               <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[9px] font-black rounded border border-emerald-500/20">
-                3 VARIANTS
+                {agentVariants.length} {agentVariants.length === 1 ? 'DIRECTION' : 'DIRECTIONS'}
               </span>
             </div>
             <div className="grid grid-cols-1 gap-6 pb-8" ref={scrollRef}>
@@ -486,6 +487,20 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       {/* Input Tray */}
       <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
+          
+          {styleReference && (
+            <div className="flex items-center gap-2 mb-2 p-2 bg-black/40 rounded-lg mx-2 mt-2">
+              <img src={styleReference.image} alt="Reference" className="w-8 h-8 rounded-md object-cover border border-white/10" />
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold text-white truncate">{styleReference.name || 'Visual Reference'}</div>
+                <div className="text-[9px] text-brand-400">Remix Mode Active</div>
+              </div>
+              <button onClick={clearStyleReference} className="p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10">
+                <AgentIcons.Close className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -495,9 +510,13 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 handleStartWorkflow();
               }
             }}
-            placeholder="Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
+            placeholder={
+              agentStatus === 'clarifying'
+                ? 'Type your answer, or tap an option above…'
+                : "Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
+            }
             className="w-full h-24 bg-transparent resize-none p-3 text-xs text-white placeholder-gray-500 focus:outline-none custom-scrollbar"
-            disabled={agentStatus !== 'idle' && agentStatus !== 'done'}
+            disabled={agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'clarifying' && agentStatus !== 'error'}
           />
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
             <div className="flex gap-2">
@@ -521,8 +540,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
               </button>
               <button
                 onClick={handleStartWorkflow}
-                disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error')}
-                aria-label="Start AI Design Workflow"
+                disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error' && agentStatus !== 'clarifying')}
+                aria-label={agentStatus === 'clarifying' ? 'Answer the agent' : 'Start AI Design Workflow'}
                 className="px-3 py-1.5 bg-gradient-to-br from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group text-[10px] font-bold gap-1.5"
               >
                 Generate
@@ -531,9 +550,6 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             </div>
           </div>
         </div>
-        <p className="text-[8px] text-center text-gray-600 mt-3 font-black uppercase tracking-widest">
-          Powered by Multi-Agent Creative Engine
-        </p>
       </div>
     </div>
   );

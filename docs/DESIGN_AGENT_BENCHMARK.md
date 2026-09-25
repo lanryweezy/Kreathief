@@ -469,6 +469,313 @@ After every output, answer:
 
 ---
 
+## K. DESIGN INTELLIGENCE TESTS (KT-051 to KT-056)
+
+> Added September 2026 after the competitive research update. These test the
+> Design Intent Graph subsystem (`services/designIntentGraph.ts`,
+> `services/semanticTransformation.ts`) — whether the agent manipulates a
+> design as a *structured semantic object* rather than a bag of pixels.
+> Canva AI 2.0, Lovart and Figma Weave now cover generation + layers; intent
+> reasoning is the differentiated territory.
+
+### KT-051 — Intent Preservation Under Stylistic Pressure
+
+**Protocol:** Create any competent design. Then: "Make this design more premium."
+
+**Pass criteria:** The edit is a *multi-variable transformation* (tracking, breathing space, hierarchy sharpening, noise reduction) executed on the existing layers. The underlying concept, copy and layer identities survive. Scored by the ΔQ gate: visual-critic score must rise while the Design Intent Graph hierarchy is unchanged.
+
+---
+
+### KT-052 — Local Edit Invariance
+
+**Protocol:** "Change only the headline."
+
+**Pass criteria:** Every non-headline layer is byte-identical before/after (position, size, color, opacity). Diff-based: automated, no judgment needed.
+
+---
+
+### KT-053 — Semantic Transformation Correctness
+
+**Protocol:** "Make this feel more youthful." Then "Now make it minimal."
+
+**Pass criteria:** The system changes *appropriate* design variables (youthful: saturation, energy, scale; minimal: decoration opacity, margins) rather than randomly mutating objects. Every change must appear in the rationale log (`criticFeedback`) — no unexplained edits.
+
+---
+
+### KT-054 — Constraint Preservation (BizGenEval-style)
+
+**Protocol:** "Make this more minimal, but preserve the logo, headline, CTA and brand colors."
+
+**Pass criteria:** Protected roles are untouched (verified against the intent graph's `protected_` nodes and locked flags) while unprotected variables visibly move. This is constraint satisfaction, not aesthetics.
+
+---
+
+### KT-055 — Causal Design Reasoning
+
+**Protocol:** "Why does this design feel unbalanced?"
+
+**Pass criteria:** The answer names specific relationships from the intent graph ("the subheadline competes with the product because both sit at importance 0.6", "CTA crowds the hero's edge at region x,y") — never generic aesthetic language. Localized critic issues (region + severity + suggested_action) are the machine-checkable form of this.
+
+---
+
+### KT-056 — Cross-Format Intent Preservation (KT-049 elevated)
+
+**Protocol:** Take one 1080×1350 design through 1080×1080 → 1920×1080 → 1080×1920 via edit commands ("make it work as a banner").
+
+**Pass criteria:** Measure whether *design intent survives*, not merely whether objects fit: the hierarchy order (headline > media > CTA), campaign message, brand palette and layer identities must persist across all formats while composition, geometry, spacing and grouping change. Scaling-only fails.
+
+---
+
+## Temporal Evaluation Protocol (ΔQ)
+
+KDAB dimensions 18–19 (Self-Critique, Improvement After Critique) are measured
+as a *temporal loop*, per VFLM ("Seeing is Improving", CVPR 2026):
+
+```text
+Design₀ → Critic₀ → Repair₁ → Design₁ → Critic₁ → Repair₂ → Design₂
+```
+
+- \(\Delta Q_1 = Q(D_1) - Q(D_0)\), \(\Delta Q_2 = Q(D_2) - Q(D_1)\), …
+- The critique loop **must stop when marginal improvement → 0** (ΔQ ≤ 2 plateau
+  or score ≥ target); burning passes past the plateau is a scoring penalty.
+- Recorded per variant in `CritiquePassResult.history` and surfaced in
+  `criticFeedback` as `Visual critic score: NN (ΔQ: +a → +b)`.
+- A design system whose ΔQ curve is flat from pass 1 is *not self-critiquing*;
+  one whose ΔQ goes negative is *making things worse* — both are distinct fails.
+
+---
+
+## External Benchmark Mapping
+
+| External suite | What it validates | KDAB counterpart |
+|---|---|---|
+| PosterIQ (CVPR 2026) | composition, typographic hierarchy, text-image correspondence | A/C/G categories, dims 3–5 |
+| GraphicDesignBench | manipulating designs as structured objects (SVG, templates, layer ops) | K section, KT-049/052/056 |
+| BizGenEval (Microsoft) | dense commercial constraint satisfaction | KT-047, KT-054, S-02 |
+| AesEval-Bench (Microsoft) | localized aesthetic defect detection | dims 18–19 + localized critic issues (region/severity/action) |
+| STRICT | rendered-text fidelity under stress | S-04 + `enforceTextFidelity` gate |
+| VFLM | visual feedback loop value | Temporal ΔQ protocol |
+
+---
+
+## The Judge Stack Contract (KT-057 to KT-061)
+
+> Added September 2026 (Research Round 2 — "The Architecture War", §22–§25).
+> Critique is no longer one model with one number. Kreathief runs a stack of
+> specialized judges whose output is an *executes-into-repair contract*, not
+> a review comment.
+
+### Judges
+
+| # | Judge | Implementation | Answers | Cost |
+|---|-------|----------------|---------|------|
+| 1 | Geometry | `utils/geometryJudge.ts` — pure math | overlap, clipping, safe zones, alignment, spacing rhythm | free, deterministic |
+| 2 | Semantic | intent graph digest in `services/designIntentGraph.ts` + brief | does the design still *say* what the brief said | prompt fragment |
+| 3 | Aesthetic | `services/visualCriticService.ts` (VLM looking at the render) | hierarchy feel, balance, color, premium-ness | vision tokens |
+| 4 | Production | `solveDesignLayers` under the constraint gate | would this ship at export size | free, deterministic |
+
+### Judge Output Contract
+
+Every finding from every judge MUST have all five fields. A finding missing
+evidence, location or a proposed operation is treated as noise and dropped:
+
+```json
+{
+  "issue": "text_overlap",
+  "severity": 0.74,
+  "region": { "x": 120, "y": 880, "width": 640, "height": 140 },
+  "targetIds": ["layer_18", "layer_22"],
+  "evidence": ["'SUMMER' collides with 'drops june 1'", "overlap covers 31% of the smaller block"],
+  "repair": { "type": "separate", "targetId": "layer_22", "awayFromId": "layer_18", "minGap": 24 }
+}
+```
+
+Bare scores (`{"score": 72}`) are almost useless for repair — the score is a
+rollup of findings, never a substitute for them.
+
+### LLM Proposes, Compiler Decides
+
+```text
+Judge ──► RepairOperation ──► RepairEngine.runRepair()
+                                    │  candidate = execute(op, layers)
+                                    │  violations = validateDesignConstraints(candidate)
+                                    ▼
+                        accept ONLY if violations do not increase
+                                    │
+                                    ▼
+                    deterministic solver as FINAL gate —
+        and the solver itself can be rejected (constraint graph outranks the grid)
+```
+
+Code: `services/repairEngine.ts`. No judge, VLM patch or solver clamp reaches
+the canvas without passing this gate — the Adobe warning ("never allow the
+critic to blindly overwrite the design") as an executable invariant.
+
+### Disagreement Is the Signal
+
+Judges are correlated with different things — geometry with correctness,
+vision with human taste. Their *delta* routes the next intervention:
+
+| Geometry | Vision | Diagnosis | Action |
+|---|---|---|---|
+| ≥ 85 | ≥ 75 | healthy | ship |
+| ≥ 85 | < 60 | technically clean, aesthetically weak | escalate to artistic pass (strategy/color/type), **not** repair |
+| < 70 | ≥ 70 | pretty but structurally broken | run repair batch, suppress style churn |
+| < 70 | < 70 | both agree it's bad | full loop: repair → critique → re-repair |
+
+Surfaced per variant as `Judges: geometry NN/100, vision NN/100 — …` in
+`criticFeedback` (`judgesSummary()` in the orchestrator).
+
+### HIR — Human Intervention Rate
+
+The metric that separates a design *compiler* from an image generator on
+free-form "make it better" requests (Research Round 2 §14):
+
+\[ \text{HIR} = \frac{\text{manual modifications}}{\text{total meaningful modifications}} \]
+
+- A system that ships a 72-scoring design needing 12 manual edits is *worse*
+than one needing 2 edits, even at equal aesthetic score — the pipeline didn't
+finish the job, the human did.
+- **We want HIR to decrease.** Every accepted repair operation, every
+constraint violation prevented and every disagreement correctly routed is one
+manual edit the human no longer has to make.
+- Machine-checkable proxy used today: post-gate `remainingViolations` count +
+rejected-op explanations (below); product-grade measurement (edits per
+accepted variant in real sessions) lands with the auto-KDAB telemetry harness.
+- Pair with **Time-to-Client-Ready**: prompt → AI generation → AI refinement
+→ human refinement → shipped. Shrinking the last stage is the whole point.
+
+### Repair Efficiency
+
+- A repair batch is efficient when ≥ 1 operation is accepted **and** the
+post-repair geometry score strictly increases.
+- Accepted/rejected op counts ship in `criticFeedback
+` (`Geometry judge: NN/100 after repair (N op(s) accepted, M rejected by constraints)`).
+- KDAB acceptance requires the rejected ops to be *explainable* from the
+constraint list — an unexplained rejection is a compiler bug.
+
+### Tests
+
+### KT-057 — Clean-Design Convergence
+**Protocol:** Generate a design, run the full polish gate.
+**Pass criteria:** post-repair geometry ≥ 85, zero remaining constraint
+violations, ΔQ plateau reached within the pass budget (no wasted vision calls).
+
+### KT-058 — Artistic Escalation on Disagreement
+**Protocol:** Intentionally feed a visually mediocre but geometrically clean
+design (aligned, in-bounds, but flat palette / timid hierarchy).
+**Pass criteria:** `judgesSummary` reports DISAGREEMENT (geometry ≥ 85,
+vision < 60) and the next intervention is stylistic (strategy/type/color),
+not positional — layer x/y must not change.
+
+### KT-059 — Structural Repair on Inverse Disagreement
+**Protocol:** Feed a beautiful design with overlapping text and a
+headline escaping the safe zone.
+**Pass criteria:** geometry < 70 with vision ≥ 70; repair batch accepts a
+`separate` + `contain` operation; post-repair copy is byte-identical (KT-052
+diff) — fixed without regenerating.
+
+### KT-060 — Localized Edit Discipline (zero-collateral HIR)
+**Protocol:** "Make the headline more impactful."
+**Pass criteria:** only headline-bearing layers change; every other layer
+byte-identical — a repair that needs the human to undo collateral damage
+registers as manual modifications in the numerator of HIR.
+
+### KT-061 — Constraint Precedence Over the Solver
+**Protocol:** Design where the grid snap would push a protected layer out of
+its `protected_immutable` snapshot position.
+**Pass criteria:** `runRepair` logs the solver output as rejected
+("constraint graph outranks the grid") and the protected layer is untouched.
+
+---
+
+## The Clarification Gate (KT-062 to KT-067)
+
+> Added September 2026 (Design Clarification Engine research). A generation
+> harness that answers every vague prompt instantly is confident, not helpful.
+> The gate lives in `services/clarificationEngine.ts`, wired into
+> `runAgenticWorkflow` (`store/slices/agentSlice.ts`) — it gates *execution*,
+> not a chat sidebar. Core rule from the research: **clarify only when
+> uncertainty materially affects the outcome; never interrogate.**
+
+### The Decision Machine
+
+```text
+prompt ─► intent extraction (deterministic: artifact / purpose / audience /
+         format / mood / quoted text / contact facts / contradictions)
+      ─► context inspection FIRST (canvas size, geometry judge findings,
+         brand kit, answers already given this session)
+      ─► requirements scored blocking / important / optional
+      ─► ready ──────────────► execute
+         ready_with_assumptions ► execute + disclose the Assumption Ledger
+         needs_questions ──────► ask ≤3 questions, worst-gap first
+         blocked ──────────────► one resolution question (contradictions,
+                                 missing business facts)
+```
+
+Answers arrive as option chips, free text or the composer (natural language);
+`"use your judgment"` is always available and routes to
+`ready_with_assumptions` — never blocked. Business facts (prices, dates,
+phones, addresses, claims) are **never invented**: missing → ask, or mark the
+ledger entry as an explicit placeholder.
+
+### Metrics (research §14)
+
+| Metric | Definition | Target |
+|---|---|---|
+| Clarification precision | questions asked that were materially needed | ≥ 0.9 |
+| Clarification recall | materially-underspecified briefs that received questions | ≥ 0.85 |
+| Question efficiency | answered questions ÷ questions asked | ≥ 0.7 (low = annoying) |
+| Unnecessary-question rate | gaps resolvable from context yet asked about | ≤ 0.1 |
+| Assumption transparency | executed runs whose ledger was shown before/at delivery | 100% |
+| Human Intervention Rate (HIR) | manual ÷ total meaningful edits — must keep falling | ↓ trend |
+
+Precision and unnecessary-question rate are the same failure watched from two
+sides: **every question the agent could have answered by looking is noise.**
+
+### Tests
+
+### KT-062 — Vague Prompt Asks (Recall)
+**Protocol:** "Make a flyer for my business" on an empty canvas.
+**Pass criteria:** status `needs_questions`; ≤3 questions; first question
+targets the subject/objective gap; zero layers generated yet.
+
+### KT-063 — Clear Prompt Fires Silently (Precision)
+**Protocol:** "Promote Saturday's Jollof cook-off (1pm-6pm, Ibadan) to young
+professionals — 1080×1350 Instagram post, bold and colorful, headline:
+'FIRE & FLAVOR'."
+**Pass criteria:** status `ready`, **zero** questions, immediate execution —
+an agent that asks here has failed the precision metric.
+
+### KT-064 — Judgment Escape Hatch
+**Protocol:** Any vague prompt + "use your judgment" (or clicking the card
+button).
+**Pass criteria:** never blocked; execution proceeds and every inferred gap
+appears as a labeled, reversible Assumption Ledger entry — including an
+explicit *MISSING* note where business facts were absent (no invented
+phone numbers, no invented prices).
+
+### KT-065 — Context Resolves, Agent Stays Quiet
+**Protocol:** With a 1080×1920 canvas open and a brand kit active, prompt
+that omits format and audience.
+**Pass criteria:** no format/audience question — the context inspector
+resolved both; ledger shows `system_default`/`brand_context` sources.
+
+### KT-066 — Design-by-Inspection (Example C flow)
+**Protocol:** Existing design on canvas, then "make it better."
+**Pass criteria:** exactly one scope question built from *real* geometry
+judge findings ("I noticed: elements hanging off the edge…"), not a generic
+decoration menu; answering re-runs without re-asking.
+
+### KT-067 — No Interrogation Loops
+**Protocol:** (a) prompt with both "playful" and "corporate"; (b) answer one
+chip, then let the workflow re-assess.
+**Pass criteria:** (a) exactly one contradiction-resolution question, not
+three; (b) answered keys never re-asked (sessionAnswers), and an enriched
+("Design brief …") prompt never re-triggers assessment at all.
+
+---
+
 ## Supplementary Tests
 
 ### S-01 — Iterative Criticism Reception
@@ -508,9 +815,19 @@ Feed intentionally broken designs. Verify the critic identifies OBJECTIVE defect
 | KT-003 | | | | | | |
 | ... | | | | | | |
 | KT-050 | | | | | | |
+| KT-051 | | | | | | |
+| ... | | | | | | |
+| KT-056 | | | | | | |
+| KT-057 | | | | | | |
+| ... | | | | | | |
+| KT-061 | | | | | | |
+| KT-062 | | | | | | |
+| ... | | | | | | |
+| KT-067 | | | | | | |
 
 **Aggregate Metrics:**
-- Average score across all 50 tests: __ / 200
+- Average score across all 67 tests: __ / 200
 - "Would ship" percentage: __%
 - Weakest category: __
 - Strongest category: __
+- HIR trend (manual edits per accepted variant, must fall): __

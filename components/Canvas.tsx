@@ -5,6 +5,7 @@ import { TextLayer, ShapeLayer, ImageLayer, Layer, AnimationSettings } from '../
 import { ANIMATION_STYLES } from './canvas/CanvasConstants';
 import { ErrorBoundary } from './ErrorBoundary';
 import { applySmartQuotes } from '../utils/textRendering';
+import { fontManager } from '../services/fontManager';
 
 // Specialized Sub-components & Hooks
 import { useCanvasInteractions } from './canvas/useCanvasInteractions';
@@ -14,6 +15,8 @@ import { CanvasGuides } from './canvas/CanvasGuides';
 import { SelectionMarquee } from './canvas/SelectionMarquee';
 import { Rulers } from './Rulers';
 import { GoldenRatioOverlay } from './GoldenRatioOverlay';
+import { SpatialPinOverlay } from './canvas/SpatialPinOverlay';
+import { resolveSpatialContext } from '../services/spatialContextEngine';
 import { CanvasProvider, CanvasContextValue } from './canvas/CanvasContext';
 import { useTouchGestures } from '../hooks/useTouchGestures';
 import { useSelectionEngine } from '../hooks/useSelectionEngine';
@@ -98,6 +101,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
       canvasSize: state.canvasSize || { width: 1080, height: 1080 },
     }))
   );
+
+  const isSpatialPinMode = useStore((state) => state.isSpatialPinMode);
+  const setSpatialPinMode = useStore((state) => state.setSpatialPinMode);
+  const setSpatialPin = useStore((state) => state.setSpatialPin);
+  const clearSpatialPin = useStore((state) => state.clearSpatialPin);
 
   // Phase 3: Selection engine — wire select/multiSelect/clearSelection into mouse handlers
   const { select, multiSelect, clearSelection, isSelected, marqueeSelect } = useSelectionEngine();
@@ -636,6 +644,59 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     ]
   );
 
+  // Escape key handler to dismiss spatial pin or exit spatial pin mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (isSpatialPinMode) {
+          setSpatialPinMode(false);
+        } else {
+          clearSpatialPin();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSpatialPinMode, setSpatialPinMode, clearSpatialPin]);
+
+  const handleCanvasPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      if (isSpatialPinMode && activeArtboard && viewportRef.current) {
+        const rect = viewportRef.current.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        const canvasX = (mouseX - panOffset.x) / zoom;
+        const canvasY = (mouseY - panOffset.y) / zoom;
+        const artboardRelX = canvasX - (activeArtboard.x ?? 0);
+        const artboardRelY = canvasY - (activeArtboard.y ?? 0);
+
+        const pin = resolveSpatialContext({ x: artboardRelX, y: artboardRelY }, activeArtboard);
+        setSpatialPin(pin);
+        setSpatialPinMode(false);
+        e.stopPropagation();
+        return;
+      }
+
+      if (isDrawing && brushType === 'vector_pencil') {
+        return;
+      }
+      (handleMouseDownCombined as any)(e);
+    },
+    [
+      isSpatialPinMode,
+      activeArtboard,
+      viewportRef,
+      panOffset,
+      zoom,
+      setSpatialPin,
+      setSpatialPinMode,
+      isDrawing,
+      brushType,
+      handleMouseDownCombined,
+    ]
+  );
+
   return (
     <ErrorBoundary componentName="Canvas" variant="widget">
       <div className="flex-1 relative bg-surface-dark-0 overflow-hidden flex flex-col">
@@ -649,9 +710,11 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               ? 'grabbing'
               : isSpacePressed
                 ? 'grab'
-                : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
+                : isSpatialPinMode
+                  ? 'crosshair'
+                  : eraserCursor || (isDrawing ? 'crosshair' : 'default'),
           }}
-          onPointerDown={isDrawing && brushType === 'vector_pencil' ? undefined : (handleMouseDownCombined as any)}
+          onPointerDown={handleCanvasPointerDown}
           onDragOver={handleCanvasDragOver}
           onDrop={handleCanvasDrop}
         >
@@ -738,6 +801,8 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
               {showGoldenRatio && <GoldenRatioOverlay width={canvasSize.width} height={canvasSize.height} />}
 
               {selectionBox && <SelectionMarquee box={selectionBox} />}
+
+              {activeArtboard && <SpatialPinOverlay artboard={activeArtboard} zoom={zoom} />}
             </CanvasProvider>
           </div>
 

@@ -1,3 +1,4 @@
+import { removeSelfIntersections } from '../utils/geometry/intersections';
 // SVG & Canvas export service
 // Mirrors canvas engine rendering logic exactly — same gradient computation,
 // same path construction, same effect parameters. Both surfaces derive from
@@ -14,6 +15,7 @@ import { hexToRgba } from '../lib/utils';
 import { resolveTextLines } from '../utils/textRendering';
 import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 import { buildVariableStrokeOutline, profileWidthFn } from '../utils/variableStroke';
+import { cleanPathData, type CleanOptions } from '../geometry/simplify';
 
 export interface ExportOptions {
   format: 'png' | 'jpeg' | 'jpg' | 'webp' | 'svg';
@@ -495,7 +497,8 @@ function renderNodeToSvg(
   node: DesignNode,
   nodesMap: Map<string, DesignNode>,
   offsetX: number,
-  offsetY: number
+  offsetY: number,
+  ctx: { outlineText?: boolean } = {}
 ): string {
   const x = node.x - offsetX;
   const y = node.y - offsetY;
@@ -525,7 +528,7 @@ function renderNodeToSvg(
   }
   const transform = transforms.length > 0 ? ` transform="${transforms.join(' ')}"` : '';
 
-  const blendMode = node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
+  const blendMode = node.blendMode && node.blendMode !== 'normal' ? ` style="mix-blend-mode:${node.blendMode}"` : '';
   const hasFilterDefs =
     node.effects?.some((e) => e.enabled) || node.neonGlow?.enabled || (node as any).stickerEffect?.enabled;
   const filterAttr = hasFilterDefs ? ` filter="url(#filter-${node.id})"` : '';
@@ -544,7 +547,7 @@ function renderNodeToSvg(
     const childSvgs = (node.children || [])
       .map((id) => nodesMap.get(id))
       .filter(Boolean)
-      .map((child) => renderNodeToSvg(child!, nodesMap, offsetX, offsetY))
+      .map((child) => renderNodeToSvg(child!, nodesMap, offsetX, offsetY, ctx))
       .join('\n    ');
     const fillBg =
       node.type === 'frame'
@@ -615,6 +618,31 @@ function renderNodeToSvg(
           ? ` font-style="${(node as any).fontStyle}"`
           : '';
 
+      // Outline mode: when requested AND a precomputed glyph outline exists on the
+      // node (populated by exportToSvgWithTextOutlines via the browser text->path
+      // pipeline), emit it as editable <path> geometry instead of <text>. This is the
+      // "fonts are guaranteed present" export designers need for print/handoff. When
+      // no outline is available we fall through to <text>, never dropping the glyphs.
+      if (ctx.outlineText) {
+        const outlines = (node as any).textOutlinePaths as Array<{ d: string; fill?: string }> | undefined;
+        if (outlines && outlines.length > 0) {
+          const box = (node as any).textOutlineBox as { width: number; height: number } | undefined;
+          const sx = box && box.width ? node.width / box.width : 1;
+          const sy = box && box.height ? node.height / box.height : 1;
+          const scaleAttr = sx !== 1 || sy !== 1 ? ` scale(${sx} ${sy})` : '';
+          const solidFill = typeof textFill === 'string' ? textFill : content.inverse;
+          const paths = outlines
+            .map(
+              (o) =>
+                `<path d="${cleanPathData(o.d, { decimals: 2 })}" fill="${
+                  o.fill && typeof o.fill === 'string' ? o.fill : solidFill
+                }"${strokeAttr} />`
+            )
+            .join('\n    ');
+          return `<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}>\n    <g transform="translate(${x} ${y})${scaleAttr}">\n    ${paths}\n    </g>\n  </g>`;
+        }
+      }
+
       const warpStyle = (node as any).warpStyle;
       if (warpStyle === 'arc' || warpStyle === 'wave') {
         const textH = Math.max(120, fontSize * 2.5);
@@ -655,7 +683,11 @@ function renderNodeToSvg(
 
       let d = '';
       if (node.pathData) {
-        d = node.pathData;
+        // Opt-in "clean vector" pass: reduces node count + coordinate precision
+        // without changing the visible shape. Off unless node.cleanVector is set.
+        d = node.cleanVector
+          ? cleanPathData(node.pathData, (typeof node.cleanVector === 'object' ? node.cleanVector : {}) as CleanOptions)
+          : node.pathData;
       } else if (node.shapeType) {
         const clipPath = getShapeDefinition(node.shapeType);
         if (clipPath && clipPath.startsWith('polygon(')) {
@@ -796,7 +828,8 @@ export function exportToSvg(
   background: boolean | string = true,
   width?: number,
   height?: number,
-  backgroundColor?: string
+  backgroundColor?: string,
+  options: { outlineText?: boolean } = {}
 ): string {
   const nodes = (nodesInput || []).map(layerToDesignNode);
   if (nodes.length === 0 && width === undefined && height === undefined && !background) {
@@ -867,7 +900,7 @@ export function exportToSvg(
 
   const inner = nodes
     .sort((a, b) => (a as any).zIndex - (b as any).zIndex)
-    .map((n) => `  ${renderNodeToSvg(n, nodesMap, minX, minY)}`)
+    .map((n) => `  ${renderNodeToSvg(n, nodesMap, minX, minY, options)}`)
     .join('\n');
 
   const defsBlock = defs.length > 0 ? `<defs>\n    ${defs.join('\n    ')}\n  </defs>\n` : '';
@@ -877,6 +910,47 @@ export function exportToSvg(
   ${inner}
 </svg>`;
   return cleanSvgMarkup(rawSvg);
+}
+
+/**
+ * Async bridge for "text as outlines" SVG export.
+ *
+ * Runs each text node through the browser glyph pipeline
+ * (utils/textRendering.convertTextToOutlines -> canvas + ImageTracer), parses the
+ * resulting SVG back into path data with the pure `svgToDesignNodes` kernel, then
+ * hands off to the synchronous exportToSvg in outline mode. If a glyph conversion
+ * fails for any node we keep it as editable <text> rather than dropping it, so the
+ * export is never worse than the default. Requires a browser (canvas/ImageTracer);
+ * the sync exportToSvg({ outlineText }) path is what unit tests exercise directly.
+ */
+export async function exportToSvgWithTextOutlines(
+  nodesInput: (DesignNode | any)[],
+  background: boolean | string = true,
+  width?: number,
+  height?: number,
+  backgroundColor?: string,
+  outlineOptions?: { scale?: number }
+): Promise<string> {
+  const nodes = (nodesInput || []).map(layerToDesignNode);
+  for (const n of nodes) {
+    if (n.type !== 'text' || (n as any).textOutlinePaths) continue;
+    try {
+      const { convertTextToOutlines } = await import('../utils/textRendering');
+      const { svgToDesignNodes } = await import('../utils/svgIngest');
+      const traced = await convertTextToOutlines(n as any, outlineOptions);
+      const { nodes: outlineNodes, width: ow, height: oh } = svgToDesignNodes(traced, { clean: true });
+      const paths = outlineNodes
+        .filter((x) => x.type === 'path' && x.pathData)
+        .map((x) => ({ d: x.pathData as string, fill: typeof x.fill === 'string' ? x.fill : undefined }));
+      if (paths.length > 0) {
+        (n as any).textOutlinePaths = paths;
+        (n as any).textOutlineBox = { width: ow, height: oh };
+      }
+    } catch (e) {
+      log.warn('[exportService] text outline conversion failed, keeping editable <text>', e);
+    }
+  }
+  return exportToSvg(nodes, background, width, height, backgroundColor, { outlineText: true });
 }
 
 // ── Canvas (raster) export ──────────────────────────────────────────

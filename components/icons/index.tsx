@@ -1668,9 +1668,9 @@ export const CheckCircle = Check;
 export const GitCommit = Code;
 export const GitMerge = Union;
 export const Maximize2 = Maximize;
-export const Palette = Brush;
 export const DollarSign = Zap;
 export const Package = Box;
+export const PackageOpen = Box;
 export const CreditCard = (props: React.SVGProps<SVGSVGElement>) =>
   React.createElement(
     'svg',
@@ -1693,3 +1693,106 @@ export const BringToFront = (props: React.SVGProps<SVGSVGElement>) => <svg {...p
 export const SendToBack = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
 export const MoreHorizontal = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
 export const Shuffle = (props: React.SVGProps<SVGSVGElement>) => <svg {...props}></svg>;
+
+export const ArrowUpCircle = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('polyline', { points: '16 12 12 8 8 12' }),
+    React.createElement('line', { x1: '12', y1: '16', x2: '12', y2: '8' })
+  );
+
+export const ArrowDownCircle = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('polyline', { points: '8 12 12 16 16 12' }),
+    React.createElement('line', { x1: '12', y1: '8', x2: '12', y2: '16' })
+  );
+
+export const Type = Text;
+
+export const MousePointer2 = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'm4 4 7.07 17 2.51-7.39L21 11.07z' })
+  );
+
+export const PenTool = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'm12 19 7-7 3 3-7 7-3-3z' }),
+    React.createElement('path', { d: 'm18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z' }),
+    React.createElement('circle', { cx: '11', cy: '11', r: '2' })
+  );
+
+export const CircleDot = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '12', cy: '12', r: '10' }),
+    React.createElement('circle', { cx: '12', cy: '12', r: '1' })
+  );
+
+export const Coffee = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M18 8h1a4 4 0 0 1 0 8h-1' }),
+    React.createElement('path', { d: 'M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z' }),
+    React.createElement('line', { x1: '6', y1: '1', x2: '6', y2: '4' }),
+    React.createElement('line', { x1: '10', y1: '1', x2: '10', y2: '4' }),
+    React.createElement('line', { x1: '14', y1: '1', x2: '14', y2: '4' })
+  );
+
+export const ShoppingBag = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z' }),
+    React.createElement('line', { x1: '3', y1: '6', x2: '21', y2: '6' }),
+    React.createElement('path', { d: 'M16 10a4 4 0 0 1-8 0' })
+  );
+
+export const FileImage = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z' }),
+    React.createElement('polyline', { points: '14 2 14 8 20 8' }),
+    React.createElement('circle', { cx: '10', cy: '13', r: '2' }),
+    React.createElement('path', { d: 'm20 17-1.296-1.296a2.41 2.41 0 0 0-3.408 0L9 21' })
+  );
+
+export const MapPin = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('path', { d: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z' }),
+    React.createElement('circle', { cx: '12', cy: '10', r: '3' })
+  );
+
+export const Palette = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('circle', { cx: '13.5', cy: '6.5', r: '.5', fill: 'currentColor' }),
+    React.createElement('circle', { cx: '17.5', cy: '10.5', r: '.5', fill: 'currentColor' }),
+    React.createElement('circle', { cx: '8.5', cy: '7.5', r: '.5', fill: 'currentColor' }),
+    React.createElement('circle', { cx: '6.5', cy: '12.5', r: '.5', fill: 'currentColor' }),
+    React.createElement('path', {
+      d: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.992 6.012 17.5 2 12 2z',
+    })
+  );
+
+export const Terminal = (props: React.SVGProps<SVGSVGElement>) =>
+  React.createElement(
+    'svg',
+    { ...svgProps, ...props },
+    React.createElement('polyline', { points: '4 17 10 11 4 5' }),
+    React.createElement('line', { x1: '12', y1: '19', x2: '20', y2: '19' })
+  );

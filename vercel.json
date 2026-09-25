@@ -1,8 +1,8 @@
 {
   "framework": "vite",
-  "buildCommand": "pnpm exec vite build",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then node scripts/verify-env.mjs --mode=production; fi && pnpm exec vite build",
   "devCommand": "npm run dev",
-  "installCommand": "pnpm install --no-frozen-lockfile",
+  "installCommand": "pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
   "rewrites": [
     {

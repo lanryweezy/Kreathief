@@ -56,66 +56,43 @@ export const DEFAULT_LAYER_FILTERS: LayerFilters = {
 };
 
 export function applyAutoLayout(layers: Layer[]): Layer[] {
-  const containers = layers.filter((l) => l.autoLayout && l.groupId);
+  const containers = layers.filter((l) => !!l.autoLayout);
   if (containers.length === 0) {
     return layers;
   }
 
+  // Calculate depth for each container
+  const getDepth = (id: string, currentDepth = 0): number => {
+    const layer = layers.find(l => l.id === id);
+    if (!layer || !layer.groupId || layer.groupId === id) return currentDepth;
+    return getDepth(layer.groupId, currentDepth + 1);
+  };
+
+  const containersWithDepth = containers.map(c => ({
+    container: c,
+    depth: getDepth(c.id)
+  }));
+
+  // Sort descending by depth (deepest first)
+  containersWithDepth.sort((a, b) => b.depth - a.depth);
+
   const nextLayers = [...layers];
-  containers.forEach((container) => {
-    const children = nextLayers.filter((l) => l.groupId === container.groupId && l.id !== container.id);
+  containersWithDepth.forEach(({ container }) => {
+    // Re-fetch container in case it was resized by a child's autolayout
+    const currentContainer = nextLayers.find(l => l.id === container.id)!;
+    
+    // Get visible children
+    const children = nextLayers.filter((l) => l.groupId === currentContainer.id && l.id !== currentContainer.id && l.visible !== false);
     if (children.length === 0) {
       return;
     }
 
-    const positions = computeAutoLayout(container, children, nextLayers);
+    const positions = computeAutoLayout(currentContainer, children, nextLayers);
 
     Object.entries(positions).forEach(([id, pos]) => {
-      if (id === container.id) {
-        const idx = nextLayers.findIndex((l) => l.id === id);
-        if (idx !== -1) {
-          const updatedChild = nextLayers[idx];
-          const allChildren = nextLayers.filter((l) => l.groupId === container.groupId && l.id !== container.id);
-          if (container.autoLayout!.direction === 'row') {
-            const maxH = allChildren.reduce(
-              (mx, c) => Math.max(mx, c.height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 0)),
-              0
-            );
-            const pad =
-              typeof container.autoLayout!.padding === 'number'
-                ? container.autoLayout!.padding
-                : (container.autoLayout!.padding.top || 0) + (container.autoLayout!.padding.bottom || 0);
-            const totalWidth =
-              allChildren.reduce((acc, c) => acc + (c.width || 0), 0) +
-              (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
-              pad;
-            nextLayers[idx] = {
-              ...updatedChild,
-              width: totalWidth,
-              height: maxH + pad,
-            } as any;
-          } else {
-            const maxW = allChildren.reduce((mx, c) => Math.max(mx, c.width || 0), 0);
-            const pad =
-              typeof container.autoLayout!.padding === 'number'
-                ? container.autoLayout!.padding
-                : (container.autoLayout!.padding.left || 0) + (container.autoLayout!.padding.right || 0);
-            const totalHeight =
-              allChildren.reduce((acc, c) => acc + (c.height || 0), 0) +
-              (container.autoLayout!.spacing || 0) * Math.max(0, allChildren.length - 1) +
-              pad;
-            nextLayers[idx] = {
-              ...updatedChild,
-              width: maxW + pad,
-              height: totalHeight,
-            } as any;
-          }
-        }
-      } else {
-        const idx = nextLayers.findIndex((l) => l.id === id);
-        if (idx !== -1) {
-          nextLayers[idx] = { ...nextLayers[idx], x: pos.x, y: pos.y } as any;
-        }
+      const idx = nextLayers.findIndex((l) => l.id === id);
+      if (idx !== -1) {
+        nextLayers[idx] = { ...nextLayers[idx], ...pos } as any;
       }
     });
   });

@@ -28,6 +28,8 @@ export interface LayerSlice {
   deleteLayer: (id: string) => void;
   deleteSelected: () => void;
   duplicateLayer: (id: string) => void;
+  toggleLockSelected: () => void;
+  toggleVisibilitySelected: () => void;
   duplicateSelected: () => void;
   selectLayer: (id: string | null) => void;
   multiSelectLayer: (id: string, shiftKey: boolean) => void;

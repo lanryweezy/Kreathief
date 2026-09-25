@@ -47,6 +47,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     toggleFavoriteProject,
     shareToCommunity,
     addToast,
+    styleReference,
+    setStyleReference,
+    clearStyleReference,
   } = useStore(
     useShallow((state) => ({
       projects: state.projects,
@@ -60,12 +63,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       toggleFavoriteProject: state.toggleFavoriteProject,
       shareToCommunity: state.shareToCommunity,
       addToast: state.addToast,
+      styleReference: state.styleReference,
+      setStyleReference: state.setStyleReference,
+      clearStyleReference: state.clearStyleReference,
     }))
   );
 
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => localStorage.getItem('kreathief_dashboard_favs') === 'true');
+  
+  useEffect(() => {
+    localStorage.setItem('kreathief_dashboard_favs', showFavoritesOnly.toString());
+  }, [showFavoritesOnly]);
   const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -97,7 +108,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [showStylePicker, setShowStylePicker] = useState(false);
 
   const [showNodeGraph, setShowNodeGraph] = useState(false);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
     { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
@@ -117,16 +130,79 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     'Synthwave',
   ];
 
+  const handleReferenceUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      addToast('Please upload an image file (PNG, JPEG, WebP, SVG)', 'error');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      addToast('Image size exceeds 15MB limit', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const dataUrl = e.target?.result as string;
+      if (dataUrl) {
+        addToast('Analyzing visual reference & extracting design DNA...', 'info');
+        await setStyleReference(dataUrl, file.name);
+        addToast('Visual reference attached! AI will honor layout, style & palette.', 'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  }, [addToast, setStyleReference]);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingFile(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      handleReferenceUpload(file);
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent) => {
+    const items = Array.from(e.clipboardData.items);
+    const imageItem = items.find((item) => item.type.startsWith('image/'));
+    if (imageItem) {
+      const file = imageItem.getAsFile();
+      if (file) {
+        e.preventDefault();
+        handleReferenceUpload(file);
+      }
+    }
+  };
+
   // Design mode: create an empty project, open the editor, and hand the prompt
   // to the 3-stage agent pipeline so the result is fully editable layers.
   const handleDesignGenerate = useCallback(async () => {
-    if (!aiPrompt.trim() || isGenerating) {
+    const effectivePrompt =
+      aiPrompt.trim() ||
+      (styleReference
+        ? `Reverse-engineer and remix the attached visual reference into a complete multi-layer editable design for ${FORMAT_OPTIONS[selectedFormat].label}`
+        : '');
+    if (!effectivePrompt || isGenerating) {
       return;
     }
     setIsGenerating(true);
     const format = FORMAT_OPTIONS[selectedFormat];
     try {
-      const title = aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim();
+      const title =
+        aiPrompt.trim().length > 0
+          ? (aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim())
+          : `Remix: ${styleReference?.name || 'Visual Reference'}`;
       const projectId = await createProject(title, format.size);
       const created = useStore.getState().projects.find((p) => p.id === projectId);
       if (!created) {
@@ -138,10 +214,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       const store = useStore.getState();
       store.setShowAIOverlay(true, 'assistant');
       // Prepend style guidance if a style is selected
-      const stylePrefix = selectedStyle ? `[Style: ${selectedStyle.name}] ${selectedStyle.tagline}. Use ${selectedStyle.typography.headlineFont} for headlines, ${selectedStyle.typography.bodyFont} for body. ` : '';
-      store.runAgenticWorkflow(stylePrefix + aiPrompt.trim());
+      const stylePrefix = selectedStyle
+        ? `[Style: ${selectedStyle.name}] ${selectedStyle.tagline}. Use ${selectedStyle.typography.headlineFont} for headlines, ${selectedStyle.typography.bodyFont} for body. `
+        : '';
+      store.runAgenticWorkflow(stylePrefix + effectivePrompt);
 
-      addToast('Design Agent is building your layout...', 'info');
+      addToast(
+        styleReference
+          ? 'Design Agent is reverse-engineering and remixing your reference...'
+          : 'Design Agent is building your layout...',
+        'info'
+      );
       onOpenProject(created);
     } catch (error) {
       log.error('[DashboardAI] Design generation failed', error);
@@ -150,10 +233,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, selectedFormat, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+  }, [aiPrompt, selectedFormat, selectedStyle, styleReference, isGenerating, createProject, loadProject, addToast, onOpenProject]);
 
   const handleAIGenerate = useCallback(async () => {
-    if (!aiPrompt.trim() || isGenerating) {
+    const effectivePrompt =
+      aiPrompt.trim() ||
+      (styleReference
+        ? `A high-aesthetic visual composition remixing the style, lighting, and palette of the visual reference, formatted for ${FORMAT_OPTIONS[selectedFormat].label}`
+        : '');
+    if (!effectivePrompt || isGenerating) {
       return;
     }
     setIsGenerating(true);
@@ -166,18 +254,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
 
       // Unified generation path shared with the editor's Image Gen panel
-      const { useBrandInPrompts, brandKits, activeBrandKitId, styleReference, campaignGoal } = useStore.getState();
+      const { useBrandInPrompts, brandKits, activeBrandKitId, styleReference: currentRef, campaignGoal } = useStore.getState();
       const fullPrompt = composeGenerationPrompt({
-        prompt: `${selectedStyle ? `${selectedStyle.name} style. ` : ''}${aiPrompt.trim()}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
+        prompt: `${selectedStyle ? `${selectedStyle.name} style. ` : ''}${effectivePrompt}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
         brandKit: useBrandInPrompts ? brandKits?.find((bk) => bk.id === activeBrandKitId) : undefined,
-        styleReference,
+        styleReference: currentRef || styleReference,
         campaignGoal,
         canvasSize: format.size,
       });
       const imageUrl = await generateImageWithModel(fullPrompt, {
         modelId: selectedImageModel,
         aspectRatio: aspectRatio as AspectRatio,
-        styleReference,
+        styleReference: currentRef || styleReference,
         onReferenceApplied: (mode) =>
           log.debug('[Dashboard] Reference conditioning mode', { mode, model: selectedImageModel }),
       });
@@ -219,7 +307,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         rotateY: 0,
       };
 
-      const title = aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim();
+      const title =
+        aiPrompt.trim().length > 0
+          ? (aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim())
+          : `Remix: ${styleReference?.name || 'Visual Reference'}`;
       const initialState = {
         artboards: [
           {
@@ -263,7 +354,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, selectedFormat, selectedImageModel, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+  }, [aiPrompt, selectedFormat, selectedImageModel, selectedStyle, styleReference, isGenerating, createProject, loadProject, addToast, onOpenProject]);
 
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
@@ -465,12 +556,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     <div className="min-h-screen bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-[#0E1318] border border-white/10 rounded-xl flex items-center justify-center shadow-lg">
+        <a href="/" className="flex items-center gap-4 group cursor-pointer" title="Go to Landing Page">
+          <div className="w-10 h-10 bg-[#0E1318] border border-white/10 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg transition-all">
             <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
-          <span className="font-black text-2xl tracking-tighter uppercase">Kreathief</span>
-        </div>
+          <span className="font-black text-2xl tracking-tighter uppercase group-hover:text-purple-300 transition-colors">Kreathief</span>
+          <span className="hidden sm:inline-block text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-400 group-hover:text-white transition-all">
+            Landing Page ↗
+          </span>
+        </a>
 
         <div className="flex items-center gap-6">
           <input
@@ -652,13 +746,107 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   </h1>
                   <p className="text-sm text-muted">Describe your vision and AI will bring it to life</p>
                 </div>
-                <div className="relative group">
+                <div
+                  className="relative group"
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                >
                   <div className="absolute -inset-1 bg-gradient-to-r from-brand-600/20 via-accent/20 to-brand-600/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
+                  
+                  {/* Drag-and-Drop Active Overlay */}
+                  {isDraggingFile && (
+                    <div className="absolute inset-0 z-30 bg-brand-950/90 border-2 border-dashed border-brand-400 rounded-xl flex flex-col items-center justify-center gap-2 backdrop-blur-sm pointer-events-none animate-pulse">
+                      <Icons.Upload className="w-8 h-8 text-brand-400" />
+                      <span className="text-sm font-bold text-white">Drop your image here to Steal & Remix</span>
+                      <span className="text-xs text-brand-300">Extracts layout, palette, and style automatically</span>
+                    </div>
+                  )}
+
                   <div className="relative bg-surface-dark-1 border border-white/10 rounded-xl p-4 group-focus-within:border-brand-500/50 transition-all duration-300">
+                    {/* Hidden File Input for Reference Upload */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleReferenceUpload(file);
+                        e.target.value = '';
+                      }}
+                      className="hidden"
+                    />
+
+                    {/* Attached Visual Reference Preview Chip */}
+                    <AnimatePresence>
+                      {styleReference && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: -6, scale: 0.98 }}
+                          className="mb-3 p-2.5 bg-brand-500/10 border border-brand-500/30 rounded-xl flex items-center justify-between gap-3 shadow-inner backdrop-blur-md"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="relative w-10 h-10 rounded-lg overflow-hidden border border-brand-400/40 shrink-0 bg-black/40 shadow-sm">
+                              <img
+                                src={styleReference.image}
+                                alt={styleReference.name || 'Reference'}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs font-bold text-white truncate max-w-[200px] md:max-w-[320px]">
+                                  {styleReference.name || 'Visual Reference Attached'}
+                                </span>
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                                  {styleReference.analysisStatus === 'analyzing' ? 'Analyzing DNA...' : 'Vision Ready'}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted truncate mt-0.5">
+                                {styleReference.analysisStatus === 'analyzing' ? (
+                                  <span className="flex items-center gap-1 text-amber-300">
+                                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping inline-block" />
+                                    Extracting color palette, lighting & layout...
+                                  </span>
+                                ) : (
+                                  styleReference.extracted?.aestheticSummary ||
+                                  'AI will preserve layout, palette & aesthetic during generation'
+                                )}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            {styleReference.extracted?.palette && styleReference.extracted.palette.length > 0 && (
+                              <div className="hidden sm:flex items-center gap-1 px-2 py-1 bg-black/30 rounded-lg border border-white/5">
+                                {styleReference.extracted.palette.slice(0, 4).map((c, i) => (
+                                  <span
+                                    key={i}
+                                    className="w-2.5 h-2.5 rounded-full border border-white/20 shadow-sm"
+                                    style={{ backgroundColor: c }}
+                                    title={c}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            <button
+                              onClick={clearStyleReference}
+                              className="p-1 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors"
+                              title="Remove reference"
+                            >
+                              <Icons.X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <textarea
                       ref={aiInputRef}
                       value={aiPrompt}
                       onChange={(e) => setAiPrompt(e.target.value)}
+                      onPaste={handlePaste}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
@@ -671,13 +859,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       }}
                       onFocus={() => setShowSuggestions(true)}
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                      placeholder="A bold fitness gym ad with dark background and neon accents..."
+                      placeholder={
+                        styleReference
+                          ? "Remixing attached reference... Add custom instructions or click Generate directly..."
+                          : "Describe your vision, or click '+' / paste an image to Steal & Remix..."
+                      }
                       rows={2}
                       className="w-full bg-transparent text-white text-base placeholder:text-muted/50 resize-none focus:outline-none font-medium leading-relaxed"
                       disabled={isGenerating}
                     />
+
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                       <div className="flex items-center gap-2 flex-wrap">
+                        {/* + Add Visual Reference Button */}
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          title="Upload image or screenshot to extract layout, palette, and style (or paste with Ctrl+V / drag & drop)"
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            styleReference
+                              ? 'border border-brand-500/50 bg-brand-500/20 text-brand-200 shadow-sm'
+                              : 'bg-brand-600/20 text-brand-300 hover:bg-brand-600/30 border border-brand-500/30 hover:border-brand-500/50 hover:text-white'
+                          }`}
+                        >
+                          <Icons.Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                          <span>{styleReference ? 'Change Reference' : 'Reference'}</span>
+                        </button>
+
                         {FORMAT_OPTIONS.map((format, idx) => (
                           <button
                             key={format.label}
@@ -751,7 +959,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={generationMode === 'design' ? handleDesignGenerate : handleAIGenerate}
-                          disabled={!aiPrompt.trim() || isGenerating}
+                          disabled={(!aiPrompt.trim() && !styleReference) || isGenerating}
                           className="px-4 py-2 bg-gradient-to-r from-brand-600 to-accent rounded-xl text-white text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-brand-600/20 hover:shadow-xl hover:shadow-brand-600/30 transition-all"
                         >
                           {isGenerating ? (
@@ -759,6 +967,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                               <div className="w-3 h-3 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
                               Generating
                             </>
+                          ) : styleReference && !aiPrompt.trim() ? (
+                            <>Remix Reference</>
                           ) : (
                             <>Generate</>
                           )}
@@ -848,10 +1058,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         loadProject(project.id);
                         onOpenProject(project);
                       }}
-                      className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden cursor-pointer hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                      className={`group bg-surface-dark-2 border rounded-xl overflow-hidden cursor-pointer transition-all shadow-lg hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${selectedProjectIds.includes(project.id) ? 'border-brand-500 ring-2 ring-brand-500/50' : 'border-white/5 hover:border-brand-500/50 hover:shadow-brand-500/10'}`}
                     >
                       <div className="aspect-[16/10] bg-surface-dark-3 relative overflow-hidden">
-                        <div className="absolute top-3 right-3 z-10">
+                        <div className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
+       <button
+         onClick={(e) => toggleProjectSelection(e, project.id)}
+         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedProjectIds.includes(project.id) ? 'bg-brand-500 border-brand-500 opacity-100' : 'bg-black/50 border-white/30 hover:border-white'}`}
+       >
+         {selectedProjectIds.includes(project.id) && <Icons.Check className="w-3 h-3 text-white" />}
+       </button>
+     </div>
+     <div className="absolute top-3 right-3 z-10">
                           <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
                             {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
                           </span>
@@ -867,12 +1085,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             }}
                             className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
                           >
-                            <StaticLayerRenderer
-                              layers={project.state.artboards?.[0]?.layers || (project.state as any).layers || []}
-                              scale={1}
-                              width={project.state.canvasSize?.width || 1080}
-                              height={project.state.canvasSize?.height || 1080}
-                            />
+                            {project.thumbnail ? (
+                                <img src={project.thumbnail} alt={project.name} className="w-full h-full object-cover object-center" />
+                              ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 text-white/20 border border-white/5">
+                                   <svg className="w-12 h-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                   </svg>
+                                   <span className="text-[10px] font-bold uppercase tracking-widest text-center px-4 leading-tight">
+                                     {project.state.artboards?.[0]?.layers?.length || 0} Layers
+                                   </span>
+                                </div>
+                              )}
                           </div>
                         </div>
                       </div>
@@ -990,7 +1214,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     key={tmpl.id}
                     data-testid={`dashboard-template-btn-${tmpl.id}`}
                     onClick={() => handleStartFromTemplate(tmpl.id)}
-                    className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+                    className="group bg-surface-dark-2 border border-white/5 rounded-xl overflow-hidden text-left hover:border-brand-500/50 hover:shadow-brand-500/10 transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                   >
                     <div className="aspect-[4/3] relative overflow-hidden bg-black/40">
                       <TemplatePreview template={tmpl} containerWidth={260} containerHeight={195} className="p-2" />

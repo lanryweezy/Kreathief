@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AIGenerateModal } from '../../../components/modals/AIGenerateModal';
 import { useNodeGraph } from '../../../hooks/useNodeGraph';
+import { WORKFLOW_PRESETS } from '../../../data/workflowPresets';
 
 // Mock the hook
 vi.mock('../../../hooks/useNodeGraph', () => ({
@@ -52,10 +53,9 @@ describe('AIGenerateModal', () => {
     const textarea = screen.getByPlaceholderText('What do you want to create?');
     fireEvent.change(textarea, { target: { value: 'A cute cat' } });
 
-    // Select the first preset
-    const presetButtons = screen.getAllByRole('button');
-    // Assuming the presets start at the 2nd button (after close)
-    fireEvent.click(presetButtons[1]);
+    // Select the first preset by its visible name (index-based clicks used to
+    // land on the mode toggle, so generate() no-opped and no error rendered)
+    fireEvent.click(screen.getByText(WORKFLOW_PRESETS[0].name));
 
     // Click Generate
     const generateButton = screen.getByRole('button', { name: 'Generate' });
@@ -80,9 +80,8 @@ describe('AIGenerateModal', () => {
     const textarea = screen.getByPlaceholderText('What do you want to create?');
     fireEvent.change(textarea, { target: { value: 'A cute cat' } });
 
-    // Select the first preset
-    const presetButtons = screen.getAllByRole('button');
-    fireEvent.click(presetButtons[1]);
+    // Select the first preset by its visible name
+    fireEvent.click(screen.getByText(WORKFLOW_PRESETS[0].name));
 
     // Click Generate
     const generateButton = screen.getByRole('button', { name: 'Generate' });

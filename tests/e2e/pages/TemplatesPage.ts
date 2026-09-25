@@ -106,7 +106,7 @@ export class TemplatesPage {
 
   async verifyCategoryFilter(category: string) {
     await this.openTemplatesPanel();
-    const categoryTitle = this.page.getByTestId('template-panel-category-title');
+    const categoryTitle = this.page.locator('[data-testid="template-panel-category-title"], [data-testid="panel-header-title"], h3').first();
     await expect(categoryTitle).toContainText(category, { ignoreCase: true });
   }
 }

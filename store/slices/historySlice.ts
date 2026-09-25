@@ -42,7 +42,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
   saveToHistory: (() => {
     let lastSavedTimestamp = 0;
     const DEBOUNCE_MS = process.env.NODE_ENV === 'test' ? 0 : 250;
-    const MAX_HISTORY = 200;
+    const MAX_HISTORY = 50;
     const SNAPSHOT_INTERVAL = 10;
 
     return () => {
@@ -59,11 +59,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
       const stateNow = get();
       const currentState: HistoryState = {
-        artboards: stateNow.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
+        artboards: structuredClone(stateNow.artboards),
         activeArtboardId: stateNow.activeArtboardId,
         canvasBackgroundColor: stateNow.canvasBackgroundColor,
-        canvasFilters: stateNow.canvasFilters ? { ...stateNow.canvasFilters } : (undefined as any),
-        canvasSize: stateNow.canvasSize ? { ...stateNow.canvasSize } : undefined,
+        canvasFilters: stateNow.canvasFilters ? structuredClone(stateNow.canvasFilters) : (undefined as any),
+        canvasSize: stateNow.canvasSize ? structuredClone(stateNow.canvasSize) : undefined,
         selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
       };
 
@@ -112,15 +112,15 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       const now = Date.now();
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: state.artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
+          artboards: structuredClone(state.artboards),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
-          canvasFilters: state.canvasFilters ? { ...state.canvasFilters } : (undefined as any),
-          canvasSize: state.canvasSize ? { ...state.canvasSize } : undefined,
+          canvasFilters: state.canvasFilters ? structuredClone(state.canvasFilters) : (undefined as any),
+          canvasSize: state.canvasSize ? structuredClone(state.canvasSize) : undefined,
           selectedLayerIds: [...(state.selectedLayerIds || [])],
         };
         const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
-        const MAX_HISTORY = 200;
+        const MAX_HISTORY = 50;
         const newPast = state.past.length >= MAX_HISTORY ? [...state.past.slice(1), entry] : [...state.past, entry];
         return { past: newPast, future: [], __hasPendingBatchChange: false, __lastStateSnapshot: currentState };
       });
@@ -135,11 +135,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     }
 
     const currentFullState: HistoryState = {
-      artboards: artboards.map((a: Artboard) => ({ ...a, layers: a.layers.map((l: any) => ({ ...l })) })),
+      artboards: structuredClone(artboards),
       activeArtboardId,
       canvasBackgroundColor,
-      canvasFilters: (canvasFilters ? { ...canvasFilters } : undefined) as any,
-      canvasSize: canvasSize ? { ...canvasSize } : undefined,
+      canvasFilters: (canvasFilters ? structuredClone(canvasFilters) : undefined) as any,
+      canvasSize: canvasSize ? structuredClone(canvasSize) : undefined,
       selectedLayerIds: [...(selectedLayerIds || [])],
     };
 
@@ -149,54 +149,41 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     let targetState: HistoryState;
     let nextLastSnapshot = get().__lastStateSnapshot;
 
-    if (lastEntry.type === 'snapshot') {
-      targetState = lastEntry.state!;
-      // Need to find the previous snapshot to update __lastStateSnapshot
-      let prevSnapshotIdx = -1;
-      for (let i = newPast.length - 1; i >= 0; i--) {
-        if (newPast[i].type === 'snapshot') {
-          prevSnapshotIdx = i;
-          break;
-        }
-      }
-      if (prevSnapshotIdx !== -1) {
-        nextLastSnapshot = newPast[prevSnapshotIdx].state!;
-      } else {
-        nextLastSnapshot = null;
-      }
+    if (newPast.length === 0) {
+      // Reverting the first history entry -> return to the initial snapshot state
+      targetState = lastEntry.type === 'snapshot' && lastEntry.state ? lastEntry.state : currentFullState;
+      nextLastSnapshot = null;
     } else {
-      let lastSnapshotIdx = -1;
-      for (let i = newPast.length - 1; i >= 0; i--) {
-        if (newPast[i].type === 'snapshot') {
-          lastSnapshotIdx = i;
-          break;
-        }
-      }
-
-      if (lastSnapshotIdx === -1) {
-        // No snapshot found to reconstruct from — try full-state snapshot as last resort
-        if (newPast.length > 0 && newPast[0].type === 'snapshot') {
-          targetState = newPast[0].state!;
-        } else {
-          get().addToast?.('Nothing to undo', 'info');
-          return;
-        }
+      const topEntry = newPast[newPast.length - 1];
+      if (topEntry.type === 'snapshot') {
+        targetState = structuredClone(topEntry.state!);
+        nextLastSnapshot = topEntry.state!;
       } else {
-        try {
-          // Patches are cumulative diffs against the preceding snapshot, so the
-          // entry's own patch alone reconstructs its state. Replaying the
-          // intermediate patches double-applied array ops (duplicated layers)
-          // and skipping lastEntry's patch made undo jump one extra step back.
-          targetState = structuredClone(newPast[lastSnapshotIdx].state!);
-          applyPatch(targetState, lastEntry.patch!);
-        } catch (error) {
-          log.error('History patch application failed during undo', error, {
-            action: 'undo',
-            snapshotIdx: lastSnapshotIdx,
-            pastLength: newPast.length,
-          });
-          get().addToast?.('Undo failed — state corrupted', 'error');
-          return;
+        // Find the base snapshot in newPast that topEntry.patch was computed against
+        let lastSnapshotIdx = -1;
+        for (let i = newPast.length - 1; i >= 0; i--) {
+          if (newPast[i].type === 'snapshot' && newPast[i].state) {
+            lastSnapshotIdx = i;
+            break;
+          }
+        }
+
+        if (lastSnapshotIdx !== -1) {
+          try {
+            targetState = structuredClone(newPast[lastSnapshotIdx].state!);
+            applyPatch(targetState, topEntry.patch!);
+            nextLastSnapshot = newPast[lastSnapshotIdx].state!;
+          } catch (error) {
+            log.error('History patch application failed during undo', error, {
+              action: 'undo',
+              snapshotIdx: lastSnapshotIdx,
+              pastLength: newPast.length,
+            });
+            get().addToast?.('Undo failed — state corrupted', 'error');
+            return;
+          }
+        } else {
+          targetState = topEntry.state || currentFullState;
         }
       }
     }

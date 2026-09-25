@@ -267,8 +267,21 @@ export const useCanvasInteractions = ({
 
   // Global Event Listeners
   useEffect(() => {
-    const onPointerMove = (e: PointerEvent) => handleMouseMoveInternal(e as any);
-    const onPointerUp = () => handleMouseUpInternal();
+    let rafId: number | null = null;
+    const onPointerMove = (e: PointerEvent) => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        handleMouseMoveInternal(e as any);
+        rafId = null;
+      });
+    };
+    const onPointerUp = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+      handleMouseUpInternal();
+    };
 
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
@@ -277,6 +290,7 @@ export const useCanvasInteractions = ({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
+      if (rafId !== null) cancelAnimationFrame(rafId);
     };
   }, [handleMouseMoveInternal, handleMouseUpInternal]);
 

@@ -127,9 +127,29 @@ export default defineConfig(({ mode }) => {
         workbox: {
           maximumFileSizeToCacheInBytes: 5000000,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Multi-megabyte marketing/sample imagery must NOT be forced into the
+          // install-time precache (it was ~50MB). App shell precaches, imagery is
+          // runtime-cached on first use below.
+          globIgnores: ['**/downloads_graphics/**', '**/images/**', '**/styles/**'],
           navigateFallback: 'index.html',
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
+            {
+              urlPattern: /\.(?:png|jpg|jpeg|webp|avif|svg)$/i,
+              handler: 'StaleWhileRevalidate',
+              options: {
+                cacheName: 'app-images-cache',
+                expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              },
+            },
+            {
+              urlPattern: /\/api\//i,
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'api-cache',
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 60 },
+              },
+            },
             {
               urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
               handler: 'CacheFirst',
@@ -160,11 +180,14 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor-react': ['react', 'react-dom'],
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
             'vendor-ui': ['framer-motion', 'zustand', 'zod'],
             'vendor-ai': ['@google/generative-ai'],
             'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
             'vendor-math': ['mathjs'],
+            'vendor-ml': ['@xenova/transformers'],
+            'vendor-vector': ['paper', 'imagetracerjs'],
+            'vendor-canvas': ['html2canvas', 'react-window', 'jszip'],
           },
         },
         onwarn(warning, warn) {
@@ -188,6 +211,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      host: true,
       port: process.env.PORT ? parseInt(process.env.PORT) : 5173,
       allowedHosts: ['.vercel.app', '.vercel.sh', '.vercel.run', 'localhost'],
       proxy: {

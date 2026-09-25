@@ -41,9 +41,12 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    const layersTab = this.page.getByRole('button', { name: 'Layers' });
-    await layersTab.click();
-    await this.page.waitForTimeout(500);
+    const isVisible = await this.page.locator('[data-testid="layers-panel"]').isVisible();
+    if (!isVisible) {
+      const layersTab = this.page.locator('button[aria-label="Layers"]').first();
+      await layersTab.click();
+      await this.page.waitForTimeout(500);
+    }
   }
 
   async getLayerCount(): Promise<number> {

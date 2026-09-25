@@ -1339,3 +1339,101 @@ CHECK (downloads >= 0);
 -- ALTER TABLE marketplace_templates DROP CONSTRAINT IF EXISTS marketplace_templates_likes_check;
 -- ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_downloads_check;
 -- ALTER TABLE assets DROP CONSTRAINT IF EXISTS assets_price_check;
+
+-- === 013_position_display_order_constraints.sql ===
+-- Migration 013: Ensure position and display_order are non-negative
+-- 💡 What: Adds CHECK constraints to ensure collection_items.position and marketplace_categories.display_order are >= 0.
+-- 🎯 Why: Ordering and positioning columns without range checks can drop below zero due to application logic errors or drag-and-drop bugs, leading to inconsistent UI sorting and data corruption.
+
+-- 1. Ensure existing data conforms. Set any negative metrics to 0.
+UPDATE collection_items
+SET position = 0
+WHERE position < 0;
+
+UPDATE marketplace_categories
+SET display_order = 0
+WHERE display_order < 0;
+
+-- 2. Add CHECK constraints to prevent future invalid writes
+ALTER TABLE collection_items
+ADD CONSTRAINT collection_items_position_check
+CHECK (position >= 0);
+
+ALTER TABLE marketplace_categories
+ADD CONSTRAINT marketplace_categories_display_order_check
+CHECK (display_order >= 0);
+
+-- === 014_webhook_idempotency.sql ===
+-- Migration 014: Webhook idempotency ledger for payment credit events
+-- 💡 What: Creates `processed_webhook_events` (a ledger keyed by a per-provider event key) and an
+--          atomic `apply_paid_event_credits(...)` RPC that claims an event and credits the user in a
+--          single transaction, returning 'credited' | 'duplicate'.
+-- 🎯 Why: Stripe and Paystack retry webhook deliveries. The handlers previously did an unguarded
+--          `balance = balance + 1000` on every paid event, so a retried delivery could double-credit a
+--          customer (giving away credits) and concurrent deliveries could clobber each other via a
+--          read-modify-write race. Claiming the event id before crediting — atomically — removes both.
+
+CREATE TABLE IF NOT EXISTS public.processed_webhook_events (
+  -- Stable, unique key per charge/session event: '<provider>:<event_type>:<provider_reference_id>'.
+  idempotency_key TEXT PRIMARY KEY,
+  provider TEXT NOT NULL CHECK (provider IN ('stripe', 'paystack')),
+  event_type TEXT NOT NULL,
+  reference_id TEXT,
+  user_id UUID,
+  credits INTEGER,
+  processed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_processed_webhook_events_processed_at
+  ON public.processed_webhook_events(processed_at DESC);
+
+ALTER TABLE public.processed_webhook_events ENABLE ROW LEVEL SECURITY;
+
+CREATE OR REPLACE FUNCTION public.apply_paid_event_credits(
+  p_idempotency_key TEXT,
+  p_provider TEXT,
+  p_event_type TEXT,
+  p_reference_id TEXT,
+  p_user_id UUID,
+  p_credits INTEGER
+)
+RETURNS TEXT
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_inserted INTEGER;
+  v_current  BIGINT;
+BEGIN
+  INSERT INTO public.processed_webhook_events
+    (idempotency_key, provider, event_type, reference_id, user_id, credits)
+  VALUES
+    (p_idempotency_key, p_provider, p_event_type, p_reference_id, p_user_id, p_credits)
+  ON CONFLICT (idempotency_key) DO NOTHING;
+
+  GET DIAGNOSTICS v_inserted = ROW_COUNT;
+
+  IF v_inserted = 0 THEN
+    RETURN 'duplicate';
+  END IF;
+
+  SELECT ai_credits_balance INTO v_current
+  FROM public.user_subscriptions
+  WHERE user_id = p_user_id;
+
+  IF v_current IS NULL THEN
+    v_current := 0;
+  END IF;
+
+  UPDATE public.user_subscriptions
+  SET ai_credits_balance = v_current + p_credits
+  WHERE user_id = p_user_id;
+
+  RETURN 'credited';
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.apply_paid_event_credits(TEXT, TEXT, TEXT, TEXT, UUID, INTEGER) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.apply_paid_event_credits(TEXT, TEXT, TEXT, TEXT, UUID, INTEGER) FROM anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.apply_paid_event_credits(TEXT, TEXT, TEXT, TEXT, UUID, INTEGER) TO service_role;

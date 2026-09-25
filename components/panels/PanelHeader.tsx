@@ -40,7 +40,7 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({
     >
       <div className="flex items-center gap-4 h-full">
         {title && (
-          <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 whitespace-nowrap m-0">
+          <h3 data-testid="panel-header-title" className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 whitespace-nowrap m-0">
             {icon && <span className="text-brand-500 shrink-0 flex items-center">{icon}</span>}
             {title}
           </h3>

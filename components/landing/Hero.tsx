@@ -1,5 +1,5 @@
-import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { Icons } from '../../constants';
 import { MagneticButton } from './LandingUtils';
 
@@ -7,242 +7,258 @@ interface HeroProps {
   onGetStarted: () => void;
 }
 
-const stagger = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.15, delayChildren: 0.3 },
+const HERO_SLIDES = [
+  {
+    image: '/images/hero_slide_1.png',
+    tag: 'FASHION & EDITORIAL',
+    title: 'Cybernetic Avant-Garde',
   },
-};
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] as const } },
-};
+  {
+    image: '/images/hero_slide_6.png',
+    tag: 'CINEMATOGRAPHY',
+    title: 'Kinetic Pyrotechnics',
+  },
+  {
+    image: '/images/hero_ai_cinematic.png',
+    tag: 'CREATIVE DIRECTION',
+    title: 'Chiaroscuro Arena Synthesis',
+  },
+  {
+    image: '/images/hero_slide_3.png',
+    tag: 'SPATIAL SURREALISM',
+    title: 'Open Field Narrative Architecture',
+  },
+];
 
 export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
+  const [activeSlide, setActiveSlide] = useState(0);
   const { scrollY } = useScroll();
 
-  // Parallax scrolling effects for the exploded UI elements
-  const y1 = useTransform(scrollY, [0, 1000], [0, -150]);
-  const y2 = useTransform(scrollY, [0, 1000], [0, -250]);
-  const y3 = useTransform(scrollY, [0, 1000], [0, -100]);
-  const y4 = useTransform(scrollY, [0, 1000], [0, -300]);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % HERO_SLIDES.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const bgY = useTransform(scrollY, [0, 800], [0, 80]);
+  const previewRotateX = useTransform(scrollY, [0, 600], [5, 0]);
+  const previewScale = useTransform(scrollY, [0, 600], [0.97, 1]);
 
   return (
-    <section className="relative pt-32 pb-32 overflow-hidden min-h-[110vh] flex flex-col items-center justify-start bg-[#0a0a0c]">
-      {/* Background Decorative Elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute inset-0 bg-black/60 z-10" />
-        <img
-          src="/images/hero_rings_bg.png"
-          alt="Abstract glowing 3D space rings representing AI design tools background"
-          className="absolute inset-0 w-full h-full object-cover opacity-80 z-0 mix-blend-screen"
-        />
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-500/10 via-transparent to-black z-20"></div>
+    <section className="relative pt-36 pb-28 md:pt-44 md:pb-36 overflow-hidden min-h-[115vh] flex flex-col items-center justify-start bg-[#08080d]">
+      {/* Background Rotating Cinematic Imagery */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden select-none">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSlide}
+            initial={{ opacity: 0, scale: 1.05 }}
+            animate={{ opacity: 0.75, scale: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
+            style={{ y: bgY }}
+            className="absolute inset-0 w-full h-full"
+          >
+            <img
+              src={HERO_SLIDES[activeSlide].image}
+              alt={HERO_SLIDES[activeSlide].title}
+              className="w-full h-full object-cover object-center filter brightness-95 contrast-105"
+            />
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Clean Vignette & Minimal Tint — let the artwork pop with true color */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#08080d]/60 via-black/25 to-[#08080d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_20%,rgba(139,92,246,0.05),transparent)]" />
+        <div className="absolute inset-0 bg-dot-pattern opacity-[0.06] mix-blend-overlay" />
       </div>
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full flex flex-col items-center">
         {/* Main Headline */}
         <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-          className="text-center w-full max-w-5xl mb-10 relative flex flex-col items-center"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center w-full max-w-6xl mb-8 relative flex flex-col items-center"
         >
-          <div className="absolute -inset-10 bg-white/5 blur-[100px] -z-10 rounded-full"></div>
-          <motion.h1
-            variants={fadeUp}
-            className="text-6xl md:text-[90px] lg:text-[140px] font-black tracking-tighter leading-[0.85] text-white select-none text-balance"
-          >
-            From idea to design <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 animate-text-gradient">
-              in 30 seconds.
+          <h1 className="text-6xl sm:text-7xl md:text-9xl lg:text-[130px] font-black tracking-tighter leading-[0.88] text-white select-none text-balance">
+            Design at the <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 animate-text-gradient">
+              speed of thought.
             </span>
-          </motion.h1>
+          </h1>
         </motion.div>
 
+        {/* Subtitle & Value Proposition */}
         <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="text-xl md:text-3xl text-gray-300 max-w-4xl text-center mb-8 leading-relaxed font-semibold text-balance"
+          transition={{ duration: 0.8, delay: 0.25 }}
+          className="text-lg sm:text-xl md:text-2xl text-neutral-300/90 max-w-3xl text-center mb-10 leading-relaxed font-normal text-balance"
         >
-          AI + vector tools + real-time engine. <br className="hidden md:block" />
-          Replace Figma, Canva, and Midjourney with one system.
+          The intelligent creative engine unifying <span className="text-white font-semibold">Generative AI</span>,{' '}
+          <span className="text-white font-semibold">Vector Artistry</span>, and <span className="text-white font-semibold">Spatial Mockups</span> into a zero-latency canvas.
         </motion.p>
 
-        {/* Trust Badges */}
+        {/* Call to Action Button */}
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="flex flex-wrap items-center justify-center gap-8 mb-12 text-base text-gray-400 font-medium"
+          transition={{ duration: 0.8, delay: 0.35 }}
+          className="flex items-center justify-center mb-10 z-20"
         >
-          <div className="flex items-center gap-2">
-            <Icons.Check className="w-5 h-5 text-green-400" />
-            <span>No credit card</span>
-          </div>
-
-          <div className="w-1.5 h-1.5 rounded-full bg-gray-600"></div>
-          <div className="flex items-center gap-2">
-            <Icons.Users className="w-5 h-5 text-purple-400" />
-            <span>10,000+ creators</span>
-          </div>
-        </motion.div>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24 z-20"
-        >
-          <MagneticButton strength={30}>
+          <MagneticButton strength={25}>
             <button
               onClick={onGetStarted}
-              className="w-full sm:w-auto px-12 py-5 bg-white text-black rounded-full font-black text-base hover:bg-gray-100 transition-all transform active:scale-95 flex items-center justify-center gap-3 group relative overflow-hidden shadow-[0_0_60px_rgba(255,255,255,0.3)]"
+              className="px-10 py-4.5 bg-white text-black hover:bg-neutral-100 rounded-full font-black text-sm tracking-wide uppercase transition-all transform active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_50px_rgba(255,255,255,0.25)] hover:shadow-[0_0_70px_rgba(255,255,255,0.4)] group"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent opacity-0 group-hover:opacity-100 animate-shimmer"></div>
-              <span className="relative z-10 flex items-center gap-2 uppercase tracking-wide">
-                Get Started
-                <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </span>
+              <span>Launch Studio Free</span>
+              <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
             </button>
           </MagneticButton>
-
-          <motion.a
-            href="#features"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="px-8 py-5 rounded-full font-bold text-base text-white/60 hover:text-white transition-all flex items-center gap-3 border border-white/10 hover:border-white/20 hover:bg-white/5"
-          >
-            <Icons.Play className="w-4 h-4 fill-current" />
-            Watch demo
-          </motion.a>
         </motion.div>
 
-        {/* EXPLODED UI HERO VISUAL */}
-        <div className="relative w-full max-w-[1200px] h-[600px] md:h-[800px] perspective-[2000px] mt-10">
-          {/* Main Central Dashboard */}
-          <motion.div
-            initial={{ opacity: 0, y: 100, rotateX: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, rotateX: 5, scale: 1 }}
-            transition={{ duration: 1.4, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
-            className="absolute left-1/2 -translate-x-1/2 top-0 w-full md:w-[85%] rounded-[30px] border border-transparent animated-border-wrapper bg-[#0a0a0c]/80 backdrop-blur-3xl overflow-hidden z-10 ring-1 ring-white/5"
-          >
-            <div className="h-8 bg-white/5 border-b border-white/10 flex items-center px-4 gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-            </div>
-            <img
-              src="/images/screenshot_editor_main.png"
-              alt="Kreathief AI graphic design software and professional vector editor dashboard interface showing creative design tools"
-              fetchPriority="high"
-              decoding="async"
-              className="w-full h-auto object-cover opacity-90 hover:opacity-100 transition-opacity duration-700"
+        {/* Carousel Slide Indicators */}
+        <div className="flex items-center gap-2.5 mb-14">
+          {HERO_SLIDES.map((slide, idx) => (
+            <button
+              key={idx}
+              onClick={() => setActiveSlide(idx)}
+              aria-label={`Go to slide ${idx + 1}: ${slide.title}`}
+              className={`h-1.5 rounded-full transition-all duration-500 ${
+                activeSlide === idx ? 'w-8 bg-purple-400' : 'w-2 bg-white/20 hover:bg-white/40'
+              }`}
             />
-          </motion.div>
+          ))}
+        </div>
 
-          {/* Floating UI Element 1: Abstract Glass */}
-          <motion.div
-            style={{ y: y1 }}
-            initial={{ opacity: 0, x: -100, y: 50 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 1.2, delay: 0.8, ease: 'easeOut' }}
-            className="hidden md:block absolute -left-10 md:left-0 top-[10%] w-[250px] md:w-[350px] rounded-2xl overflow-hidden shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 z-20 group"
-          >
-            <img
-              src="/images/hero_abstract_glass_1772614949077.png"
-              alt="3D Apple-like glassmorphism generative fill and asset engine interface used in Kreathief AI design tool"
-              loading="lazy"
-              decoding="async"
-              className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
-              <span className="text-white font-bold text-sm bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                3D Glass Asset Engine
-              </span>
-            </div>
-          </motion.div>
+        {/* 3D PRODUCT CANVAS PREVIEW */}
+        <div className="relative w-full max-w-[1240px] perspective-[2000px] mt-2">
+          {/* Ambient Subtle Glows around the frame */}
+          <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-3/4 h-28 bg-purple-600/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/3 -left-20 w-72 h-72 bg-blue-600/10 blur-[100px] rounded-full pointer-events-none" />
+          <div className="absolute top-1/3 -right-20 w-72 h-72 bg-pink-600/10 blur-[100px] rounded-full pointer-events-none" />
 
-          {/* Floating UI Element 2: Typography Panel */}
+          {/* Main Central Product Frame */}
           <motion.div
-            style={{ y: y2 }}
-            initial={{ opacity: 0, x: 100, y: 150 }}
-            animate={{ opacity: 1, x: 0, y: 0 }}
-            transition={{ duration: 1.2, delay: 1, ease: 'easeOut' }}
-            className="hidden md:block absolute -right-5 md:right-5 top-[30%] w-[250px] md:w-[350px] rounded-2xl overflow-hidden shadow-[0_40px_80px_rgba(0,0,0,0.7)] border border-white/10 z-30 group"
-          >
-            <img
-              src="/images/landing_feature_layers.png"
-              alt="Advanced layer orchestration and UI management panel for vector editing software AI inside Kreathief"
-              loading="lazy"
-              decoding="async"
-              className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-5">
-              <span className="text-white font-bold text-sm bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
-                Advanced Layer Orchestration
-              </span>
-            </div>
-          </motion.div>
-
-          {/* Floating UI Element 3: Palette Panel */}
-          <motion.div
-            style={{ y: y3 }}
-            initial={{ opacity: 0, y: 150 }}
+            style={{ rotateX: previewRotateX, scale: previewScale }}
+            initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.2, delay: 1.2, ease: 'easeOut' }}
-            className="hidden md:block absolute -left-5 md:left-20 bottom-[10%] w-[200px] md:w-[280px] rounded-2xl overflow-hidden shadow-[0_30px_70px_rgba(0,0,0,0.5)] border border-white/10 z-30 group"
+            transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full rounded-[24px] sm:rounded-[32px] border border-white/15 bg-[#0e0e16]/90 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden relative group"
           >
-            <img
-              src="/images/hero_floating_palette_1772559659004.png"
-              alt="Smart brand kits AI and intelligent color palette generator panel tool interface"
-              loading="lazy"
-              decoding="async"
-              className="w-full h-auto scale-105 group-hover:scale-110 transition-transform duration-1000"
-            />
-          </motion.div>
-
-          {/* Floating UI Element 4: Real-time Cursors */}
-          <motion.div
-            style={{ y: y4 }}
-            initial={{ opacity: 0, scale: 0.5 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 1.4, ease: 'easeOut' }}
-            className="absolute right-[15%] bottom-[5%] z-40 bg-white/10 backdrop-blur-2xl px-6 py-4 rounded-3xl border border-white/20 flex flex-col items-center gap-3 shadow-2xl"
-          >
-            <div className="flex -space-x-3">
-              <img
-                src="/images/avatar_1_1772614969136.png"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                loading="lazy"
-                decoding="async"
-                alt="Designer collaborating in real-time on Kreathief"
-              />
-              <img
-                src="/images/avatar_2_1772614992003.png"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                loading="lazy"
-                decoding="async"
-                alt="Marketer using Kreathief canvas"
-              />
-              <img
-                src="/images/avatar_3_1772615019487.png"
-                className="w-10 h-10 rounded-full border-2 border-[#111] object-cover"
-                loading="lazy"
-                decoding="async"
-                alt="Creative director reviewing designs in Kreathief"
-              />
+            {/* Window Title Bar */}
+            <div className="h-10 sm:h-12 bg-white/[0.04] border-b border-white/10 flex items-center justify-between px-5">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#ff5f56]/90 shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]/90 shadow-sm" />
+                <div className="w-3 h-3 rounded-full bg-[#27c93f]/90 shadow-sm" />
+              </div>
+              <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400 bg-white/[0.03] px-3 py-1 rounded-md border border-white/5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Kreathief Studio — Cyberpunk_City_2026.art</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs text-neutral-400">
+                <span className="hidden sm:inline bg-purple-500/20 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded border border-purple-500/30">
+                  GPU ACCELERATED
+                </span>
+              </div>
             </div>
-            <span className="text-[10px] font-black tracking-widest uppercase text-white/80">3 Editing Now</span>
+
+            {/* High Fidelity Editor Visual */}
+            <div className="relative overflow-hidden aspect-[16/10] sm:aspect-[16/9]">
+              <img
+                src="/images/screenshot_editor_main.png"
+                alt="Kreathief Studio Workspace showing Cyberpunk art editing tools and generative AI canvas"
+                className="w-full h-full object-cover object-top transition-transform duration-1000 group-hover:scale-[1.01]"
+              />
+
+              {/* Floating Overlay Badge 1 - AI Synthesis Active */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.9, delay: 0.9 }}
+                className="absolute top-6 left-6 hidden md:flex items-center gap-3 bg-black/80 backdrop-blur-xl border border-purple-500/30 px-4 py-2.5 rounded-2xl shadow-2xl"
+              >
+                <div className="w-8 h-8 rounded-xl bg-purple-600/30 border border-purple-500/50 flex items-center justify-center text-purple-300">
+                  <Icons.Magic className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-mono tracking-widest text-purple-400 font-bold">
+                    Multi-Model Fusion
+                  </div>
+                  <div className="text-xs font-bold text-white">Synthesizing Prompt #824</div>
+                </div>
+              </motion.div>
+
+              {/* Floating Overlay Badge 2 - Vector Fidelity */}
+              <motion.div
+                initial={{ opacity: 0, x: 30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.9, delay: 1.1 }}
+                className="absolute bottom-8 right-8 hidden md:flex items-center gap-3 bg-black/80 backdrop-blur-xl border border-white/15 px-4 py-2.5 rounded-2xl shadow-2xl"
+              >
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-black text-xs">
+                  SVG
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-mono tracking-widest text-neutral-400">Infinite Zoom</div>
+                  <div className="text-xs font-bold text-white">Bézier Precision 0.001px</div>
+                </div>
+              </motion.div>
+            </div>
           </motion.div>
 
-          {/* Bottom Fade Gradient for smooth transition */}
-          <div className="absolute bottom-[-20%] inset-x-0 h-[60%] bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/80 to-transparent z-50 pointer-events-none" />
+          {/* Floating Artwork Card Left (Avant-Garde Chrome) */}
+          <motion.div
+            initial={{ opacity: 0, x: -60, y: 30 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 1.2, delay: 0.8 }}
+            className="hidden xl:block absolute -left-12 top-1/4 w-52 rounded-2xl overflow-hidden border border-white/15 bg-black/80 backdrop-blur-xl shadow-2xl z-30 group"
+          >
+            <div className="aspect-[3/4] overflow-hidden relative">
+              <img
+                src="/images/downloads/art_chrome_baddie.jpg"
+                alt="Chrome Avant-Garde Vector Artwork"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-3.5">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-purple-300 uppercase tracking-widest block">
+                    3D Chrome
+                  </span>
+                  <span className="text-xs font-black text-white">Avant-Garde Poster</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Floating Artwork Card Right (Kinetic Campaign) */}
+          <motion.div
+            initial={{ opacity: 0, x: 60, y: 40 }}
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            transition={{ duration: 1.2, delay: 1.0 }}
+            className="hidden xl:block absolute -right-12 top-1/3 w-52 rounded-2xl overflow-hidden border border-white/15 bg-black/80 backdrop-blur-xl shadow-2xl z-30 group"
+          >
+            <div className="aspect-[3/4] overflow-hidden relative">
+              <img
+                src="/images/downloads/art_nike_editorial.jpg"
+                alt="Commercial Kinetic Athletic Campaign"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent flex items-end p-3.5">
+                <div>
+                  <span className="text-[10px] font-mono font-bold text-emerald-300 uppercase tracking-widest block">
+                    Commercial Campaign
+                  </span>
+                  <span className="text-xs font-black text-white">Kinetic Layout</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Smooth Bottom Fade Transition */}
+          <div className="absolute -bottom-10 inset-x-0 h-40 bg-gradient-to-t from-[#08080d] via-[#08080d]/80 to-transparent z-20 pointer-events-none" />
         </div>
       </div>
     </section>

@@ -22,7 +22,78 @@ export function buildEditorShortcuts(
   setShowExport: (v: boolean) => void
 ): ShortcutDef[] {
   return [
-    // History
+
+    {
+      key: ']',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().moveLayer(selectedLayerIds[0], 'front');
+          haptics.light();
+        }
+      },
+      description: 'Bring to Front',
+    },
+    {
+      key: ']',
+      ctrl: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().moveLayer(selectedLayerIds[0], 'forward');
+          haptics.light();
+        }
+      },
+      description: 'Bring Forward',
+    },
+    {
+      key: '[',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().moveLayer(selectedLayerIds[0], 'back');
+          haptics.light();
+        }
+      },
+      description: 'Send to Back',
+    },
+    {
+      key: '[',
+      ctrl: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().moveLayer(selectedLayerIds[0], 'backward');
+          haptics.light();
+        }
+      },
+      description: 'Send Backward',
+    },
+{
+      key: 'l',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().toggleLockSelected();
+          haptics.light();
+        }
+      },
+      description: 'Lock/Unlock Layers',
+    },
+    {
+      key: 'h',
+      ctrl: true,
+      shift: true,
+      action: () => {
+        if (selectedLayerIds.length > 0) {
+          useStore.getState().toggleVisibilitySelected();
+          haptics.light();
+        }
+      },
+      description: 'Hide/Show Layers',
+    },
+// History
     {
       key: 'z',
       ctrl: true,
@@ -235,6 +306,15 @@ export function buildEditorShortcuts(
     },
 
     // UI
+    {
+      key: 'c',
+      action: () => {
+        const current = useStore.getState().isSpatialPinMode;
+        useStore.getState().setSpatialPinMode(!current);
+        haptics.light();
+      },
+      description: 'Toggle Spatial AI Pin Tool',
+    },
     {
       key: 'k',
       ctrl: true,

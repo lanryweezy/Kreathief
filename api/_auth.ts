@@ -12,7 +12,7 @@ interface AuthUser {
   role?: string;
 }
 
-export async function requireAuth(request: Request): Promise<AuthUser> {
+export async function requireAuth(request: Request | any): Promise<AuthUser> {
   // SECURITY: QA bypass is only allowed in development/test environments.
   // Production deployments must set VITE_USE_QA_BYPASS=false in Vercel env.
   const isDevEnv = process.env.VERCEL_ENV !== 'production' && process.env.NODE_ENV !== 'production';
@@ -21,8 +21,12 @@ export async function requireAuth(request: Request): Promise<AuthUser> {
     return { id: 'qa-bypass-user', role: 'admin' };
   }
 
-  const authHeader = request.headers.get('Authorization');
-  const cookieHeader = request.headers.get('Cookie');
+  // Accept both native Request (edge fns) and VercelRequest (node fns, plain-object headers)
+  const headers: Headers =
+    request.headers instanceof Headers ? request.headers : new Headers(request.headers || {});
+
+  const authHeader = headers.get('Authorization');
+  const cookieHeader = headers.get('Cookie');
 
   let token: string | undefined;
 

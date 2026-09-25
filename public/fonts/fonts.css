@@ -207,3 +207,50 @@
   font-display: swap;
   src: url('/fonts/Kreathief003.ttf') format('truetype');
 }
+
+/* ===== Kreathief004 ===== */
+@font-face {
+  font-family: 'Kreathief004';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('/fonts/Kreathief004.ttf') format('truetype');
+}
+
+/* ===== Kreathief005 ===== */
+@font-face {
+  font-family: 'Kreathief005';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('/fonts/Kreathief005.ttf') format('truetype');
+}
+
+/* ===== Kreathief006 ===== */
+@font-face {
+  font-family: 'Kreathief006';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('/fonts/Kreathief006.ttf') format('truetype');
+}
+
+/* ===== Kreathief007 ===== */
+@font-face {
+  font-family: 'Kreathief007';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('/fonts/Kreathief007.ttf') format('truetype');
+}
+
+/* ===== Kreathief009 ===== */
+@font-face {
+  font-family: 'Kreathief009';
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  src: url('/fonts/Kreathief009.ttf') format('truetype');
+}
+
+

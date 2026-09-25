@@ -1,182 +1,133 @@
 import React from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Icons } from '../../constants';
 
-const problems = [
-  { icon: Icons.Brush, tool: 'Canva', issue: 'No vector editing, no layers, no precision' },
-  { icon: Icons.Edit, tool: 'Figma', issue: 'No AI generation, no image editing, no export variety' },
-  { icon: Icons.Bot, tool: 'Midjourney', issue: 'No editing after generation, no text control, no layout' },
-  { icon: Icons.Layout, tool: 'Illustrator', issue: 'Desktop-only, expensive, no AI, no collaboration' },
-];
-
-const solutions = [
-  { icon: Icons.Magic, label: 'AI Generation', desc: 'Generate any design from text' },
-  { icon: Icons.Edit, label: 'Vector Editing', desc: 'Professional path tools in-browser' },
-  { icon: Icons.Layers, label: 'Layers & Masks', desc: 'Full layer system with masking' },
-  { icon: Icons.Download, label: 'Any Format', desc: 'PNG, SVG, PDF, PSD export' },
-];
-
 export const ProblemSolution: React.FC = () => {
-  const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0.3, 0.5], [0, 1]);
-
   return (
-    <section className="py-32 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0c] via-[#0d0d12] to-[#0a0a0c]" />
+    <section className="py-36 relative bg-[#08080d] overflow-hidden">
+      <div className="max-w-[1300px] mx-auto px-6 relative z-10">
+        <div className="text-center mb-24">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-xs font-mono tracking-widest text-red-400 uppercase mb-4"
+          >
+            <span>✕</span>
+            <span>The Fragmented Design Crisis</span>
+          </motion.div>
 
-      <div className="max-w-[1200px] mx-auto px-6 relative z-10">
-        {/* THE PROBLEM */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          className="text-center mb-20"
-        >
-          <div className="inline-block mb-6">
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-red-400 bg-red-500/10 px-4 py-2 rounded-full border border-red-500/20">
-              The Problem
+          <motion.h2
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 leading-[0.92]"
+          >
+            Stop juggling 5 tools <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 via-amber-300 to-orange-400">
+              to make 1 high-end design.
             </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-6 leading-[1.1]">
-            You're using 5 tools
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400">
-              to do 1 job.
-            </span>
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Switching between apps kills your flow. Every context switch costs time, money, and creativity.
-          </p>
-        </motion.div>
+          </motion.h2>
 
-        {/* Problem Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-32">
-          {problems.map((p, i) => (
-            <motion.div
-              key={p.tool}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-surface-dark-1 border border-white/5 rounded-xl p-5 text-center group hover:border-red-500/30 transition-all"
-            >
-              <div className="flex justify-center mb-3">
-                <p.icon className="w-8 h-8 text-white/50 group-hover:text-red-400 transition-colors" />
-              </div>
-              <div className="text-sm font-bold text-white mb-1">{p.tool}</div>
-              <div className="text-xs text-gray-500 leading-relaxed">{p.issue}</div>
-            </motion.div>
-          ))}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-lg sm:text-xl text-neutral-400 max-w-2xl mx-auto"
+          >
+            Exporting PNGs from Midjourney, vectorizing in Illustrator, laying out in Figma, and retouching in Photoshop is killing your creative momentum.
+          </motion.p>
         </div>
 
-        {/* THE SOLUTION */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          className="text-center mb-16"
-        >
-          <div className="inline-block mb-6">
-            <span className="text-xs font-black uppercase tracking-[0.3em] text-green-400 bg-green-500/10 px-4 py-2 rounded-full border border-green-500/20">
-              The Solution
-            </span>
-          </div>
-          <h2 className="text-4xl md:text-6xl font-black tracking-tight text-white mb-6 leading-[1.1]">
-            One tool.
-            <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">
-              Everything.
-            </span>
-          </h2>
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-            Kreathief combines AI generation, vector editing, layer management, and export into one seamless experience.
-          </p>
-        </motion.div>
-
-        {/* Solution Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {solutions.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-surface-dark-1 border border-white/5 rounded-xl p-5 text-center group hover:border-purple-500/30 transition-all hover:bg-purple-500/5"
-            >
-              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:bg-purple-500/20 transition-colors">
-                <s.icon className="w-6 h-6" />
+        {/* Side by Side Contrast Arena */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+          {/* THE OLD WAY (CHAOS) */}
+          <motion.div
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="p-8 sm:p-12 rounded-[36px] bg-[#110e12] border border-red-500/20 flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-xs font-mono uppercase tracking-[0.25em] text-red-400 font-bold">
+                  Legacy Stack // Disconnected
+                </span>
+                <span className="text-xs font-mono px-3 py-1 rounded-md bg-red-500/10 text-red-300 border border-red-500/20">
+                  $108 / month
+                </span>
               </div>
-              <div className="text-sm font-bold text-white mb-1">{s.label}</div>
-              <div className="text-xs text-gray-500">{s.desc}</div>
-            </motion.div>
-          ))}
+
+              <div className="space-y-4 mb-8">
+                {[
+                  { tool: 'Midjourney', pain: 'Generates flat bitmaps; zero text or layer editability' },
+                  { tool: 'Figma', pain: 'No native neural generation; complex workarounds for AI art' },
+                  { tool: 'Photoshop', pain: 'Heavy desktop install; destructive edits and version conflict' },
+                  { tool: 'Illustrator', pain: 'Steep learning curve; no generative prompt iteration' },
+                ].map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-start gap-3.5">
+                    <span className="text-red-400 font-bold shrink-0 mt-0.5">✕</span>
+                    <div>
+                      <div className="text-white font-bold text-sm">{item.tool}</div>
+                      <div className="text-neutral-400 text-xs">{item.pain}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-red-950/20 border border-red-900/30 text-center">
+              <span className="text-red-300 font-mono text-xs">
+                Result: 4 hours per asset • 12 version exports • Creative fatigue
+              </span>
+            </div>
+          </motion.div>
+
+          {/* THE KREATHIEF WAY (ELEGANCE) */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="p-8 sm:p-12 rounded-[36px] bg-[#0e0e18] border-2 border-purple-500/60 shadow-[0_0_80px_rgba(168,85,247,0.15)] flex flex-col justify-between relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-80 h-80 bg-purple-600/15 blur-[100px] pointer-events-none" />
+
+            <div>
+              <div className="flex items-center justify-between mb-8">
+                <span className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-bold">
+                  Kreathief Studio // Unified
+                </span>
+                <span className="text-xs font-mono px-3 py-1 rounded-md bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                  $0 Free Forever
+                </span>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                {[
+                  { feature: 'Prompt to Vector Canvas', benefit: 'Every AI generation yields editable shapes, text paths, and layers' },
+                  { feature: 'Sub-Pixel Bézier Precision', benefit: 'Mathematical path editing alongside generative raster fill' },
+                  { feature: 'Spatial 3D & Inpainting', benefit: 'Warp text along 3D curves and erase objects with neural inpainting' },
+                  { feature: 'Universal Zero-Friction Export', benefit: 'One click export to SVG, 300 DPI CMYK PDF/X, or layered PSD' },
+                ].map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-purple-500/[0.04] border border-purple-500/20 flex items-start gap-3.5">
+                    <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
+                    <div>
+                      <div className="text-white font-bold text-sm">{item.feature}</div>
+                      <div className="text-purple-200/70 text-xs">{item.benefit}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-800/50 text-center">
+              <span className="text-purple-300 font-mono text-xs font-bold">
+                Result: 30 seconds idea-to-design • Infinite non-destructive editing
+              </span>
+            </div>
+          </motion.div>
         </div>
-
-        {/* Before/After Comparison */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="grid md:grid-cols-2 gap-6"
-        >
-          {/* Before */}
-          <div className="bg-surface-dark-1 border border-red-500/20 rounded-2xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
-                <Icons.X className="w-4 h-4 text-red-400" />
-              </div>
-              <span className="text-sm font-black text-red-400 uppercase tracking-wider">Before</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                'Open Canva for quick graphics',
-                'Switch to Figma for UI design',
-                'Use Midjourney for AI images',
-                'Export from 3 different tools',
-                'Pay for 5 subscriptions',
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-gray-400">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500/50 shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-white/5">
-              <div className="text-2xl font-black text-red-400">$84/mo</div>
-              <div className="text-xs text-gray-500">5 subscriptions</div>
-            </div>
-          </div>
-
-          {/* After */}
-          <div className="bg-surface-dark-1 border border-green-500/20 rounded-2xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                <Icons.Check className="w-4 h-4 text-green-400" />
-              </div>
-              <span className="text-sm font-black text-green-400 uppercase tracking-wider">After</span>
-            </div>
-            <div className="space-y-3">
-              {[
-                'Open Kreathief',
-                'AI generates your design',
-                'Edit with vector tools',
-                'Export any format',
-                'One tool, one price',
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3 text-sm text-gray-300">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500/50 shrink-0" />
-                  {item}
-                </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-6 border-t border-white/5">
-              <div className="text-2xl font-black text-green-400">$0/mo</div>
-              <div className="text-xs text-gray-500">Free forever plan</div>
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );

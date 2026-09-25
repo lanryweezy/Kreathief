@@ -39,10 +39,17 @@ export const CANVAS_SIZE_PRESETS = [
 
 // Fonts — single source of truth
 export const FONT_CATEGORIES: Record<string, string[]> = {
-  'Sans Serif': [
+  'Kreathief Brand': [
     'Kreathief001',
     'Kreathief002',
     'Kreathief003',
+    'Kreathief004',
+    'Kreathief005',
+    'Kreathief006',
+    'Kreathief007',
+    'Kreathief009',
+  ],
+  'Sans Serif': [
     'Inter',
     'Roboto',
     'Open Sans',

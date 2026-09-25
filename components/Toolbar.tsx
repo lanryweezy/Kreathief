@@ -18,6 +18,7 @@ import { ShapeTools } from './toolbar/ShapeTools';
 import { ImageTools } from './toolbar/ImageTools';
 import { CommonActions } from './toolbar/CommonActions';
 import { AutoLayoutTools } from './toolbar/AutoLayoutTools';
+import { ComponentTools } from './toolbar/ComponentTools';
 
 interface ToolbarProps {
   uploadedImage: string | null;
@@ -294,6 +295,7 @@ export const Toolbar = React.memo(
 
               <div className="flex items-center gap-4">
                 <AutoLayoutTools selectedLayer={selectedLayer} handleUpdateLayer={handleUpdateLayer} />
+                <ComponentTools selectedLayer={selectedLayer} handleUpdateLayer={handleUpdateLayer} />
                 <TransformTools selectedLayer={selectedLayer} />
                 <CommonActions
                   selectedLayer={selectedLayer}

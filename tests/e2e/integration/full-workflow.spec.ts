@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EditorPage } from '../pages/EditorPage';
+import { ShapeToolsPage } from '../pages/ShapeToolsPage';
 
 test.describe('Full Design Workflow', () => {
   test('should complete full design workflow from creation to export', async ({ page }) => {
@@ -45,10 +46,8 @@ test.describe('Full Design Workflow', () => {
     // Step 5: Add shape
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
-
-    const shapeBtn = page
-      .locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]')
-      .first();
+    await page.waitForTimeout(500);
+    const shapeBtn = page.locator('button[title*="Rectangle"], button[title*="Square"], button[title*="Circle"]').first();
     await expect(shapeBtn).toBeVisible({ timeout: 10000 });
     await shapeBtn.click();
     await page.waitForTimeout(500);
@@ -71,9 +70,10 @@ test.describe('Full Design Workflow', () => {
     expect(download.suggestedFilename()).toContain('.png');
 
     // Step 9: Navigate back to dashboard
-    const backBtn = page.locator('button[aria-label="Back"], button:has-text("Back")');
+    const backBtn = page.locator('button[aria-label="Go back to Dashboard"], button[aria-label="Back"], button:has-text("Back")').first();
     if (await backBtn.isVisible()) {
       await backBtn.click();
+      await page.waitForTimeout(1000);
       await dashboard.verifyDashboardLoaded();
     }
 

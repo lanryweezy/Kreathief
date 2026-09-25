@@ -30,6 +30,8 @@ const DocumentPanel = React.lazy(() => import('./panels/DocumentPanel').then((m)
 const MagicImagePanel = React.lazy(() => import('./panels/MagicImagePanel').then((m) => ({ default: m.MagicImagePanel })));
 const TextAgentPanel = React.lazy(() => import('./panels/TextAgentPanel').then((m) => ({ default: m.TextAgentPanel })));
 const VideoAgentPanel = React.lazy(() => import('./panels/VideoAgentPanel').then((m) => ({ default: m.VideoAgentPanel })));
+const CampaignPanel = React.lazy(() => import('./panels/CampaignPanel').then((m) => ({ default: m.CampaignPanel })));
+
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
 const PanelLoading = ({ tab }: { tab: NavTab }) => {
@@ -225,6 +227,8 @@ export const SidePanel = React.memo(
               )}
 
               {activeTab === NavTab.BRAND && <BrandPanel />}
+              {activeTab === NavTab.PROTOTYPE && <PrototypingPanel />}
+              
 
               {activeTab === NavTab.DRAW && (
                 <DrawPanel
@@ -267,6 +271,8 @@ export const SidePanel = React.memo(
               {activeTab === NavTab.MAGIC_IMAGE && <MagicImagePanel selectedLayer={selectedLayer?.type === 'image' ? (selectedLayer as any) : undefined} />}
 
               {activeTab === NavTab.VIDEO_AGENT && <VideoAgentPanel />}
+              {activeTab === NavTab.CAMPAIGN && <CampaignPanel />}
+
 
               {activeTab === NavTab.TEXT_AGENT && <TextAgentPanel selectedLayer={selectedLayer?.type === 'text' ? (selectedLayer as any) : undefined} />}
             </React.Suspense>

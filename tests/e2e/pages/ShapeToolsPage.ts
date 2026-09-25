@@ -13,14 +13,14 @@ export class ShapeToolsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.elementsTab = page.getByRole('button', { name: 'Components' });
-    this.shapesPanel = page.getByTestId('elements-panel');
-    this.rectangleBtn = this.shapesPanel.getByTestId('shape-btn-square');
-    this.circleBtn = this.shapesPanel.getByTestId('shape-btn-circle');
-    this.triangleBtn = this.shapesPanel.getByTestId('shape-btn-triangle');
-    this.starBtn = this.shapesPanel.getByTestId('shape-btn-star-5');
-    this.colorPicker = this.shapesPanel.locator('input[type="color"], [data-testid="color-picker"]');
-    this.opacitySlider = this.shapesPanel.locator(
+    this.elementsTab = page.locator('button[aria-label="Elements"]').first();
+    this.shapesPanel = page.locator('[data-testid="elements-panel"]');
+    this.rectangleBtn = page.locator('button[title*="Rectangle"], button[title*="Square"]').first();
+    this.circleBtn = page.locator('button[title*="Circle"]').first();
+    this.triangleBtn = page.locator('button[title*="Triangle"]').first();
+    this.starBtn = page.locator('button[title*="Star"]').first();
+    this.colorPicker = page.locator('input[type="color"], [data-testid="color-picker"]');
+    this.opacitySlider = page.locator(
       'input[type="range"][aria-label*="Opacity"], input[aria-label*="opacity"]'
     );
   }
@@ -29,6 +29,7 @@ export class ShapeToolsPage {
     const isVisible = await this.shapesPanel.isVisible();
     if (!isVisible) {
       await this.elementsTab.click();
+      await this.page.waitForTimeout(500);
     }
     await expect(this.shapesPanel).toBeVisible({ timeout: 10000 });
   }
@@ -56,8 +57,14 @@ export class ShapeToolsPage {
 
   async addStar() {
     await this.openElementsPanel();
-    await this.starBtn.waitFor({ state: 'visible' });
-    await this.starBtn.click({ force: true });
+    const shapesFilter = this.page.locator('button:has-text("Shapes & Frames")').first();
+    if (await shapesFilter.isVisible()) {
+      await shapesFilter.click();
+      await this.page.waitForTimeout(300);
+    }
+    const starBtn = this.page.locator('button[title*="Star"]').first();
+    await starBtn.waitFor({ state: 'visible' });
+    await starBtn.click({ force: true });
     await this.page.waitForTimeout(1000);
   }
 

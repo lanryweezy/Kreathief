@@ -1,3 +1,4 @@
+import { Icons } from '../../constants';
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { VectorPath, VectorPoint, Layer, ShapeLayer } from '../../types';
 import { PenToolbar } from '../toolbar/PenToolbar';
@@ -1162,8 +1163,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
             >
               {/* Tool Mode Buttons */}
               <ToolbarBtn
-                icon="◆"
-                label="Select (V)"
+                icon={<Icons.MousePointer2 className="w-4 h-4" />} label="Select (V)"
                 active={activeTool === 'select'}
                 onClick={() => {
                   setActiveTool('select');
@@ -1171,8 +1171,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                 }}
               />
               <ToolbarBtn
-                icon="✏"
-                label="Pen Tool (P)"
+                icon={<Icons.PenTool className="w-4 h-4" />} label="Pen Tool (P)"
                 active={activeTool === 'pen'}
                 onClick={() => {
                   setActiveTool(activeTool === 'pen' ? 'select' : 'pen');
@@ -1181,8 +1180,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                 accent={activeTool === 'pen'}
               />
               <ToolbarBtn
-                icon="⊖"
-                label="Remove Point"
+                icon={<Icons.Minus className="w-4 h-4" />} label="Remove Point"
                 active={activeTool === 'remove'}
                 onClick={() => setActiveTool(activeTool === 'remove' ? 'select' : 'remove')}
                 danger={activeTool === 'remove'}
@@ -1192,8 +1190,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
 
               {/* Point Type Buttons */}
               <ToolbarBtn
-                icon="◇"
-                label="Corner"
+                icon={<Icons.Square className="w-4 h-4" />} label="Corner"
                 active={
                   selectedPointIndices.length > 0 &&
                   selectedPointIndices.every((i) => path.points[i]?.type === 'corner' || !path.points[i]?.type)
@@ -1201,8 +1198,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                 onClick={() => setPointType('corner')}
               />
               <ToolbarBtn
-                icon="◉"
-                label="Smooth"
+                icon={<Icons.Circle className="w-4 h-4" />} label="Smooth"
                 active={
                   selectedPointIndices.length > 0 &&
                   selectedPointIndices.every((i) => path.points[i]?.type === 'smooth')
@@ -1210,8 +1206,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
                 onClick={() => setPointType('smooth')}
               />
               <ToolbarBtn
-                icon="◎"
-                label="Symmetric"
+                icon={<Icons.CircleDot className="w-4 h-4" />} label="Symmetric"
                 active={
                   selectedPointIndices.length > 0 &&
                   selectedPointIndices.every((i) => path.points[i]?.type === 'symmetric')
@@ -1223,26 +1218,25 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
 
               {/* Path Actions */}
               <ToolbarBtn
-                icon={path.isClosed ? '⬡' : '⬠'}
+                icon={path.isClosed ? <Icons.Unlock className="w-4 h-4"/> : <Icons.Lock className="w-4 h-4"/>}
                 label={path.isClosed ? 'Open Path' : 'Close Path'}
                 active={path.isClosed}
                 onClick={toggleClosed}
               />
-              <ToolbarBtn icon="⇄" label="Reverse" onClick={reversePath} />
+              <ToolbarBtn icon={<Icons.RefreshCw className="w-4 h-4"/>} label="Reverse" onClick={reversePath} />
 
               <div className="w-px h-5 bg-gray-700 mx-1" />
 
               {/* Delete */}
               <ToolbarBtn
-                icon="✕"
-                label="Delete Points"
+                icon={<Icons.Trash className="w-4 h-4" />} label="Delete Points"
                 onClick={deleteSelectedPoints}
                 disabled={selectedPointIndices.length === 0}
                 danger
               />
 
               {/* Done */}
-              <ToolbarBtn icon="✓" label="Done" onClick={() => onClose?.()} accent />
+              <ToolbarBtn icon={<Icons.Check className="w-4 h-4"/>} label="Done" onClick={() => onClose?.()} accent />
 
               {/* Info badge */}
               <div
@@ -1275,7 +1269,7 @@ export const PathEditorOverlay: React.FC<PathEditorOverlayProps> = React.memo(
 // Mini Toolbar Button
 // ==================================
 interface ToolbarBtnProps {
-  icon: string;
+  icon: React.ReactNode;
   label: string;
   onClick: () => void;
   active?: boolean;

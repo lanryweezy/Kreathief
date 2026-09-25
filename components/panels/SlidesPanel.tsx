@@ -11,13 +11,13 @@ type SlideView = 'grid' | 'list';
 
 type SlideTransition = 'none' | 'fade' | 'slide' | 'zoom' | 'flip' | 'magic_move';
 
-const TRANSITIONS: { key: SlideTransition; label: string; icon: string }[] = [
+const TRANSITIONS: { key: SlideTransition; label: string; icon: string | React.ReactNode }[] = [
   { key: 'none', label: 'Cut', icon: '/' },
   { key: 'fade', label: 'Fade', icon: '~' },
   { key: 'slide', label: 'Slide', icon: '>' },
   { key: 'zoom', label: 'Zoom', icon: '+' },
   { key: 'flip', label: 'Flip', icon: '|' },
-  { key: 'magic_move', label: 'Magic', icon: '✨' },
+  { key: 'magic_move', label: 'Magic', icon: <Icons.Wand2 className="w-3 h-3" /> },
 ];
 
 const SLIDE_LAYOUTS = [

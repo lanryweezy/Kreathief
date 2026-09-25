@@ -57,6 +57,8 @@ export interface AgentVariant {
   artboards?: Artboard[];
   width?: number;
   height?: number;
+  /** Which engine authored this variant (merged agent pipeline). */
+  source?: 'blueprint' | 'procedural' | 'transformed';
   performanceScore?: number;
   performanceReasoning?: string;
   criticFeedback?: string[];
@@ -663,10 +665,12 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
     return {
       id: uuidv4(),
       themeIdea: `${polished.title} (${archKey.toUpperCase()}) — ${polished.description}`,
+      source: 'procedural',
       layers: polished.layers.map((l, lIdx) => ({
         ...l,
         name: lIdx === 0 && !(l.name || '').includes('Card') ? `${l.name || 'Hero'} Card` : l.name || 'Layer',
         opacity: 1,
+        aiProvenance: { source: 'procedural' as const, role: l.name || `Layer ${lIdx + 1}` },
       })),
       width: canvasSize.width,
       height: canvasSize.height,
@@ -681,8 +685,9 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
   });
 }
 
-export async function researchAgentStrategy(intent: string, brandKit: any): Promise<any> {
-  return {
+export async function researchAgentStrategy(intent: string, brandKit?: any): Promise<any> {
+  // Safe fallback so the pipeline never blocks on the strategy agent.
+  const defaultStrategy = {
     designObjective: `Communicate the core message of: ${intent}`,
     audience: 'General professional audience',
     coreMetaphor: 'Clean modern clarity',
@@ -690,11 +695,88 @@ export async function researchAgentStrategy(intent: string, brandKit: any): Prom
     colorPsychology: 'Neutral contemporary palette with a single strong accent color',
     spacingSystem: 'Balanced',
     avoidanceRules: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
-    palettes: [['#ffffff', '#000000']],
+    palettes: [],
     trends: [],
     antiCliches: ['Generic stock imagery', 'Overused gradients', 'Clip art icons', 'Comic Sans or Impact'],
     layers: [],
   };
+
+  // Strategy failures must degrade gracefully, never kill the workflow.
+  try {
+    // 🤖 Astra: Sanitize and truncate user input to prevent prompt injection and payload bloat
+    const sanitized = intent.trim().substring(0, 1000);
+    const brandContext = brandKit
+      ? `The design must respect this brand kit — colors: ${JSON.stringify(
+          brandKit.colors || []
+        )}, fonts: ${JSON.stringify(brandKit.fonts || {})}.`
+      : 'No brand kit is active; propose a fresh direction.';
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction: `You are a World-Class Creative Strategist (ex Pentagram/Wieden+Kennedy). Before any layout is drawn you produce the creative brief that art directors must execute.
+Given a design request, define: the single communication objective, the specific audience, one core visual metaphor (a concrete spatial/typographic/form idea — NOT an image description), a Google-Fonts typography pairing (heading + body that genuinely contrast in character), color psychology direction, a spacing philosophy, 3+ named clichés to actively avoid for this category, 2 candidate palettes (4-5 hex colors each, sophisticated, non-generic), and 1-2 relevant design trends.
+${brandContext}
+Be specific and opinionated. No hedging, no generic advice. Return ONLY valid JSON.`,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            designObjective: { type: SchemaType.STRING },
+            audience: { type: SchemaType.STRING },
+            coreMetaphor: { type: SchemaType.STRING },
+            headingFont: { type: SchemaType.STRING },
+            bodyFont: { type: SchemaType.STRING },
+            colorPsychology: { type: SchemaType.STRING },
+            spacingSystem: { type: SchemaType.STRING },
+            antiCliches: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            palettes: {
+              type: SchemaType.ARRAY,
+              items: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            },
+            trends: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+          },
+          required: [
+            'designObjective',
+            'audience',
+            'coreMetaphor',
+            'headingFont',
+            'bodyFont',
+            'colorPsychology',
+            'spacingSystem',
+            'antiCliches',
+            'palettes',
+          ],
+        },
+        temperature: 0.6,
+      },
+      contents: [{ role: 'user', parts: [{ text: `Design request: "${sanitized}"` }] }],
+    });
+
+    const parsed = safeParseJSON<any | null>(data?.text || 'null', null);
+    if (!parsed || !parsed.coreMetaphor || !parsed.antiCliches) {
+      return defaultStrategy;
+    }
+
+    return {
+      designObjective: parsed.designObjective || defaultStrategy.designObjective,
+      audience: parsed.audience || defaultStrategy.audience,
+      coreMetaphor: parsed.coreMetaphor,
+      typographyPairing: {
+        heading: parsed.headingFont || defaultStrategy.typographyPairing.heading,
+        body: parsed.bodyFont || defaultStrategy.typographyPairing.body,
+      },
+      colorPsychology: parsed.colorPsychology || defaultStrategy.colorPsychology,
+      spacingSystem: parsed.spacingSystem || defaultStrategy.spacingSystem,
+      palettes: Array.isArray(parsed.palettes) ? parsed.palettes.slice(0, 3) : [],
+      trends: Array.isArray(parsed.trends) ? parsed.trends : [],
+      antiCliches: parsed.antiCliches,
+      layers: [],
+    };
+  } catch (err) {
+    log.warn('[AI] Strategy research failed — using design-principles default brief', err);
+    return defaultStrategy;
+  }
 }
 
 export async function motionDirectorAgent(

@@ -2,6 +2,30 @@ import '@testing-library/jest-dom';
 import 'fake-indexeddb/auto';
 import 'vitest-canvas-mock';
 
+// jsdom ships no ResizeObserver / IntersectionObserver — components that
+// observe layout (Canvas, node editor) crash without these no-op stubs.
+if (typeof (globalThis as any).ResizeObserver === 'undefined') {
+  (globalThis as any).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
+if (typeof (globalThis as any).IntersectionObserver === 'undefined') {
+  (globalThis as any).IntersectionObserver = class {
+    root: any = null;
+    rootMargin: string = '';
+    thresholds: any[] = [];
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+    takeRecords() {
+      return [];
+    }
+  };
+}
+
 // Mock Worker and OffscreenCanvas if not available in JSDOM
 if (typeof Worker === 'undefined') {
   (globalThis as any).Worker = class {
@@ -39,7 +63,7 @@ if (typeof OffscreenCanvas === 'undefined') {
     }
   } as any;
 }
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
 
 // extends Vitest's expect method with methods from react-testing-library

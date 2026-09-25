@@ -1,3 +1,4 @@
+import { generateNativeMockup } from '../../utils/nativeMockupExport';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../../constants';
 
@@ -128,7 +129,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [suggestedMockups, setSuggestedMockups] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const APP_STORE_PRESETS = {
+  const storeActiveTab = useStore((state) => state.activeTab); const globalIntent = useStore((state) => state.agentIntent); useEffect(() => { if (storeActiveTab === 'MOCKUP' && globalIntent && globalIntent !== searchQuery) { setSearchQuery(globalIntent); } }, [storeActiveTab, globalIntent]); const APP_STORE_PRESETS = {
     'iOS Complete': ['iphone', 'ipad', 'macbook'],
     'Android Complete': ['android_phone', 'macbook'],
     'Merchandise Pack': ['tshirt', 'hoodie', 'mug', 'tote_bag'],
@@ -697,16 +698,29 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
         throw new Error('Failed to capture design');
       }
 
-      const result = await dynamicMockupsService.generateMockup({
-        mockupId: activeMockupId,
-        designUrl: designUrl,
-        placement: {
-          top: placement.top,
-          left: placement.left,
-          width: placement.width,
-          rotate: placement.rotate,
-        },
-      });
+      // 🚀 Phase 3: Native Canvas Warp Integration 🚀
+      // We bypass the external API and use our zero-latency WebGL/Canvas2D native warp map
+      const activeMockupConfig = getMockupById(activeMockupId);
+      let result = null;
+      
+      if (activeMockupConfig && activeMockupConfig.perspectiveCorners) {
+        log.info('[MockupPanel] Running local affine warp to corners:', activeMockupConfig.perspectiveCorners);
+        result = await generateNativeMockup(
+          activeMockupConfig.previewUrl,
+          designUrl,
+          activeMockupConfig.perspectiveCorners,
+          1200, 
+          800,
+          'multiply' // standard blend for tshirts/print
+        );
+      } else {
+         // Fallback if no corners defined
+         result = await dynamicMockupsService.generateMockup({
+            mockupId: activeMockupId,
+            designUrl: designUrl,
+            placement: { top: placement.top, left: placement.left, width: placement.width, rotate: placement.rotate }
+         });
+      }
 
       if (result) {
         updateGeneratedPreview(result);

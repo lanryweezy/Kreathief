@@ -6,6 +6,68 @@ export function snapToGrid(value: number, gridSize: number = 4): number {
   return Math.round(value / gridSize) * gridSize;
 }
 
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.trim());
+  if (!m) return null;
+  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
+}
+
+function relativeLuminance(rgb: { r: number; g: number; b: number }): number {
+  const chan = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * chan(rgb.r) + 0.7152 * chan(rgb.g) + 0.0722 * chan(rgb.b);
+}
+
+function contrastRatio(a: { r: number; g: number; b: number }, b: { r: number; g: number; b: number }): number {
+  const la = relativeLuminance(a);
+  const lb = relativeLuminance(b);
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+
+/**
+ * WCAG AA auto-fixer: rewrites text colors that fall below the 4.5:1 contrast
+ * ratio against their effective backdrop (nearest enclosing filled shape, or
+ * the provided artboard background). Picks the higher-contrast candidate.
+ */
+export function enforceWcagContrast(layers: Layer[], background: string = '#090a0f', minRatio = 4.5): Layer[] {
+  const SOLID_SHAPES = new Set(['rectangle', 'circle', 'svg', 'path']);
+  const LIGHT = '#f8fafc';
+  const DARK = '#090a0f';
+
+  return layers.map((layer) => {
+    if (layer.type !== 'text') return layer;
+    const tl = layer as any;
+    const textColor = typeof tl.color === 'string' ? tl.color : null;
+    const textRgb = textColor ? hexToRgb(textColor) : null;
+    if (!textRgb) return layer;
+
+    // Effective backdrop: last (topmost) solid shape fully containing the text
+    let bg = background;
+    for (const other of layers) {
+      if (other === layer || !SOLID_SHAPES.has(other.type as string)) continue;
+      const o = other as any;
+      const fill = typeof o.fill === 'string' ? o.fill : typeof o.color === 'string' ? o.color : null;
+      if (!fill || !fill.startsWith('#')) continue;
+      if (
+        tl.x >= o.x && tl.y >= o.y &&
+        tl.x + (tl.width || 0) <= o.x + (o.width || 0) &&
+        tl.y + (tl.height || 0) <= o.y + (o.height || 0)
+      ) {
+        bg = fill;
+      }
+    }
+    const bgRgb = hexToRgb(bg);
+    if (!bgRgb) return layer;
+
+    if (contrastRatio(textRgb, bgRgb) >= minRatio) return layer;
+    const lightScore = contrastRatio(hexToRgb(LIGHT)!, bgRgb);
+    const darkScore = contrastRatio(hexToRgb(DARK)!, bgRgb);
+    return { ...layer, color: lightScore >= darkScore ? LIGHT : DARK } as Layer;
+  });
+}
+
 export function enforceTypographyHierarchy(layers: Layer[]): Layer[] {
   const textLayers = layers.filter((l): l is Layer & { type: 'text' } => l.type === 'text');
   if (textLayers.length === 0) return layers;
@@ -126,14 +188,17 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
       return patched as Layer;
     });
 
-    // 2. Enforce typography hierarchy
+    // 2. Enforce WCAG AA text contrast against the effective backdrop
+    layers = enforceWcagContrast(layers, polishedResult.backgroundColor || '#090a0f');
+
+    // 3. Enforce typography hierarchy
     layers = enforceTypographyHierarchy(layers);
-    // 3. Add missing shadows to interactive elements
+    // 4. Add missing shadows to interactive elements
     layers = addMissingShadows(layers);
-    // 4. Fix overlapping text
+    // 5. Fix overlapping text
     layers = fixOverlappingText(layers, polishedResult.height || 1080);
 
-    // 5. Ensure text defaults
+    // 6. Ensure text defaults
     layers = layers.map(layer => {
       if (layer.type === 'text') {
         const tl = layer as any;
@@ -149,7 +214,7 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
     polishedResult.layers = layers;
   }
 
-  // 6. Ensure subtle background gradient
+  // 7. Ensure subtle background gradient
   polishedResult = ensureBackgroundGradient(polishedResult);
 
   return polishedResult;

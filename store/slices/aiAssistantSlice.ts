@@ -1,5 +1,6 @@
+import { agenticCopilot } from '../../services/agenticCopilot';
 import { StateCreator } from 'zustand';
-import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, DesignContext } from '../../types';
+import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, DesignContext, SpatialPin } from '../../types';
 import * as aiService from '../../services/aiService';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
@@ -14,9 +15,14 @@ export interface AIAssistantSlice extends AIAssistantState {
   moveAssistant: (x: number, y: number) => void;
   setAutoSuggest: (enabled: boolean) => void;
 
+  // Spatial Pinning
+  setSpatialPinMode: (enabled: boolean) => void;
+  setSpatialPin: (pin: SpatialPin | null) => void;
+  clearSpatialPin: () => void;
+
   // Analysis
   analyzeCurrentDesign: () => Promise<void>;
-  sendMessage: (message: string) => Promise<void>;
+  sendMessage: (message: string, overridePin?: SpatialPin | null) => Promise<void>;
   clearConversation: () => void;
 
   // Suggestions
@@ -41,6 +47,8 @@ const initialState: AIAssistantState = {
   autoSuggest: true,
   position: { x: window.innerWidth - 420, y: 100 },
   isMinimized: false,
+  isSpatialPinMode: false,
+  spatialPin: null,
 };
 
 export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistantSlice> = (set, get) => ({
@@ -69,6 +77,18 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
 
   setAutoSuggest: (enabled: boolean) => {
     set({ autoSuggest: enabled });
+  },
+
+  setSpatialPinMode: (enabled: boolean) => {
+    set({ isSpatialPinMode: enabled });
+  },
+
+  setSpatialPin: (pin: SpatialPin | null) => {
+    set({ spatialPin: pin });
+  },
+
+  clearSpatialPin: () => {
+    set({ spatialPin: null, isSpatialPinMode: false });
   },
 
   // Analysis functions
@@ -138,14 +158,9 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
     }
   },
 
-  sendMessage: async (message: string) => {
+  sendMessage: async (message: string, overridePin?: SpatialPin | null) => {
     const state = get();
-    const activeArtboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
-
-    if (!activeArtboard) {
-      return;
-    }
-
+    
     analyticsService.track('agent_chat', { message_length: message.length });
 
     // Add user message
@@ -156,51 +171,41 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
       timestamp: Date.now(),
     };
 
-    get().addMessage(userMessage);
-    set({ isAnalyzing: true });
-
+    set((state: any) => ({
+      conversation: [...state.conversation, userMessage],
+      isAnalyzing: true,
+      lastAnalysisTimestamp: Date.now(),
+    }));
+    
     try {
-      const context: DesignContext = {
-        canvasSize: state.canvasSize || { width: 1080, height: 1080, name: 'Square' },
-        layerCount: activeArtboard.layers.length,
-        hasText: activeArtboard.layers.some((l: any) => l.type === 'text'),
-        hasImages: activeArtboard.layers.some((l: any) => l.type === 'image'),
-        colorPalette: (state as any).documentColors || [],
-        fontFamilies: [
-          ...new Set(
-            activeArtboard.layers
-              .filter((l: any) => l.type === 'text')
-              .map((l: any) => l.fontFamily as string)
-              .filter(Boolean)
-          ),
-        ] as string[],
-        brandKit: state.brandKits?.find((bk: any) => bk.id === state.activeBrandKitId),
-      };
+      // 🚀 AGENTIC ROUTING 🚀
+      // Route the natural language through the Agentic Copilot to execute state mutations
+      // 🛡️ User Protection: Group all AI actions into a single Undo block
+      if (typeof state.beginBatch === 'function') state.beginBatch();
+      if (typeof state.saveToHistory === 'function') state.saveToHistory();
 
-      const response = await aiService.handleConversation(
-        message,
-        activeArtboard,
-        context,
-        get().conversationHistory
-      );
-
-      get().addMessage(response);
-    } catch (error) {
-      log.error('[AI Assistant] Conversation failed', error);
-
-      const errorMessage: ChatMessage = {
+      const targetPin = overridePin !== undefined ? overridePin : state.spatialPin;
+      const aiResponse = await agenticCopilot.processCommand(message, targetPin);
+      
+      if (typeof state.endBatch === 'function') state.endBatch();
+      
+      const aiMessage: ChatMessage = {
         id: uuidv4(),
         role: 'assistant',
-        content: 'I apologize, but I had trouble processing your message. Please try again.',
+        content: aiResponse,
         timestamp: Date.now(),
       };
-
-      get().addMessage(errorMessage);
-    } finally {
+      
+      set((state: any) => ({
+        conversation: [...state.conversation, aiMessage],
+        isAnalyzing: false,
+      }));
+      
+    } catch (error) {
+      log.error('[aiAssistantSlice] Error in Agentic Copilot:', error);
       set({ isAnalyzing: false });
     }
   },
-
   clearConversation: () => {
     set({
       conversationHistory: [],

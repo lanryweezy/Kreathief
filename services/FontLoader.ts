@@ -14,7 +14,19 @@ const customFonts = new Set<string>();
 const failedFonts = new Set<string>();
 
 // Fonts already loaded globally via fonts.css
-const LOCAL_FONTS = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003'];
+const LOCAL_FONTS = [
+  'Inter',
+  'Space Grotesk',
+  'Outfit',
+  'Kreathief001',
+  'Kreathief002',
+  'Kreathief003',
+  'Kreathief004',
+  'Kreathief005',
+  'Kreathief006',
+  'Kreathief007',
+  'Kreathief009',
+];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
@@ -28,7 +40,19 @@ export function setFontToastCallback(callback: FontToastCallback): void {
 const variableFontAxes = new Map<string, string[]>();
 
 // Preloaded common fonts (loaded immediately)
-const PRELOAD_FONTS = ['Inter', 'Space Grotesk', 'Outfit'];
+const PRELOAD_FONTS = [
+  'Inter',
+  'Space Grotesk',
+  'Outfit',
+  'Kreathief001',
+  'Kreathief002',
+  'Kreathief003',
+  'Kreathief004',
+  'Kreathief005',
+  'Kreathief006',
+  'Kreathief007',
+  'Kreathief009',
+];
 
 // Single source of truth: derived from constants.FONT_FAMILIES
 export const AVAILABLE_FONTS = FONT_FAMILIES;
@@ -196,15 +220,11 @@ function blobToBase64(blob: Blob): Promise<string> {
  */
 export function getAllAvailableFonts(): string[] {
   const all = [...AVAILABLE_FONTS, ...Array.from(customFonts)];
-  if (!all.includes('Kreathief001')) {
-    all.push('Kreathief001');
-  }
-  if (!all.includes('Kreathief002')) {
-    all.push('Kreathief002');
-  }
-  if (!all.includes('Kreathief003')) {
-    all.push('Kreathief003');
-  }
+  LOCAL_FONTS.forEach((font) => {
+    if (!all.includes(font)) {
+      all.push(font);
+    }
+  });
   return all.sort();
 }
 
@@ -242,6 +262,20 @@ export function getFontAxes(fontFamily: string): string[] {
  */
 export function preloadEssentialFonts(): void {
   logger.info('Preloading essential fonts');
+  
+  // Pre-warm Google Fonts connections to minimize FOIT/FOUT latency
+  if (!document.querySelector('link[href="https://fonts.googleapis.com"]')) {
+    const preconnect1 = document.createElement('link');
+    preconnect1.rel = 'preconnect';
+    preconnect1.href = 'https://fonts.googleapis.com';
+    const preconnect2 = document.createElement('link');
+    preconnect2.rel = 'preconnect';
+    preconnect2.href = 'https://fonts.gstatic.com';
+    preconnect2.crossOrigin = 'anonymous';
+    document.head.appendChild(preconnect1);
+    document.head.appendChild(preconnect2);
+  }
+
   loadFonts(PRELOAD_FONTS);
 }
 

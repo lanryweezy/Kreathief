@@ -23,6 +23,8 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
   const brushType = useStore((state) => state.brushType);
   const setBrushType = useStore((state) => state.setBrushType);
   const setActiveTab = useStore((state) => state.setActiveTab);
+  const isSpatialPinMode = useStore((state) => state.isSpatialPinMode);
+  const setSpatialPinMode = useStore((state) => state.setSpatialPinMode);
   const [showResizeMenu, setShowResizeMenu] = React.useState(false);
   const resizeMenuRef = React.useRef<HTMLDivElement>(null);
 
@@ -91,6 +93,19 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
         title="Vector Pen (P) — Draw custom scalable vector paths"
       >
         <Icons.Pen className="w-4 h-4" />
+      </IconButton>
+      <IconButton
+        onClick={() => {
+          const next = !isSpatialPinMode;
+          setSpatialPinMode(next);
+          if (next) {
+            setPenMode(false);
+          }
+        }}
+        active={!!isSpatialPinMode}
+        title="Spatial Agentic Pin (C) — Drop a pin anywhere to surgically prompt or refine local elements"
+      >
+        <Icons.Pin className={`w-4 h-4 ${isSpatialPinMode ? 'text-cyan-400 animate-pulse' : ''}`} />
       </IconButton>
       <Divider />
 

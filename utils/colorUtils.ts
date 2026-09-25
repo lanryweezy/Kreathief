@@ -415,3 +415,52 @@ export const getRichBlack = (): CMYK => ({
 export const formatCMYK = (cmyk: CMYK): string => {
   return `C:${cmyk.c} M:${cmyk.m} Y:${cmyk.y} K:${cmyk.k}`;
 };
+
+/**
+ * Print preflight: total ink / Total Area Coverage (TAC).
+ *
+ * NOTE: the shipped print PDF (`api/export-cmyk.ts`) already performs a real
+ * color-managed conversion via Sharp/LittleCMS. These helpers power the EDITOR's
+ * on-screen preflight ("is this safe to print?"), which needs to be honest about
+ * two things naive CMYK ignores: how much total ink lands on the sheet, and a
+ * coated-paper ink budget.
+ */
+
+/** Sum of the four separations as a percentage (0-400). */
+export const estimateInkCoverage = (cmyk: CMYK): number =>
+  Math.max(0, cmyk.c) + Math.max(0, cmyk.m) + Math.max(0, cmyk.y) + Math.max(0, cmyk.k);
+
+/**
+ * Coated-paper TAC limit is commonly 300-330%; uncoated lower. Warn above 270,
+ * critical above 300.
+ */
+export const getInkCoverageWarning = (coverage: number): 'warning' | 'critical' | null => {
+  if (coverage > 300) return 'critical';
+  if (coverage > 270) return 'warning';
+  return null;
+};
+
+/**
+ * A print-aware CMYK preflight conversion: starts from the standard model and
+ * enforces a Total Area Coverage budget by shedding chroma (never key/black) so
+ * the separation stays inside a coated-paper ink limit. This is a PREFLIGHT
+ * approximation to warn the designer; the authoritative separation still happens
+ * in the export service via Sharp.
+ */
+export const rgbToCMYKCoated = (r: number, g: number, b: number, maxTac = 300): CMYK => {
+  const base = rgbToCMYK(r, g, b);
+  let { c, m, y } = base;
+  const k = base.k;
+  const tac = c + m + y + k;
+  if (tac > maxTac) {
+    const cmy = c + m + y;
+    const allowed = Math.max(0, maxTac - k);
+    if (cmy > allowed) {
+      const f = allowed / cmy;
+      c = Math.round(c * f);
+      m = Math.round(m * f);
+      y = Math.round(y * f);
+    }
+  }
+  return { c, m, y, k };
+};

@@ -71,8 +71,9 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Color Brand');
 
     // Add a shape first
-    await page.getByRole('button', { name: 'Components' }).click();
-    const shapeBtn = page.getByTestId(/shape-btn-/).first();
+    const elementsTab = page.locator('button[aria-label="Elements"]').first();
+    await elementsTab.click();
+    const shapeBtn = page.locator('button[title*="Rectangle"], button[title*="Square"], button[title*="Circle"]').first();
     await expect(shapeBtn).toBeVisible();
     await shapeBtn.click();
     await page.waitForTimeout(500);
@@ -83,7 +84,7 @@ test.describe('Brand Kit Features', () => {
 
     // Verify colors applied (check if shape color changed)
     // The layer might be a path or a basic shape
-    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
+    const shapeLayer = page.locator('.canvas-container .shape-layer, .canvas-container [data-layer-type="shape"]').last();
     const fillColor = await shapeLayer.evaluate((el) => {
       const svg = el.querySelector('svg');
       if (svg) {
@@ -103,7 +104,8 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Font Brand');
 
     // Add text first
-    await page.getByRole('button', { name: 'Text' }).click();
+    const textTab = page.locator('button[aria-label="Text"]').first();
+    await textTab.click();
     const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);

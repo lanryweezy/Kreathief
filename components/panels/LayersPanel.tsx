@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { List } from 'react-window';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -22,6 +23,8 @@ interface LayerItemProps {
   style?: React.CSSProperties;
   tabIndex?: number;
   onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  isExpandedSettings?: boolean;
+  onToggleSettings?: () => void;
 }
 
 const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
@@ -29,7 +32,9 @@ const areLayerPropsEqual = (prev: LayerItemProps, next: LayerItemProps) => {
     prev.isSelected === next.isSelected &&
     prev.isGrouped === next.isGrouped &&
     prev.layer === next.layer &&
-    prev.index === next.index
+    prev.index === next.index &&
+    prev.isExpandedSettings === next.isExpandedSettings &&
+    prev.style === next.style
   );
 };
 
@@ -56,12 +61,13 @@ const LayerItem = React.memo(
     style,
     tabIndex = -1,
     onKeyDown,
+    isExpandedSettings = false,
+    onToggleSettings,
   }: LayerItemProps) => {
     const itemRef = useRef<HTMLDivElement>(null);
     const setHoveredLayerId = useStore((s) => s.setHoveredLayerId);
     const globalHoveredId = useStore((s) => s.hoveredLayerId);
     const isHovered = globalHoveredId === layer.id;
-    const [showSettings, setShowSettings] = useState(false);
     const [dragOver, setDragOver] = useState<'top' | 'bottom' | null>(null);
     const [isRenaming, setIsRenaming] = useState(false);
     const [renameText, setRenameText] = useState(layer.name || '');
@@ -105,6 +111,7 @@ const LayerItem = React.memo(
         <div
           role="treeitem"
           data-testid="layer-item"
+          data-selected={isSelected ? 'true' : 'false'}
           aria-selected={isSelected}
           aria-label={`Layer: ${String(layer.name || getLayerNameFallback(layer))}${isSelected ? ', selected' : ''}${layer.locked ? ', locked' : ''}`}
           tabIndex={tabIndex}
@@ -195,7 +202,7 @@ const LayerItem = React.memo(
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
-                <span className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
+                <span data-testid="layer-name" className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
                   {String(layer.name || getLayerNameFallback(layer))}
                 </span>
               )}
@@ -204,6 +211,20 @@ const LayerItem = React.memo(
 
           <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
             <button
+              data-testid="layer-lock"
+              title={layer.locked ? 'Unlock' : 'Lock'}
+              aria-label={layer.locked ? 'Unlock layer' : 'Lock layer'}
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdate({ locked: !layer.locked });
+              }}
+              className="p-1 text-gray-500 hover:text-white"
+            >
+              {layer.locked ? <Icons.Lock className="w-3.5 h-3.5" /> : <Icons.Unlock className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              data-testid="layer-visibility"
+              title={layer.visible ? 'Hide' : 'Show'}
               aria-label={layer.visible ? 'Hide layer' : 'Show layer'}
               onClick={(e) => {
                 e.stopPropagation();
@@ -217,16 +238,16 @@ const LayerItem = React.memo(
               aria-label="Layer settings"
               onClick={(e) => {
                 e.stopPropagation();
-                setShowSettings(!showSettings);
+                onToggleSettings?.();
               }}
-              className={`p-1 rounded ${showSettings ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
+              className={`p-1 rounded ${isExpandedSettings ? 'bg-brand-600 text-white' : 'text-gray-500'}`}
             >
               <Icons.Settings className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {showSettings && (
+        {isExpandedSettings && (
           <div className="bg-white/5 backdrop-blur-xl p-4 border-b border-white/10 space-y-4 text-[11px] animate-in slide-in-from-top-1 duration-200">
             <div className="space-y-1.5">
               <label
@@ -343,6 +364,8 @@ export const LayersPanel = () => {
 
   const [layerSearch, setLayerSearch] = useState('');
   const [showOverlapping, setShowOverlapping] = useState(false);
+  const [expandedLayerId, setExpandedLayerId] = useState<string | null>(null);
+  const listRef = useRef<List>(null);
 
   // Compute bounding box intersection for "Overlapping" filter mode
   const filteredLayers = useMemo(() => {
@@ -441,6 +464,44 @@ export const LayersPanel = () => {
 
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (listRef.current && typeof (listRef.current as any).resetAfterIndex === 'function') {
+      (listRef.current as any).resetAfterIndex(0);
+    }
+  }, [expandedLayerId, filteredLayers.length]);
+
+  const getItemSize = (index: number) => {
+    const layer = filteredLayers[index];
+    if (layer && layer.id === expandedLayerId) {
+      return 260; // Approximate height when settings are expanded
+    }
+    return 57; // Base height of a layer item
+  };
+
+  const RowComponent = ({ index, style }: { index: number; style: React.CSSProperties }) => {
+    const layer = filteredLayers[index];
+    if (!layer) return null;
+    return (
+      <LayerItem
+        layer={layer}
+        index={index}
+        isSelected={selectedLayerIds.includes(layer.id)}
+        onSelect={() => selectLayer(layer.id)}
+        onSelectMultiple={() => multiSelectLayer(layer.id, true)}
+        onUpdate={(c) => updateLayer(layer.id, c)}
+        onDelete={() => deleteLayer(layer.id)}
+        onDrop={(id, target, pos) =>
+          reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+        }
+        tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
+        onKeyDown={(e) => handleLayerKeyDown(e, index)}
+        isExpandedSettings={expandedLayerId === layer.id}
+        onToggleSettings={() => setExpandedLayerId(expandedLayerId === layer.id ? null : layer.id)}
+        style={{...style, paddingBottom: expandedLayerId === layer.id ? 8 : 0}} // prevent jumping
+      />
+    );
+  };
 
   return (
     <div data-testid="layers-panel" className="flex flex-col h-full bg-transparent">
@@ -549,27 +610,23 @@ export const LayersPanel = () => {
                 <Icons.Search className="w-6 h-6 text-gray-600 mb-2" />
                 <p className="text-[10px] text-gray-500">No layers match “{layerSearch}”</p>
               </div>
-            ) : (
-              filteredLayers.map((layer, index) => (
-                <LayerItem
-                  key={layer.id}
-                  layer={layer}
-                  index={index}
-                  isSelected={selectedLayerIds.includes(layer.id)}
-                  onSelect={() => selectLayer(layer.id)}
-                  onSelectMultiple={() => multiSelectLayer(layer.id, true)}
-                  onUpdate={(c) => updateLayer(layer.id, c)}
-                  onDelete={() => deleteLayer(layer.id)}
-                  onDrop={(id, target, pos) =>
-                    reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-                  }
-                  tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
-                  onKeyDown={(e) => handleLayerKeyDown(e, index)}
-                />
-              ))
-            )}
+            ) : listHeight > 0 ? (
+              <List
+                listRef={listRef}
+                rowCount={filteredLayers.length}
+                rowHeight={getItemSize}
+                rowComponent={RowComponent}
+                rowProps={{}}
+                overscanCount={5}
+                className="no-scrollbar"
+                style={{
+                  height: selectedLayerIds.length === 1 && layers.length > 1 ? listHeight - 50 : listHeight,
+                  width: '100%',
+                }}
+              />
+            ) : null}
             {selectedLayerIds.length === 1 && layers.length > 1 && (
-              <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-white/[0.03]">
+              <div className="flex items-center justify-center gap-2 px-4 py-2 mt-auto border-t border-white/[0.03]">
                 <button
                   onClick={() => {
                     const idx = layers.findIndex((l) => l.id === selectedLayerIds[0]);

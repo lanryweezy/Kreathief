@@ -117,6 +117,8 @@ export default async function handler(req: Request) {
     'https://fal.run/fal-ai/flux/dev/image-to-image',
     'https://fal.run/fal-ai/flux/schnell',
     'https://fal.run/fal-ai/flux-pro',
+    'https://fal.run/fal-ai/flux-pro/v1.1',
+    'https://fal.run/fal-ai/flux-pro/v1.1-ultra',
     'https://fal.run/fal-ai/flux-2-pro',
     // Google Nano Banana
     'https://fal.run/fal-ai/nano-banana',
@@ -133,10 +135,13 @@ export default async function handler(req: Request) {
     'https://fal.run/fal-ai/qwen-image-edit',
     'https://fal.run/fal-ai/ideogram/v3',
     'https://fal.run/fal-ai/ideogram/v4',
-    // OpenAI
+    // OpenAI & Luma
     'https://fal.run/fal-ai/gpt-image-2',
+    'https://fal.run/fal-ai/gpt-image-2-5',
+    'https://fal.run/fal-ai/luma/photon',
     // Recraft
     'https://fal.run/fal-ai/recraft-v3/vector',
+    'https://fal.run/fal-ai/recraft-v3/text-to-svg',
     'https://fal.run/fal-ai/recraft/v4/pro/text-to-image',
     // SDXL + utilities
     'https://fal.run/fal-ai/fast-sdxl/inpainting',

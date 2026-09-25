@@ -47,6 +47,7 @@ export const useLayerDragging = ({
   const staticLayersRef = useRef<Layer[]>([]);
   const dragUpdateBuffer = useRef<Record<string, Partial<Layer>>>({});
   const bulkDragPreviewRef = useRef<Record<string, Partial<Layer>>>({});
+  const dragRafIdRef = useRef<number | null>(null);
   const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
   const wasSnappedToCenterRef = useRef(false);
 
@@ -116,7 +117,9 @@ export const useLayerDragging = ({
         return l;
       };
 
-      if (!isShift) {
+      const isCmdOrCtrl = 'metaKey' in e ? (e.metaKey || e.ctrlKey) : false;
+
+      if (!isShift && !isCmdOrCtrl) {
         targetToSelect = findTopMostGroup(layer);
       }
 

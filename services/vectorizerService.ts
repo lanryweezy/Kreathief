@@ -1,4 +1,5 @@
 import { heavyService } from './heavyService';
+import { svgToDesignNodes } from '../utils/svgIngest';
 
 export interface VectorizeOptions {
   ltres?: number; // Linear error threshold (default 1)
@@ -41,19 +42,22 @@ export const vectorizerService = {
   },
 
   /**
-   * Extracts paths from a generated SVG string.
-   * Useful if you want just the path data 'd' attributes.
+   * Extracts editable paths from a generated/traced SVG string.
+   *
+   * Delegates to the pure `svgToDesignNodes` kernel (no DOMParser), which means this
+   * now runs identically in Node tests and, with `clean` on by default, hands back
+   * node-reduced paths instead of raw ImageTracer bloat — the exact metric pros check.
    * @param svgString The full SVG string.
-   * @returns An array of path data strings.
+   * @param options.clean Run the geometry cleaner on each path (default true).
+   * @returns An array of { d, fill } path descriptors.
    */
-  extractPaths: (svgString: string): { d: string; fill: string }[] => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(svgString, 'image/svg+xml');
-    const paths = Array.from(doc.querySelectorAll('path'));
-    return paths
-      .map((p) => ({
-        d: p.getAttribute('d') || '',
-        fill: p.getAttribute('fill') || '#000000',
+  extractPaths: (svgString: string, options: { clean?: boolean } = {}): { d: string; fill: string }[] => {
+    const { nodes } = svgToDesignNodes(svgString, { clean: options.clean ?? true });
+    return nodes
+      .filter((n) => n.type === 'path' && n.pathData)
+      .map((n) => ({
+        d: n.pathData as string,
+        fill: typeof n.fill === 'string' ? n.fill : '#000000',
       }))
       .filter((p) => p.d !== '');
   },

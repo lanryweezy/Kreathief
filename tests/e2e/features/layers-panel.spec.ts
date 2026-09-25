@@ -234,9 +234,9 @@ test.describe('Layers Panel Features', () => {
     const initialCount = await layersPanel.getLayerCount();
 
     // Add text layer
-    const textTab = page.locator('#sidebar-tab-text');
+    const textTab = page.locator('button[aria-label="Text"]').first();
     await textTab.click();
-    const addHeading = page.getByRole('button', { name: 'Add a heading' });
+    const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);
 

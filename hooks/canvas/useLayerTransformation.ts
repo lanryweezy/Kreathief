@@ -43,11 +43,20 @@ export const useLayerTransformation = ({
   const [transformState, setTransformState] = useState<TransformationState | null>(null);
   const transformStateRef = useRef(transformState);
   const transformPreviewRef = useRef<Record<string, Partial<Layer>>>({});
+  const transformRafIdRef = useRef<number | null>(null);
   const layersRef = useRef(layers);
   const selectedLayerIdsRef = useRef(selectedLayerIds);
   const zoomRef = useRef(zoom);
 
   const panOffsetRef = useRef(panOffset);
+
+  useEffect(() => {
+    return () => {
+      if (transformRafIdRef.current !== null) {
+        cancelAnimationFrame(transformRafIdRef.current);
+      }
+    };
+  }, []);
   const activeArtboardRef = useRef(activeArtboard);
 
   useEffect(() => {
@@ -340,12 +349,21 @@ export const useLayerTransformation = ({
       }
 
       transformPreviewRef.current = updates;
-      onPreviewLayers(updates);
+      if (transformRafIdRef.current === null) {
+        transformRafIdRef.current = requestAnimationFrame(() => {
+          onPreviewLayers(transformPreviewRef.current);
+          transformRafIdRef.current = null;
+        });
+      }
     },
     [onPreviewLayers]
   );
 
   const finalizeTransformation = useCallback(() => {
+    if (transformRafIdRef.current !== null) {
+      cancelAnimationFrame(transformRafIdRef.current);
+      transformRafIdRef.current = null;
+    }
     if (Object.keys(transformPreviewRef.current).length > 0) {
       onUpdateLayers(transformPreviewRef.current);
       transformPreviewRef.current = {};

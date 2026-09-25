@@ -5,7 +5,8 @@ export enum AppMode {
   MULTI_LAYER = 'MULTI_LAYER',
 }
 
-export enum NavTab {
+export enum NavTab { CAMPAIGN = 'CAMPAIGN',  ORCHESTRATOR = 'ORCHESTRATOR', 
+  PROTOTYPE = 'PROTOTYPE',
   MAGIC = 'MAGIC',
   TEMPLATES = 'TEMPLATES',
   MEDIA = 'MEDIA',
@@ -240,6 +241,13 @@ export interface LayerBase {
   convertToPath?: boolean;
   simplifyTolerance?: number;
   offsetDistance?: number;
+  // AI provenance: how this layer was authored — enables re-rolling a single layer later
+  aiProvenance?: {
+    source: 'generated' | 'stock' | 'blueprint' | 'procedural' | 'user';
+    prompt?: string;
+    modelId?: string;
+    role?: string;
+  };
   // Group/Folder support
   isGroup?: boolean; // True if this is a group marker (folder)
   isExpanded?: boolean; // For groups: whether children are visible in layers panel
@@ -339,7 +347,80 @@ export interface TextLayer extends LayerBase {
     rotateX: number;
     rotateY: number;
     perspective: number;
+    depth3d?: number;
+    is3dExtrusion?: boolean;
   };
+  // Transient flag: the layer is currently being warped/edited on the canvas
+  isWarpEditing?: boolean;
+}
+
+// ── Omnichannel Campaign Generator types ──────────────────────────────
+export type CampaignArchetype =
+  | 'cyberpunk'
+  | 'luxury'
+  | 'neo_brutalist'
+  | 'synthwave'
+  | 'modern_editorial'
+  | 'corporate_tech';
+
+export type CampaignFormatId =
+  | 'feed_1_1'
+  | 'story_9_16'
+  | 'banner_16_9'
+  | 'poster_4_5';
+
+export interface CampaignFormatConfig {
+  id: CampaignFormatId;
+  name: string;
+  category: string;
+  width: number;
+  height: number;
+  aspectRatio: string;
+}
+
+export interface CampaignGenerationOptions {
+  prompt: string;
+  archetype?: CampaignArchetype;
+  formats?: CampaignFormatId[];
+  primaryColor?: string;
+  fontFamily?: string;
+  brandName?: string;
+  ctaText?: string;
+  promoCode?: string;
+}
+
+// ── Smart Resize / Auto-Layout Engine types ───────────────────────────
+export type SemanticLayerRole =
+  | 'background'
+  | 'cta_button'
+  | 'cta_label'
+  | 'hero_badge'
+  | 'footer_meta'
+  | 'headline'
+  | 'subheadline'
+  | 'media_focal'
+  | 'offer_card'
+  | 'decorative';
+
+export interface SmartResizeOptions {
+  safeZonePadding?: number;
+  preserveHierarchy?: boolean;
+  reflowMultiColumn?: boolean;
+}
+
+export interface AutoBalanceOptions {
+  alignment?: 'center' | 'left' | 'right';
+  verticalRhythm?: 'even' | 'compact' | 'golden_ratio';
+  contentPadding?: number;
+}
+
+export interface SmartResizePreset {
+  id: string;
+  name: string;
+  category: string;
+  width: number;
+  height: number;
+  aspectRatio: string;
 }
 
 export type PointType = 'sharp' | 'smooth' | 'symmetric' | 'corner';
@@ -675,6 +756,13 @@ export interface GenerationContext {
   negativePrompt?: string;
   referenceStrength?: ReferenceStrength;
   archetype?: PromptArchetype;
+  /**
+   * Asset mode: the raster is ONE LAYER of an editable composition (the agent's
+   * path). Typography is added later as native text layers, so the image model
+   * must never bake letters/words/logos into the artwork. Default false keeps
+   * finished-image generation (Image Gen panel, Dashboard) unchanged.
+   */
+  assetMode?: boolean;
 }
 
 export interface ChatMessage {
@@ -789,6 +877,19 @@ export interface VariantSignature {
   imageTreatment: string;
 }
 
+export interface SpatialPin {
+  id: string;
+  artboardId: string;
+  x: number;
+  y: number;
+  targetLayerId?: string;
+  targetLayerName?: string;
+  targetLayerType?: string;
+  nearbyLayerIds: string[];
+  zoneSummary: string;
+  createdAt: number;
+}
+
 export interface AIAssistantState {
   isActive: boolean;
   isAnalyzing: boolean;
@@ -798,4 +899,6 @@ export interface AIAssistantState {
   autoSuggest: boolean;
   position: { x: number; y: number };
   isMinimized: boolean;
+  isSpatialPinMode?: boolean;
+  spatialPin?: SpatialPin | null;
 }

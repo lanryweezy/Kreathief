@@ -12,7 +12,7 @@ export class BrandKitPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.brandTab = page.getByRole('button', { name: 'Brand' });
+    this.brandTab = page.locator('button[aria-label="Brand"]').first();
     this.brandPanel = page.getByTestId('brand-panel');
     this.addBrandKitBtn = page.getByTestId('add-brand-kit-btn');
     this.brandColors = page.getByTestId('brand-colors-display');
@@ -116,6 +116,11 @@ export class BrandKitPage {
     const deleteBtn = brandKit.getByTestId('delete-brand-kit-btn');
     if (await deleteBtn.isVisible()) {
       await deleteBtn.click();
+      await this.page.waitForTimeout(300);
+      const confirmBtn = this.page.locator('button[aria-label="Confirm delete"], button:has-text("Delete")').last();
+      if (await confirmBtn.isVisible()) {
+        await confirmBtn.click();
+      }
       await this.page.waitForTimeout(500);
     }
   }

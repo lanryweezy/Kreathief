@@ -5,6 +5,7 @@
  */
 import { retryWithBackoff } from '../utils/errorHandling';
 import { log } from '../utils/log';
+import { getImageModel } from '../config/imageModels';
 
 interface FalResponse {
   images?: { url: string }[];
@@ -179,8 +180,12 @@ export const aiModelsService = {
    * Recraft V3 - Vector (SVG) generation
    */
   async generateVectorRecraft(prompt: string) {
+    // Endpoint comes from the model config (single source of truth); the request still flows
+    // through the /api/fal proxy, so Recraft is always reached via Fal, never standalone.
+    const endpoint = getImageModel('recraft-vector')?.falEndpoint
+      ?? 'https://fal.run/fal-ai/recraft-v3/vector';
     const data: FalResponse = await callFalAPI(
-      'https://fal.run/fal-ai/recraft-v3/vector',
+      endpoint,
       {
         prompt: prompt,
         style: 'vector_art',

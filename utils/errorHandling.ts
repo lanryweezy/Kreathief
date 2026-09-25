@@ -66,7 +66,9 @@ export const isRetryableError = (error: unknown): boolean => {
 };
 
 /**
- * Retry utility with exponential backoff
+ * Retry utility with exponential backoff.
+ * `maxRetries` counts RETRIES after the first attempt — the task always runs
+ * at least once (maxRetries = 0 means a single attempt, never zero).
  */
 export const retryWithBackoff = async <T>(
   fn: () => Promise<T>,
@@ -74,14 +76,15 @@ export const retryWithBackoff = async <T>(
   baseDelay: number = 1000
 ): Promise<T> => {
   let lastError: unknown;
+  const attempts = Math.max(1, maxRetries + 1);
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
+  for (let attempt = 0; attempt < attempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error;
 
-      if (!isRetryableError(error) || attempt === maxRetries - 1) {
+      if (!isRetryableError(error) || attempt === attempts - 1) {
         break;
       }
 

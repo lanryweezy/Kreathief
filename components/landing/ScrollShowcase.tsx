@@ -1,70 +1,98 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LaserSeparator, SuperLabel } from './LandingUtils';
+
+const ART_ROW_1 = [
+  { src: '/images/downloads/art_chrome_baddie.jpg', label: 'Avant-Garde Chrome' },
+  { src: '/images/downloads/art_nike_editorial.jpg', label: 'Commercial Kinetic' },
+  { src: '/images/downloads/art_y2k_jennie.jpg', label: 'Cyberpunk Y2K' },
+  { src: '/images/downloads/art_summer_kinetic.jpg', label: '3D Spatial Type' },
+  { src: '/images/downloads/art_kitty_disco.jpg', label: 'Bubblegum Liquid' },
+  { src: '/images/downloads/art_neon_streetwear.jpg', label: 'Technical Brutalism' },
+];
+
+const ART_ROW_2 = [
+  { src: '/images/downloads/art_danger_essence.jpg', label: 'Streetwear Chrome' },
+  { src: '/images/downloads/art_idontcare_acid.jpg', label: 'Acid Pixel Graphics' },
+  { src: '/images/downloads/art_sixseven_bubble.jpg', label: 'Inflatable Glass' },
+  { src: '/images/downloads/art_cyber_rave.jpg', label: 'Cyber Rave 3D' },
+  { src: '/images/downloads/art_chameleon_risograph.jpg', label: 'Risograph Stipple' },
+  { src: '/images/downloads/art_kpop_kood.jpg', label: 'Holographic Pop' },
+];
 
 export const ScrollShowcase: React.FC = () => {
-  const showcases = [
-    {
-      subtitle: 'AI Vector Editing Software',
-      title: 'Unrestricted Vector Editing.',
-      desc: 'Unlike basic editors, we give you professional vector tools that never compromise your vision. Designed specifically for the modern freelance designer and marketing agency.',
-      image: '/images/screenshot_editor_main.png',
-      alt: 'Kreathief AI graphic design software vector editing interface demonstrating raw power',
-    },
-    {
-      subtitle: 'Generative Fill Vector Engine',
-      title: 'Prompt to SVG.',
-      desc: 'Describe your ideas and watch them materialize into fully editable vectors and graphics in real-time. The ultimate AI creative engine.',
-      image: '/images/new_magic_panel.png',
-      alt: 'Generative AI design tool translating text prompts into editable SVG graphics',
-    },
-    {
-      subtitle: 'Seamless Agency Workflow',
-      title: 'Client-Ready Hand-offs.',
-      desc: 'Export to SVG, High-res PNG, or full PDF in one click. Web-hooks into your favorite CMS. The premier Canva alternative for professionals.',
-      image: '/images/new_export_modal.png',
-      alt: 'High resolution export modal for professional AI design tools and client hand-offs',
-    },
-  ];
-
   return (
-    <section className="py-32 bg-[#0a0a0c] relative border-y border-white/5 overflow-hidden">
-      <LaserSeparator className="absolute top-0 inset-x-0" />
+    <section className="py-28 relative bg-[#08080d] overflow-hidden border-y border-white/5">
+      <div className="max-w-7xl mx-auto px-6 text-center mb-16 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-4"
+        >
+          <span>✦</span>
+          <span>Curated Creator Feed</span>
+        </motion.div>
 
-      {/* Ambient background glow */}
-      <div className="absolute top-1/2 left-0 w-[800px] h-[800px] bg-blue-500/5 blur-[150px] rounded-full pointer-events-none -z-10 translate-y-[-50%]"></div>
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white mb-4"
+        >
+          Synthesized entirely in Kreathief.
+        </motion.h2>
 
-      <div className="max-w-[1400px] mx-auto px-6">
-        <div className="flex flex-col gap-10 md:gap-32">
-          {showcases.map((item, idx) => (
+        <motion.p
+          initial={{ opacity: 0, y: 15 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-base sm:text-lg text-neutral-400 font-normal max-w-xl mx-auto"
+        >
+          From chrome 3D lettering and acid graphics to commercial campaign spreads.
+        </motion.p>
+      </div>
+
+      {/* Infinite Scrolling Galleries */}
+      <div className="space-y-6 select-none" style={{ maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)' }}>
+        {/* Row 1 */}
+        <div className="flex gap-6 animate-marquee-row hover:[animation-play-state:paused]">
+          {[...ART_ROW_1, ...ART_ROW_1, ...ART_ROW_1].map((item, i) => (
             <div
-              key={item.subtitle}
-              className={`flex flex-col lg:flex-row gap-16 min-h-[50vh] md:min-h-[80vh] py-16 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
+              key={i}
+              className="w-72 sm:w-80 h-96 sm:h-[420px] rounded-[28px] overflow-hidden border border-white/10 shrink-0 relative group shadow-2xl bg-[#0e0e16]"
             >
-              <div className="w-full lg:w-5/12 relative">
-                <div className="lg:sticky lg:top-1/3">
-                  <SuperLabel text={`${idx + 1}. ${item.subtitle}`} className="mb-4" />
-                  <h2 className="text-5xl xl:text-7xl font-black mb-6 tracking-tighter text-white leading-[1.1] text-balance">
-                    {item.title}
-                  </h2>
-                  <p className="text-xl text-gray-400 font-medium leading-relaxed text-balance">{item.desc}</p>
+              <img
+                src={item.src}
+                alt={item.label}
+                className="w-full h-full object-cover filter brightness-95 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">
+                <div>
+                  <span className="text-white text-sm font-black tracking-tight block">{item.label}</span>
+                  <span className="text-purple-400 text-xs font-mono">#MadeWithKreathief</span>
                 </div>
               </div>
+            </div>
+          ))}
+        </div>
 
-              <div className="w-full lg:w-7/12 flex items-center">
-                <div className="relative w-full h-[400px] md:h-[700px] rounded-[40px] border border-white/5 bg-[#0a0a0c] glass-edge overflow-hidden group shadow-2xl">
-                  <motion.img
-                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                    whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-100px' }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    src={item.image}
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-                    alt={item.alt}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#0a0a0c]/80 via-transparent to-transparent pointer-events-none opacity-60" />
+        {/* Row 2 */}
+        <div className="flex gap-6 animate-marquee-reverse-row hover:[animation-play-state:paused]">
+          {[...ART_ROW_2, ...ART_ROW_2, ...ART_ROW_2].map((item, i) => (
+            <div
+              key={i}
+              className="w-72 sm:w-80 h-96 sm:h-[420px] rounded-[28px] overflow-hidden border border-white/10 shrink-0 relative group shadow-2xl bg-[#0e0e16]"
+            >
+              <img
+                src={item.src}
+                alt={item.label}
+                className="w-full h-full object-cover filter brightness-95 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">
+                <div>
+                  <span className="text-white text-sm font-black tracking-tight block">{item.label}</span>
+                  <span className="text-pink-400 text-xs font-mono">#NeuralVectorStudio</span>
                 </div>
               </div>
             </div>

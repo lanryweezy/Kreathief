@@ -1,12 +1,87 @@
-import { Layer, Gradient, CornerRadius, AutoLayoutSettings } from '../types';
+import { multiJudgeEval } from './vectorQuality/metrics';
+import { Layer, LayerBase, Gradient, CornerRadius, AutoLayoutSettings, AspectRatio } from '../types';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; import { agentRegistry } from './agentRegistry';
 import { polishDesignOutput } from '../utils/designPolish';
 import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
+import { generateImageWithModel } from './imageGenService';
+import { vectorTracer } from './vectorTracer';
+import { removeBackground as freepikRemoveBackground } from './freepikService';
+
+/**
+ * ============================================
+ * NEW TWO-STAGE AI DESIGN WORKFLOW
+ * Stage 1: Design Planner - creates JSON blueprint
+ * Stage 2: Asset Generator - creates image assets
+ * ============================================
+ */
+
+export interface DesignBlueprintLayer {
+  id: string;
+  type: 'shape' | 'text' | 'generated-image' | 'background' | 'gradient' | 'svg-icon' | 'group';
+  name: string;
+  zIndex: number;
+  properties: {
+    // Shape properties
+    fill?: string;
+    gradient?: Gradient;
+    cornerRadius?: CornerRadius | number;
+    stroke?: { color: string; width: number };
+    shadow?: { color: string; blur: number; offsetX: number; offsetY: number };
+    // Image properties
+    prompt?: string;
+    removeBackground?: boolean;
+    imageUrl?: string;
+    // Text properties
+    text?: string;
+    fontFamily?: string;
+    fontSize?: number;
+    fontWeight?: string;
+    align?: 'left' | 'center' | 'right';
+    color?: string;
+    letterSpacing?: number;
+    lineHeight?: number;
+    textTransform?: 'none' | 'uppercase' | 'lowercase';
+    // Position & size
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    rotation?: number;
+    opacity?: number;
+    blendMode?: string;
+    // SVG icon
+    svgContent?: string;
+    // Group
+    children?: string[];
+  };
+}
+
+export interface DesignBlueprint {
+  canvas: {
+    width: number;
+    height: number;
+    background: string;
+    backgroundGradient?: Gradient;
+  };
+  layers: DesignBlueprintLayer[];
+  metadata?: {
+    title?: string;
+    description?: string;
+    archetype?: string;
+    colorPalette?: string[];
+  };
+}
+
+export interface TwoStageDesignResult {
+  blueprint: DesignBlueprint;
+  layers: Layer[];
+  generatedAssets: Map<string, string>; // layerId -> imageUrl
+}
 
 
 export interface MultiLayerDesignNode {
@@ -2453,7 +2528,25 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
 export function classifyDesignIntent(prompt: string): string {
   const pLower = prompt.toLowerCase();
 
-  // First check the comprehensive style database (65+ styles)
+  // Subject-matter archetypes win over aesthetic style signals: a "luxury
+  // apartment listing" is a realEstate brief even though "luxury"/"modern"
+  // also appear in the 65-style aesthetic database.
+  const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
+    let score = 0;
+    kw.primary.forEach((k) => { if (pLower.includes(k)) score += 3; });
+    kw.secondary.forEach((k) => { if (pLower.includes(k)) score += 1; });
+    kw.negative.forEach((k) => { if (pLower.includes(k)) score -= 2; });
+    return { archetype, score };
+  });
+
+  scores.sort((a, b) => b.score - a.score);
+
+  // A primary-keyword hit (>=3) is a confident subject classification.
+  if (scores[0].score >= 3) {
+    return scores[0].archetype;
+  }
+
+  // Otherwise consult the comprehensive style database (65+ styles)
   const styleMatch = classifyStyleFromPrompt(prompt);
   if (styleMatch) {
     const style = getStyleById(styleMatch);
@@ -2477,16 +2570,7 @@ export function classifyDesignIntent(prompt: string): string {
     }
   }
 
-  // Fallback to archetype keyword matching
-  const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
-    let score = 0;
-    kw.primary.forEach((k) => { if (pLower.includes(k)) score += 3; });
-    kw.secondary.forEach((k) => { if (pLower.includes(k)) score += 1; });
-    kw.negative.forEach((k) => { if (pLower.includes(k)) score -= 2; });
-    return { archetype, score };
-  });
-
-  scores.sort((a, b) => b.score - a.score);
+  // Fall back to the best weak subject signal before giving up
   return scores[0].score > 0 ? scores[0].archetype : 'editorial';
 }
 
@@ -2516,7 +2600,7 @@ const TYPOGRAPHY_PAIRINGS: Record<string, { headline: string; body: string; acce
   ecommerce:     { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
 };
 
-function getTypographyConstraint(archetype: string): string {
+export function getTypographyConstraint(archetype: string): string {
   const pairing = TYPOGRAPHY_PAIRINGS[archetype] || TYPOGRAPHY_PAIRINGS.editorial;
   return `TYPOGRAPHY PAIRING for this design:
 - Headlines: "${pairing.headline}" (weight 700-900, large size)
@@ -2737,4 +2821,408 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
     const fallbackFn = FALLBACK_ARCHETYPES[archetype] || FALLBACK_ARCHETYPES.editorial;
     return polishDesignOutput(fallbackFn(width, height, prompt));
   }
+};
+/**
+ * ============================================
+ * STAGE 1: DESIGN PLANNER
+ * Converts user brief into a structured JSON blueprint
+ * ============================================
+ */
+const DESIGN_PLANNER_SYSTEM_INSTRUCTION = `You are a Senior Art Director with 15 years of experience at top design agencies.
+
+Your job is to create a DETAILED DESIGN BLUEPRINT from a user's brief. The blueprint defines WHAT the design should contain and how it should be laid out.
+
+OUTPUT REQUIREMENTS:
+Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
+
+{
+  "canvas": {
+    "width": number,
+    "height": number,
+    "background": string (hex color or "transparent"),
+    "backgroundGradient": { "type": "linear"|"radial", "angle": number, "colors": [{"color": string, "position": number}] } (optional)
+  },
+  "layers": [
+    {
+      "id": string (unique layer identifier),
+      "type": "shape"|"text"|"generated-image"|"background"|"gradient"|"svg-icon",
+      "name": string (descriptive name),
+      "zIndex": number (layer order, 1 = bottom),
+      "properties": {
+        "fill": string (hex color for shapes),
+        "gradient": object (optional gradient),
+        "cornerRadius": number or {tl,tr,br,bl},
+        "stroke": {color, width},
+        "shadow": {color, blur, offsetX, offsetY},
+        // For "generated-image" type:
+        "prompt": string (detailed image generation prompt),
+        "removeBackground": boolean,
+        // For "text" type:
+        "text": string,
+        "fontFamily": string,
+        "fontSize": number,
+        "fontWeight": string,
+        "align": "left"|"center"|"right",
+        "color": string,
+        "letterSpacing": number,
+        "lineHeight": number,
+        "textTransform": "none"|"uppercase"|"lowercase",
+        // Position & dimensions:
+        "x": number,
+        "y": number,
+        "width": number,
+        "height": number,
+        "rotation": number,
+        "opacity": number (0-1)
+      }
+    }
+  ],
+  "metadata": {
+    "title": string,
+    "description": string,
+    "archetype": string (style category),
+    "colorPalette": [string] (hex colors)
+  }
+}
+
+DESIGN PRINCIPLES:
+1. ALWAYS create EDITABLE layers - never flatten everything into one image. For designs generated from scratch, do not generate the complete poster as one image.
+2. The image model should ONLY generate raster assets: backgrounds (without text), model cutouts, decorations (chains, overlays) with transparent backgrounds.
+3. Kreathief generates ALL TYPOGRAPHY natively. Create all text as separate text layers.
+4. For people/products/landmarks: use type "generated-image" with a prompt and ALWAYS set removeBackground: true.
+5. For text (headlines, dates, prices, buttons): use type "text" with real text content. Because the background is independent of the text, users can change or hide it without affecting the typography.
+6. For backgrounds: use type "background" or "gradient", or "generated-image" (without text).
+7. Ensure proper LAYER ORDER via zIndex (background at zIndex 1, content layers higher). E.g. Background -> Model -> Text (or Text -> Model -> Text for overlap).
+8. Include DETAILED IMAGE PROMPTS for generated-image layers. Remember: these prompts are sent to an image model, so specify exactly what the asset should look like isolated.
+11. TYPOGRAPHY WEIGHT OPTICS: ALWAYS balance typographic hierarchy. Titles must have distinct weights from body text. Use tighter letter-spacing for large text and looser spacing for small, all-caps text.
+12. REVERSE ENGINEERING AST RULES: Output cleanly distinct layers that can map directly to a React-based node graph, never overlapping elements ambiguously.
+
+CANVAS SIZE REFERENCE:
+- Social media post (square): 1080x1080
+- Instagram story: 1080x1920
+- Event flyer (portrait): 1080x1350
+- Banner: 1920x600
+- Custom: use dimensions from user or default to 1080x1080`;
+
+export const generateDesignBlueprint = async (
+  prompt: string,
+  width: number = 1080,
+  height: number = 1080,
+  strategyContext?: string
+): Promise<DesignBlueprint> => {
+  log.info('[DesignPlanner] Generating blueprint for prompt:', prompt);
+
+  const systemInstruction = DESIGN_PLANNER_SYSTEM_INSTRUCTION;
+  
+  const userMessage = `Create a design blueprint for this brief:
+
+"${prompt}"
+
+Canvas size: ${width}x${height}px
+${
+    strategyContext
+      ? `\nART DIRECTION BRIEF — the Strategy Agent researched this. You MUST honor it:\n${strategyContext}\n`
+      : ''
+  }
+Generate a complete, production-ready design with:
+- Background (color or gradient)
+- At least one generated-image layer for any photos/people/products
+- Text layers for headlines, dates, locations, contact info
+- Shape layers for decorations, frames, badges
+- Proper layer ordering (zIndex)
+
+Make it creative, professional, and visually striking!`;
+
+  try {
+    const response = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.8,
+      },
+    });
+
+    let rawText = '';
+    const resAny = response as any;
+    if (typeof response === 'string') {
+      rawText = response;
+    } else if (resAny?.candidates?.[0]?.content?.parts?.[0]?.text) {
+      rawText = resAny.candidates[0].content.parts[0].text;
+    } else if (resAny?.choices?.[0]?.message?.content) {
+      rawText = resAny.choices[0].message.content;
+    }
+
+    const blueprint = safeParseJSON<DesignBlueprint | null>(rawText, null);
+    
+    if (blueprint && blueprint.canvas && blueprint.layers) {
+      // Ensure all layers have IDs
+      blueprint.layers = blueprint.layers.map((layer, i) => ({
+        ...layer,
+        id: layer.id || `layer_${i + 1}`,
+      }));
+      
+      log.info(`[DesignPlanner] Blueprint generated with ${blueprint.layers.length} layers`);
+      return blueprint;
+    }
+    
+    throw new Error('Invalid blueprint structure');
+  } catch (err) {
+    log.error('[DesignPlanner] Failed to generate blueprint:', err);
+    throw err;
+  }
+};
+
+/**
+ * ============================================
+ * STAGE 2: ASSET GENERATOR
+ * Processes blueprint and generates all image assets
+ * ============================================
+ */
+const generateImageAsset = async (
+  prompt: string,
+  removeBackground: boolean,
+  width: number,
+  height: number
+): Promise<string> => {
+  try {
+    // Generate the image (map the requested dimensions to the nearest supported aspect ratio)
+    const aspectRatio =
+      width >= height * 1.15
+        ? AspectRatio.LANDSCAPE
+        : height >= width * 1.15
+          ? AspectRatio.PORTRAIT
+          : AspectRatio.SQUARE;
+    const imageUrl = await generateImageWithModel(prompt, { aspectRatio });
+
+    if (!imageUrl) {
+      throw new Error('Image generation returned empty result');
+    }
+
+
+    // Remove background if requested using Freepik (supports URLs directly)
+    if (removeBackground) {
+      try {
+        const transparentUrl = await freepikRemoveBackground(imageUrl);
+        if (transparentUrl) {
+          return transparentUrl;
+        }
+      } catch (bgErr) {
+        log.warn('[AssetGenerator] Background removal failed, using original image:', bgErr);
+      }
+    }
+
+    return imageUrl;
+  } catch (err) {
+    log.error('[AssetGenerator] Failed to generate image asset:', err);
+    // Return empty string on failure - will be handled gracefully
+    return '';
+  }
+};
+
+/**
+ * Convert a DesignBlueprintLayer to a Layer for the canvas
+ */
+const convertBlueprintLayerToCanvasLayer = (
+  blueprintLayer: DesignBlueprintLayer,
+  imageUrl?: string
+): Layer => {
+  const props = blueprintLayer.properties;
+  const layerId = blueprintLayer.id || `layer_${uuidv4().slice(0, 8)}`;
+
+  // Base layer properties
+  const baseLayer: LayerBase = {
+    id: layerId,
+    name: blueprintLayer.name,
+    x: props.x || 0,
+    y: props.y || 0,
+    width: props.width || 200,
+    height: props.height || 200,
+    rotation: props.rotation || 0,
+    opacity: props.opacity ?? 1,
+    blendMode: props.blendMode,
+    locked: false,
+    visible: true,
+  };
+
+  switch (blueprintLayer.type) {
+    case 'background':
+      return {
+        ...baseLayer,
+        type: 'rectangle',
+        color: props.fill || '#ffffff',
+        cornerRadius: 0,
+        gradient: props.gradient,
+      };
+
+    case 'shape': {
+      const cr = props.cornerRadius;
+      return {
+        ...baseLayer,
+        type: 'rectangle',
+        color: props.fill || '#3b82f6',
+        gradient: props.gradient,
+        cornerRadius: typeof cr === 'number' ? cr : 0,
+        cornerRadiusPerCorner: typeof cr === 'object' && cr ? cr : undefined,
+        stroke: props.stroke,
+        shadow: props.shadow,
+      };
+    }
+
+    case 'text':
+      return {
+        ...baseLayer,
+        type: 'text',
+        text: props.text || '',
+        fontFamily: props.fontFamily || 'Inter',
+        fontSize: props.fontSize || 24,
+        fontWeight: props.fontWeight || '600',
+        fontStyle: 'normal',
+        textDecoration: 'none',
+        color: props.color || '#000000',
+        textAlign: props.align || 'center',
+        letterSpacing: props.letterSpacing || 0,
+        lineHeight: props.lineHeight || 1.2,
+        textTransform: props.textTransform || 'none',
+      };
+
+    case 'generated-image':
+      return {
+        ...baseLayer,
+        type: 'image',
+        src: imageUrl || props.imageUrl || '',
+        flipX: false,
+        flipY: false,
+        naturalWidth: props.width || 200,
+        naturalHeight: props.height || 200,
+      };
+
+    case 'svg-icon':
+      return {
+        ...baseLayer,
+        type: 'path',
+        pathData: props.svgContent || '',
+        color: props.color || '#000000',
+        cornerRadius: 0,
+      };
+
+    case 'gradient':
+      return {
+        ...baseLayer,
+        type: 'rectangle',
+        color: 'transparent',
+        cornerRadius: 0,
+        gradient: props.gradient,
+      };
+
+    default:
+      return {
+        ...baseLayer,
+        type: 'rectangle',
+        color: props.fill || '#3b82f6',
+        cornerRadius: 0,
+      };
+  }
+};
+
+export interface ProcessBlueprintOptions {
+  onAssetGenerated?: (layerId: string, imageUrl: string) => void;
+  onProgress?: (current: number, total: number, layerName: string) => void;
+}
+
+export const processDesignBlueprint = async (
+  blueprint: DesignBlueprint,
+  options: ProcessBlueprintOptions = {}
+): Promise<TwoStageDesignResult> => {
+  log.info(`[AssetGenerator] Processing blueprint with ${blueprint.layers.length} layers`);
+
+  const generatedAssets = new Map<string, string>();
+  
+  // Find all layers that need image generation
+  const imageLayers = blueprint.layers.filter(
+    (layer) => layer.type === 'generated-image' && layer.properties.prompt
+  );
+  
+  log.info(`[AssetGenerator] Found ${imageLayers.length} layers requiring image generation`);
+
+  // Generate images for each "generated-image" layer
+  let processedCount = 0;
+  for (const layer of imageLayers) {
+    const props = layer.properties;
+    const prompt = props.prompt || '';
+    const removeBackground = props.removeBackground ?? true;
+    const width = props.width || 512;
+    const height = props.height || 512;
+
+    options.onProgress?.(processedCount + 1, imageLayers.length, layer.name);
+
+    try {
+      // Every blueprint asset is ONE layer of an editable composition — real
+      // typography arrives later as native text layers, so anything letter-
+      // shaped baked into the raster becomes duplicate garbage (assetMode rule).
+      const assetPrompt =
+        `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
+      const imageUrl = await generateImageAsset(assetPrompt, removeBackground, width, height);
+      if (imageUrl) {
+        generatedAssets.set(layer.id, imageUrl);
+        options.onAssetGenerated?.(layer.id, imageUrl);
+        log.info('[AssetGenerator] Generated asset for layer:', layer.name);
+      }
+    } catch (err) {
+      log.warn(`[AssetGenerator] Failed to generate asset for layer: ${layer.name}`, { error: String(err) });
+    }
+
+    processedCount++;
+  }
+
+  // Convert blueprint layers to canvas layers
+  const canvasLayers: Layer[] = blueprint.layers
+    .sort((a, b) => a.zIndex - b.zIndex) // Ensure proper z-order
+    .map((blueprintLayer) => {
+      const imageUrl = generatedAssets.get(blueprintLayer.id);
+      return convertBlueprintLayerToCanvasLayer(blueprintLayer, imageUrl);
+    });
+
+  // Apply polish to the output
+  const polishedResult = polishDesignOutput({
+    title: blueprint.metadata?.title || 'AI Generated Design',
+    description: blueprint.metadata?.description || '',
+    width: blueprint.canvas.width,
+    height: blueprint.canvas.height,
+    backgroundColor: blueprint.canvas.background,
+    backgroundGradient: blueprint.canvas.backgroundGradient,
+    layers: canvasLayers,
+  });
+
+  log.info('[AssetGenerator] Blueprint processing complete');
+
+  return {
+    blueprint,
+    layers: polishedResult.layers,
+    generatedAssets,
+  };
+};
+
+/**
+ * ============================================
+ * MAIN TWO-STAGE GENERATION FUNCTION
+ * Combines Stage 1 + Stage 2
+ * ============================================
+ */
+export const generateDesignFromBrief = async (
+  prompt: string,
+  width: number = 1080,
+  height: number = 1080,
+  options: ProcessBlueprintOptions = {}
+): Promise<TwoStageDesignResult> => {
+  log.info('[TwoStageDesign] Starting generation for prompt:', prompt);
+
+  // Stage 1: Generate design blueprint
+  const blueprint = await generateDesignBlueprint(prompt, width, height);
+
+  // Stage 2: Process blueprint and generate assets
+  const result = await processDesignBlueprint(blueprint, options);
+
+  return result;
 };

@@ -348,8 +348,8 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
 
   const aspectRatios = [
     { id: AspectRatio.SQUARE, label: '1:1 Square', icon: '⬜' },
-    { id: AspectRatio.LANDSCAPE, label: '16:9 Landscape', icon: '▭' },
-    { id: AspectRatio.PORTRAIT, label: '9:16 Portrait', icon: '▯' },
+    { id: AspectRatio.LANDSCAPE, label: '16:9 Landscape', icon: <Icons.Monitor className="w-4 h-4" /> },
+    { id: AspectRatio.PORTRAIT, label: '9:16 Portrait', icon: <Icons.Smartphone className="w-4 h-4" /> },
   ];
 
   return (

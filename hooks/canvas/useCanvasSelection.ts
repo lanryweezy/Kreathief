@@ -97,7 +97,20 @@ export const useCanvasSelection = ({
             const gy = l.y + artboard.y;
 
             if (gx < x2 && gx + lw > x1 && gy < y2 && gy + lh > y1) {
-              layersInBox.push(l.id);
+              // Instead of adding the child directly, find its top-most group
+              let targetId = l.id;
+              let currentLayer = l;
+              
+              while (currentLayer.groupId) {
+                const parent = artboard.layers.find(p => p.id === currentLayer.groupId);
+                if (!parent) break;
+                targetId = parent.id;
+                currentLayer = parent;
+              }
+              
+              if (!layersInBox.includes(targetId)) {
+                layersInBox.push(targetId);
+              }
             }
           });
         });

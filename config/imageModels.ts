@@ -1,3 +1,5 @@
+import * as CompanyLogos from '../components/CompanyLogos';
+import { Icons } from '../constants';
 /**
  * Image Generation Models Configuration
  * All models are accessed via Fal.ai proxy (/api/fal)
@@ -20,6 +22,15 @@ export interface ModelCapabilities {
   editing: boolean;
   /** Emits editable SVG rather than raster. */
   svg: boolean;
+  /**
+   * Second vector path: this model's *raster* output can be auto-promoted to editable
+   * SVG by the built-in ImageTracer trace (see utils/svgIngest + vectorizerService).
+   * Enabled only on flat/graphic models whose output survives a trace cleanly. This is
+   * what lets "generate logo" fall back to a real vector when the native SVG model
+   * (Recraft) is down, instead of dead-ending — and it stays a data decision, so no
+   * call site hardcodes a model id to get vector resilience.
+   */
+  rasterToVector: boolean;
   upscaling: boolean;
   inpainting: boolean;
 }
@@ -44,7 +55,7 @@ export interface ImageGenModel {
   description: string;
   supportsAspectRatio: boolean;
   outputType: 'image' | 'svg';
-  icon: string;
+  icon: any;
   capabilities: ModelCapabilities;
   /**
    * Separate route used for reference-conditioned / edit calls. Fal exposes editing on
@@ -67,6 +78,7 @@ const TEXT_ONLY: ModelCapabilities = {
   referenceImage: false,
   editing: false,
   svg: false,
+  rasterToVector: false,
   upscaling: false,
   inpainting: false,
 };
@@ -95,7 +107,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's original image generation — fast, versatile",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🍌',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   {
@@ -110,7 +122,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's new SOTA — fast generation + editing",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🍌',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   {
@@ -125,7 +137,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's best — realism, typography, high fidelity",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🍌',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: REFERENCE_CAPABLE,
   },
 
@@ -139,7 +151,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "ByteDance's fast image gen — stylized, creative",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🌿',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -153,8 +165,8 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "ByteDance's SOTA — stylized, transform, high quality",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🌿',
-    capabilities: REFERENCE_CAPABLE,
+    icon: CompanyLogos.AlibabaLogo,
+    capabilities: { ...REFERENCE_CAPABLE, rasterToVector: true },
   },
   {
     id: 'qwen-image',
@@ -167,7 +179,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Alibaba's image gen — great text rendering + editing",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🏮',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   {
@@ -179,8 +191,8 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Best typography in AI images — posters, logos, text-heavy designs',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '✨',
-    capabilities: TEXT_ONLY,
+    icon: CompanyLogos.GoogleLogo,
+    capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
   {
     id: 'ideogram-v4',
@@ -191,8 +203,8 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Latest Ideogram — crisp visuals, accurate text, full creative control',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '✨',
-    capabilities: TEXT_ONLY,
+    icon: CompanyLogos.GoogleLogo,
+    capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
 
   // ─── Fast — Quick generation ───────────────────────────────────────────────
@@ -205,10 +217,22 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Fastest FLUX model — great for quick drafts',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '⚡',
+    icon: CompanyLogos.GoogleLogo,
     capabilities: TEXT_ONLY,
   },
+  
   {
+    id: 'gpt-image-2-5',
+    name: 'GPT Image 2.5',
+    provider: 'OpenAI',
+    category: 'fast',
+    falEndpoint: 'https://fal.run/fal-ai/gpt-image-2-5',
+    description: "OpenAI's highly-refined iteration — superb typography and layout",
+    supportsAspectRatio: true,
+    outputType: 'image',
+    icon: CompanyLogos.ByteDanceLogo,
+    capabilities: TEXT_ONLY,
+  },{
     id: 'gpt-image-2',
     name: 'GPT Image 2',
     provider: 'OpenAI',
@@ -217,7 +241,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "OpenAI's latest — detailed images, fine typography",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '⚡',
+    icon: CompanyLogos.ByteDanceLogo,
     capabilities: TEXT_ONLY,
   },
 
@@ -236,8 +260,57 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Top-tier text-to-image — photorealistic, detailed',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🎯',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: REFERENCE_CAPABLE,
+  },
+  
+  {
+    id: 'flux-1-1-pro-ultra',
+    name: 'FLUX.1.1 Pro Ultra',
+    provider: 'Black Forest Labs',
+    category: 'quality',
+    falEndpoint: 'https://fal.run/fal-ai/flux-pro/v1.1-ultra',
+    description: 'SOTA 4K Image Generation - peerless photorealism and typography',
+    supportsAspectRatio: true,
+    outputType: 'image',
+    icon: CompanyLogos.AlibabaLogo,
+    capabilities: TEXT_ONLY,
+  },
+  {
+    id: 'flux-1-1-pro',
+    name: 'FLUX.1.1 Pro',
+    provider: 'Black Forest Labs',
+    category: 'fast',
+    falEndpoint: 'https://fal.run/fal-ai/flux-pro/v1.1',
+    description: 'Blazing fast SOTA model for 2026',
+    supportsAspectRatio: true,
+    outputType: 'image',
+    icon: CompanyLogos.IdeogramLogo,
+    capabilities: TEXT_ONLY,
+  },
+  {
+    id: 'recraft-v3-svg',
+    name: 'Recraft V3 (Native Vector)',
+    provider: 'Recraft',
+    category: 'vector',
+    falEndpoint: 'https://fal.run/fal-ai/recraft-v3/text-to-svg',
+    description: 'Generates pure, editable SVG vector paths natively',
+    supportsAspectRatio: true,
+    outputType: 'svg',
+    icon: CompanyLogos.IdeogramLogo,
+    capabilities: VECTOR_ONLY,
+  },
+  {
+    id: 'luma-photon',
+    name: 'Luma Photon',
+    provider: 'Luma AI',
+    category: 'quality',
+    falEndpoint: 'https://fal.run/fal-ai/luma/photon',
+    description: 'Extremely fast, highly aesthetic hyper-realism',
+    supportsAspectRatio: true,
+    outputType: 'image',
+    icon: CompanyLogos.IdeogramLogo,
+    capabilities: TEXT_ONLY,
   },
   {
     id: 'flux-pro',
@@ -248,7 +321,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Highest quality FLUX — commercial grade',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🎯',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -260,7 +333,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Latest FLUX — enhanced realism, crisp text, native editing',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🎯',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -272,7 +345,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Versatile, huge community, great for stylized art',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🎯',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: { ...TEXT_ONLY, inpainting: true },
   },
   {
@@ -281,11 +354,11 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     provider: 'Recraft',
     category: 'quality',
     falEndpoint: 'https://fal.run/fal-ai/recraft/v4/pro/text-to-image',
-    description: 'Design-grade output — brand systems, production workflows',
+    description: "Design-grade output — brand systems, production workflows",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: '🎯',
-    capabilities: TEXT_ONLY,
+    icon: CompanyLogos.AlibabaLogo,
+    capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
 
   // ─── Vector — Editable SVG output ──────────────────────────────────────────
@@ -298,12 +371,12 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Generates editable SVG vectors — logos, icons, illustrations',
     supportsAspectRatio: false,
     outputType: 'svg',
-    icon: '✏️',
+    icon: CompanyLogos.AlibabaLogo,
     capabilities: VECTOR_ONLY,
   },
 ];
 
-export const DEFAULT_IMAGE_MODEL = 'nano-banana-2';
+export const DEFAULT_IMAGE_MODEL = 'flux-1-1-pro-ultra';
 
 /** Default backend for prompt-driven edits when the caller has no model preference. */
 export const DEFAULT_EDIT_MODEL = 'nano-banana-2';
@@ -315,6 +388,33 @@ export const getImageModel = (modelId?: string): ImageGenModel | undefined =>
 export const supportsReferenceImage = (modelId?: string): boolean => {
   const model = getImageModel(modelId);
   return Boolean(model?.capabilities.referenceImage && model.editEndpoint);
+};
+
+/** True when the model's raster output can be promoted to editable SVG via trace. */
+export const supportsVectorTrace = (modelId?: string): boolean =>
+  Boolean(getImageModel(modelId)?.capabilities.rasterToVector);
+
+/**
+ * Vector-friendliness preference order for the raster->trace fallback. Recraft and
+ * Ideogram emit the flattest, highest-contrast shapes that ImageTracer reduces cleanly;
+ * photographic models (FLUX/Nano Banana realism) are intentionally excluded because a
+ * trace of them produces node-bloat no designer would ship.
+ */
+const VECTOR_TRACE_ORDER = ['recraft-v4', 'ideogram-v4', 'ideogram-v3', 'seedream-4-5'];
+
+/**
+ * The model to route through when a native-SVG generation fails and we need a real
+ * vector back-stop: the highest-preference `rasterToVector` model, excluding any the
+ * caller already tried. Returns undefined only if no trace-capable model exists,
+ * which the caller treats as "fall through to procedural".
+ */
+export const getVectorTraceFallbackModel = (excludeIds: string[] = []): ImageGenModel | undefined => {
+  const skip = new Set(excludeIds);
+  for (const id of VECTOR_TRACE_ORDER) {
+    const m = getImageModel(id);
+    if (m && m.capabilities.rasterToVector && !skip.has(id)) return m;
+  }
+  return IMAGE_GEN_MODELS.find((m) => m.capabilities.rasterToVector && !skip.has(m.id));
 };
 
 /** Fal's named `image_size` presets, for endpoints that speak that vocabulary. */

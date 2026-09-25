@@ -381,12 +381,12 @@ export const ImageTools = React.memo(
               </h4>
               <div className="grid grid-cols-2 gap-2 mb-3">
                 {[
-                  { id: 'tshirt_flat', name: 'T-Shirt', icon: '👕' },
-                  { id: 'mug', name: 'Coffee Mug', icon: '☕' },
-                  { id: 'iphone_mockup', name: 'iPhone', icon: '📱' },
-                  { id: 'macbook', name: 'MacBook', icon: '💻' },
-                  { id: 'tote_bag', name: 'Tote Bag', icon: '👜' },
-                  { id: 'poster_wall', name: 'Poster', icon: '🖼️' },
+                  { id: 'tshirt_flat', name: 'T-Shirt', icon: <Icons.Shirt className="w-4 h-4" /> },
+                  { id: 'mug', name: 'Coffee Mug', icon: <Icons.Coffee className="w-4 h-4" /> },
+                  { id: 'iphone_mockup', name: 'iPhone', icon: <Icons.Smartphone className="w-4 h-4" /> },
+                  { id: 'macbook', name: 'MacBook', icon: <Icons.Monitor className="w-4 h-4" /> },
+                  { id: 'tote_bag', name: 'Tote Bag', icon: <Icons.ShoppingBag className="w-4 h-4" /> },
+                  { id: 'poster_wall', name: 'Poster', icon: <Icons.FileImage className="w-4 h-4" /> },
                 ].map((mockup) => (
                   <button
                     key={mockup.id}

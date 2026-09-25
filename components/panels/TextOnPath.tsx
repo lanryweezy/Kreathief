@@ -135,10 +135,10 @@ export const TextOnPath: React.FC<TextOnPathProps> = ({ text = 'Curved Text', cu
         <label className="text-[10px] text-gray-500 block mb-2">Path Type</label>
         <div className="grid grid-cols-4 gap-2">
           {[
-            { id: 'arc', label: 'Arc', icon: '⌒' },
-            { id: 'circle', label: 'Circle', icon: '○' },
-            { id: 'wave', label: 'Wave', icon: '〜' },
-            { id: 'spiral', label: 'Spiral', icon: '🌀' },
+            { id: 'arc', label: 'Arc', icon: <Icons.Circle className="w-4 h-4" /> },
+            { id: 'circle', label: 'Circle', icon: <Icons.Target className="w-4 h-4" /> },
+            { id: 'wave', label: 'Wave', icon: <Icons.Activity className="w-4 h-4" /> },
+            { id: 'spiral', label: 'Spiral', icon: <Icons.RefreshCw className="w-4 h-4" /> },
           ].map((type) => (
             <button
               key={type.id}

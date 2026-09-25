@@ -220,7 +220,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
       if (state.projectId && state.hasUnsavedChanges && !state.isSaving && state.autoSaveEnabled) {
         state.saveProject();
       }
-    }, config.performance.autoSaveInterval);
+    }, (get().user?.preferences?.autoSaveInterval || 5) * 60 * 1000); // User preference in minutes or default 5
   },
 
   stopAutoSave: () => {

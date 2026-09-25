@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { ModalWrapper } from './ModalWrapper';
+import { profileService } from '../../services/profileService';
 
 type ProfileTab = 'general' | 'preferences' | 'subscription';
 
@@ -56,7 +57,7 @@ export const ProfileModal: React.FC = () => {
     return null;
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const updatedUser = {
       ...user,
       name,
@@ -78,11 +79,27 @@ export const ProfileModal: React.FC = () => {
       apiKeys: user.apiKeys,
     };
     setUser(updatedUser);
+    
+    // Sync to Supabase Profile backend if user has an ID (i.e. logged in)
+    if (user.id && user.id !== 'local-guest') {
+      try {
+        await profileService.updateProfile(user.id, {
+          name,
+          bio,
+          website,
+          location,
+          avatar_url: user.avatar
+        });
+      } catch (e) {
+        console.warn('Failed to sync profile to cloud', e);
+      }
+    }
+
     addToast('Profile & studio settings updated successfully!', 'success');
     setShowProfileModal(false);
   };
 
-  const handleChangePhoto = () => {
+  const handleChangePhoto = async () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
@@ -90,9 +107,12 @@ export const ProfileModal: React.FC = () => {
       const file = e.target.files?.[0];
       if (file) {
         const reader = new FileReader();
-        reader.onload = (evt) => {
+        reader.onload = async (evt) => {
           const avatarUrl = evt.target?.result as string;
           setUser({ ...user, avatar: avatarUrl });
+          if (user.id && user.id !== 'local-guest') {
+            await profileService.updateProfile(user.id, { avatar_url: avatarUrl }).catch(() => {});
+          }
           addToast('Profile picture updated!', 'success');
         };
         reader.readAsDataURL(file);
@@ -101,10 +121,13 @@ export const ProfileModal: React.FC = () => {
     input.click();
   };
 
-  const handleGenerateRandomAvatar = () => {
+  const handleGenerateRandomAvatar = async () => {
     const randomSeed = crypto.randomUUID();
     const newAvatar = `https://api.dicebear.com/7.x/bottts/svg?seed=${randomSeed}`;
     setUser({ ...user, avatar: newAvatar });
+    if (user.id && user.id !== 'local-guest') {
+      await profileService.updateProfile(user.id, { avatar_url: newAvatar }).catch(() => {});
+    }
     addToast('Generated new AI Bot avatar!', 'info');
   };
 

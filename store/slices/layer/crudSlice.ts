@@ -1,3 +1,4 @@
+import { copyLayerToSystemClipboard, readLayerFromSystemClipboard } from '../../../utils/clipboard/systemClipboard';
 import { generateLayerId } from '../../../utils/layers/layerUtils';
 import { log } from '../../../utils/log';
 import { analyticsService } from '../../../services/analyticsService';
@@ -544,7 +545,48 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
             }
             return l;
           });
-          const processedLayers = applyAutoLayout(updatedLayers as Layer[]);
+          let processedLayers = applyAutoLayout(updatedLayers as Layer[]);
+          
+          // --- FIX: GROUP PROPORTIONAL SCALING ---
+          const groupMarker = processedLayers.find(l => l.id === id && l.isGroup);
+          if (groupMarker && (partial.width !== undefined || partial.height !== undefined || partial.x !== undefined || partial.y !== undefined)) {
+            const oldMarker = a.layers.find(l => l.id === id);
+            if (oldMarker) {
+              const oldX = oldMarker.x;
+              const oldY = oldMarker.y;
+              const oldW = oldMarker.width || 1;
+              const oldH = oldMarker.height || 1;
+              const newX = groupMarker.x;
+              const newY = groupMarker.y;
+              const newW = groupMarker.width || 1;
+              const newH = groupMarker.height || 1;
+              const scaleX = newW / oldW;
+              const scaleY = newH / oldH;
+              const dx = newX - oldX;
+              const dy = newY - oldY;
+
+              processedLayers = processedLayers.map(child => {
+                if (child.groupId === id) {
+                  const updatedChild = { ...child };
+                  if (scaleX !== 1 || scaleY !== 1) {
+                    updatedChild.x = newX + (child.x - oldX) * scaleX;
+                    updatedChild.y = newY + (child.y - oldY) * scaleY;
+                    updatedChild.width = (child.width || 0) * scaleX;
+                    updatedChild.height = (child.height || 0) * scaleY;
+                    if (child.type === 'text' && (child as any).fontSize) {
+                      (updatedChild as any).fontSize *= Math.min(scaleX, scaleY);
+                    }
+                  } else if (dx !== 0 || dy !== 0) {
+                    updatedChild.x = child.x + dx;
+                    updatedChild.y = child.y + dy;
+                  }
+                  return updatedChild;
+                }
+                return child;
+              });
+            }
+          }
+          // ----------------------------------------
           return {
             ...a,
             layers: processedLayers,
@@ -631,6 +673,49 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     });
   },
 
+  toggleLockSelected: () => {
+    get().saveToHistory?.();
+    set((state: any) => {
+      const newArtboards = state.artboards.map((a: Artboard) => {
+        if (a.id !== state.activeArtboardId) return a;
+        
+        // Determine if we should lock or unlock based on the first selected layer's state
+        const firstSelected = a.layers.find(l => state.selectedLayerIds.includes(l.id));
+        const shouldLock = firstSelected ? !firstSelected.locked : true;
+
+        const newLayers = a.layers.map(l => {
+          if (state.selectedLayerIds.includes(l.id)) {
+            return { ...l, locked: shouldLock };
+          }
+          return l;
+        });
+        return { ...a, layers: newLayers };
+      });
+      return { artboards: newArtboards };
+    });
+  },
+
+  toggleVisibilitySelected: () => {
+    get().saveToHistory?.();
+    set((state: any) => {
+      const newArtboards = state.artboards.map((a: Artboard) => {
+        if (a.id !== state.activeArtboardId) return a;
+        
+        const firstSelected = a.layers.find(l => state.selectedLayerIds.includes(l.id));
+        const shouldBeVisible = firstSelected ? !firstSelected.visible : true;
+
+        const newLayers = a.layers.map(l => {
+          if (state.selectedLayerIds.includes(l.id)) {
+            return { ...l, visible: shouldBeVisible };
+          }
+          return l;
+        });
+        return { ...a, layers: newLayers };
+      });
+      return { artboards: newArtboards, selectedLayerIds: [] }; // deselect if hiding
+    });
+  },
+
   duplicateSelected: () => {
     get().saveToHistory?.();
     const { selectedLayerIds, activeArtboardId } = get();
@@ -667,7 +752,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     artboards.forEach((a: Artboard) => {
       const layer = a.layers.find((l) => l.id === id);
       if (layer) {
-        set({ clipboardLayer: structuredClone(layer) });
+        const cloned = structuredClone(layer); set({ clipboardLayer: cloned }); copyLayerToSystemClipboard(cloned).catch(() => {});
       }
     });
   },

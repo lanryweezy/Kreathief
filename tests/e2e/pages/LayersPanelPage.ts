@@ -14,7 +14,7 @@ export class LayersPanelPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.layersTab = page.getByRole('button', { name: 'Layers' });
+    this.layersTab = page.locator('button[aria-label="Layers"]').first();
     this.layersPanel = page.getByTestId('layers-panel');
     this.layerItems = this.layersPanel.locator('[data-testid="layer-item"], .layer-item');
     this.addLayerBtn = this.layersPanel.locator('button[aria-label="Add Layer"], button:has-text("Add Layer")');
@@ -47,7 +47,7 @@ export class LayersPanelPage {
     const names: string[] = [];
     const count = await layers.count();
     for (let i = 0; i < count; i++) {
-      const name = await layers.nth(i).locator('span.font-medium.truncate').textContent();
+      const name = await layers.nth(i).locator('span.truncate, [data-testid="layer-name"]').first().textContent();
       if (name) {
         names.push(name.trim());
       }

@@ -26,6 +26,13 @@ vi.mock('@google/generative-ai', () => ({
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// callBackendGeminiAPI routes through the OpenRouter bridge, so the service
+// reads `choices[0].message.content` — mocks must use that response shape.
+const openRouterResponse = (content: string) => ({
+  ok: true,
+  json: async () => ({ choices: [{ message: { content } }] }),
+});
+
 describe('GeminiService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -96,12 +103,7 @@ describe('GeminiService', () => {
   describe('generateTextOptions', () => {
     it('should generate multiple text variations', async () => {
       const mockOptions = ['Option 1', 'Option 2', 'Option 3'];
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          text: JSON.stringify(mockOptions),
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(openRouterResponse(JSON.stringify({ variants: mockOptions })));
 
       const result = await geminiService.generateTextOptions('Creative headline');
 
@@ -111,12 +113,7 @@ describe('GeminiService', () => {
     });
 
     it('should handle invalid JSON responses', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          text: 'Invalid JSON',
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(openRouterResponse('Invalid JSON'));
 
       const result = await geminiService.generateTextOptions('Test');
 
@@ -130,12 +127,7 @@ describe('GeminiService', () => {
       const enhancedText =
         'A fluffy orange cat sitting on a windowsill, bathed in warm afternoon sunlight, photorealistic, highly detailed';
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          text: JSON.stringify(enhancedText),
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(openRouterResponse(JSON.stringify(enhancedText)));
 
       const result = await geminiService.enhancePrompt(originalPrompt);
 
@@ -163,12 +155,7 @@ describe('GeminiService', () => {
     it('should provide design analysis', async () => {
       const mockAnalysis = 'Analysis results';
 
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          text: mockAnalysis,
-        }),
-      });
+      mockFetch.mockResolvedValueOnce(openRouterResponse(mockAnalysis));
 
       const result = await geminiService.analyzeDesign('data:image/png;base64,abc', 'A social media post');
 

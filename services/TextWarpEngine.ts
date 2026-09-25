@@ -25,6 +25,23 @@ textWarpStrategies.set('arch', {
   },
 });
 
+// The UI (TextEffectsPanel, LayerItems, exportService) emits 'arc' — without this
+// alias every arc-warp lookup fell through the registry and rendered unbent text.
+textWarpStrategies.set('arc', {
+  warp(x, y, nx, ny, magnitude) {
+    const archOffset = 4 * nx * (1 - nx) * magnitude;
+    return { x, y: y - archOffset };
+  },
+});
+
+// Cubic-bezier eased envelope: smooth-start/smooth-end arch used by custom warp paths.
+textWarpStrategies.set('bezier_custom', {
+  warp(x, y, nx, ny, magnitude) {
+    const envelope = (1 - Math.cos(nx * 2 * Math.PI)) / 2; // 0 at both ends, 1 at center, C1-smooth
+    return { x, y: y - envelope * magnitude };
+  },
+});
+
 textWarpStrategies.set('flag', {
   warp(x, y, nx, ny, magnitude) {
     const flagOffset = Math.sin(nx * Math.PI * 2) * magnitude;

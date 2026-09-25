@@ -232,6 +232,8 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-2 md:gap-4 relative z-30">
+
+
         {/* AI Button — unified entry point for all AI features */}
         <Button
           onClick={() => setShowAIOverlay(!showAIOverlay)}

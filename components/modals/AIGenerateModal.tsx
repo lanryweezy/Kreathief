@@ -4,6 +4,7 @@ import { WORKFLOW_PRESETS } from '../../data/workflowPresets';
 import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
 import { getAIErrorMessage } from '../../utils/errorMessages';
+import { generateDesignFromBrief, TwoStageDesignResult } from '../../services/aiDesignDirector';
 
 interface AIGenerateModalProps {
   isOpen: boolean;
@@ -12,18 +13,26 @@ interface AIGenerateModalProps {
 }
 
 type GenerateState = 'idle' | 'generating' | 'preview';
+type GenerationMode = 'workflow' | 'scratch';
 
 export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClose, onGenerate }) => {
   const [prompt, setPrompt] = useState('');
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [state, setState] = useState<GenerateState>('idle');
+  const [generationMode, setGenerationMode] = useState<GenerationMode>('workflow');
   const [result, setResult] = useState<{ image?: string; text?: string; layers?: any[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // Two-stage generation progress
+  const [generationStage, setGenerationStage] = useState<'planning' | 'assets' | 'complete' | null>(null);
+  const [assetProgress, setAssetProgress] = useState({ current: 0, total: 0, layerName: '' });
+  
   const { loadPreset, executeGraph, nodeOutputs } = useNodeGraph();
 
   const presets = WORKFLOW_PRESETS;
 
-  const handleGenerate = useCallback(async () => {
+  // Handle workflow-based generation (original behavior)
+  const handleWorkflowGenerate = useCallback(async () => {
     if (!selectedPreset || !prompt.trim()) return;
 
     setState('generating');
@@ -51,6 +60,55 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
     }
   }, [selectedPreset, prompt, loadPreset, executeGraph, presets, nodeOutputs]);
 
+  // Handle "Create from Scratch" two-stage generation
+  const handleScratchGenerate = useCallback(async () => {
+    if (!prompt.trim()) return;
+
+    setState('generating');
+    setError(null);
+    setGenerationStage('planning');
+    setAssetProgress({ current: 0, total: 0, layerName: '' });
+
+    try {
+      // Stage 1: Generate design blueprint
+      // Stage 2: Generate assets and build layers
+      const twoStageResult: TwoStageDesignResult = await generateDesignFromBrief(
+        prompt,
+        1080,
+        1080,
+        {
+          onProgress: (current, total, layerName) => {
+            setGenerationStage('assets');
+            setAssetProgress({ current, total, layerName });
+          },
+        }
+      );
+
+      setGenerationStage('complete');
+      
+      // Convert to result format expected by onGenerate
+      const generated = {
+        layers: twoStageResult.layers,
+      };
+
+      setResult(generated);
+      setState('preview');
+    } catch (err) {
+      setState('idle');
+      setGenerationStage(null);
+      setError(getAIErrorMessage(err));
+    }
+  }, [prompt]);
+
+  // Unified generate handler based on mode
+  const handleGenerate = useCallback(() => {
+    if (generationMode === 'scratch') {
+      handleScratchGenerate();
+    } else {
+      handleWorkflowGenerate();
+    }
+  }, [generationMode, handleScratchGenerate, handleWorkflowGenerate]);
+
   const handleRetry = useCallback(() => {
     setError(null);
     handleGenerate();
@@ -69,6 +127,9 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
     setState('idle');
     setResult(null);
     setError(null);
+    setGenerationMode('workflow');
+    setGenerationStage(null);
+    setAssetProgress({ current: 0, total: 0, layerName: '' });
     onClose();
   }, [onClose]);
 
@@ -114,6 +175,41 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
                 />
               </div>
 
+              {/* Generation Mode Toggle */}
+              <div className="mb-6">
+                <p className="text-sm text-gray-400 mb-3">Generation mode</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setGenerationMode('workflow')}
+                    disabled={state === 'generating'}
+                    className={`flex-1 py-2 px-4 rounded-xl border text-sm font-medium transition-all ${
+                      generationMode === 'workflow'
+                        ? 'bg-[#7D2AE8]/10 border-[#7D2AE8]/50 text-white'
+                        : 'bg-surface-dark-3 border-white/5 text-gray-300 hover:bg-surface-dark-3/80 hover:border-white/10'
+                    }`}
+                  >
+                    ⚡ Workflow
+                  </button>
+                  <button
+                    onClick={() => setGenerationMode('scratch')}
+                    disabled={state === 'generating'}
+                    className={`flex-1 py-2 px-4 rounded-xl border text-sm font-medium transition-all ${
+                      generationMode === 'scratch'
+                        ? 'bg-[#7D2AE8]/10 border-[#7D2AE8]/50 text-white'
+                        : 'bg-surface-dark-3 border-white/5 text-gray-300 hover:bg-surface-dark-3/80 hover:border-white/10'
+                    }`}
+                  >
+                    🎨 Create from Scratch
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {generationMode === 'workflow' 
+                    ? 'Use AI workflows for image generation and editing'
+                    : 'Generate a complete editable design with layers from scratch'}
+                </p>
+              </div>
+
+              {generationMode === 'workflow' && (
               <div className="mb-6">
                 <p className="text-sm text-gray-400 mb-3">Quick start</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -134,6 +230,7 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
                   ))}
                 </div>
               </div>
+              )}
 
               {state === 'generating' && (
                 <div className="mb-6 flex items-center justify-center gap-3 py-8">

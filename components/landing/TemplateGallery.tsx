@@ -1,109 +1,193 @@
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Icons } from '../../constants';
 
+interface TemplateItem {
+  id: string;
+  title: string;
+  category: 'Y2K & Chrome' | 'High Fashion' | 'Streetwear' | '3D & Spatial';
+  src: string;
+  tag: string;
+  aspect: string;
+}
+
+const TEMPLATE_COLLECTIONS: TemplateItem[] = [
+  {
+    id: 'chrome-baddie',
+    title: 'Avant-Garde Chrome Editorial',
+    category: 'Y2K & Chrome',
+    src: '/images/downloads/art_chrome_baddie.jpg',
+    tag: '3D Chrome Vector',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'nike-editorial',
+    title: 'Kinetic Athletic Campaign',
+    category: 'High Fashion',
+    src: '/images/downloads/art_nike_editorial.jpg',
+    tag: 'Editorial Print Ready',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'y2k-jennie',
+    title: 'Holographic Cyber Pop',
+    category: 'Y2K & Chrome',
+    src: '/images/downloads/art_y2k_jennie.jpg',
+    tag: 'Holographic Vector',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'neon-streetwear',
+    title: 'Brutalist Tech Wear Poster',
+    category: 'Streetwear',
+    src: '/images/downloads/art_neon_streetwear.jpg',
+    tag: 'Grid System',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'summer-kinetic',
+    title: 'Spatial Wrapped 3D Type',
+    category: '3D & Spatial',
+    src: '/images/downloads/art_summer_kinetic.jpg',
+    tag: '3D Depth Warp',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'danger-essence',
+    title: 'Metallic Bandana Streetwear',
+    category: 'Streetwear',
+    src: '/images/downloads/art_danger_essence.jpg',
+    tag: 'Typography Layout',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'sixseven-bubble',
+    title: 'Inflatable Liquid Glass',
+    category: '3D & Spatial',
+    src: '/images/downloads/art_sixseven_bubble.jpg',
+    tag: 'Glassmorphic 3D',
+    aspect: 'aspect-[3/4]',
+  },
+  {
+    id: 'idontcare-acid',
+    title: 'Acid Pixel Rebellion',
+    category: 'Streetwear',
+    src: '/images/downloads/art_idontcare_acid.jpg',
+    tag: 'Acid Graphics',
+    aspect: 'aspect-[3/4]',
+  },
+];
+
+const CATEGORIES = ['All', 'Y2K & Chrome', 'High Fashion', 'Streetwear', '3D & Spatial'] as const;
+
 export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGetStarted }) => {
-  const templates = [
-    // Original Templates
-    { id: 1, src: '/images/template_thumb_1_1772615134954.png', style: 'md:col-span-1 md:row-span-2' },
-    { id: 2, src: '/images/template_thumb_2_1772615154321.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 3, src: '/images/template_thumb_3_1772615229047.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 4, src: '/images/template_thumb_4_1772615492900.png', style: 'md:col-span-1 md:row-span-2' },
-    { id: 5, src: '/images/template_thumb_5_1772615512770.png', style: 'md:col-span-2 md:row-span-1' },
-    { id: 6, src: '/images/template_thumb_6_1772615671327.png', style: 'md:col-span-1 md:row-span-1' },
+  const [activeTab, setActiveTab] = useState<string>('All');
 
-    // New Templates
-    { id: 7, src: '/images/template_cyberpunk.png', style: 'md:col-span-1 md:row-span-2' },
-    { id: 8, src: '/images/template_minimalist.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 9, src: '/images/template_abstract.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 10, src: '/images/template_retro.png', style: 'md:col-span-1 md:row-span-2' },
-    { id: 11, src: '/images/template_fashion.png', style: 'md:col-span-2 md:row-span-1' },
-    { id: 12, src: '/images/template_hitech.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 13, src: '/images/template_cute.png', style: 'md:col-span-1 md:row-span-1' },
-
-    // Requested by User
-    { id: 14, src: '/images/template_business.png', style: 'md:col-span-1 md:row-span-2' },
-    { id: 15, src: '/images/template_church.png', style: 'md:col-span-1 md:row-span-1' },
-    { id: 16, src: '/images/template_club.png', style: 'md:col-span-2 md:row-span-1' },
-  ];
+  const filtered = activeTab === 'All'
+    ? TEMPLATE_COLLECTIONS
+    : TEMPLATE_COLLECTIONS.filter((t) => t.category === activeTab);
 
   return (
-    <section id="templates" className="py-32 relative bg-[#0a0a0c] overflow-hidden z-0">
-      {/* Ambient Background Grid */}
-      <div className="absolute inset-0 bg-dot-pattern opacity-[0.2] [mask-image:radial-gradient(ellipse_at_top_right,white,transparent_75%)] pointer-events-none -z-10"></div>
+    <section id="templates" className="py-36 relative bg-[#08080d] overflow-hidden">
+      <div className="absolute inset-0 bg-dot-pattern opacity-[0.06] pointer-events-none" />
+      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-purple-600/10 blur-[180px] rounded-full pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-        <div className="flex flex-col md:flex-row items-end justify-between mb-20 gap-8">
-          <div className="max-w-2xl">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-8">
+          <div>
             <motion.h2
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-4xl md:text-6xl font-bold mb-6 tracking-tight text-white"
+              className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter text-white leading-[0.95]"
             >
-              Start from <br />
-              <span className="text-purple-400">Inspiration.</span>
+              Studio-grade styles. <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">
+                Instantly customizable.
+              </span>
             </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-xl text-gray-400 font-medium"
-            >
-              Browse premium templates designed by world-class creators. Fully editable, absolutely stunning.
-            </motion.p>
           </div>
-          <motion.button
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            onClick={onGetStarted}
-            className="px-8 py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold tracking-[0.2em] text-[11px] uppercase hover:bg-white/10 transition-colors flex items-center gap-3"
-          >
-            Explore Library
-            <Icons.ArrowRight className="w-4 h-4" />
-          </motion.button>
+
+          {/* Filter Pills */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveTab(cat)}
+                className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wide uppercase transition-all shrink-0 ${
+                  activeTab === cat
+                    ? 'bg-white text-black shadow-lg shadow-white/20'
+                    : 'bg-white/[0.04] text-neutral-400 hover:text-white border border-white/10'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div
-          id="templates-grid"
-          data-testid="dashboard-templates-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 auto-rows-[250px] gap-6"
-        >
-          {templates.map((tpl, idx) => (
-            <motion.div
-              key={tpl.id}
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.6, delay: idx * 0.1 }}
-              className={`rounded-[32px] overflow-hidden relative group cursor-pointer border border-white/5 glass-edge ${tpl.style}`}
-            >
-              <div className={`w-full h-full ${idx % 3 === 0 ? 'animate-float-slow' : ''}`}>
-                <img
-                  src={tpl.src}
-                  alt={`Template ${tpl.id}`}
-                  loading="lazy"
-
-                  decoding="async"
-
-                  className="w-full h-full object-cover grayscale-[40%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-60 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-              </div>
-
-              <div className="absolute bottom-6 left-6 right-6 opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 flex justify-between items-center">
-                <div>
-                  <p className="text-white font-black text-lg">Pro Template</p>
-                  <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Fully Editable</p>
+        {/* Gallery Grid */}
+        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <AnimatePresence>
+            {filtered.map((item, idx) => (
+              <motion.div
+                layout
+                key={item.id}
+                initial={{ opacity: 0, scale: 0.94 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.94 }}
+                transition={{ duration: 0.45, delay: idx * 0.05 }}
+                className="group relative rounded-[32px] overflow-hidden border border-white/10 hover:border-purple-500/50 bg-[#0e0e16] shadow-2xl transition-all duration-700 cursor-pointer"
+                onClick={onGetStarted}
+              >
+                {/* Artwork Preview */}
+                <div className={`w-full ${item.aspect} overflow-hidden relative`}>
+                  <img
+                    src={item.src}
+                    alt={item.title}
+                    loading="lazy"
+                    className="w-full h-full object-cover filter brightness-[0.92] group-hover:brightness-105 group-hover:scale-105 transition-all duration-700"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
                 </div>
-                <div className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center transform group-hover:scale-110 transition-transform">
-                  <Icons.Plus className="w-5 h-5" />
+
+                {/* Top Badge */}
+                <div className="absolute top-4 left-4 z-10">
+                  <span className="px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/15 text-[10px] font-mono font-bold uppercase tracking-widest text-white shadow-lg">
+                    {item.tag}
+                  </span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+
+                {/* Bottom Interactive Layer */}
+                <div className="absolute bottom-0 inset-x-0 p-6 z-10 flex items-end justify-between">
+                  <div>
+                    <h3 className="text-white font-black text-lg tracking-tight mb-1 group-hover:text-purple-300 transition-colors">
+                      {item.title}
+                    </h3>
+                    <p className="text-neutral-400 text-xs font-mono">
+                      Fully Layered • Click to Clone
+                    </p>
+                  </div>
+
+                  <div className="w-10 h-10 rounded-2xl bg-white text-black flex items-center justify-center transform group-hover:scale-110 group-hover:rotate-45 transition-transform duration-300 shadow-xl shrink-0">
+                    <Icons.ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Footer Call to Action */}
+        <div className="mt-16 text-center">
+          <button
+            onClick={onGetStarted}
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 hover:border-white/25 text-white text-xs font-mono font-bold uppercase tracking-widest transition-all"
+          >
+            <span>Explore 500+ Editorial & Streetwear Presets</span>
+            <Icons.ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </section>

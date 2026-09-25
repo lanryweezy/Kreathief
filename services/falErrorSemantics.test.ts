@@ -110,7 +110,9 @@ describe('transient errors', () => {
     const outcome = await pending;
 
     expect(outcome).toBeInstanceOf(Error);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    // retries=3 means 1 initial attempt + 3 retries (the old wrapper treated the
+    // budget as total attempts and silently dropped the final retry)
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('retries a 429 rather than giving up immediately', async () => {

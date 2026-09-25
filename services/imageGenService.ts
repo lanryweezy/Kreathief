@@ -10,8 +10,9 @@
  * Generation is conditioned on a GenerationContext (prompt + brand kit + style reference +
  * campaign goal + canvas size), never a bare prompt, so new inputs don't touch call sites.
  */
-import { IMAGE_GEN_MODELS, getImageModel, supportsReferenceImage, buildSizePayload } from '../config/imageModels';
+import { IMAGE_GEN_MODELS, getImageModel, supportsReferenceImage, buildSizePayload, getVectorTraceFallbackModel } from '../config/imageModels';
 import { aiModelsService } from './aiModelsService';
+import { vectorizerService } from './vectorizerService';
 import { analyticsService } from './analyticsService';
 import * as geminiService from './geminiService';
 import {
@@ -146,6 +147,16 @@ export const composeGenerationPrompt = (context: GenerationContext): string => {
 
   if (context.negativePrompt?.trim()) {
     segments.push(` Avoid the following negative elements: ${context.negativePrompt.trim()}.`);
+  }
+
+  if (context.assetMode) {
+    // Editable-composition asset (agent path): typography is layered natively
+    // on top, so baked-in text becomes duplicate garbage. State it as a
+    // positive instruction too — models obey "clean negative space for type"
+    // better than a bare "no text" negation.
+    segments.push(
+      ' This artwork is one layer of an editable composition: render NO text, letters, numbers, words, logos or watermarks anywhere in the image; keep deliberate clean space where headlines and labels will be placed later.'
+    );
   }
 
   return segments.filter(Boolean).join('');
@@ -322,7 +333,30 @@ export async function generateImageWithModel(prompt: string, options: GenerateIm
         return svgResult.startsWith('<svg') ? svgToDataUrl(svgResult) : svgResult;
       }
     } catch (e) {
-      log.warn('[imageGenService] Recraft vector generation failed, falling back', e);
+      log.warn('[imageGenService] Recraft vector generation failed, trying raster->trace vector path', e);
+    }
+
+    // Second SVG-capable path (capability-routed): render on the best trace-friendly
+    // raster model and promote it to editable SVG with the built-in ImageTracer, so a
+    // native-SVG outage degrades to a *real vector* rather than only procedural art.
+    const traceModel = getVectorTraceFallbackModel(model?.id ? [model.id] : []);
+    if (traceModel?.falEndpoint && allowFallback) {
+      try {
+        const rasterUrl = await aiModelsService.generateImageFromEndpoint(
+          traceModel.falEndpoint,
+          prompt,
+          buildSizePayload(traceModel, aspectRatio, 'generate')
+        );
+        if (rasterUrl) {
+          const traced = await vectorizerService.traceImage(rasterUrl, { numberofcolors: 8, ltres: 0.5, qtres: 0.5, pathomit: 4 });
+          if (traced && traced.includes('<svg')) {
+            log.info('[imageGenService] Delivered vector via raster->trace fallback', { via: traceModel.id });
+            return svgToDataUrl(traced);
+          }
+        }
+      } catch (e) {
+        log.warn('[imageGenService] raster->trace vector fallback failed, using procedural', e);
+      }
     }
     return generateProceduralArtwork(prompt, options);
   }

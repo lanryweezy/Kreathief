@@ -1,40 +1,45 @@
-import { Layer } from '../types';
-
-export interface AutoLayoutConfig {
-  direction: 'row' | 'col';
-  padding: number;
-  spacing: number;
-  alignment: 'start' | 'center' | 'end';
-}
+import { Layer, AutoLayoutSettings } from '../types';
 
 /**
- * Compute auto-layout positions for children of a group layer.
- * Returns a map of layerId -> { x, y } overrides.
+ * Compute auto-layout positions for direct children of a group layer.
+ * Returns a map of layerId -> { x, y, width?, height? } overrides.
+ * Note: This only computes layout for DIRECT children.
  */
 export function computeAutoLayout(
   parentLayer: Layer,
   children: Layer[],
   allLayers: Layer[]
-): Record<string, { x: number; y: number }> {
+): Record<string, { x: number; y: number; width?: number; height?: number }> {
   const layout = parentLayer.autoLayout;
   if (!layout || !children.length) {
     return {};
   }
 
-  const updates: Record<string, { x: number; y: number }> = {};
-  const pad = typeof layout.padding === 'number' ? layout.padding : 0;
+  const updates: Record<string, { x: number; y: number; width?: number; height?: number }> = {};
+  
+  // Parse padding
+  let pt = 0, pr = 0, pb = 0, pl = 0;
+  if (typeof layout.padding === 'number') {
+    pt = pr = pb = pl = layout.padding;
+  } else if (layout.padding) {
+    pt = layout.padding.top || 0;
+    pr = layout.padding.right || 0;
+    pb = layout.padding.bottom || 0;
+    pl = layout.padding.left || 0;
+  }
+
   const spacing = layout.spacing || 0;
   const isRow = layout.direction === 'row';
-  const alignment = layout.alignment || 'center';
-
-  // Recursively find all descendant leaves (non-group layers)
-  const leaves = collectLeaves(children, allLayers);
+  const alignment = layout.alignment || 'start';
 
   // Compute total size of all children
   let totalAxisSize = 0;
   let maxCrossSize = 0;
 
-  const sizes = leaves.map((child) => {
+  // We only care about DIRECT children. If a child is an auto-layout group itself,
+  // it should already have been laid out (if we compute bottom-up), 
+  // or it will be laid out. We use its current width/height.
+  const sizes = children.map((child) => {
     const w = Number((child as any).width) || 100;
     const h = Number((child as any).height) || 100;
     totalAxisSize += isRow ? w : h;
@@ -42,124 +47,126 @@ export function computeAutoLayout(
     return { w, h };
   });
 
-  totalAxisSize += spacing * Math.max(0, leaves.length - 1);
+  totalAxisSize += spacing * Math.max(0, children.length - 1);
 
-  // Compute parent's inner dimensions based on sizing
+  // Compute parent's inner dimensions based on sizing.
   const sizing = layout.sizing;
-  const isWidthHug = !sizing || sizing.width === 'hug';
-  const isHeightHug = !sizing || sizing.height === 'hug';
+  const isWidthHug = sizing?.width === 'hug';
+  const isHeightHug = sizing?.height === 'hug';
 
+  // Declared parent box drives child placement
   let parentW = Number((parentLayer as any).width) || 100;
   let parentH = Number((parentLayer as any).height) || 100;
 
-  if (isRow) {
-    if (isWidthHug) parentW = totalAxisSize + pad * 2;
-    if (isHeightHug) parentH = maxCrossSize + pad * 2;
-  } else {
-    if (isHeightHug) parentH = totalAxisSize + pad * 2;
-    if (isWidthHug) parentW = maxCrossSize + pad * 2;
-  }
+  // Hugged resize updates the parent's own size
+  const huggedW = isRow ? totalAxisSize + pl + pr : maxCrossSize + pl + pr;
+  const huggedH = isRow ? maxCrossSize + pt + pb : totalAxisSize + pt + pb;
+  
+  if (isWidthHug) parentW = huggedW;
+  if (isHeightHug) parentH = huggedH;
 
   // Position children along the main axis
-  let cursor = pad;
+  let cursorX = pl;
+  let cursorY = pt;
+  
+  // Handle space-between, space-around, space-evenly for main axis
+  let actualSpacing = spacing;
+  const availableMainSpace = isRow ? (parentW - pl - pr - totalAxisSize + (spacing * (children.length - 1))) : (parentH - pt - pb - totalAxisSize + (spacing * (children.length - 1)));
+  
+  if (alignment === 'space-between' && children.length > 1) {
+     actualSpacing = availableMainSpace / (children.length - 1);
+  } else if (alignment === 'space-around' && children.length > 0) {
+     actualSpacing = availableMainSpace / children.length;
+     if (isRow) cursorX += actualSpacing / 2;
+     else cursorY += actualSpacing / 2;
+  } else if (alignment === 'space-evenly' && children.length > 0) {
+     actualSpacing = availableMainSpace / (children.length + 1);
+     if (isRow) cursorX += actualSpacing;
+     else cursorY += actualSpacing;
+  } else if (alignment === 'center') {
+     if (isRow) cursorX += availableMainSpace / 2;
+     else cursorY += availableMainSpace / 2;
+  } else if (alignment === 'end') {
+     if (isRow) cursorX += availableMainSpace;
+     else cursorY += availableMainSpace;
+  }
 
-  leaves.forEach((child, i) => {
+  children.forEach((child, i) => {
     let { w, h } = sizes[i];
     
     // Process fill sizing for children
     const childSizing = child.autoLayout?.sizing;
+    let overrideWidth, overrideHeight;
+    
     if (childSizing) {
       if (isRow && childSizing.width === 'fill') {
-        // Divide remaining space equally among all 'fill' children
-        const fillChildrenCount = leaves.filter(l => l.autoLayout?.sizing?.width === 'fill').length;
+        const fillChildrenCount = children.filter(l => l.autoLayout?.sizing?.width === 'fill').length;
         if (fillChildrenCount > 0) {
-           const availableSpace = parentW - (totalAxisSize - w) - pad * 2;
-           w = Math.max(0, availableSpace / fillChildrenCount);
+           const occupiedSpace = totalAxisSize - w - (spacing * (children.length - 1));
+           w = Math.max(0, (parentW - pl - pr - occupiedSpace - (actualSpacing * (children.length - 1))) / fillChildrenCount);
+           overrideWidth = w;
         }
       }
       if (!isRow && childSizing.height === 'fill') {
-        const fillChildrenCount = leaves.filter(l => l.autoLayout?.sizing?.height === 'fill').length;
+        const fillChildrenCount = children.filter(l => l.autoLayout?.sizing?.height === 'fill').length;
         if (fillChildrenCount > 0) {
-           const availableSpace = parentH - (totalAxisSize - h) - pad * 2;
-           h = Math.max(0, availableSpace / fillChildrenCount);
+           const occupiedSpace = totalAxisSize - h - (spacing * (children.length - 1));
+           h = Math.max(0, (parentH - pt - pb - occupiedSpace - (actualSpacing * (children.length - 1))) / fillChildrenCount);
+           overrideHeight = h;
         }
       }
       if (isRow && childSizing.height === 'fill') {
-        h = parentH - pad * 2;
+        h = parentH - pt - pb;
+        overrideHeight = h;
       }
       if (!isRow && childSizing.width === 'fill') {
-        w = parentW - pad * 2;
+        w = parentW - pl - pr;
+        overrideWidth = w;
       }
     }
 
     let x: number, y: number;
 
     if (isRow) {
-      x = cursor;
-      switch (alignment) {
-        case 'start':
-          y = pad;
-          break;
-        case 'end':
-          y = parentH - pad - h;
-          break;
-        case 'center':
-        default:
-          y = (parentH - h) / 2;
-          break;
+      x = cursorX;
+      if (alignment === 'start') {
+        y = pt;
+      } else if (alignment === 'end') {
+        y = parentH - pb - h;
+      } else {
+        y = pt + ((parentH - pt - pb) - h) / 2;
       }
-      cursor += w + spacing;
+      cursorX += w + actualSpacing;
     } else {
-      y = cursor;
-      switch (alignment) {
-        case 'start':
-          x = pad;
-          break;
-        case 'end':
-          x = parentW - pad - w;
-          break;
-        case 'center':
-        default:
-          x = (parentW - w) / 2;
-          break;
+      y = cursorY;
+      if (alignment === 'start') {
+        x = pl;
+      } else if (alignment === 'end') {
+        x = parentW - pr - w;
+      } else {
+        x = pl + ((parentW - pl - pr) - w) / 2;
       }
-      cursor += h + spacing;
+      cursorY += h + actualSpacing;
     }
 
     updates[child.id] = {
       x: (parentLayer.x || 0) + x,
       y: (parentLayer.y || 0) + y,
-      ...(childSizing ? { width: w, height: h } : {})
+      ...(overrideWidth !== undefined ? { width: overrideWidth } : {}),
+      ...(overrideHeight !== undefined ? { height: overrideHeight } : {})
     } as any;
   });
 
   // Apply parent resizing
   const parentUpdates: any = {};
-  if (isWidthHug) parentUpdates.width = parentW;
-  if (isHeightHug) parentUpdates.height = parentH;
+  if (isWidthHug) parentUpdates.width = huggedW;
+  if (isHeightHug) parentUpdates.height = huggedH;
   
   if (Object.keys(parentUpdates).length > 0) {
     (updates as any)[parentLayer.id] = parentUpdates;
   }
 
   return updates;
-}
-
-/**
- * Collect all leaf (non-group) layers from a set of children, recursively.
- */
-function collectLeaves(children: Layer[], allLayers: Layer[]): Layer[] {
-  const leaves: Layer[] = [];
-  for (const child of children) {
-    if (child.autoLayout) {
-      // This child is itself an auto-layout group — recurse
-      const grandChildren = allLayers.filter((l) => l.groupId === child.id);
-      leaves.push(...collectLeaves(grandChildren, allLayers));
-    } else {
-      leaves.push(child);
-    }
-  }
-  return leaves;
 }
 
 /**
