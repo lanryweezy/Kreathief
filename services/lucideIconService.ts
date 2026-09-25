@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fuzzyMatch } from '../utils/search';
 
 export interface LucideIconResult {
   name: string;
@@ -90,7 +91,7 @@ async function fetchIcons(query: string): Promise<LucideIconResult[]> {
     if (!q) {
       return true;
     }
-    return item.name.includes(q) || item.tags.some((t) => t.includes(q));
+    return fuzzyMatch(q, item.name) || item.tags.some((t) => fuzzyMatch(q, t));
   }).map((item) => ({
     name: item.name,
     svg: getFallbackLucideSVG(item.name),

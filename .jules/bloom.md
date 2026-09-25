@@ -103,3 +103,8 @@
 
 **Learning:** The style search functionality (`searchStyles` in `services/designStyleDatabase.ts`) relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific design styles, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
+
+## 2024-09-25 - Typo-tolerant Lucide Icon Search
+
+**Learning:** The fallback icon search functionality in `services/lucideIconService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific icons, degrading the search experience.
+**Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
