@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Icons, CANVAS_SIZE_PRESETS } from '../constants';
 import { CanvasSize } from '../types';
 import { useStore } from '../store/useStore';
@@ -29,7 +29,21 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
     }
   };
 
-  const categories = Array.from(new Set(CANVAS_SIZE_PRESETS.map((p) => p.category)));
+  // ⚡ Bolt Optimization: Pre-categorize sizes to avoid inline O(N) array creation and filtering during render
+  const { categories, presetsByCategory } = useMemo(() => {
+    const cats: string[] = [];
+    const grouped: Record<string, typeof CANVAS_SIZE_PRESETS> = {};
+
+    for (const preset of CANVAS_SIZE_PRESETS) {
+      if (!grouped[preset.category]) {
+        grouped[preset.category] = [];
+        cats.push(preset.category);
+      }
+      grouped[preset.category].push(preset);
+    }
+
+    return { categories: cats, presetsByCategory: grouped };
+  }, []);
 
   return (
     <div className="relative">
@@ -82,7 +96,7 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                   {cat}
                 </div>
                 <div className="space-y-0.5">
-                  {CANVAS_SIZE_PRESETS.filter((p) => p.category === cat).map((preset) => (
+                  {presetsByCategory[cat].map((preset) => (
                     <button
                       key={preset.id}
                       onClick={() => {
