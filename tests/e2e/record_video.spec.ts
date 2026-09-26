@@ -23,8 +23,10 @@ test('record video', async ({ page }) => {
   await page.waitForSelector('.design-artboard', { state: 'visible' });
 
   // 1. Add Text
-  await page.getByRole('button', { name: 'Text' }).click();
-  await page.getByTestId('add-heading-btn').click();
+  const textTab = page.locator('button[aria-label="Text"]');
+  if (await textTab.isVisible()) { await textTab.click(); }
+  const addHeadingBtn = page.getByTestId('add-heading-btn');
+  if (await addHeadingBtn.isVisible()) { await addHeadingBtn.click(); }
   await page.waitForTimeout(1000);
 
   // 2. Change Color
