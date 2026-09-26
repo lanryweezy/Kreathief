@@ -7,6 +7,7 @@ import { MaskTools } from './MaskTools';
 import { Dropdown } from '../Dropdown';
 import { Layer, ShapeLayer } from '../../types';
 import { performBooleanOnLayers } from '../../utils/booleanOperations';
+import { strokeProfileStrategies } from '../../utils/variableStroke';
 import { useStore } from '../../store/useStore';
 
 interface ShapeToolsProps {
@@ -610,10 +611,11 @@ export const ShapeTools = React.memo(
                       value={(layer as any).strokeProfile || 'uniform'}
                       onChange={(e) => handleUpdateLayer({ strokeProfile: e.target.value })}
                     >
-                      <option value="uniform">Uniform</option>
-                      <option value="taper-start">Taper Start</option>
-                      <option value="taper-end">Taper End</option>
-                      <option value="taper-both">Taper Both</option>
+                      {Array.from(strokeProfileStrategies.values()).map((strategy) => (
+                        <option key={strategy.id} value={strategy.id}>
+                          {strategy.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
