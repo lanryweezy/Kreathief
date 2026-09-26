@@ -106,7 +106,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
       const changes: any = { [field]: num };
 
       if (isAspectRatioLocked) {
-        const ratio = l.width / ((l as any).height || l.width);
+        const ratio = l.width / (l.height || l.width);
         if (field === 'width') {
           changes.height = num / ratio;
         } else if (field === 'height') {
@@ -173,7 +173,7 @@ export const ArrangePanel: React.FC<ArrangePanelProps> = () => {
               <span className="text-[10px] text-gray-400">Height</span>
               <input
                 type="number"
-                value={Math.round((firstLayer as any).height || firstLayer.width)}
+                value={Math.round(firstLayer.height || firstLayer.width)}
                 onChange={(e) => handleInputChange('height' as any, e.target.value)}
                 className="w-full bg-black/20 border border-white/10 rounded px-2 py-1.5 text-xs text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500/50 hover:border-brand-500/50 hover:bg-black/30 transition-all outline-none"
               />
