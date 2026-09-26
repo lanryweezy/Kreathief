@@ -120,7 +120,7 @@ export const TransformTools = React.memo(({ selectedLayer }: TransformToolsProps
           {selectedLayer.type !== 'text' && (
             <CompactInput
               label="H"
-              value={pxToUnit((selectedLayer as any).height || 0, unit)}
+              value={pxToUnit(selectedLayer.height || 0, unit)}
               onChange={(e: any) => handleUnitChange('height', e.target.value)}
               min={1}
               width="w-14 sm:w-16"
