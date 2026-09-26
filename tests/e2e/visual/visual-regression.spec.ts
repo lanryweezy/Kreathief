@@ -65,7 +65,7 @@ test.describe('Visual Regression Tests', () => {
   });
 
   test('should match toolbar screenshot', async () => {
-    const toolbar = editor.toolbar;
+    const toolbar = editor.page.locator('#toolbar, [data-testid="toolbar"], .toolbar').first();
     await expect(toolbar).toBeVisible();
 
     // Take screenshot of toolbar
