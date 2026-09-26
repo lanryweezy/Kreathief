@@ -1,3 +1,4 @@
+import { fuzzyMatch } from "../utils/search";
 /**
  * Fallback curated stock photo library for offline and standalone dev environments.
  * Provides high-resolution, CORS-safe photography across multiple categories when server APIs are unavailable.
@@ -363,8 +364,8 @@ export function getFallbackPhotos(query: string, provider: string): any[] {
     if (isDefault) {
       return true;
     }
-    const inAlt = photo.alt.toLowerCase().includes(q);
-    const inTags = photo.tags.some((tag) => tag.toLowerCase().includes(q) || q.includes(tag.toLowerCase()));
+    const inAlt = fuzzyMatch(q, photo.alt);
+    const inTags = photo.tags.some((tag) => fuzzyMatch(q, tag) || fuzzyMatch(tag, q));
     return inAlt || inTags;
   });
 
