@@ -214,3 +214,8 @@
 
 **Learning:** Chaining array operations like `.filter().map()` inline within a JSX render block forces the creation of multiple intermediate arrays on every render cycle. When these elements belong to frequently updated panels (e.g., rendering shape libraries in ElementsPanel), it triggers high garbage collection pressure which can cause stuttering during UI interactions.
 **Action:** Instead of inline chained operations, use a `useMemo` block with a single imperative `for` loop to pre-categorize or pre-filter arrays into a dictionary, and then directly map over these pre-computed subsets in the JSX.
+
+## 2026-09-09 - Avoid recalculating static constants in React components
+
+**Learning:** When removing inline array operations (like chained `.filter().map()`) from JSX render blocks by extracting them, wrapping the extraction in a `useMemo` block inside the component still causes the array to be allocated and the loop to run every time the component mounts. If the data source is a static constant imported from outside (like `CANVAS_SIZE_PRESETS`), this is unnecessary overhead.
+**Action:** Move the pre-computation logic (e.g., categorizing an array into a dictionary) completely outside of the React component's scope using an IIFE (Immediately Invoked Function Expression). This ensures the work is done exactly once per application load, maximizing rendering performance and avoiding remount recalculation penalties.
