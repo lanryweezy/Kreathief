@@ -546,16 +546,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     set({ isGenerating: true });
     try {
       const currentText = (layer as TextLayer).text;
-      
-      const systemPrompt = `You are a world-class Brand Voice Copywriter for a design tool. 
-Your job is to rewrite the user's text based on their instruction.
-If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
 
-Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
+      const response = await geminiService.rewriteTextTone(currentText, instruction);
 
-      const fullInstruction = `System: ${systemPrompt}\n\nInstruction: ${instruction}`;
-      const response = await geminiService.generateText(currentText, fullInstruction);
-      
       updateLayer(id, { text: response.trim() });
       get().addToast?.('Magic Rewrite applied!', 'success');
     } catch (error) {
@@ -575,18 +568,10 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
     set({ isGenerating: true });
     try {
       const currentText = (layer as TextLayer).text;
-      
-      const systemPrompt = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
-      
-Choose ONLY ONE from this curated list of premium Google Fonts:
-[Inter, Playfair Display, Space Grotesk, Syne, Anton, Oswald, Roboto Mono, Archivo Black, Cinzel, Bebas Neue, Lora, Montserrat, Outfit, Plus Jakarta Sans, Clash Display]
 
-Return ONLY the exact font name. Nothing else.`;
-
-      const fullInstruction = `${systemPrompt}\n\nInstruction: Suggest a font for this text`;
-      const suggestedFont = await geminiService.generateText(currentText, fullInstruction);
+      const suggestedFont = await geminiService.suggestTypographyForText(currentText);
       const cleanFont = suggestedFont.replace(/["']/g, '').trim();
-      
+
       saveToHistory?.();
       updateLayer(textLayerId, { fontFamily: cleanFont });
       get().addToast?.(`Font updated to ${cleanFont}`, 'success');
@@ -769,7 +754,7 @@ Return ONLY the exact font name. Nothing else.`;
         return { id: l.id, type: l.type, currentName: l.name, content };
       });
 
-      const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma). 
+      const prompt = `You are an expert UI designer. Rename these layers to be extremely logical, concise, and semantic (like Figma).
 Layers: ${JSON.stringify(layerSummaries)}`;
 
       const data = await geminiService.callBackendGeminiAPI({

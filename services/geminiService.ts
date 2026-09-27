@@ -274,6 +274,70 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
   }
 };
 
+export const rewriteTextTone = async (text: string, instruction: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are a world-class Brand Voice Copywriter for a design tool.
+Your job is to rewrite the user's text based on their instruction.
+If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
+
+Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+    const sanitizedInstruction = instruction.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The rewritten text',
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Original Text: "${sanitizedText}"\nInstruction: "${sanitizedInstruction}"` }] }],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || text;
+  } catch (error) {
+    log.error('rewriteTextTone Error:', error);
+    throw error;
+  }
+};
+
+export const suggestTypographyForText = async (text: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
+
+Choose ONLY ONE from this curated list of premium Google Fonts:
+[Inter, Playfair Display, Space Grotesk, Syne, Anton, Oswald, Roboto Mono, Archivo Black, Cinzel, Bebas Neue, Lora, Montserrat, Outfit, Plus Jakarta Sans, Clash Display]
+
+Return ONLY the exact font name. Nothing else.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The exact name of the suggested font',
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Text: "${sanitizedText}"` }] }],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || 'Inter';
+  } catch (error) {
+    log.error('suggestTypographyForText Error:', error);
+    return 'Inter';
+  }
+};
+
 export const generateText = async (
   currentText: string,
   instruction: string = 'Rewrite this to be more creative and catchy.'
