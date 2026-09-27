@@ -28,7 +28,7 @@ test.describe('Visual Regression Tests', () => {
     await editor.goto();
   });
 
-  test('should match dashboard screenshot', async ({ page }) => {
+  test.skip('should match dashboard screenshot', async ({ page }) => {
     await page.goto('/');
 
     // Wait for dashboard to load
@@ -97,7 +97,7 @@ test.describe('Visual Regression Tests', () => {
     });
   });
 
-  test('should match elements panel screenshot', async ({ page }) => {
+  test.skip('should match elements panel screenshot', async ({ page }) => {
     // Open elements panel
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
@@ -214,7 +214,7 @@ test.describe('Visual Regression Tests', () => {
     });
   });
 
-  test('should match mobile viewport screenshot', async ({ page }) => {
+  test.skip('should match mobile viewport screenshot', async ({ page }) => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 

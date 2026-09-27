@@ -23,7 +23,7 @@ test('record video', async ({ page }) => {
   await page.waitForSelector('.design-artboard', { state: 'visible' });
 
   // 1. Add Text
-  const textTab = page.locator('button[aria-label="Text"]');
+  const textTab = page.locator('button[aria-label="Text"]').first();
   if (await textTab.isVisible()) { await textTab.click(); }
   const addHeadingBtn = page.getByTestId('add-heading-btn');
   if (await addHeadingBtn.isVisible()) { await addHeadingBtn.click(); }
