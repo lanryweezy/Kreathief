@@ -150,14 +150,14 @@ body {
 .text-display {
   font-size: var(--font-display);
   line-height: 56px;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.02em;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.04em;
 }
 .text-h1 {
   font-size: var(--font-h1);
   line-height: 40px;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.01em;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.03em;
 }
 .text-h2 {
   font-size: var(--font-h2);
@@ -496,4 +496,30 @@ select {
   border-radius: var(--radius-full);
   background: var(--color-content-tertiary);
   animation: breathe 2s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   3D TRANSFORM UTILITIES
+   ═══════════════════════════════════════════════════════════════ */
+
+@layer utilities {
+  .perspective-1000 { perspective: 1000px; }
+  .transform-style-3d { transform-style: preserve-3d; }
+  .translate-z-10 { transform: translateZ(10px); }
+  .translate-z-20 { transform: translateZ(20px); }
+  .translate-z-\[-20px\] { transform: translateZ(-20px); }
+  .rotate-x-12 { transform: rotateX(12deg); }
+  .-rotate-y-12 { transform: rotateY(-12deg); }
+  .rotate-y-12 { transform: rotateY(12deg); }
+  
+  .animate-text-gradient {
+    background-size: 200% auto;
+    animation: textGradient 5s linear infinite;
+  }
+}
+
+@keyframes textGradient {
+  to {
+    background-position: 200% center;
+  }
 }

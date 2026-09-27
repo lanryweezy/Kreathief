@@ -33,6 +33,13 @@ export interface ModelCapabilities {
   rasterToVector: boolean;
   upscaling: boolean;
   inpainting: boolean;
+  /**
+   * Model generates images with a native alpha/transparency channel (RGBA).
+   * When true the design agent dispatches hero-cutout layers directly to this
+   * model and skips the secondary Freepik background-removal round-trip.
+   * Enabled for Qwen-Image-2.1 (64-channel RGBA autoencoder, A=0 for transparent areas).
+   */
+  nativeTransparency: boolean;
 }
 
 /** Which body field the endpoint expects the input image(s) in. */
@@ -81,7 +88,9 @@ const TEXT_ONLY: ModelCapabilities = {
   rasterToVector: false,
   upscaling: false,
   inpainting: false,
+  nativeTransparency: false,
 };
+
 
 /** Text-to-image models that also accept a reference image and support editing. */
 const REFERENCE_CAPABLE: ModelCapabilities = {
@@ -379,7 +388,18 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
 export const DEFAULT_IMAGE_MODEL = 'flux-1-1-pro-ultra';
 
 /** Default backend for prompt-driven edits when the caller has no model preference. */
-export const DEFAULT_EDIT_MODEL = 'nano-banana-2';
+export const DEFAULT_EDIT_MODEL = 'nano-banana-2';
+
+/**
+ * Design Agent specialist routing constants — change here to swap models per layer role.
+ */
+/** Hero-cutout layers → native RGBA transparent PNG; no secondary bg-removal round-trip. */
+export const DEFAULT_CUTOUT_MODEL = 'qwen-image-2-1';
+/** Vector accent layers → pure editable SVG paths via Recraft V3. */
+export const DEFAULT_VECTOR_ACCENT_MODEL = 'recraft-v3-svg';
+/** Background layers → photorealistic/atmospheric raster stage (must contain no text). */
+export const DEFAULT_BACKGROUND_MODEL = 'flux-1-1-pro-ultra';
+
 
 export const getImageModel = (modelId?: string): ImageGenModel | undefined =>
   IMAGE_GEN_MODELS.find((m) => m.id === modelId);

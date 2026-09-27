@@ -90,7 +90,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
   return (
     <section id="templates" className="py-36 relative bg-[#08080d] overflow-hidden">
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.06] pointer-events-none" />
-      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-purple-600/10 blur-[180px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-neutral-600/10 blur-[180px] rounded-full pointer-events-none" />
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
         {/* Header */}
@@ -103,7 +103,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
               className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tighter text-white leading-[0.95]"
             >
               Studio-grade styles. <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-300 to-neutral-500">
                 Instantly customizable.
               </span>
             </motion.h2>
@@ -115,6 +115,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
               <button
                 key={cat}
                 onClick={() => setActiveTab(cat)}
+                aria-pressed={activeTab === cat}
                 className={`px-4 py-2 rounded-full text-xs font-mono font-bold tracking-wide uppercase transition-all shrink-0 ${
                   activeTab === cat
                     ? 'bg-white text-black shadow-lg shadow-white/20'
@@ -138,7 +139,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.94 }}
                 transition={{ duration: 0.45, delay: idx * 0.05 }}
-                className="group relative rounded-[32px] overflow-hidden border border-white/10 hover:border-purple-500/50 bg-[#0e0e16] shadow-2xl transition-all duration-700 cursor-pointer"
+                className="group relative rounded-[32px] overflow-hidden border border-white/10 hover:border-neutral-500/50 bg-[#0e0e16] shadow-2xl transition-all duration-700 cursor-pointer"
                 onClick={onGetStarted}
               >
                 {/* Artwork Preview */}
@@ -146,7 +147,10 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
                   <img
                     src={item.src}
                     alt={item.title}
+                    width="320"
+                    height="426"
                     loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover filter brightness-[0.92] group-hover:brightness-105 group-hover:scale-105 transition-all duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
@@ -162,7 +166,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
                 {/* Bottom Interactive Layer */}
                 <div className="absolute bottom-0 inset-x-0 p-6 z-10 flex items-end justify-between">
                   <div>
-                    <h3 className="text-white font-black text-lg tracking-tight mb-1 group-hover:text-purple-300 transition-colors">
+                    <h3 className="text-white font-black text-lg tracking-tight mb-1 group-hover:text-neutral-300 transition-colors">
                       {item.title}
                     </h3>
                     <p className="text-neutral-400 text-xs font-mono">

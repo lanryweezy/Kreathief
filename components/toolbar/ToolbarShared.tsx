@@ -1,16 +1,15 @@
 import React from 'react';
-import { evaluate } from 'mathjs';
 import { Icons } from '../../constants';
 import { log } from '../../utils/log';
 
 const safeEvaluate = (expr: string): number => {
   const sanitized = expr.replace(/[^-()\d/*+.]/g, '');
-  if (!sanitized) {
+  if (!sanitized || !/^[\d\s+\-*/.()]+$/.test(sanitized)) {
     return NaN;
   }
   try {
-    const result = evaluate(sanitized);
-    return typeof result === 'number' ? result : Number(result);
+    const result = new Function(`"use strict"; return (${sanitized});`)();
+    return typeof result === 'number' && !isNaN(result) ? result : NaN;
   } catch (error) {
     log.error('[ToolbarShared] safeEvaluate failed', error, { expr, sanitized });
     return NaN;

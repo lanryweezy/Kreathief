@@ -167,7 +167,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
         <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3 max-h-[200px] overflow-y-auto no-scrollbar shadow-inner">
           <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Logic Trace</span>
           <div className="space-y-2">
-            {thinkingLog.slice(-12).map((event: any) => (
+            {(thinkingLog || []).slice(-12).map((event: any) => (
               <div key={event.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
                 <div className="w-1 bg-purple-500/30 rounded-full shrink-0" />
                 <div>
@@ -188,11 +188,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
   return (
     <div className="flex flex-col h-full bg-surface-dark-3 border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
       {/* Header */}
-      <div className="p-6 border-b border-white/5 bg-surface-dark-3/50 backdrop-blur-xl flex items-center justify-between">
-        <h3 className="font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] text-xs">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 flex items-center justify-center shadow-lg shadow-purple-500/20">
-            <AgentIcons.Sparkles className="w-5 h-5 text-white" />
-          </div>
+      <div className="px-6 py-4 border-b border-white/5 bg-surface-dark-3 flex items-center justify-between">
+        <h3 className="font-medium text-white flex items-center gap-2 text-sm tracking-wide">
           Agent
         </h3>
         {agentStatus !== 'idle' && (
@@ -210,45 +207,46 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
         {/* Splash screen if nothing is active */}
         {agentStatus === 'idle' && conversationHistory.length === 0 && !isAnalyzing && (
           <div className="space-y-6 pt-6 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-brand-600 to-purple-800 rounded-2xl mx-auto flex items-center justify-center shadow-xl shadow-purple-900/40">
-              <AgentIcons.Sparkles className="w-8 h-8 text-white animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-white uppercase tracking-wider">
-                Agent
-              </h2>
-              <p className="text-gray-400 text-[11px] mt-1.5 font-medium max-w-[240px] mx-auto leading-relaxed">
-                Describe your vision. The AI will generate a complete, multi-slide campaign instantly.
-              </p>
-            </div>
+
 
             {/* Magic Tools Hub (Unified UI) */}
-            <div className="pt-4 text-left space-y-2">
-              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block px-1">
+            <div className="pt-2 text-left space-y-3">
+              <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest block px-1">
                 Magic Tools
               </span>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   onClick={() => document.dispatchEvent(new CustomEvent('open-magic-image'))}
-                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors"
+                  className="group relative bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-purple-500/30 p-3 rounded-2xl flex flex-col items-center gap-2 transition-all duration-300 overflow-hidden backdrop-blur-md"
                 >
-                  <AgentIcons.Image className="w-5 h-5 text-blue-400" />
-                  <span className="text-[9px] font-bold text-gray-300 uppercase">Magic Image</span>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <AgentIcons.Image className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="flex flex-col items-center z-10">
+                    <span className="text-[10px] font-medium text-gray-200 mt-1">Image</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Generate & Edit</span>
+                  </div>
                 </button>
                 <button
                   onClick={() => document.dispatchEvent(new CustomEvent('open-text-agent'))}
-                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors"
+                  className="group relative bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-purple-500/30 p-3 rounded-2xl flex flex-col items-center gap-2 transition-all duration-300 overflow-hidden backdrop-blur-md"
                 >
-                  <AgentIcons.Wand className="w-5 h-5 text-orange-400" />
-                  <span className="text-[9px] font-bold text-gray-300 uppercase">Brand Writer</span>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <AgentIcons.Wand className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="flex flex-col items-center z-10">
+                    <span className="text-[10px] font-medium text-gray-200 mt-1">Writer</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Brand Copy</span>
+                  </div>
                 </button>
                 <button
                   onClick={() => document.dispatchEvent(new CustomEvent('open-video-agent'))}
-                  className="bg-surface-dark-4 hover:bg-surface-dark-2 border border-white/5 p-3 rounded-xl flex flex-col items-center gap-2 transition-colors relative overflow-hidden group"
+                  className="group relative bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.05] hover:border-purple-500/30 p-3 rounded-2xl flex flex-col items-center gap-2 transition-all duration-300 overflow-hidden backdrop-blur-md"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-brand-500/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <AgentIcons.Play className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                  <span className="text-[9px] font-bold text-gray-300 uppercase">Magic Video</span>
+                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <AgentIcons.Play className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
+                  <div className="flex flex-col items-center z-10">
+                    <span className="text-[10px] font-medium text-gray-200 mt-1">Video</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Animate</span>
+                  </div>
                 </button>
               </div>
             </div>
@@ -485,14 +483,22 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
       </div>
 
       {/* Input Tray */}
-      <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
+      <div className="p-6 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
+        {/* Pre-populated Prompt Chips */}
+        {agentStatus === 'idle' && !input && (
+          <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+            <button onClick={() => setInput('A 5-slide pitch deck for Nova Africa AI')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ 5-Slide Pitch Deck</button>
+            <button onClick={() => setInput('A minimalist Instagram Ad Campaign for a sneaker drop')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Instagram Ad Campaign</button>
+            <button onClick={() => setInput('A cinematic event flyer for a Tech Summit')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Tech Summit Flyer</button>
+          </div>
+        )}
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
           
           {styleReference && (
             <div className="flex items-center gap-2 mb-2 p-2 bg-black/40 rounded-lg mx-2 mt-2">
               <img src={styleReference.image} alt="Reference" className="w-8 h-8 rounded-md object-cover border border-white/10" />
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-bold text-white truncate">{styleReference.name || 'Visual Reference'}</div>
+                <div className="text-[10px] font-medium text-white truncate">{styleReference.name || 'Visual Reference'}</div>
                 <div className="text-[9px] text-brand-400">Remix Mode Active</div>
               </div>
               <button onClick={clearStyleReference} className="p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10">
@@ -501,29 +507,38 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
             </div>
           )}
 
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleStartWorkflow();
+          <div className="flex items-start gap-2">
+            <button 
+              className="mt-2 ml-2 p-2 bg-white/5 hover:bg-brand-500/20 rounded-xl text-gray-400 hover:text-brand-400 border border-white/5 hover:border-brand-500/50 transition-all shrink-0 group"
+              title="Add Context or Brand Assets"
+            >
+              {/* Replaced Plus with Paperclip SVG */}
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 group-hover:scale-110 transition-transform"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleStartWorkflow();
+                }
+              }}
+              placeholder={
+                agentStatus === 'clarifying'
+                  ? 'Type your answer, or tap an option above…'
+                  : "Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
               }
-            }}
-            placeholder={
-              agentStatus === 'clarifying'
-                ? 'Type your answer, or tap an option above…'
-                : "Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
-            }
-            className="w-full h-24 bg-transparent resize-none p-3 text-xs text-white placeholder-gray-500 focus:outline-none custom-scrollbar"
-            disabled={agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'clarifying' && agentStatus !== 'error'}
-          />
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+              className="w-full h-24 bg-transparent resize-none py-3 pr-3 text-sm text-white placeholder-gray-500 focus:outline-none custom-scrollbar"
+              disabled={agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'clarifying' && agentStatus !== 'error'}
+            />
+          </div>
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 px-1 pb-1">
             <div className="flex gap-2">
               <button
                 onClick={() => analyzeCurrentDesign()}
                 disabled={isAnalyzing}
-                className="px-2.5 py-1.5 flex items-center gap-1.5 bg-white/5 hover:bg-brand-500/20 rounded-lg text-[9px] font-black text-gray-400 hover:text-brand-400 uppercase tracking-widest transition-colors disabled:opacity-40"
+                className="px-4 py-1.5 flex items-center gap-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-[10px] font-medium text-gray-300 hover:text-white transition-colors disabled:opacity-40"
               >
                 <AgentIcons.Check className="w-3 h-3" />
                 Critique
@@ -534,7 +549,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 onClick={handleSendChat}
                 disabled={!input.trim() || isAnalyzing}
                 aria-label="Send Chat Message"
-                className="px-3 py-1.5 bg-white/10 hover:bg-white/20 rounded-lg text-[10px] font-bold text-white transition-colors disabled:opacity-30 disabled:grayscale flex items-center gap-1.5"
+                className="px-4 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] font-medium text-gray-300 hover:text-white transition-colors disabled:opacity-30 disabled:grayscale flex items-center gap-1.5"
               >
                 Chat
               </button>
@@ -542,10 +557,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
                 onClick={handleStartWorkflow}
                 disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error' && agentStatus !== 'clarifying')}
                 aria-label={agentStatus === 'clarifying' ? 'Answer the agent' : 'Start AI Design Workflow'}
-                className="px-3 py-1.5 bg-gradient-to-br from-brand-600 to-brand-400 rounded-lg flex items-center justify-center text-white shadow-lg shadow-purple-500/30 disabled:opacity-30 disabled:grayscale hover:scale-105 transition-transform group text-[10px] font-bold gap-1.5"
+                className="px-4 py-1.5 bg-brand-500 hover:bg-brand-400 rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] font-bold text-[10px] gap-1.5 transition-all disabled:opacity-30 disabled:grayscale"
               >
                 Generate
-                <AgentIcons.Sparkles className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                <AgentIcons.Sparkles className="w-3 h-3" />
               </button>
             </div>
           </div>

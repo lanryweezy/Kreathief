@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Core Pages -->
   <url>
     <loc>https://kreathief.com/</loc>
     <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools</loc>
+    <priority>0.95</priority>
     <changefreq>weekly</changefreq>
   </url>
   <url>
@@ -10,6 +16,80 @@
     <priority>0.5</priority>
     <changefreq>monthly</changefreq>
   </url>
+
+  <!-- High-Intent Programmatic Creative Tools (SEO Landing Pages) -->
+  <url>
+    <loc>https://kreathief.com/tools/magic-eraser</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/background-remover</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/mockup-generator</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/vectorizer</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/smart-resize</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/design-styles</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/image-upscaler</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/ai-image-generator</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/ai-expand-image</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/image-to-video</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/change-background</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/remove-object-from-photo</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/product-staging</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/tools/ai-photo-editor</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Blog & Educational Content -->
   <url>
     <loc>https://kreathief.com/blog</loc>
     <priority>0.8</priority>
@@ -64,5 +144,37 @@
     <loc>https://kreathief.com/blog/building-a-brand-kit</loc>
     <priority>0.7</priority>
     <changefreq>monthly</changefreq>
+  </url>
+
+  <!-- Static Trust & Legal Pages -->
+  <url>
+    <loc>https://kreathief.com/about</loc>
+    <priority>0.6</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/privacy</loc>
+    <priority>0.4</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/terms</loc>
+    <priority>0.4</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/security</loc>
+    <priority>0.5</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/help</loc>
+    <priority>0.6</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://kreathief.com/changelog</loc>
+    <priority>0.6</priority>
+    <changefreq>weekly</changefreq>
   </url>
 </urlset>

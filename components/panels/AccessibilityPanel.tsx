@@ -38,16 +38,24 @@ export const AccessibilityPanel: React.FC = () => {
   const handleApplyFix = (issue: DesignLintIssue, e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (issue.autoFix) {
+      useStore.getState().saveToHistory?.();
       updateLayer(issue.layerId, issue.autoFix.patch);
+      useStore.getState().addToast?.(`Auto-fixed: ${issue.autoFix.label}`, 'success');
     }
   };
 
   const handleFixAll = () => {
+    if (fixableIssues.length === 0) return;
+    useStore.getState().saveToHistory?.();
     for (const issue of fixableIssues) {
       if (issue.autoFix) {
         updateLayer(issue.layerId, issue.autoFix.patch);
       }
     }
+    useStore.getState().addToast?.(
+      `Applied ${fixableIssues.length} design auto-fixes! Canvas health restored.`,
+      'success'
+    );
   };
 
   const getSeverityBadge = (severity: 'error' | 'warning' | 'info') => {
@@ -89,6 +97,32 @@ export const AccessibilityPanel: React.FC = () => {
 
       {activeTab === 'linter' ? (
         <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 p-4">
+          {/* Critical Health Warning Banner if score < 80 */}
+          {score < 80 && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between gap-3 animate-in fade-in">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
+                  <Icons.AlertTriangle className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-white leading-tight">Design Health Warning ({score}%)</p>
+                  <p className="text-[10px] text-red-300/80 leading-normal">
+                    {issues.filter((i) => i.severity === 'error').length} critical defects require attention.
+                  </p>
+                </div>
+              </div>
+              {fixableIssues.length > 0 && (
+                <button
+                  onClick={handleFixAll}
+                  className="px-3 py-1.5 bg-red-500 hover:bg-red-400 text-white rounded-lg text-[10px] font-black tracking-wider uppercase flex items-center gap-1.5 transition-all shadow-md shrink-0"
+                >
+                  <Icons.Zap className="w-3 h-3" />
+                  Fix All
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Summary Metric Ribbon */}
           <div className="grid grid-cols-4 gap-1.5 p-2 bg-black/40 rounded-xl border border-white/5 text-center">
             <div>

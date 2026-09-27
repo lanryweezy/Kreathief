@@ -9,6 +9,7 @@ import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
 import { classifyStyleFromPrompt, getStyleById, DesignStyleEntry } from './designStyleDatabase';
 import { generateImageWithModel } from './imageGenService';
+import { DEFAULT_CUTOUT_MODEL, DEFAULT_VECTOR_ACCENT_MODEL, DEFAULT_BACKGROUND_MODEL } from '../config/imageModels';
 import { vectorTracer } from './vectorTracer';
 import { removeBackground as freepikRemoveBackground } from './freepikService';
 
@@ -25,7 +26,18 @@ export interface DesignBlueprintLayer {
   type: 'shape' | 'text' | 'generated-image' | 'background' | 'gradient' | 'svg-icon' | 'group';
   name: string;
   zIndex: number;
+  /**
+   * Specialist role — the asset router dispatches each layer to its dedicated model:
+   *   'background'    → FLUX.1.1 Pro Ultra (atmospheric stage, zero text)
+   *   'vector-accent' → Recraft V3 SVG (pure editable vector paths)
+   *   'hero-cutout'   → Qwen-Image-2.1 (native RGBA transparent PNG)
+   *   'typography'    → Kreathief native canvas text engine
+   *   'cta'           → canvas shape + text engine
+   * Absent = legacy image gen path + optional Freepik background removal.
+   */
+  role?: 'background' | 'vector-accent' | 'hero-cutout' | 'typography' | 'cta';
   properties: {
+
     // Shape properties
     fill?: string;
     gradient?: Gradient;
@@ -2828,79 +2840,125 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
  * Converts user brief into a structured JSON blueprint
  * ============================================
  */
-const DESIGN_PLANNER_SYSTEM_INSTRUCTION = `You are a Senior Art Director with 15 years of experience at top design agencies.
+const DESIGN_PLANNER_SYSTEM_INSTRUCTION = `You are a Senior Art Director with 20 years of experience at top design agencies (Nike, Supreme, Apple, A$AP Mob). You think like a Figma power-user — every design is a clean LAYER STACK, never a flat image.
 
-Your job is to create a DETAILED DESIGN BLUEPRINT from a user's brief. The blueprint defines WHAT the design should contain and how it should be laid out.
+═══════════════════════════════════════════════════════════════════════════════
+THE HUMAN GRAPHIC DESIGNER LAYER PARADIGM (YOU MUST FOLLOW THIS ALWAYS)
+═══════════════════════════════════════════════════════════════════════════════
 
-OUTPUT REQUIREMENTS:
-Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
+A real designer builds designs as a depth sandwich of independent specialist layers:
 
+  Layer 0 — BACKGROUND (role: "background")
+    A clean atmospheric stage: gradients, mesh, full-bleed raster texture.
+    MUST contain ZERO text, ZERO logos, ZERO readable content.
+    Routed to: FLUX.1.1 Pro Ultra (photorealistic atmospheric backdrops).
+
+  Layer 1 — VECTOR ACCENTS (role: "vector-accent")  
+    Brand marks, geometric frames, abstract badges, stickers, dividers, SVG icons.
+    These are PURE EDITABLE SVG PATHS — anchor points, strokes, fills are all live.
+    Use type "generated-image" with role "vector-accent" for these.
+    Prompt style: "Abstract cyberpunk geometric badge, sharp angular frame, minimal flat vector style, single color #00FFA3, no background"
+    Routed to: Recraft V3 (native SVG, zero background removal needed).
+
+  Layer 2 — HERO CUTOUT (role: "hero-cutout")
+    The main subject: a person, product, sneaker, can, face, character.
+    This MUST be an isolated subject on an empty transparent background.
+    DO NOT say "remove background" — say it in the prompt: "isolated on transparent background, pure alpha channel, no background".
+    Use type "generated-image" with role "hero-cutout".
+    Routed to: Qwen-Image-2.1 (native 64-channel RGBA autoencoder, A=0 for empty areas).
+
+  Layer 3 — LIVE TYPOGRAPHY (role: "typography")
+    ALL text is editable and rendered by the Kreathief canvas engine — NEVER bake text into images.
+    Font pairing guide:
+      - Bold headlines: "Bebas Neue", "Space Grotesk", "Syne" (weight 800-900)
+      - Modern body: "Inter", "DM Sans", "Outfit" (weight 400-500)  
+      - Elegant serif: "Playfair Display", "Cormorant Garamond"
+      - Futuristic: "Orbitron", "Rajdhani"
+    Font size guide:
+      - Hero headline: 80–140px, letterSpacing: -2 to -4
+      - Sub-headline: 32–60px, letterSpacing: -1
+      - Eyebrow / label: 12–18px, letterSpacing: 3–6, textTransform: "uppercase"
+      - Body copy: 14–24px, letterSpacing: 0
+
+  Layer 4 — CTA & UI ELEMENTS (role: "cta")
+    Buttons, price badges, countdown chips, call-to-action shapes + text.
+    Use shape + text layer combinations. Shapes have cornerRadius for pills.
+
+═══════════════════════════════════════════════════════════════════════════════
+OUTPUT FORMAT — Return ONLY valid JSON:
+═══════════════════════════════════════════════════════════════════════════════
 {
   "canvas": {
     "width": number,
     "height": number,
     "background": string (hex color or "transparent"),
-    "backgroundGradient": { "type": "linear"|"radial", "angle": number, "colors": [{"color": string, "position": number}] } (optional)
+    "backgroundGradient": { "type": "linear"|"radial", "angle": number, "colors": [{"color": string, "position": number}] }
   },
   "layers": [
     {
-      "id": string (unique layer identifier),
+      "id": string (unique: "bg_1", "vector_accent_1", "hero_cutout_1", "headline_1" etc.),
       "type": "shape"|"text"|"generated-image"|"background"|"gradient"|"svg-icon",
-      "name": string (descriptive name),
-      "zIndex": number (layer order, 1 = bottom),
+      "role": "background"|"vector-accent"|"hero-cutout"|"typography"|"cta",
+      "name": string (descriptive human name),
+      "zIndex": number (1 = bottom, higher = front),
       "properties": {
-        "fill": string (hex color for shapes),
-        "gradient": object (optional gradient),
-        "cornerRadius": number or {tl,tr,br,bl},
-        "stroke": {color, width},
-        "shadow": {color, blur, offsetX, offsetY},
-        // For "generated-image" type:
-        "prompt": string (detailed image generation prompt),
-        "removeBackground": boolean,
-        // For "text" type:
-        "text": string,
-        "fontFamily": string,
+        // For "generated-image":
+        "prompt": string (detailed specialist prompt — see role rules above),
+        "removeBackground": false, // ALWAYS false — native transparency handles it
+        // For "text" (role: "typography"):
+        "text": string (real copy, not placeholder),
+        "fontFamily": string (from the approved list above),
         "fontSize": number,
-        "fontWeight": string,
+        "fontWeight": string ("400"|"600"|"700"|"800"|"900"),
         "align": "left"|"center"|"right",
-        "color": string,
+        "color": string (hex),
         "letterSpacing": number,
         "lineHeight": number,
         "textTransform": "none"|"uppercase"|"lowercase",
-        // Position & dimensions:
+        // For "shape" (role: "cta"):
+        "fill": string (hex),
+        "gradient": object,
+        "cornerRadius": number or {tl,tr,br,bl},
+        "stroke": {"color": string, "width": number},
+        "shadow": {"color": string, "blur": number, "offsetX": number, "offsetY": number},
+        // Position & size (REQUIRED for all layers):
         "x": number,
         "y": number,
         "width": number,
         "height": number,
-        "rotation": number,
-        "opacity": number (0-1)
+        "rotation": number (default 0),
+        "opacity": number (0–1, default 1),
+        "blendMode": string (optional: "multiply"|"screen"|"overlay")
       }
     }
   ],
   "metadata": {
     "title": string,
     "description": string,
-    "archetype": string (style category),
-    "colorPalette": [string] (hex colors)
+    "archetype": string,
+    "colorPalette": [string]
   }
 }
 
-DESIGN PRINCIPLES:
-1. ALWAYS create EDITABLE layers - never flatten everything into one image. For designs generated from scratch, do not generate the complete poster as one image.
-2. The image model should ONLY generate raster assets: backgrounds (without text), model cutouts, decorations (chains, overlays) with transparent backgrounds.
-3. Kreathief generates ALL TYPOGRAPHY natively. Create all text as separate text layers.
-4. For people/products/landmarks: use type "generated-image" with a prompt and ALWAYS set removeBackground: true.
-5. For text (headlines, dates, prices, buttons): use type "text" with real text content. Because the background is independent of the text, users can change or hide it without affecting the typography.
-6. For backgrounds: use type "background" or "gradient", or "generated-image" (without text).
-7. Ensure proper LAYER ORDER via zIndex (background at zIndex 1, content layers higher). E.g. Background -> Model -> Text (or Text -> Model -> Text for overlap).
-8. Include DETAILED IMAGE PROMPTS for generated-image layers. Remember: these prompts are sent to an image model, so specify exactly what the asset should look like isolated.
-11. TYPOGRAPHY WEIGHT OPTICS: ALWAYS balance typographic hierarchy. Titles must have distinct weights from body text. Use tighter letter-spacing for large text and looser spacing for small, all-caps text.
-12. REVERSE ENGINEERING AST RULES: Output cleanly distinct layers that can map directly to a React-based node graph, never overlapping elements ambiguously.
+═══════════════════════════════════════════════════════════════════════════════
+HARD RULES:
+═══════════════════════════════════════════════════════════════════════════════
+1. NEVER bake text into a generated image. All copy = text layers with real fonts.
+2. NEVER use removeBackground: true. Hero cutouts use native transparency via role.
+3. ALWAYS assign a "role" to every layer — the asset router depends on it.
+4. Background layers MUST be role "background" and contain absolutely no readable content.
+5. Every design MUST have at least: 1 background, 1 typography layer, and 1 content layer.
+6. Vector accent prompts MUST describe flat, single-color, geometric or abstract vector shapes.
+7. Hero cutout prompts MUST end with: "isolated subject on transparent alpha background, no background, clean edges, no shadows on floor".
+8. Typography hierarchy MUST be visually distinct — vary font size, weight, color, and tracking.
+9. zIndex ordering: background(1) → vector-accents(2-4) → hero-cutout(5-7) → typography(8-12) → cta(13+)
+10. Output cleanly distinct non-overlapping conceptual layers that map to a React AST node graph.
 
 CANVAS SIZE REFERENCE:
-- Social media post (square): 1080x1080
-- Instagram story: 1080x1920
+- Social post (square): 1080x1080
+- Instagram story / TikTok: 1080x1920
 - Event flyer (portrait): 1080x1350
+- YouTube thumbnail: 1280x720
 - Banner: 1920x600
 - Custom: use dimensions from user or default to 1080x1080`;
 
@@ -2980,45 +3038,136 @@ Make it creative, professional, and visually striking!`;
  * Processes blueprint and generates all image assets
  * ============================================
  */
+/**
+ * ══════════════════════════════════════════════════════════════════
+ * MULTI-MODEL LAYER ASSET ROUTER
+ * ══════════════════════════════════════════════════════════════════
+ * Dispatches each blueprint layer to its specialist model based on
+ * the layer's "role" field — the same role the Art Director LLM
+ * assigns in the Design Blueprint JSON.
+ *
+ * Hero Cutout  → Qwen-Image-2.1  (native RGBA transparent PNG)
+ * Vector Accent → Recraft V3 SVG (pure editable SVG paths)
+ * Background    → FLUX.1.1 Ultra (clean atmospheric raster, no text)
+ * Default       → Default image model + optional Freepik bg removal
+ * ══════════════════════════════════════════════════════════════════
+ */
+const generateLayerAsset = async (
+  layer: DesignBlueprintLayer
+): Promise<string> => {
+  const props = layer.properties;
+  const prompt = props.prompt || '';
+  const width = props.width || 512;
+  const height = props.height || 512;
+  const aspectRatio =
+    width >= height * 1.15
+      ? AspectRatio.LANDSCAPE
+      : height >= width * 1.15
+        ? AspectRatio.PORTRAIT
+        : AspectRatio.SQUARE;
+
+  try {
+    // ── Hero Cutout: Qwen-Image-2.1 native RGBA transparent PNG ──────────
+    if (layer.role === 'hero-cutout') {
+      log.info(`[AssetRouter] hero-cutout → Qwen-Image-2.1 (native RGBA)`, { name: layer.name });
+      const cutoutPrompt =
+        `${prompt} — isolated subject on transparent alpha background, no background, clean subject edges, no shadows cast on floor. This is ONE layer of an editable composition; contain absolutely NO text, letters, or watermarks.`;
+      try {
+        const imageUrl = await generateImageWithModel(cutoutPrompt, {
+          modelId: DEFAULT_CUTOUT_MODEL,
+          aspectRatio,
+        });
+        if (imageUrl) return imageUrl;
+      } catch (e) {
+        log.warn('[AssetRouter] Qwen-Image-2.1 cutout failed, trying Freepik bg removal fallback', e);
+        // Safety-net fallback: generate with default model then remove background
+        const fallbackUrl = await generateImageWithModel(cutoutPrompt, { aspectRatio });
+        if (fallbackUrl) {
+          try {
+            const transparent = await freepikRemoveBackground(fallbackUrl);
+            if (transparent) return transparent;
+          } catch {}
+          return fallbackUrl;
+        }
+      }
+      return '';
+    }
+
+    // ── Vector Accent: Recraft V3 → native SVG paths ──────────────────────
+    if (layer.role === 'vector-accent') {
+      log.info(`[AssetRouter] vector-accent → Recraft V3 SVG`, { name: layer.name });
+      const vectorPrompt =
+        `${prompt} — flat minimalist vector style, clean geometric shapes, single-weight lines, no background, transparent background, suitable for SVG export.`;
+      try {
+        const svgUrl = await generateImageWithModel(vectorPrompt, {
+          modelId: DEFAULT_VECTOR_ACCENT_MODEL,
+          aspectRatio,
+        });
+        if (svgUrl) return svgUrl;
+      } catch (e) {
+        log.warn('[AssetRouter] Recraft SVG failed, falling back to rasterToVector trace', e);
+      }
+      return '';
+    }
+
+    // ── Atmospheric Background: FLUX.1.1 Pro Ultra ────────────────────────
+    if (layer.role === 'background') {
+      log.info(`[AssetRouter] background → FLUX.1.1 Pro Ultra`, { name: layer.name });
+      const bgPrompt =
+        `${prompt} — clean atmospheric background stage. MUST contain absolutely NO text, NO letters, NO words, NO logos, NO readable content of any kind. Pure environmental backdrop for a layered graphic design composition.`;
+      try {
+        const imageUrl = await generateImageWithModel(bgPrompt, {
+          modelId: DEFAULT_BACKGROUND_MODEL,
+          aspectRatio,
+        });
+        if (imageUrl) return imageUrl;
+      } catch (e) {
+        log.warn('[AssetRouter] FLUX background failed', e);
+      }
+      return '';
+    }
+
+    // ── Default path (legacy): any image layer without a specialist role ──
+    const assetPrompt =
+      `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
+    const imageUrl = await generateImageWithModel(assetPrompt, { aspectRatio });
+
+    if (!imageUrl) {
+      throw new Error('Image generation returned empty result');
+    }
+
+    // Only apply Freepik background removal when not handled by native transparency
+    if (props.removeBackground) {
+      try {
+        const transparentUrl = await freepikRemoveBackground(imageUrl);
+        if (transparentUrl) return transparentUrl;
+      } catch (bgErr) {
+        log.warn('[AssetRouter] Background removal failed, using original image:', bgErr);
+      }
+    }
+    return imageUrl;
+  } catch (err) {
+    log.error('[AssetRouter] Failed to generate asset for layer:', layer.name, { error: String(err) });
+
+    return '';
+  }
+};
+
+/** @deprecated Use generateLayerAsset which dispatches by role. */
 const generateImageAsset = async (
   prompt: string,
   removeBackground: boolean,
   width: number,
   height: number
 ): Promise<string> => {
-  try {
-    // Generate the image (map the requested dimensions to the nearest supported aspect ratio)
-    const aspectRatio =
-      width >= height * 1.15
-        ? AspectRatio.LANDSCAPE
-        : height >= width * 1.15
-          ? AspectRatio.PORTRAIT
-          : AspectRatio.SQUARE;
-    const imageUrl = await generateImageWithModel(prompt, { aspectRatio });
-
-    if (!imageUrl) {
-      throw new Error('Image generation returned empty result');
-    }
-
-
-    // Remove background if requested using Freepik (supports URLs directly)
-    if (removeBackground) {
-      try {
-        const transparentUrl = await freepikRemoveBackground(imageUrl);
-        if (transparentUrl) {
-          return transparentUrl;
-        }
-      } catch (bgErr) {
-        log.warn('[AssetGenerator] Background removal failed, using original image:', bgErr);
-      }
-    }
-
-    return imageUrl;
-  } catch (err) {
-    log.error('[AssetGenerator] Failed to generate image asset:', err);
-    // Return empty string on failure - will be handled gracefully
-    return '';
-  }
+  const dummyLayer: DesignBlueprintLayer = {
+    id: 'legacy',
+    type: 'generated-image',
+    name: 'Legacy asset',
+    zIndex: 1,
+    properties: { prompt, removeBackground, width, height },
+  };
+  return generateLayerAsset(dummyLayer);
 };
 
 /**
@@ -3088,6 +3237,17 @@ const convertBlueprintLayerToCanvasLayer = (
       };
 
     case 'generated-image':
+      // Vector accent layers that produced SVG output are injected as path layers
+      // so the user gets live editable anchor points and strokes on the canvas.
+      if (blueprintLayer.role === 'vector-accent' && imageUrl && (imageUrl.startsWith('data:image/svg') || imageUrl.startsWith('<svg'))) {
+        return {
+          ...baseLayer,
+          type: 'path',
+          pathData: imageUrl,
+          color: props.color || '#ffffff',
+          cornerRadius: 0,
+        };
+      }
       return {
         ...baseLayer,
         type: 'image',

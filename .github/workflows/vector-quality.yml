@@ -1,0 +1,52 @@
+name: Vector Quality Benchmark
+
+# Cross-cutting measurement harness (Competitive Excellence Roadmap).
+# Runs the *falsifiable* vector output-quality benchmark on every PR/push and
+# publishes the analyzer-computed `report.json` + exported SVG artifacts. This
+# is deliberately isolated from CI/CD (ci.yml): it only runs the vector suite,
+# so it stays meaningful even while unrelated parts of the tree are in flight.
+# The negative-control (raster-trap) case MUST be flagged; a green run therefore
+# means something to an outside reviewer — self-praise is not evidence.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  benchmark:
+    name: Vector output-quality benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run vector benchmark (writes report.json + artifacts)
+        run: pnpm exec vitest run tests/unit/vectorOutputQuality.benchmark.test.ts --reporter=basic
+
+      - name: Publish vector-quality artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: vector-quality-report
+          path: |
+            verification/vector-quality/report.json
+            verification/vector-quality/*.svg
+            verification/vector-quality/golden/
+            verification/vector-quality/competitors/
+          retention-days: 30

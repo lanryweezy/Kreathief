@@ -1,23 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, MotionConfig } from 'framer-motion';
 import { Hero } from './landing/Hero';
 import { LogoTicker } from './landing/LogoTicker';
-import { AgentDemo } from './landing/AgentDemo';
-import { ProblemSolution } from './landing/ProblemSolution';
-import { ReplacementNarrative } from './landing/ReplacementNarrative';
-import { SpeedProof } from './landing/SpeedProof';
+import { ModelIntegration } from './landing/ModelIntegration';
 import { Features } from './landing/Features';
-import { TrustEthics } from './landing/TrustEthics';
 import { ScrollShowcase } from './landing/ScrollShowcase';
 import { TemplateGallery } from './landing/TemplateGallery';
 import { Stats, Pricing } from './landing/StatsAndPricing';
 import { Testimonials } from './landing/Testimonials';
-import { FeatureComparison } from './landing/FeatureComparison';
 import { FAQSection } from './landing/FAQSection';
-
-import { BlogPreview, Footer } from './landing/BlogAndFooter';
+import { Footer } from './landing/BlogAndFooter';
 import { FinalCTA } from './landing/FinalCTA';
-import { CommunityShowcase } from './landing/CommunityShowcase';
 import { SEO } from './SEO';
 import { Icons } from '../constants';
 
@@ -30,12 +23,35 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
   const [scrolled, setScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          setScrolled(!entry.isIntersecting);
+        },
+        { threshold: 0 }
+      );
+      observer.observe(sentinel);
+      return () => observer.disconnect();
+    } else {
+      let ticking = false;
+      const handleScroll = () => {
+        if (!ticking) {
+          requestAnimationFrame(() => {
+            setScrolled(window.scrollY > 20);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      };
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
   }, []);
 
   return (
@@ -43,6 +59,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
       {/* Global tactile noise overlay */}
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
+      <div ref={sentinelRef} className="absolute top-0 left-0 w-full h-8 pointer-events-none -z-10" aria-hidden="true" />
       <SEO />
 
       {/* Navigation */}
@@ -77,7 +94,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
                 className="text-sm font-bold text-gray-400 hover:text-white transition-colors relative group"
               >
                 {item}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transition-all group-hover:w-full"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-neutral-400 to-white transition-all group-hover:w-full"></span>
               </a>
             ))}
           </div>
@@ -91,13 +108,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
             </a>
             <button
               onClick={onTryGuest || onGetStarted}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-2.5 rounded-full text-sm font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105 active:scale-95"
+              className="bg-gradient-to-b from-white via-neutral-200 to-neutral-400 text-black px-6 py-2.5 rounded-full text-sm font-black tracking-wide shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_12px_rgba(255,255,255,0.1)] hover:shadow-[inset_0_2px_4px_rgba(255,255,255,1),0_6px_20px_rgba(255,255,255,0.2)] transition-all transform hover:scale-105 active:scale-95"
             >
               Get Started
             </button>
 
             {/* Mobile Menu Toggle */}
             <button
+              aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileMenuOpen}
               className="md:hidden p-2 text-gray-400 hover:text-white transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -136,19 +155,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <main>
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
-        <AgentDemo onGetStarted={onTryGuest || onGetStarted} />
-        <ProblemSolution />
+        <ModelIntegration />
         <Features />
         <ScrollShowcase />
-        <Stats />
         <TemplateGallery onGetStarted={onTryGuest || onGetStarted} />
+        <Stats />
         <Testimonials />
-        <TrustEthics />
         <Pricing onPlanSelect={onGetStarted} />
-        <FeatureComparison />
         <FAQSection />
-        <CommunityShowcase onGetStarted={onTryGuest || onGetStarted} />
-        <BlogPreview />
         <FinalCTA onGetStarted={onTryGuest || onGetStarted} />
       </main>
 

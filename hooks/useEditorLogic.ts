@@ -4,7 +4,6 @@ import { useShallow } from 'zustand/react/shallow';
 import { Project, AppMode, ShapeLayer, TextLayer, VectorPath, CanvasFilters } from '../types';
 import * as geminiService from '../services/geminiService';
 import { storageService } from '../services/storageService';
-import { loadFonts } from '../services/FontLoader';
 import { getAIErrorMessage } from '../utils/errorMessages';
 import { VectorUtils } from '../utils/vectorUtils';
 import { performBooleanOnLayers, BooleanOperations, getBooleanOperation } from '../utils/booleanOperations';

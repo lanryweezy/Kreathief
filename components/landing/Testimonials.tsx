@@ -67,14 +67,14 @@ export const Testimonials: React.FC = () => {
   return (
     <section className="py-36 relative bg-[#08080d] overflow-hidden">
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.08] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-purple-600/10 blur-[180px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-neutral-600/10 blur-[180px] rounded-full pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10 text-center mb-20">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-6"
+          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-neutral-300 uppercase mb-6"
         >
           <span>♥</span>
           <span>Verified Creative Feedback</span>
@@ -87,7 +87,7 @@ export const Testimonials: React.FC = () => {
           className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white mb-6"
         >
           Loved by innovators <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-300 to-neutral-500">
             across the globe.
           </span>
         </motion.h2>
@@ -108,7 +108,7 @@ export const Testimonials: React.FC = () => {
           {[...TESTIMONIALS_ROW_1, ...TESTIMONIALS_ROW_1].map((item, idx) => (
             <div
               key={idx}
-              className="w-[380px] sm:w-[440px] shrink-0 p-8 rounded-[30px] bg-[#0e0e16] border border-white/10 hover:border-purple-500/40 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              className="w-[380px] sm:w-[440px] shrink-0 p-8 rounded-[30px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/40 transition-all duration-500 shadow-xl flex flex-col justify-between"
             >
               <div>
                 <div className="flex gap-1 mb-4">
@@ -125,12 +125,16 @@ export const Testimonials: React.FC = () => {
                 <img
                   src={item.avatar}
                   alt={item.author}
+                  width="44"
+                  height="44"
+                  loading="lazy"
+                  decoding="async"
                   className="w-11 h-11 rounded-full object-cover border border-white/20"
                 />
                 <div className="text-left">
                   <div className="text-white font-bold text-sm tracking-tight">{item.author}</div>
                   <div className="text-neutral-400 text-xs font-mono">
-                    {item.role} • <span className="text-purple-300 font-semibold">{item.company}</span>
+                    {item.role} • <span className="text-neutral-300 font-semibold">{item.company}</span>
                   </div>
                 </div>
               </div>
@@ -142,7 +146,7 @@ export const Testimonials: React.FC = () => {
           {[...TESTIMONIALS_ROW_2, ...TESTIMONIALS_ROW_2].map((item, idx) => (
             <div
               key={idx}
-              className="w-[380px] sm:w-[440px] shrink-0 p-8 rounded-[30px] bg-[#0e0e16] border border-white/10 hover:border-pink-500/40 transition-all duration-500 shadow-xl flex flex-col justify-between"
+              className="w-[380px] sm:w-[440px] shrink-0 p-8 rounded-[30px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/40 transition-all duration-500 shadow-xl flex flex-col justify-between"
             >
               <div>
                 <div className="flex gap-1 mb-4">
@@ -159,12 +163,16 @@ export const Testimonials: React.FC = () => {
                 <img
                   src={item.avatar}
                   alt={item.author}
+                  width="44"
+                  height="44"
+                  loading="lazy"
+                  decoding="async"
                   className="w-11 h-11 rounded-full object-cover border border-white/20"
                 />
                 <div className="text-left">
                   <div className="text-white font-bold text-sm tracking-tight">{item.author}</div>
                   <div className="text-neutral-400 text-xs font-mono">
-                    {item.role} • <span className="text-pink-300 font-semibold">{item.company}</span>
+                    {item.role} • <span className="text-neutral-300 font-semibold">{item.company}</span>
                   </div>
                 </div>
               </div>

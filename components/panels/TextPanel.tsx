@@ -16,6 +16,7 @@ import { TextOnPath } from './TextOnPath';
 import { FindReplaceText } from './FindReplaceText';
 import { SearchInput } from '../SearchInput';
 import { TextSpacingControls } from './TextSpacingControls';
+import { TypographyPairingsPanel } from './TypographyPairingsPanel';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { Input } from '../Input';
 import { Button } from '../Button';
@@ -98,7 +99,7 @@ export const TextPanel: React.FC = () => {
   const [textGenResults, setTextGenResults] = useState<string[]>([]);
   const [isGeneratingText, setIsGeneratingText] = useState(false);
   const [activeTextTab, setActiveTextTab] = useState<
-    'add' | 'styles' | 'gradient' | 'effects' | 'path' | 'find' | 'spacing'
+    'add' | 'pairings' | 'styles' | 'gradient' | 'effects' | 'path' | 'find' | 'spacing'
   >('add');
   const [selectedTextStyle, setSelectedTextStyle] = useState<Partial<TextStyle> | null>(null);
   const [textGradient, setTextGradient] = useState<any>(null);
@@ -332,7 +333,7 @@ export const TextPanel: React.FC = () => {
           className="flex flex-nowrap overflow-x-auto no-scrollbar gap-1 mb-5 bg-surface-dark-2 p-1.5 rounded-xl border border-white/5"
           role="tablist"
         >
-          {(['add', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
+          {(['add', 'pairings', 'styles', 'gradient', 'effects', 'path', 'find', 'spacing'] as const).map((tab) => (
             <button
               key={tab}
               role="tab"
@@ -678,6 +679,9 @@ export const TextPanel: React.FC = () => {
             </div>
           </>
         )}
+
+        {/* Typography Pairings Tab */}
+        {activeTextTab === 'pairings' && <TypographyPairingsPanel />}
 
         {/* Styles Tab */}
         {activeTextTab === 'styles' && (

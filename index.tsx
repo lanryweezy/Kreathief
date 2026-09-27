@@ -7,6 +7,7 @@ import * as Sentry from '@sentry/react';
 import { useStore } from './store/useStore';
 import App from './App';
 import './index.css';
+import './styles/cursors.css';
 
 if (typeof window !== 'undefined' && import.meta.env.DEV) {
   (window as any).useStore = useStore;

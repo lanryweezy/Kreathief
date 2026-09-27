@@ -52,7 +52,7 @@ export const ComparisonSection: React.FC = () => {
             viewport={{ once: true }}
             className="flex-1 w-full bg-[#0a0a0c] border border-red-900/30 rounded-3xl p-10 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500"
           >
-            <h3 className="text-2xl font-black text-gray-500 mb-8 tracking-widest uppercase text-center line-through">
+            <h3 className="text-2xl font-black text-gray-400 mb-8 tracking-widest uppercase text-center line-through">
               Traditional Workflow
             </h3>
             <div className="space-y-6">
@@ -70,10 +70,10 @@ export const ComparisonSection: React.FC = () => {
               ))}
             </div>
             <div className="mt-10 pt-10 border-t border-red-900/20 text-center">
-              <div className="text-sm text-gray-500 mb-2 uppercase tracking-wider">Total Cost</div>
+              <div className="text-sm text-gray-400 mb-2 uppercase tracking-wider">Total Cost</div>
               <span className="text-5xl font-black text-gray-300 line-through">$360</span>
-              <span className="text-gray-500 ml-2">/ year</span>
-              <p className="text-xs text-gray-600 mt-3">Figma + Adobe + Midjourney + Storage</p>
+              <span className="text-gray-400 ml-2">/ year</span>
+              <p className="text-xs text-gray-400 mt-3">Figma + Adobe + Midjourney + Storage</p>
             </div>
           </motion.div>
 
@@ -113,13 +113,16 @@ export const ComparisonSection: React.FC = () => {
                 $192
               </span>
               <span className="text-gray-400 ml-2 font-medium">/ year</span>
-              <p className="text-xs text-gray-500 mt-3">Everything included. No hidden fees.</p>
+              <p className="text-xs text-gray-400 mt-3">Everything included. No hidden fees.</p>
               <div className="mt-4 inline-block px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full">
                 <span className="text-green-400 font-black text-sm">Save $168/year</span>
               </div>
             </div>
 
-            <button className="w-full mt-8 py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest text-[11px] hover:bg-gray-200 transition-all">
+            <button
+              aria-label="Claim your free Kreathief account"
+              className="w-full mt-8 py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest text-[11px] hover:bg-gray-200 transition-all"
+            >
               Claim Your Free Account
             </button>
           </motion.div>

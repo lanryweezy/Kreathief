@@ -164,12 +164,20 @@ export const VideoAgentPanel: React.FC = () => {
 
               {/* Script Input */}
               <div className="relative group p-1 bg-surface-dark-4 rounded-xl border border-white/10 focus-within:border-brand-500 transition-colors shadow-inner">
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Paste your product script here to generate a lip-synced UGC presenter ad..."
-                  className="w-full h-28 bg-transparent resize-none p-2 text-xs text-white placeholder-gray-600 focus:outline-none custom-scrollbar"
-                />
+                <div className="flex items-start gap-2">
+                  <button 
+                    className="mt-2 ml-2 p-2 bg-white/5 hover:bg-brand-500/20 rounded-xl text-gray-400 hover:text-brand-400 border border-white/5 hover:border-brand-500/50 transition-all shrink-0 group"
+                    title="Upload Script or Audio Reference"
+                  >
+                    <Icons.Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  </button>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="Paste your product script here to generate a lip-synced UGC presenter ad..."
+                    className="w-full h-28 bg-transparent resize-none py-2 pr-2 text-xs text-white placeholder-gray-600 focus:outline-none custom-scrollbar"
+                  />
+                </div>
               </div>
             </div>
 

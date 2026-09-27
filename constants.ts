@@ -48,6 +48,8 @@ export const FONT_CATEGORIES: Record<string, string[]> = {
     'Kreathief006',
     'Kreathief007',
     'Kreathief009',
+    'Kreathief010',
+    'Kreathief011',
   ],
   'Sans Serif': [
     'Inter',

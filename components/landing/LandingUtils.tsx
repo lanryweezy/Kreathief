@@ -102,8 +102,8 @@ export const MouseSpotlight: React.FC<{
  */
 export const SuperLabel: React.FC<{ text: string; className?: string }> = ({ text, className = '' }) => (
   <div className={`flex items-center gap-2 mb-6 ${className}`}>
-    <span className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
-    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-purple-400/80">{text}</span>
+    <span className="w-1.5 h-1.5 rounded-full bg-neutral-400 shadow-[0_0_8px_rgba(163,163,163,0.8)]" />
+    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-neutral-400/80">{text}</span>
   </div>
 );
 
@@ -121,7 +121,7 @@ export const LaserSeparator: React.FC<{ className?: string }> = ({ className = '
         repeat: Infinity,
         ease: 'linear',
       }}
-      className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"
+      className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-neutral-500/20 to-transparent"
     />
   </div>
 );

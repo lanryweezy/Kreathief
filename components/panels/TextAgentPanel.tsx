@@ -183,6 +183,12 @@ export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps
       <div className="space-y-2 pt-2 border-t border-gray-700">
         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Custom Prompt</h4>
         <div className="flex gap-2">
+          <button 
+            className="p-1.5 bg-surface-dark-4 hover:bg-purple-500/20 rounded-lg border border-gray-600 hover:border-purple-500/50 text-gray-400 hover:text-purple-400 transition-colors flex items-center justify-center shrink-0"
+            title="Upload Reference"
+          >
+            <Icons.Plus className="w-3 h-3" />
+          </button>
           <input
             type="text"
             placeholder="e.g. Translate to Pidgin English"

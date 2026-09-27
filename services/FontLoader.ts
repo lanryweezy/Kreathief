@@ -13,20 +13,8 @@ const customFonts = new Set<string>();
 // Families that failed both local and CDN loads — avoids re-injecting dead <link> tags
 const failedFonts = new Set<string>();
 
-// Fonts already loaded globally via fonts.css
-const LOCAL_FONTS = [
-  'Inter',
-  'Space Grotesk',
-  'Outfit',
-  'Kreathief001',
-  'Kreathief002',
-  'Kreathief003',
-  'Kreathief004',
-  'Kreathief005',
-  'Kreathief006',
-  'Kreathief007',
-  'Kreathief009',
-];
+// Fonts already loaded globally via Google Fonts in index.html
+const LOCAL_FONTS = ['Inter', 'Outfit'];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;
@@ -39,20 +27,8 @@ export function setFontToastCallback(callback: FontToastCallback): void {
 // Variable font axes registry: tracks available variation axes per family
 const variableFontAxes = new Map<string, string[]>();
 
-// Preloaded common fonts (loaded immediately)
-const PRELOAD_FONTS = [
-  'Inter',
-  'Space Grotesk',
-  'Outfit',
-  'Kreathief001',
-  'Kreathief002',
-  'Kreathief003',
-  'Kreathief004',
-  'Kreathief005',
-  'Kreathief006',
-  'Kreathief007',
-  'Kreathief009',
-];
+// Preloaded common fonts (loaded when editor starts)
+const PRELOAD_FONTS = ['Inter', 'Outfit'];
 
 // Single source of truth: derived from constants.FONT_FAMILIES
 export const AVAILABLE_FONTS = FONT_FAMILIES;
@@ -279,9 +255,10 @@ export function preloadEssentialFonts(): void {
   loadFonts(PRELOAD_FONTS);
 }
 
-// Initialize on module load
-if (typeof window !== 'undefined') {
-  // Only preload essential fonts, not all fonts
-  preloadEssentialFonts();
-  initCustomFonts();
+// Initialize FontLoader on-demand (called when editor or font-picker mounts)
+export function initFontLoader(): void {
+  if (typeof window !== 'undefined') {
+    preloadEssentialFonts();
+    initCustomFonts();
+  }
 }

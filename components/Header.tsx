@@ -8,6 +8,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { PresenceBar } from './collaboration/PresenceBar';
 import { Button } from './Button';
 import { ConnectionStatus } from './ConnectionStatus';
+import { PricingModal } from './PricingModal';
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
@@ -66,6 +67,10 @@ export const Header: React.FC<HeaderProps> = ({
   // what used to be 8 separate `useStore` subscriptions into a single one. This groups
   // state evaluation and prevents the Header from re-rendering heavily due to
   // fragmented subscriptions.
+  const showPricingModal = useStore((state) => (state as any).showPricingModal);
+  const setShowPricingModal = useStore((state) => (state as any).setShowPricingModal);
+  const credits = useStore((state) => (state as any).credits ?? 50);
+
   const { past, future, isSaving, lastSaved, hasUnsavedChanges, projectTitle, showAIOverlay, aiTab } = useStore(
     useShallow((state) => ({
       past: state.past,
@@ -334,6 +339,9 @@ export const Header: React.FC<HeaderProps> = ({
             Fit Screen
           </button>
         </div>
+      )}
+      {showPricingModal && (
+        <PricingModal onClose={() => setShowPricingModal(false)} />
       )}
     </header>
   );

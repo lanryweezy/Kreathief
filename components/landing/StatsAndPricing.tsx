@@ -43,37 +43,37 @@ export const Stats: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 text-center items-center">
           <div className="group">
-            <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tighter text-white group-hover:text-purple-400 transition-colors">
+            <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight text-white group-hover:text-neutral-300 transition-colors">
               <AnimatedNumber value={2500000} suffix="+" />
             </div>
-            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-500">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
               Generations Run
             </div>
           </div>
 
           <div className="group">
-            <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tighter text-white group-hover:text-cyan-400 transition-colors">
+            <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight text-white group-hover:text-cyan-400 transition-colors">
               <AnimatedNumber value={10000} suffix="+" />
             </div>
-            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-500">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
               Active Creators
             </div>
           </div>
 
           <div className="group">
-            <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tighter text-white group-hover:text-pink-400 transition-colors">
+            <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight text-white group-hover:text-neutral-300 transition-colors">
               <AnimatedNumber value={850000} suffix="+" />
             </div>
-            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-500">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
               Projects Saved
             </div>
           </div>
 
           <div className="group">
-            <div className="text-3xl sm:text-4xl md:text-5xl font-black mb-2 tracking-tighter text-white group-hover:text-emerald-400 transition-colors">
+            <div className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight text-white group-hover:text-emerald-400 transition-colors">
               <AnimatedNumber value={73} suffix="%" />
             </div>
-            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-500">
+            <div className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
               Workflow Time Saved
             </div>
           </div>
@@ -147,7 +147,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-6"
+            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-neutral-300 uppercase mb-6"
           >
             <span>✦</span>
             <span>Transparent Creative Investment</span>
@@ -175,13 +175,17 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
           <div className="inline-flex items-center gap-4 p-1.5 rounded-full bg-[#11111a] border border-white/10">
             <button
               onClick={() => setAnnualBilling(false)}
+              aria-label="Switch to monthly billing"
+              aria-pressed={!annualBilling}
               className={"px-5 py-2 rounded-full text-xs font-bold transition-all " + (!annualBilling ? "bg-white text-black shadow-md" : "text-neutral-400 hover:text-white")}
             >
               Monthly Billing
             </button>
             <button
               onClick={() => setAnnualBilling(true)}
-              className={"px-5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 " + (annualBilling ? "bg-purple-600 text-white shadow-lg shadow-purple-600/30" : "text-neutral-400 hover:text-white")}
+              aria-label="Switch to annual billing"
+              aria-pressed={annualBilling}
+              className={"px-5 py-2 rounded-full text-xs font-bold transition-all flex items-center gap-2 " + (annualBilling ? "bg-neutral-600 text-white shadow-lg shadow-neutral-500/30" : "text-neutral-400 hover:text-white")}
             >
               <span>Annual Billing</span>
               <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded-full bg-white/20 text-white font-black">
@@ -199,10 +203,10 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.12 }}
-              className={"p-8 sm:p-10 rounded-[36px] bg-[#0e0e16] flex flex-col justify-between relative overflow-hidden transition-all duration-500 " + (plan.popular ? "border-2 border-purple-500/80 shadow-[0_0_80px_rgba(168,85,247,0.2)] md:-translate-y-3" : "border border-white/10 hover:border-white/20")}
+              className={"p-8 sm:p-10 rounded-[36px] bg-[#0e0e16] flex flex-col justify-between relative overflow-hidden transition-all duration-500 " + (plan.popular ? "border-2 border-neutral-500/80 shadow-[0_0_80px_rgba(168,85,247,0.2)] md:-translate-y-3" : "border border-white/10 hover:border-white/20")}
             >
               {plan.popular && (
-                <div className="absolute top-0 right-0 bg-gradient-to-l from-purple-600 to-pink-600 text-white text-[10px] font-mono font-black uppercase tracking-widest px-5 py-1.5 rounded-bl-2xl shadow-lg">
+                <div className="absolute top-0 right-0 bg-gradient-to-l from-neutral-400 to-neutral-600 text-white text-[10px] font-mono font-black uppercase tracking-widest px-5 py-1.5 rounded-bl-2xl shadow-lg">
                   Most Popular
                 </div>
               )}
@@ -227,7 +231,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
                 <ul className="space-y-3.5 mb-10">
                   {plan.features.map((f, i) => (
                     <li key={i} className="flex items-start gap-3 text-sm text-neutral-300">
-                      <Icons.Check className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                      <Icons.Check className="w-4 h-4 text-neutral-400 shrink-0 mt-0.5" />
                       <span>{f}</span>
                     </li>
                   ))}
@@ -236,7 +240,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
 
               <button
                 onClick={onPlanSelect}
-                className={"w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all transform active:scale-95 " + (plan.popular ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-600/30 hover:shadow-purple-600/50" : "bg-white/5 hover:bg-white/10 text-white border border-white/10")}
+                className={"w-full py-4 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all transform active:scale-95 " + (plan.popular ? "bg-gradient-to-r from-neutral-400 to-neutral-600 text-white shadow-lg shadow-neutral-500/30 hover:shadow-neutral-600/50" : "bg-white/5 hover:bg-white/10 text-white border border-white/10")}
               >
                 {plan.button}
               </button>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+
+    <g id="ring" transform="translate(10 10) scale(1.8 1.8) ">
+    <path d="M50 4 A46 46 0 1 0 50 96 A46 46 0 1 0 50 4 Z M50 20 A30 30 0 1 1 50 80 A30 30 0 1 1 50 20 Z" fill="#22D3EE" />
+
+  </g>
+  <text id="label" x="60" y="114" fill="#0F172A" font-size="28" font-family="system-ui" font-weight="700" text-anchor="start">PRO</text>
+</svg>

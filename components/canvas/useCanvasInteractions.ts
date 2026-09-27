@@ -52,6 +52,8 @@ export const useCanvasInteractions = ({
   const lastPinchDistanceRef = useRef<number | null>(null);
   const selectedLayerIdsRef = useRef(selectedLayerIds);
   selectedLayerIdsRef.current = selectedLayerIds;
+  const layersRef = useRef(layers);
+  layersRef.current = layers;
 
   const triggerHaptic = useCallback((pattern: number | number[] = 10) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -201,8 +203,23 @@ export const useCanvasInteractions = ({
           const worldY = (mouseY - panOffsetRef.current.y) / zoomRef.current;
 
           // Smart mask inference placeholder
-          void worldX;
-          void worldY;
+          const currentLayers = layersRef.current || [];
+          const hoveredImage = [...currentLayers].reverse().find(
+            (l) =>
+              l.type === 'image' &&
+              worldX >= l.x &&
+              worldX <= l.x + l.width &&
+              worldY >= l.y &&
+              worldY <= l.y + l.height
+          );
+
+          if (hoveredImage) {
+            const path = `M ${hoveredImage.x} ${hoveredImage.y} h ${hoveredImage.width} v ${hoveredImage.height} h ${-hoveredImage.width} Z`;
+            useStore.getState().setHoveredMaskBoundary?.({ path });
+          } else {
+            useStore.getState().setHoveredMaskBoundary?.(null);
+          }
+
         }
         return;
       }

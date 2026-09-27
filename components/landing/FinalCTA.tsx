@@ -12,8 +12,12 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
     <section className="py-44 relative bg-[#08080d] overflow-hidden flex flex-col items-center justify-center text-center">
       <div className="absolute inset-0 pointer-events-none">
         <img
-          src="/images/hero_ai_cinematic.png"
+          src="/images/hero_ai_cinematic.webp"
           alt="Cinematic Creative Canvas"
+          width="1920"
+          height="1080"
+          loading="lazy"
+          decoding="async"
           className="w-full h-full object-cover filter brightness-[0.25] contrast-125"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#08080d] via-[#08080d]/70 to-[#08080d]" />
@@ -25,7 +29,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-8"
+          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-neutral-300 uppercase mb-8"
         >
           <span>✦</span>
           <span>Zero Learning Curve • Instant Acceleration</span>
@@ -38,7 +42,7 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
           className="text-6xl sm:text-7xl md:text-9xl font-black tracking-tighter text-white leading-[0.88] mb-8"
         >
           Your creative era <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-amber-300 animate-text-gradient">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-300 to-neutral-500">
             starts today.
           </span>
         </motion.h2>
@@ -56,9 +60,9 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
         <MagneticButton strength={30}>
           <button
             onClick={onGetStarted}
-            className="px-12 sm:px-16 py-5 sm:py-6 bg-white text-black hover:bg-neutral-100 rounded-full font-black text-base sm:text-lg tracking-wide uppercase transition-all transform active:scale-95 flex items-center justify-center gap-3 shadow-[0_0_80px_rgba(255,255,255,0.3)] hover:shadow-[0_0_100px_rgba(255,255,255,0.5)] group mb-10"
+            className="px-12 sm:px-16 py-5 sm:py-6 border border-white/20 bg-gradient-to-b from-white via-neutral-200 to-neutral-400 text-black hover:bg-neutral-100 rounded-full font-black text-base sm:text-lg tracking-wide uppercase transition-all transform active:scale-95 flex items-center justify-center gap-3 shadow-[inset_0_2px_4px_rgba(255,255,255,0.8),0_4px_20px_rgba(255,255,255,0.15)] hover:shadow-[inset_0_2px_4px_rgba(255,255,255,1),0_8px_30px_rgba(255,255,255,0.3)] group mb-10"
           >
-            <span>Launch Kreathief Free</span>
+            <span>Launch Studio</span>
             <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
           </button>
         </MagneticButton>

@@ -1,0 +1,114 @@
+{
+  "dataset_name": "Kreathief Elite Graphic Design Dataset",
+  "version": "1.0",
+  "description": "High-quality, curated graphic design layouts for reverse-engineering into AST coordinates and fine-tuning the Kreathief VLM.",
+  "entries": [
+    {
+      "id": "elite_001",
+      "style": "Swiss Maximalism",
+      "tags": [
+        "typography-heavy",
+        "grid-breaking",
+        "high-contrast"
+      ],
+      "source_url": "mock_url/swiss_poster_1.jpg",
+      "vlm_prompt": "A bold Swiss maximalist poster featuring intersecting stark typography over a neon yellow background.",
+      "status": "pending_download"
+    },
+    {
+      "id": "elite_002",
+      "style": "Lagos Cyberpunk",
+      "tags": [
+        "afrofuturism",
+        "neon",
+        "complex-layering",
+        "3d-elements"
+      ],
+      "source_url": "mock_url/lagos_cyber_1.jpg",
+      "vlm_prompt": "An aggressive, vibrant Afrofuturist club flyer with glowing neon 3D shapes overlapping deep earth-toned portrait silhouettes.",
+      "status": "pending_download"
+    },
+    {
+      "id": "elite_003",
+      "style": "Editorial Brutalism",
+      "tags": [
+        "minimal",
+        "monochrome",
+        "print-layout"
+      ],
+      "source_url": "mock_url/editorial_brutal_1.jpg",
+      "vlm_prompt": "A stark black and white editorial spread with massive 900-weight typography bleeding off the edges of the canvas.",
+      "status": "pending_download"
+    },
+    {
+      "id": "elite_32a4f604",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1047/800/1200",
+      "local_path": "images/elite_32a4f604.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_9632d931",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1048/800/1200",
+      "local_path": "images/elite_9632d931.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_9dcd7659",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1049/800/1200",
+      "local_path": "images/elite_9dcd7659.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_3ee7e5b0",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1050/800/1200",
+      "local_path": "images/elite_3ee7e5b0.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_995b7e37",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1051/800/1200",
+      "local_path": "images/elite_995b7e37.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_2678ff71",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1052/800/1200",
+      "local_path": "images/elite_2678ff71.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_8d352af8",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1053/800/1200",
+      "local_path": "images/elite_8d352af8.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_43318983",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1054/800/1200",
+      "local_path": "images/elite_43318983.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_6a85e4c2",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1055/800/1200",
+      "local_path": "images/elite_6a85e4c2.jpg",
+      "status": "downloaded"
+    },
+    {
+      "id": "elite_486324eb",
+      "style": "Abstract Curated",
+      "source_url": "https://picsum.photos/id/1056/800/1200",
+      "local_path": "images/elite_486324eb.jpg",
+      "status": "downloaded"
+    }
+  ]
+}

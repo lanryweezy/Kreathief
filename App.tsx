@@ -5,7 +5,6 @@ import { OnboardingTour } from './components/OnboardingTour';
 import { useStore } from './store/useStore';
 import { authService } from './services/authService';
 import { storageService } from './services/storageService';
-import { setFontToastCallback } from './services/FontLoader';
 import { isSupabaseConfigured } from './lib/supabase/client';
 import { User, Project } from './types';
 import { performanceService } from './services/performanceService';
@@ -64,6 +63,17 @@ const ChangelogPage = React.lazy(() =>
 );
 const APIPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage }))
+);
+
+const NodeWorkspaceLanding = React.lazy(() =>
+  import('./components/pages/NodeWorkspaceLanding').then((m) => ({ default: m.NodeWorkspaceLanding }))
+);
+
+const ToolsDirectoryPage = React.lazy(() =>
+  import('./components/pages/ToolsDirectoryPage').then((m) => ({ default: m.ToolsDirectoryPage }))
+);
+const FeatureLandingPage = React.lazy(() =>
+  import('./components/pages/FeatureLandingPage').then((m) => ({ default: m.FeatureLandingPage }))
 );
 
 function ProfileRoute() {
@@ -132,8 +142,10 @@ const App: React.FC = () => {
         });
 
         // Surface font-load failures to the user
-        setFontToastCallback((message, type) => {
-          useStore.getState().addToast(message, type);
+        import('./services/FontLoader').then((m) => {
+          m.setFontToastCallback((message, type) => {
+            useStore.getState().addToast(message, type);
+          });
         });
 
         // Warn developers when Supabase creds are missing (client falls back to a placeholder endpoint)
@@ -401,6 +413,7 @@ const App: React.FC = () => {
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           <Route path="/" element={<Suspense fallback={<LoadingFallback />}><LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} /></Suspense>} />
+          <Route path="/node" element={<Suspense fallback={<LoadingFallback />}><NodeWorkspaceLanding /></Suspense>} />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
@@ -434,6 +447,8 @@ const App: React.FC = () => {
               )
             }
           />
+                    <Route path="/tools" element={<Suspense fallback={<LoadingFallback />}><ToolsDirectoryPage /></Suspense>} />
+          <Route path="/tools/:slug" element={<Suspense fallback={<LoadingFallback />}><FeatureLandingPage /></Suspense>} />
           <Route path="/blog" element={<Suspense fallback={<LoadingFallback />}><BlogList /></Suspense>} />
           <Route path="/blog/:id" element={<Suspense fallback={<LoadingFallback />}><BlogPostView /></Suspense>} />
           <Route path="/profile/:userId" element={<Suspense fallback={<LoadingFallback />}><ProfileRoute /></Suspense>} />

@@ -126,11 +126,10 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         workbox: {
           maximumFileSizeToCacheInBytes: 5000000,
-          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          // Multi-megabyte marketing/sample imagery must NOT be forced into the
-          // install-time precache (it was ~50MB). App shell precaches, imagery is
-          // runtime-cached on first use below.
-          globIgnores: ['**/downloads_graphics/**', '**/images/**', '**/styles/**'],
+          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          // Multi-megabyte marketing/sample imagery and font collections must NOT be forced into the
+          // install-time precache. App shell precaches, assets are runtime-cached on first use.
+          globIgnores: ['**/downloads_graphics/**', '**/images/**', '**/styles/**', '**/fonts/**', '**/temp_fonts/**'],
           navigateFallback: 'index.html',
           navigateFallbackDenylist: [/^\/api/],
           runtimeCaching: [
@@ -184,10 +183,11 @@ export default defineConfig(({ mode }) => {
             'vendor-ui': ['framer-motion', 'zustand', 'zod'],
             'vendor-ai': ['@google/generative-ai'],
             'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
-            'vendor-math': ['mathjs'],
             'vendor-ml': ['@xenova/transformers'],
             'vendor-vector': ['paper', 'imagetracerjs'],
             'vendor-canvas': ['html2canvas', 'react-window', 'jszip'],
+            'vendor-sentry': ['@sentry/react'],
+            'vendor-supabase': ['@supabase/supabase-js'],
           },
         },
         onwarn(warning, warn) {

@@ -133,7 +133,10 @@ export default async function handler(req: Request) {
     'https://fal.run/fal-ai/bytedance/seedream/v4.5/edit',
     'https://fal.run/fal-ai/qwen-image',
     'https://fal.run/fal-ai/qwen-image-edit',
+    'https://fal.run/fal-ai/qwen-image-2-1',
+    'https://fal.run/fal-ai/qwen-image-2-1/edit',
     'https://fal.run/fal-ai/ideogram/v3',
+
     'https://fal.run/fal-ai/ideogram/v4',
     // OpenAI & Luma
     'https://fal.run/fal-ai/gpt-image-2',
@@ -196,7 +199,10 @@ export default async function handler(req: Request) {
         'creativity',
         'resemblance',
         'detail',
+        // Qwen-Image-2.1 transparent output format flag ("png" → RGBA channel active)
+        'output_format',
       ];
+
       for (const key of Object.keys(body)) {
         if (allowedFields.includes(key)) {
           safeBody[key] = body[key];

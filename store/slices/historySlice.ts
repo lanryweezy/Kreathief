@@ -32,6 +32,32 @@ export interface HistorySlice {
   deleteSnapshot: (snapshotId: string) => Promise<void>;
 }
 
+
+// Fast, memory-efficient layer cloning that preserves immutable string references (e.g. image URLs/pathData)
+// to eliminate GC thrashing and memory bloat across undo/redo stacks.
+function cloneLayer(l: any): any {
+  if (!l) return l;
+  return {
+    ...l,
+    filters: l.filters ? { ...l.filters } : undefined,
+    stroke: l.stroke ? { ...l.stroke } : undefined,
+    shadow: l.shadow ? { ...l.shadow } : undefined,
+    crop: l.crop ? { ...l.crop } : undefined,
+    animation: l.animation ? { ...l.animation } : undefined,
+    neonGlow: l.neonGlow ? { ...l.neonGlow } : undefined,
+    pathEffects: l.pathEffects ? { ...l.pathEffects } : undefined,
+    interactions: l.interactions ? [...l.interactions] : undefined,
+  };
+}
+
+function cloneArtboards(artboards: Artboard[]): Artboard[] {
+  if (!artboards) return [];
+  return artboards.map((a: Artboard) => ({
+    ...a,
+    layers: a.layers ? a.layers.map(cloneLayer) : [],
+  }));
+}
+
 export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> = (set, get) => ({
   past: [],
   future: [],
@@ -59,11 +85,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
 
       const stateNow = get();
       const currentState: HistoryState = {
-        artboards: structuredClone(stateNow.artboards),
+        artboards: cloneArtboards(stateNow.artboards),
         activeArtboardId: stateNow.activeArtboardId,
         canvasBackgroundColor: stateNow.canvasBackgroundColor,
-        canvasFilters: stateNow.canvasFilters ? structuredClone(stateNow.canvasFilters) : (undefined as any),
-        canvasSize: stateNow.canvasSize ? structuredClone(stateNow.canvasSize) : undefined,
+        canvasFilters: stateNow.canvasFilters ? (stateNow.canvasFilters ? { ...stateNow.canvasFilters } : undefined as any) : (undefined as any),
+        canvasSize: stateNow.canvasSize ? (stateNow.canvasSize ? { ...stateNow.canvasSize } : undefined) : undefined,
         selectedLayerIds: [...(stateNow.selectedLayerIds || [])],
       };
 
@@ -112,11 +138,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       const now = Date.now();
       set((state: any) => {
         const currentState: HistoryState = {
-          artboards: structuredClone(state.artboards),
+          artboards: cloneArtboards(state.artboards),
           activeArtboardId: state.activeArtboardId,
           canvasBackgroundColor: state.canvasBackgroundColor,
-          canvasFilters: state.canvasFilters ? structuredClone(state.canvasFilters) : (undefined as any),
-          canvasSize: state.canvasSize ? structuredClone(state.canvasSize) : undefined,
+          canvasFilters: state.canvasFilters ? (state.canvasFilters ? { ...state.canvasFilters } : undefined as any) : (undefined as any),
+          canvasSize: state.canvasSize ? (state.canvasSize ? { ...state.canvasSize } : undefined) : undefined,
           selectedLayerIds: [...(state.selectedLayerIds || [])],
         };
         const entry: HistoryEntry = { timestamp: now, type: 'snapshot', state: currentState };
@@ -135,11 +161,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     }
 
     const currentFullState: HistoryState = {
-      artboards: structuredClone(artboards),
+      artboards: cloneArtboards(artboards),
       activeArtboardId,
       canvasBackgroundColor,
-      canvasFilters: (canvasFilters ? structuredClone(canvasFilters) : undefined) as any,
-      canvasSize: canvasSize ? structuredClone(canvasSize) : undefined,
+      canvasFilters: (canvasFilters ? (canvasFilters ? { ...canvasFilters } : undefined as any) : undefined) as any,
+      canvasSize: canvasSize ? (canvasSize ? { ...canvasSize } : undefined) : undefined,
       selectedLayerIds: [...(selectedLayerIds || [])],
     };
 
@@ -205,11 +231,11 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     }
 
     const currentFullState: HistoryState = {
-      artboards: structuredClone(artboards),
+      artboards: cloneArtboards(artboards),
       activeArtboardId,
       canvasBackgroundColor,
-      canvasFilters: structuredClone(canvasFilters),
-      canvasSize: structuredClone(canvasSize),
+      canvasFilters: (canvasFilters ? { ...canvasFilters } : undefined as any),
+      canvasSize: (canvasSize ? { ...canvasSize } : undefined),
       selectedLayerIds: [...(selectedLayerIds || [])],
     };
 
@@ -263,7 +289,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
       name,
       timestamp: Date.now(),
       state: {
-        artboards: structuredClone(artboards),
+        artboards: cloneArtboards(artboards),
         activeArtboardId,
         canvasBackgroundColor,
         canvasFilters: { ...canvasFilters },
@@ -287,7 +313,7 @@ export const createHistorySlice: StateCreator<StoreState, [], [], HistorySlice> 
     get().saveToHistory();
 
     set({
-      artboards: structuredClone(snapshot.state.artboards),
+      artboards: cloneArtboards(snapshot.state.artboards),
       activeArtboardId: snapshot.state.activeArtboardId,
       canvasBackgroundColor: snapshot.state.canvasBackgroundColor,
       canvasFilters: snapshot.state.canvasFilters || {

@@ -62,10 +62,12 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
   }
 
   // Calculate depth for each container
-  const getDepth = (id: string, currentDepth = 0): number => {
+  const getDepth = (id: string, currentDepth = 0, visited = new Set<string>()): number => {
+    if (visited.has(id)) return currentDepth; // Prevent infinite cycles
+    visited.add(id);
     const layer = layers.find(l => l.id === id);
     if (!layer || !layer.groupId || layer.groupId === id) return currentDepth;
-    return getDepth(layer.groupId, currentDepth + 1);
+    return getDepth(layer.groupId, currentDepth + 1, visited);
   };
 
   const containersWithDepth = containers.map(c => ({

@@ -11,15 +11,6 @@ export const Features: React.FC = () => {
       <div className="max-w-[1400px] mx-auto px-6">
         {/* Section Header */}
         <div className="mb-28 text-center flex flex-col items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-6"
-          >
-            <span>✦</span>
-            <span>Comprehensive Creative Architecture</span>
-          </motion.div>
 
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -28,7 +19,7 @@ export const Features: React.FC = () => {
             className="text-5xl sm:text-6xl md:text-8xl font-black mb-6 tracking-tighter text-white text-balance leading-[0.94]"
           >
             Built for those who <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-300 to-indigo-300">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-neutral-400 via-neutral-300 to-neutral-300">
               refuse creative compromise.
             </span>
           </motion.h2>
@@ -47,8 +38,8 @@ export const Features: React.FC = () => {
         {/* CATEGORY 1: GENERATIVE AI SUITE */}
         <div className="mb-32">
           <div className="flex items-center gap-3 mb-10">
-            <span className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
-            <span className="text-xs font-mono uppercase tracking-[0.25em] text-purple-400 font-bold">
+            <span className="w-2.5 h-2.5 rounded-full bg-neutral-500 shadow-[0_0_12px_rgba(168,85,247,0.8)]" />
+            <span className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400 font-bold">
               01 // Generative AI Engines
             </span>
           </div>
@@ -59,11 +50,11 @@ export const Features: React.FC = () => {
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="col-span-1 md:col-span-8 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-purple-500/30 transition-all duration-700 overflow-hidden relative group"
+              className="col-span-1 md:col-span-8 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/30 transition-all duration-700 overflow-hidden relative group"
             >
               <MouseSpotlight color="rgba(168, 85, 247, 0.12)" radius={650} className="h-full flex flex-col justify-between p-8 sm:p-12">
                 <div className="relative z-10 max-w-md">
-                  <div className="inline-block px-3 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
+                  <div className="inline-block px-3 py-1 rounded-md bg-neutral-500/10 border border-neutral-500/20 text-neutral-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
                     Text-to-Masterpiece
                   </div>
                   <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-3">
@@ -76,8 +67,12 @@ export const Features: React.FC = () => {
 
                 <div className="absolute top-0 right-0 w-full sm:w-[58%] h-full pointer-events-none overflow-hidden">
                   <img
-                    src="/images/hero_ai_cinematic.png"
+                    src="/images/hero_ai_cinematic.webp"
                     alt="AI Visual Synthesis in action"
+                    width="700"
+                    height="440"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-center filter brightness-90 group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0e0e16] via-[#0e0e16]/40 to-transparent" />
@@ -85,7 +80,7 @@ export const Features: React.FC = () => {
                 </div>
 
                 <div className="relative z-10 w-full max-w-lg bg-black/80 backdrop-blur-xl border border-white/15 rounded-2xl p-3 flex items-center gap-3 shadow-2xl">
-                  <div className="w-7 h-7 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-300 shrink-0">
+                  <div className="w-7 h-7 rounded-lg bg-neutral-500/20 flex items-center justify-center text-neutral-300 shrink-0">
                     <Icons.Magic className="w-3.5 h-3.5" />
                   </div>
                   <span className="text-xs font-mono text-neutral-300 truncate">
@@ -104,20 +99,24 @@ export const Features: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="col-span-1 md:col-span-4 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-pink-500/30 transition-all duration-700 overflow-hidden relative group"
+              className="col-span-1 md:col-span-4 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/30 transition-all duration-700 overflow-hidden relative group"
             >
               <MouseSpotlight color="rgba(236, 72, 153, 0.12)" className="h-full flex flex-col justify-between p-8">
                 <div className="absolute inset-0 pointer-events-none">
                   <img
                     src="/images/landing_feature_magic_erase.png"
                     alt="Neural Magic Erase"
+                    width="400"
+                    height="440"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover filter brightness-75 group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e16] via-[#0e0e16]/60 to-black/30" />
                 </div>
 
                 <div className="relative z-10">
-                  <span className="inline-block px-3 py-1 rounded-md bg-pink-500/20 border border-pink-500/30 text-pink-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-3">
+                  <span className="inline-block px-3 py-1 rounded-md bg-neutral-500/20 border border-neutral-500/30 text-neutral-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-3">
                     Sub-pixel Inpainting
                   </span>
                   <h3 className="text-2xl font-black text-white tracking-tight mb-2">
@@ -150,6 +149,10 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_cutout_mockup_1772615585150.png"
                     alt="One-click Subject Masking"
+                    width="400"
+                    height="440"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover filter brightness-75 group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e16] via-[#0e0e16]/60 to-black/30" />
@@ -180,11 +183,11 @@ export const Features: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="col-span-1 md:col-span-8 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-purple-500/30 transition-all duration-700 overflow-hidden relative group"
+              className="col-span-1 md:col-span-8 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/30 transition-all duration-700 overflow-hidden relative group"
             >
               <MouseSpotlight color="rgba(168, 85, 247, 0.12)" radius={650} className="h-full flex flex-col justify-between p-8 sm:p-12">
                 <div className="relative z-10 max-w-md">
-                  <div className="inline-block px-3 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
+                  <div className="inline-block px-3 py-1 rounded-md bg-neutral-500/10 border border-neutral-500/20 text-neutral-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
                     Infinite Aspect Ratio
                   </div>
                   <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-3">
@@ -199,6 +202,10 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_gen_fill_pro.png"
                     alt="Generative Outpainting Canvas"
+                    width="700"
+                    height="440"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover filter brightness-90 group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0e0e16] via-[#0e0e16]/30 to-transparent" />
@@ -206,7 +213,7 @@ export const Features: React.FC = () => {
                 </div>
 
                 <div className="relative z-10 flex items-center gap-4 text-xs font-mono text-neutral-400 bg-white/[0.04] backdrop-blur-md border border-white/10 px-4 py-2.5 rounded-xl w-fit">
-                  <span className="text-purple-400">Expand Direction:</span>
+                  <span className="text-neutral-400">Expand Direction:</span>
                   <span className="text-white font-bold">All 360° Axis</span>
                   <span className="text-white/20">|</span>
                   <span className="text-emerald-400">Seamless Blend</span>
@@ -250,6 +257,10 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_vector_pro.png"
                     alt="Precision Vector Editing"
+                    width="600"
+                    height="400"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-contain object-bottom-right group-hover:scale-105 transition-transform duration-1000 drop-shadow-2xl"
                   />
                 </div>
@@ -275,7 +286,7 @@ export const Features: React.FC = () => {
             >
               <MouseSpotlight color="rgba(99, 102, 241, 0.12)" className="h-full flex flex-col justify-between p-8">
                 <div>
-                  <span className="inline-block px-3 py-1 rounded-md bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
+                  <span className="inline-block px-3 py-1 rounded-md bg-indigo-500/20 border border-indigo-500/30 text-neutral-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
                     Dynamic Typesetting
                   </span>
                   <h3 className="text-2xl font-black text-white tracking-tight mb-3">
@@ -286,7 +297,7 @@ export const Features: React.FC = () => {
                   </p>
                 </div>
 
-                <div className="w-full p-5 rounded-2xl bg-white/[0.03] border border-white/10 text-center font-black text-3xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-purple-300 select-none">
+                <div className="w-full p-5 rounded-2xl bg-white/[0.03] border border-white/10 text-center font-black text-3xl tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-200 to-neutral-300 select-none">
                   KREATHIEF
                 </div>
 
@@ -302,11 +313,11 @@ export const Features: React.FC = () => {
               initial={{ opacity: 0, y: 25 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="col-span-1 md:col-span-4 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-pink-500/30 transition-all duration-700 overflow-hidden relative group"
+              className="col-span-1 md:col-span-4 rounded-[36px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/30 transition-all duration-700 overflow-hidden relative group"
             >
               <MouseSpotlight color="rgba(236, 72, 153, 0.12)" className="h-full flex flex-col justify-between p-8">
                 <div>
-                  <span className="inline-block px-3 py-1 rounded-md bg-pink-500/20 border border-pink-500/30 text-pink-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
+                  <span className="inline-block px-3 py-1 rounded-md bg-neutral-500/20 border border-neutral-500/30 text-neutral-300 text-[10px] font-mono font-bold tracking-widest uppercase mb-4">
                     Brand Governance
                   </span>
                   <h3 className="text-2xl font-black text-white tracking-tight mb-3">
@@ -325,7 +336,7 @@ export const Features: React.FC = () => {
 
                 <div className="text-xs text-neutral-400 font-mono flex items-center justify-between">
                   <span>Colors Synced</span>
-                  <span className="text-pink-400 font-bold">100% Locked</span>
+                  <span className="text-neutral-400 font-bold">100% Locked</span>
                 </div>
               </MouseSpotlight>
             </motion.div>
@@ -355,6 +366,10 @@ export const Features: React.FC = () => {
                   <img
                     src="/images/feature_collab_pro.png"
                     alt="Multiplayer Collaboration Live"
+                    width="700"
+                    height="440"
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#0e0e16] via-[#0e0e16]/30 to-transparent" />
@@ -363,9 +378,9 @@ export const Features: React.FC = () => {
 
                 <div className="relative z-10 flex items-center gap-3">
                   <div className="flex -space-x-2">
-                    <img src="/images/avatar_1_1772614969136.png" alt="User 1" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
-                    <img src="/images/avatar_2_1772614992003.png" alt="User 2" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
-                    <img src="/images/avatar_3_1772615019487.png" alt="User 3" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_1_1772614969136.png" alt="Collaborator 1" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_2_1772614992003.png" alt="Collaborator 2" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_3_1772615019487.png" alt="Collaborator 3" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
                   </div>
                   <span className="text-xs font-mono text-emerald-400 font-bold">
                     3 Teammates Active Right Now
@@ -411,9 +426,9 @@ export const Features: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="rounded-[32px] bg-[#0e0e16] border border-white/10 hover:border-pink-500/30 transition-all duration-700 p-8 flex flex-col justify-between group"
+              className="rounded-[32px] bg-[#0e0e16] border border-white/10 hover:border-neutral-500/30 transition-all duration-700 p-8 flex flex-col justify-between group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-300">
+              <div className="w-12 h-12 rounded-2xl bg-neutral-500/10 border border-neutral-500/20 flex items-center justify-center text-neutral-300">
                 <Icons.Filter className="w-6 h-6" />
               </div>
               <div>
@@ -422,7 +437,7 @@ export const Features: React.FC = () => {
                   Live color-space emulation with 300 DPI PDF/X-1a exports. What you see on screen is what prints.
                 </p>
               </div>
-              <div className="text-xs font-mono text-pink-400/90 font-bold uppercase tracking-wider">
+              <div className="text-xs font-mono text-neutral-400/90 font-bold uppercase tracking-wider">
                 ISO 12647 Calibrated
               </div>
             </motion.div>
@@ -434,7 +449,7 @@ export const Features: React.FC = () => {
               transition={{ delay: 0.2 }}
               className="rounded-[32px] bg-[#0e0e16] border border-white/10 hover:border-indigo-500/30 transition-all duration-700 p-8 flex flex-col justify-between group"
             >
-              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-300">
+              <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-neutral-300">
                 <Icons.Brush className="w-6 h-6" />
               </div>
               <div>

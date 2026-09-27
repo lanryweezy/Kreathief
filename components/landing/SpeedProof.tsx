@@ -62,7 +62,7 @@ export const SpeedProof: React.FC = () => {
                 </div>
                 <div>
                   <div className="text-white font-bold">Figma</div>
-                  <div className="text-sm text-gray-500">Traditional workflow</div>
+                  <div className="text-sm text-gray-400">Traditional workflow</div>
                 </div>
               </div>
               <div className="text-4xl font-black text-red-400">12 min</div>
@@ -81,7 +81,7 @@ export const SpeedProof: React.FC = () => {
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center justify-between text-sm">
                   <span className="text-gray-400">{item.step}</span>
-                  <span className="text-gray-500 font-mono">{item.time}</span>
+                  <span className="text-gray-400 font-mono">{item.time}</span>
                 </div>
               ))}
             </div>
@@ -147,15 +147,15 @@ export const SpeedProof: React.FC = () => {
         >
           <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
             <div className="text-4xl font-black text-white mb-2">10x</div>
-            <div className="text-sm text-gray-500 uppercase tracking-wider">Faster Creation</div>
+            <div className="text-sm text-gray-400 uppercase tracking-wider">Faster Creation</div>
           </div>
           <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
             <div className="text-4xl font-black text-white mb-2">73%</div>
-            <div className="text-sm text-gray-500 uppercase tracking-wider">Time Saved</div>
+            <div className="text-sm text-gray-400 uppercase tracking-wider">Time Saved</div>
           </div>
           <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
             <div className="text-4xl font-black text-white mb-2">850K+</div>
-            <div className="text-sm text-gray-500 uppercase tracking-wider">Designs Created</div>
+            <div className="text-sm text-gray-400 uppercase tracking-wider">Designs Created</div>
           </div>
         </motion.div>
       </div>

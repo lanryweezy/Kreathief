@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Layer, Artboard } from '../../types';
 import { SnapLine } from '../../utils/snappingOracle';
-import { calculateSnaps as wasmCalculateSnaps, initEngine } from '../../utils/geometry-wasm';
+import { initEngine } from '../../utils/geometry-wasm';
+import { SnappingOracle } from '../../utils/snappingOracle';
 import { SNAP_THRESHOLD } from '../../components/canvas/CanvasConstants';
 import { haptics } from '../../utils/haptics';
 
@@ -220,7 +221,7 @@ export const useLayerDragging = ({
           y: currentDragState.initialPositions[l.id].y + dy,
         }));
 
-        const snap = wasmCalculateSnaps(
+        const snap = SnappingOracle.calculateSnaps(
           currentMovingLayers,
           layersRef.current,
           currentActiveArtboard,

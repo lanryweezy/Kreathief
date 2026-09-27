@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_STREAMLINE_API_KEY: string;
   readonly VITE_FREEPIK_API_KEY: string;
   readonly VITE_OPENROUTER_API_KEY: string;
+  readonly VITE_BRANDFETCH_CLIENT_ID?: string;
 }
 
 interface ImportMeta {

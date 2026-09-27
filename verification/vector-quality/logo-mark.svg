@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
+
+    <g id="drop" transform="translate(20 20) scale(2 2) ">
+    <path d="M50 6 C74 34 86 58 50 94 C14 58 26 34 50 6 Z" fill="#7C3AED" />
+
+  </g>
+  <ellipse id="accent" cx="120" cy="84" rx="24" ry="24" fill="#F59E0B" />
+</svg>

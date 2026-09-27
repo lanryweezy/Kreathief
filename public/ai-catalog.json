@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json.schemastore.org/schema-org-thing.json",
+  "name": "Kreathief AI Creative Director",
+  "short_name": "Kreathief",
+  "description": "Browser-first professional AI creative director and vector design suite with precision vector craftsmanship and real-time generation.",
+  "version": "1.0.0",
+  "homepage_url": "https://kreathief.com",
+  "documentation_url": "https://kreathief.com/llms.txt",
+  "privacy_policy_url": "https://kreathief.com/privacy",
+  "terms_of_service_url": "https://kreathief.com/terms",
+  "security_url": "https://kreathief.com/security",
+  "contact_email": "hello@kreathief.com",
+  "capabilities": {
+    "webassembly_sandboxed": true,
+    "client_side_inference": true,
+    "vector_manipulation": true,
+    "multiplayer_collaboration": true
+  },
+  "tools": [
+    {
+      "id": "magic-eraser",
+      "name": "AI Magic Object Eraser",
+      "url": "https://kreathief.com/tools/magic-eraser",
+      "description": "Sub-pixel neural inpainting and object removal with context-aware generative fill.",
+      "category": "image-editing",
+      "input_types": ["image/png", "image/jpeg", "image/webp"],
+      "output_types": ["image/png", "image/webp"]
+    },
+    {
+      "id": "background-remover",
+      "name": "AI Background Remover",
+      "url": "https://kreathief.com/tools/background-remover",
+      "description": "Instant high-accuracy subject cutout and transparent alpha mask generation.",
+      "category": "image-segmentation",
+      "input_types": ["image/png", "image/jpeg", "image/webp"],
+      "output_types": ["image/png"]
+    },
+    {
+      "id": "mockup-generator",
+      "name": "3D Mockup Generator",
+      "url": "https://kreathief.com/tools/mockup-generator",
+      "description": "Photorealistic apparel, packaging, and digital device product previews with texture displacement.",
+      "category": "3d-staging",
+      "input_types": ["image/png", "image/jpeg", "image/svg+xml"],
+      "output_types": ["image/png", "image/webp"]
+    },
+    {
+      "id": "vectorizer",
+      "name": "Image to SVG Vectorizer",
+      "url": "https://kreathief.com/tools/vectorizer",
+      "description": "Clean Bézier path tracing from raster bitmaps with node count optimization.",
+      "category": "vectorization",
+      "input_types": ["image/png", "image/jpeg", "image/webp"],
+      "output_types": ["image/svg+xml"]
+    },
+    {
+      "id": "smart-resize",
+      "name": "Smart Format Auto-Resize",
+      "url": "https://kreathief.com/tools/smart-resize",
+      "description": "Constraint-aware multi-aspect layout reflow across social and ad specifications (1:1, 9:16, 16:9, 4:5).",
+      "category": "layout-automation",
+      "input_types": ["application/json", "image/svg+xml"],
+      "output_types": ["image/png", "image/svg+xml"]
+    },
+    {
+      "id": "design-styles",
+      "name": "Design Style Presets",
+      "url": "https://kreathief.com/tools/design-styles",
+      "description": "60+ historical and modern aesthetic design movements with typography and color palettes.",
+      "category": "design-systems",
+      "input_types": ["text/plain"],
+      "output_types": ["application/json"]
+    }
+  ]
+}

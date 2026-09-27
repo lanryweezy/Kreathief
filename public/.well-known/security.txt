@@ -1,0 +1,7 @@
+# Security policy for Kreathief Inc.
+Contact: mailto:security@kreathief.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://kreathief.com/.well-known/security.txt
+Policy: https://kreathief.com/security
+Acknowledgments: https://kreathief.com/security

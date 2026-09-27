@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+
+    <g id="word">
+    <g transform="translate(20 30) scale(4 1)">
+    <path d="M 0 40 L 0 0 40 0 40 40 30 40 30 10 10 10 10 40 Z" fill="#0f172a" />
+    </g>
+  </g>
+</svg>

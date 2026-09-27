@@ -116,7 +116,7 @@ export const OnboardingTour: React.FC = () => {
               <button
                 onClick={close}
                 aria-label="Dismiss onboarding tour"
-                className="text-gray-500 hover:text-white text-xs font-medium transition-colors px-2 py-1 rounded-lg hover:bg-white/5"
+                className="text-gray-400 hover:text-white text-xs font-medium transition-colors px-2.5 py-1.5 rounded-lg hover:bg-white/5"
               >
                 Skip
               </button>
@@ -132,7 +132,7 @@ export const OnboardingTour: React.FC = () => {
 
             {/* Content */}
             <h3 className="text-white font-bold text-lg mb-1.5 tracking-tight">{current.title}</h3>
-            <p className="text-gray-400 text-[13px] leading-relaxed mb-4">{current.description}</p>
+            <p className="text-gray-300 text-[13px] leading-relaxed mb-4">{current.description}</p>
 
             {/* Tip chip */}
             {current.tip && (
@@ -143,19 +143,23 @@ export const OnboardingTour: React.FC = () => {
             )}
 
             {/* Progress dots */}
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-1 mb-4">
               {steps.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setStep(i)}
                   aria-label={`Go to step ${i + 1}`}
-                  className="transition-all duration-300 rounded-full"
-                  style={{
-                    width: i === step ? '24px' : '6px',
-                    height: '6px',
-                    background: i === step ? current.accentColor : 'rgba(255,255,255,0.12)',
-                  }}
-                />
+                  className="min-w-[28px] min-h-[28px] flex items-center justify-center p-1 rounded-full focus:outline-none focus-visible:ring-1 focus-visible:ring-white/50"
+                >
+                  <span
+                    className="transition-all duration-300 rounded-full block"
+                    style={{
+                      width: i === step ? '24px' : '6px',
+                      height: '6px',
+                      background: i === step ? current.accentColor : 'rgba(255,255,255,0.2)',
+                    }}
+                  />
+                </button>
               ))}
             </div>
 

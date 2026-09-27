@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_model": "kreathief_creative_studio",
+  "name_for_human": "Kreathief AI Creative Director",
+  "description_for_model": "Kreathief is a browser-first AI creative director, vector studio, and design engine with tools for magic object erasing, background removal, 3D mockups, vectorizing, and smart canvas auto-resize.",
+  "description_for_human": "Browser-first AI creative director and vector design suite.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://kreathief.com/ai-catalog.json"
+  },
+  "logo_url": "https://kreathief.com/logo.svg",
+  "contact_email": "hello@kreathief.com",
+  "legal_info_url": "https://kreathief.com/terms"
+}

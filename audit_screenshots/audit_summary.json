@@ -1,0 +1,611 @@
+{
+  "timestamp": "2026-09-23T15:28:36.382Z",
+  "screenshotsCaptured": [
+    "01_landing_desktop.png",
+    "02_landing_mobile.png",
+    "03_dashboard_desktop.png",
+    "04_dashboard_search.png",
+    "05_dashboard_mobile.png",
+    "06_editor_initial.png",
+    "07_panel_templates.png",
+    "08_panel_text.png",
+    "09_panel_elements.png",
+    "10_panel_media.png",
+    "11_panel_draw.png",
+    "12_panel_brand.png",
+    "13_panel_layers.png",
+    "14_panel_mockups.png",
+    "15_panel_motion.png",
+    "16_panel_accessibility.png",
+    "17_modal_export.png",
+    "18_modal_shortcuts.png",
+    "20_editor_mobile.png"
+  ],
+  "consoleErrors": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 400 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 400 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:18.672Z] ERROR IconScout API error: Internal Server Error {\"query\":\"3d\",\"type\":\"3d\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.allSettled (index 0)\\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.allSettled (index 0)\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:18.695Z] ERROR IconScout API error: Internal Server Error {\"query\":\"3d\",\"type\":\"3d\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.allSettled (index 0)\\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.allSettled (index 0)\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:19.692Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/icons?term=illustration&page=8\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchIcons (http://localhost:5173/services/freepikService.ts:217:16)\\n    at async Promise.allSettled (index 2)\\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchIcons (http://localhost:5173/services/freepikService.ts:217:16)\n    at async Promise.allSettled (index 2)\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:19.933Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/icons?term=illustration&page=8\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchIcons (http://localhost:5173/services/freepikService.ts:217:16)\\n    at async Promise.allSettled (index 2)\\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchIcons (http://localhost:5173/services/freepikService.ts:217:16)\n    at async Promise.allSettled (index 2)\n    at async fetchTrendingCarousels (http://localhost:5173/components/panels/ElementsPanel.tsx?t=1790173031418:71:49)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.400Z] ERROR IconScout API error: Internal Server Error {\"query\":\"abstract\",\"type\":\"illustration\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.all (index 4)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.all (index 4)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.432Z] ERROR IconScout API error: Internal Server Error {\"query\":\"abstract\",\"type\":\"illustration\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.all (index 0)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.all (index 0)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.477Z] ERROR IconScout API error: Internal Server Error {\"query\":\"abstract\",\"type\":\"illustration\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.all (index 4)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.all (index 4)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.507Z] ERROR IconScout API error: Internal Server Error {\"query\":\"abstract\",\"type\":\"illustration\",\"stack\":\"Error: IconScout API error: Internal Server Error\\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:17:15)\\n    at async Promise.all (index 0)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at Object.search (http://localhost:5173/services/iconScoutService.ts:31:11)\n    at async Promise.all (index 0)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.625Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/resources?term=abstract&page=1&type=photos\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\\n    at async Promise.all (index 1)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\n    at async Promise.all (index 1)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:20.906Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/resources?term=abstract&page=1&type=photos\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\\n    at async Promise.all (index 0)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\n    at async Promise.all (index 0)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:21.107Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/resources?term=abstract&page=1&type=photos\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\\n    at async Promise.all (index 1)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\n    at async Promise.all (index 1)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    },
+    {
+      "type": "error",
+      "text": "[2026-09-23T15:28:21.311Z] ERROR Freepik API Error (500): {\"error\":\"Internal server error\"} {\"endpoint\":\"/resources?term=abstract&page=1&type=photos\",\"stack\":\"Error: Freepik API Error (500): {\\\"error\\\":\\\"Internal server error\\\"}\\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:49:13)\\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\\n    at async Promise.all (index 0)\\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)\",\"name\":\"Error\"}"
+    },
+    {
+      "type": "error",
+      "text": "Error\n    at Logger.log (http://localhost:5173/services/logger.ts:37:34)\n    at Logger.logError (http://localhost:5173/services/logger.ts:92:10)\n    at Object.error (http://localhost:5173/utils/log.ts:38:14)\n    at freepikFetch (http://localhost:5173/services/freepikService.ts:56:9)\n    at async Module.searchResources (http://localhost:5173/services/freepikService.ts:100:16)\n    at async Promise.all (index 0)\n    at async searchAllProviders (http://localhost:5173/services/assetSearch.ts:147:19)\n    at async handleSearch (http://localhost:5173/components/panels/AssetsPanel.tsx?t=1790172555833:82:23)"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 ()"
+    }
+  ],
+  "detectedIssues": []
+}

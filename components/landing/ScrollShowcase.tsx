@@ -23,15 +23,6 @@ export const ScrollShowcase: React.FC = () => {
   return (
     <section className="py-28 relative bg-[#08080d] overflow-hidden border-y border-white/5">
       <div className="max-w-7xl mx-auto px-6 text-center mb-16 relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-purple-300 uppercase mb-4"
-        >
-          <span>✦</span>
-          <span>Curated Creator Feed</span>
-        </motion.div>
 
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
@@ -65,6 +56,10 @@ export const ScrollShowcase: React.FC = () => {
               <img
                 src={item.src}
                 alt={item.label}
+                width="320"
+                height="420"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover filter brightness-95 group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">
@@ -87,6 +82,10 @@ export const ScrollShowcase: React.FC = () => {
               <img
                 src={item.src}
                 alt={item.label}
+                width="320"
+                height="420"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover filter brightness-95 group-hover:scale-105 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-5">

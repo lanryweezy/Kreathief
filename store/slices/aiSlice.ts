@@ -3,6 +3,7 @@ import type { StoreState } from '../useStore';
 
 import { StateCreator } from 'zustand';
 import {
+  AppMode,
   AspectRatio,
   GenerationQuality,
   ShapeLayer,
@@ -68,6 +69,7 @@ export interface AISlice {
 
   // Refactored Core AI Actions with redundancy
   generateImage: () => Promise<void>;
+  generateLayerAwareDesign: (promptOverride?: string) => Promise<void>;
   vectorizeLayer: (id: string, options: VectorizeOptions) => Promise<void>;
   onRmBg: (id: string) => Promise<void>;
   onRemix: (id: string, promptOverride?: string) => Promise<void>;
@@ -76,6 +78,7 @@ export interface AISlice {
   onUpscale: (id: string) => Promise<void>;
   onRetouch: (id: string) => Promise<void>;
   suggestFontPairing: (textLayerId: string) => Promise<void>;
+  harmonizeArtboardTypography: (customPairing?: any) => Promise<void>;
   generateAutoLayouts: () => Promise<void>;
   applyStyleFromImage: (base64Image: string) => Promise<void>;
   extractPhotoColors: (layerId: string) => Promise<void>;
@@ -202,6 +205,18 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
 
+    // Check if the user intends to create an editable multi-layer design
+    const lower = prompt.toLowerCase();
+    const isLayerAwareIntent =
+      (get() as any).mode === AppMode.MULTI_LAYER ||
+      lower.includes('multi-layer') ||
+      lower.includes('editable design') ||
+      lower.includes('editable layers');
+
+    if (isLayerAwareIntent) {
+      return get().generateLayerAwareDesign();
+    }
+
     set({ isGenerating: true });
     try {
       // Opt-in: steer the generation with the active brand kit's colors/fonts
@@ -238,6 +253,63 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     } catch (error) {
       log.error('All Generation methods failed', error, { prompt, aspectRatio, quality });
       get().addToast?.('Generation failed. Please try again.', 'error');
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
+  generateLayerAwareDesign: async (promptOverride?: string) => {
+    const promptText = promptOverride || get().prompt;
+    if (!promptText) {
+      get().addToast?.('Please enter a prompt to generate an editable design.', 'info');
+      return;
+    }
+
+    const deducted = (get() as any).deductCredit?.(5);
+    if (deducted === false) {
+      return;
+    }
+
+    set({ isGenerating: true });
+    try {
+      const state = get();
+      const activeArtboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
+      const w = activeArtboard?.width || 1080;
+      const h = activeArtboard?.height || 1080;
+
+      const { generateMultiLayerDesign } = await import('../../services/aiDesignDirector');
+      const design = await generateMultiLayerDesign(promptText, w, h);
+
+      if (design && design.layers.length > 0) {
+        state.saveToHistory?.();
+
+        set((s: any) => ({
+          artboards: s.artboards.map((a: any) =>
+            a.id === s.activeArtboardId
+              ? {
+                  ...a,
+                  name: design.title || a.name,
+                  backgroundColor: design.backgroundColor || a.backgroundColor,
+                  backgroundGradient: design.backgroundGradient,
+                  width: design.width || a.width,
+                  height: design.height || a.height,
+                  layers: design.layers,
+                }
+              : a
+          ),
+          selectedLayerIds: design.layers.length > 0 ? [design.layers[design.layers.length - 1].id] : [],
+        }));
+
+        get().addToast?.(
+          `✨ Generated editable design with ${design.layers.length} vector & text layers!`,
+          'success'
+        );
+      } else {
+        get().addToast?.('Could not generate editable design layers.', 'warning');
+      }
+    } catch (err) {
+      log.error('generateLayerAwareDesign failed', err);
+      get().addToast?.('Layer-aware design generation failed. Please try again.', 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -593,6 +665,72 @@ Return ONLY the exact font name. Nothing else.`;
     } catch (error) {
       log.error('Failed to suggest font', error);
       get().addToast?.('Failed to pair font', 'error');
+    } finally {
+      set({ isGenerating: false });
+    }
+  },
+
+  harmonizeArtboardTypography: async (customPairing?: any) => {
+    const { artboards, activeArtboardId, updateLayer, saveToHistory, addToast } = get();
+    const artboard = artboards.find((a: any) => a.id === activeArtboardId);
+    if (!artboard || !artboard.layers) return;
+
+    const textLayers = artboard.layers.filter((l: Layer) => l.type === 'text') as TextLayer[];
+    if (textLayers.length === 0) {
+      addToast?.('No text layers found on active artboard to harmonize.', 'info');
+      return;
+    }
+
+    set({ isGenerating: true });
+    try {
+      const { recommendPairingForStyle } = await import('../../services/typographyPairingEngine');
+      const { classifyLayerRole } = await import('../../services/smartResizeEngine');
+      const { loadFont } = await import('../../services/FontLoader');
+
+      const styleHint = (get() as any).campaignGoal || artboard.name || 'contemporary';
+      const pairing = customPairing || recommendPairingForStyle(styleHint);
+
+      saveToHistory?.();
+
+      await Promise.allSettled([
+        loadFont(pairing.heading),
+        loadFont(pairing.body),
+        pairing.accent ? loadFont(pairing.accent) : Promise.resolve(),
+      ]);
+
+      for (const txt of textLayers) {
+        const role = classifyLayerRole(txt, artboard.layers, artboard.width, artboard.height);
+        if (role === 'headline') {
+          updateLayer(txt.id, {
+            fontFamily: pairing.heading,
+            fontWeight: txt.fontWeight && Number(txt.fontWeight) >= 600 ? txt.fontWeight : '800',
+          });
+        } else if (role === 'subheadline') {
+          updateLayer(txt.id, {
+            fontFamily: pairing.body,
+            fontWeight: '500',
+          });
+        } else if (role === 'cta' || role === 'eyebrow') {
+          updateLayer(txt.id, {
+            fontFamily: pairing.accent || pairing.heading,
+            fontWeight: '700',
+            letterSpacing: 1,
+          });
+        } else {
+          updateLayer(txt.id, {
+            fontFamily: pairing.body,
+            fontWeight: '400',
+          });
+        }
+      }
+
+      addToast?.(
+        `✨ Harmonized ${textLayers.length} text layers: ${pairing.heading} + ${pairing.body} (${pairing.mood})`,
+        'success'
+      );
+    } catch (err) {
+      log.error('harmonizeArtboardTypography failed', err);
+      addToast?.('Failed to harmonize typography.', 'error');
     } finally {
       set({ isGenerating: false });
     }

@@ -73,8 +73,8 @@ export const TrustEthics: React.FC = () => {
                     <p.icon className="w-5 h-5 text-emerald-400" />
                   </div>
                   <div>
-                    <h4 className="text-white font-bold text-base mb-1">{p.title}</h4>
-                    <p className="text-neutral-500 text-sm leading-relaxed">{p.description}</p>
+                    <h3 className="text-white font-bold text-base mb-1">{p.title}</h3>
+                    <p className="text-neutral-400 text-sm leading-relaxed">{p.description}</p>
                   </div>
                 </motion.div>
               ))}

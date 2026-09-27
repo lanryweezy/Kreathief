@@ -62,7 +62,7 @@ export const BlogPreview: React.FC = () => {
                 </div>
               </div>
               <div className="p-10">
-                <div className="text-[10px] font-bold text-neutral-500 mb-4 uppercase tracking-[0.2em]">
+                <div className="text-[10px] font-bold text-neutral-400 mb-4 uppercase tracking-[0.2em]">
                   {post.date} • {post.readTime}
                 </div>
                 <h3 className="text-xl font-bold mb-6 leading-tight group-hover:text-purple-400 transition-colors tracking-tight text-white">
@@ -84,31 +84,91 @@ export const BlogPreview: React.FC = () => {
 };
 
 export const Footer: React.FC = () => {
+  const creativeTools = [
+    { label: 'Magic Object Eraser', href: '/tools/magic-eraser', badge: 'Hot' },
+    { label: 'AI Background Remover', href: '/tools/background-remover' },
+    { label: 'Image to SVG Vectorizer', href: '/tools/vectorizer', badge: 'New' },
+    { label: 'AI Image Upscaler', href: '/tools/image-upscaler' },
+    { label: 'Outpaint & Canvas Expand', href: '/tools/ai-expand-image' },
+    { label: 'AI Background Changer', href: '/tools/change-background' },
+    { label: 'Canvas to Video Motion', href: '/tools/image-to-video' },
+    { label: 'All 9 Free AI Tools →', href: '/tools', highlight: true },
+  ];
+
+  const designStudio = [
+    { label: '3D Mockup Generator', href: '/tools/mockup-generator' },
+    { label: 'Smart Format Auto-Resize', href: '/tools/smart-resize' },
+    { label: '60+ Aesthetic Movements', href: '/tools/design-styles' },
+    { label: 'Typography Harmonizer', href: '/editor?tool=text' },
+    { label: 'Multi-Artboard Canvas', href: '/editor' },
+    { label: 'Vector Pen & Anchors', href: '/editor?tool=draw' },
+    { label: 'Presentation Slides', href: '/editor?tool=slides' },
+    { label: 'WCAG Design Linter', href: '/editor' },
+  ];
+
+  const useCases = [
+    { label: 'Social Posts & TikTok 9:16', href: '/tools/smart-resize' },
+    { label: 'Apparel & Streetwear Mockups', href: '/tools/mockup-generator' },
+    { label: 'Transparent PNG Cutouts', href: '/tools/background-remover' },
+    { label: 'Vector Logos & Clean SVGs', href: '/tools/vectorizer' },
+    { label: 'Photo Blemish Removal', href: '/tools/magic-eraser' },
+    { label: 'eCommerce Product Staging', href: '/tools/product-staging' },
+    { label: 'Historic Design Movement Posters', href: '/tools/design-styles' },
+    { label: 'Interactive Slide Decks', href: '/editor?tool=slides' },
+  ];
+
+  const resources = [
+    { label: 'Design Templates', href: '/dashboard' },
+    { label: 'Creative Blog & Guides', href: '/blog' },
+    { label: 'Node Workspace Canvas', href: '/canvas' },
+    { label: 'Help Center & Docs', href: '/help' },
+    { label: 'Product Changelog', href: '/changelog' },
+    { label: 'Tools Directory', href: '/tools' },
+  ];
+
+  const company = [
+    { label: 'About Kreathief', href: '/about' },
+    { label: 'Contact & Support', href: '/contact' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
+    { label: 'Security & Safety', href: '/security' },
+  ];
+
   return (
-    <footer className="pt-32 pb-12 bg-[#0a0a0c]">
+    <footer className="pt-24 pb-12 bg-[#08080a] border-t border-white/5 text-gray-400">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-32">
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 flex items-center justify-center">
-                <img src="/logo.svg" alt="Kreathief" loading="lazy"
- decoding="async"
- className="w-full h-full object-cover" />
+        {/* Top Brand & Status Row */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-16 mb-16 border-b border-white/5 gap-8">
+          <div className="max-w-md">
+            <Link to="/" className="flex items-center gap-3 mb-4 group inline-flex">
+              <div className="w-9 h-9 rounded-xl bg-surface-dark-2 border border-white/10 flex items-center justify-center p-1.5 shadow-lg group-hover:border-brand-500/50 transition-colors">
+                <img src="/logo.svg" alt="Kreathief" className="w-full h-full object-contain" />
               </div>
-              <span className="font-black text-xl tracking-tighter uppercase">Kreathief</span>
-            </div>
-            <p className="text-gray-500 text-sm font-medium mb-8 leading-relaxed">
-              The future of professional design, powered by generative intelligence.
+              <span className="font-black text-2xl tracking-tighter text-white">Kreathief</span>
+            </Link>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              The browser-first creative studio combining multi-agent generative intelligence with precision vector craftsmanship.
             </p>
-            <div className="flex items-center gap-4">
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>All Systems Operational</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>•</span>
+              <span>100% In-Browser Privacy</span>
+              <span>•</span>
+              <span>Zero Artificial Watermarks</span>
+            </div>
+
+            <div className="flex items-center gap-2 ml-auto lg:ml-4">
               {[
-                { Icon: Icons.Twitter, label: 'Follow Kreathief on Twitter', href: 'https://twitter.com/kreathief' },
-                {
-                  Icon: Icons.Instagram,
-                  label: 'Follow Kreathief on Instagram',
-                  href: 'https://instagram.com/kreathief',
-                },
-                { Icon: Icons.Facebook, label: 'Follow Kreathief on Facebook', href: 'https://facebook.com/kreathief' },
+                { Icon: Icons.Twitter, label: 'Twitter / X', href: 'https://twitter.com/kreathief' },
+                { Icon: Icons.Instagram, label: 'Instagram', href: 'https://instagram.com/kreathief' },
+                { Icon: Icons.Facebook, label: 'Facebook', href: 'https://facebook.com/kreathief' },
               ].map(({ Icon, label, href }) => (
                 <a
                   key={label}
@@ -116,141 +176,153 @@ export const Footer: React.FC = () => {
                   aria-label={label}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center hover:bg-white/5 transition-all text-gray-400 hover:text-white"
+                  className="w-9 h-9 rounded-lg border border-white/5 flex items-center justify-center hover:bg-white/10 hover:border-white/20 transition-all text-gray-400 hover:text-white"
                 >
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
             </div>
           </div>
+        </div>
 
+        {/* 5-Column Navigation Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-10 mb-20 text-sm">
+          {/* Column 1: AI Creative Tools */}
           <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Platform</h4>
-            <ul className="space-y-4">
-              {[
-                { label: 'Design Tool', href: '/#features' },
-                { label: 'AI Studio', href: '/#features' },
-                { label: 'Features', href: '/#features' },
-                { label: 'Templates', href: '/dashboard' },
-                { label: 'API (Coming soon)', href: '#' },
-              ].map((item) => (
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6 flex items-center gap-1.5">
+              <span>AI Creative Tools</span>
+            </h3>
+            <ul className="space-y-3">
+              {creativeTools.map((item) => (
                 <li key={item.label}>
-                  {item.href.startsWith('/') ? (
-                    <Link
-                      to={item.href}
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <a
-                      href={item.href}
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </a>
-                  )}
+                  <Link
+                    to={item.href}
+                    className={`transition-colors flex items-center justify-between group ${
+                      item.highlight
+                        ? 'text-brand-400 font-bold hover:text-brand-300'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-300 border border-brand-500/30">
+                        {item.badge}
+                      </span>
+                    )}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* Column 2: Design Studio */}
           <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Resources</h4>
-            <ul className="space-y-4">
-              {[
-                { label: 'Help Center', href: '/help' },
-                { label: 'Blog', href: '/blog' },
-                { label: 'Tutorials', href: '/blog' },
-                { label: 'Changelog', href: '/changelog' },
-                { label: 'Status', href: 'https://status.kreathief.com' },
-              ].map((item) => (
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">
+              Design Studio
+            </h3>
+            <ul className="space-y-3">
+              {designStudio.map((item) => (
                 <li key={item.label}>
-                  {item.href.startsWith('/') ? (
-                    <Link
-                      to={item.href}
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <a
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </a>
-                  )}
+                  <Link
+                    to={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
 
+          {/* Column 3: Use Cases */}
           <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-8">Company</h4>
-            <ul className="space-y-4">
-              {[
-                { label: 'About', href: '/about' },
-                { label: 'Privacy', href: '/privacy' },
-                { label: 'Terms', href: '/terms' },
-                { label: 'Security', href: '/security' },
-                { label: 'Contact', href: '/contact' },
-              ].map((item) => (
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">
+              Use Cases
+            </h3>
+            <ul className="space-y-3">
+              {useCases.map((item) => (
                 <li key={item.label}>
-                  {item.href.startsWith('/') ? (
-                    <Link
-                      to={item.href}
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </Link>
-                  ) : (
-                    <a
-                      href={item.href}
-                      className="text-gray-500 hover:text-white transition-colors text-sm font-medium"
-                    >
-                      {item.label}
-                    </a>
-                  )}
+                  <Link
+                    to={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 4: Resources */}
+          <div>
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">
+              Resources
+            </h3>
+            <ul className="space-y-3">
+              {resources.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Column 5: Company & Trust */}
+          <div>
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-6">
+              Company & Legal
+            </h3>
+            <ul className="space-y-3">
+              {company.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.href}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
           </div>
         </div>
 
-        {/* Ask AI Section (Awen inspired) */}
-        <div className="py-16 border-t border-white/5">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+        {/* Ask AI Intelligence Row */}
+        <div className="py-10 border-t border-white/5">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div>
-              <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2">
-                Any questions about Kreathief?
-              </h4>
-              <p className="text-neutral-500 text-xs font-medium uppercase tracking-[0.2em]">
-                Ask the world's most intelligent AI models instantly.
+              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-1.5">
+                Questions about Kreathief?
+              </h3>
+              <p className="text-neutral-400 text-xs">
+                Query the world's most intelligent AI models directly about our architecture and features.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-3">
               {[
                 {
                   label: 'ChatGPT',
-                  color: 'hover:text-emerald-400',
+                  color: 'hover:text-emerald-400 hover:border-emerald-500/40',
                   href: 'https://chatgpt.com/?q=Tell+me+about+Kreathief+AI+Design+Suite+and+how+its+multi-agent+system+works.',
                 },
                 {
                   label: 'Claude',
-                  color: 'hover:text-orange-400',
+                  color: 'hover:text-orange-400 hover:border-orange-500/40',
                   href: 'https://claude.ai/new?q=What+is+Kreathief+and+how+does+it+compare+to+Figma+and+Canva?',
                 },
                 {
                   label: 'Gemini',
-                  color: 'hover:text-blue-400',
+                  color: 'hover:text-blue-400 hover:border-blue-500/40',
                   href: 'https://gemini.google.com/app?q=Summarize+the+key+features+of+Kreathief+AI+Design+Suite.',
                 },
                 {
                   label: 'Perplexity',
-                  color: 'hover:text-cyan-400',
+                  color: 'hover:text-cyan-400 hover:border-cyan-500/40',
                   href: 'https://www.perplexity.ai/search?q=Is+Kreathief+AI+Design+Suite+the+best+tool+for+AI+vector+design?',
                 },
               ].map((ai) => (
@@ -259,7 +331,7 @@ export const Footer: React.FC = () => {
                   href={ai.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${ai.color} hover:bg-white/10 hover:border-white/20`}
+                  className={`px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold transition-all text-gray-300 ${ai.color} hover:bg-white/10`}
                 >
                   {ai.label}
                 </a>
@@ -268,10 +340,15 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="text-gray-600 text-xs font-black uppercase tracking-[0.3em]">© 2026 Kreathief Inc.</div>
-          <div className="flex items-center gap-8 text-gray-700 text-[10px] font-black uppercase tracking-[0.2em]">
-            <span>Made in San Francisco</span>
+        {/* Bottom Metadata & Copyright */}
+        <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+          <div>© {new Date().getFullYear()} Kreathief Inc. All rights reserved.</div>
+          <div className="flex items-center gap-6">
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link to="/security" className="hover:text-white transition-colors">Security</Link>
+            <span className="text-gray-700">•</span>
+            <span>Crafted for modern visual creators</span>
           </div>
         </div>
       </div>

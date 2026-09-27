@@ -28,6 +28,8 @@ export interface UISlice {
   showShareModal: boolean;
   showFeedbackModal: boolean;
   showProfileModal: boolean;
+  showPricingModal: boolean;
+  credits: number;
   comments: DesignComment[];
   isCropMode: boolean;
   croppingLayerId: string | null;
@@ -85,6 +87,9 @@ export interface UISlice {
   setShowShareModal: (show: boolean) => void;
   setShowFeedbackModal: (show: boolean) => void;
   setShowProfileModal: (show: boolean) => void;
+  setShowPricingModal: (show: boolean) => void;
+  setCredits: (credits: number) => void;
+  deductCredit: (amount?: number) => boolean;
   setShowPresentation: (show: boolean) => void;
   setShowVersionDiff: (show: boolean, snapshotId?: string | null) => void;
   setPreviewFontFamily: (font: string | null) => void;
@@ -145,6 +150,8 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   showShareModal: false,
   showFeedbackModal: false,
   showProfileModal: false,
+  showPricingModal: false,
+  credits: typeof window !== 'undefined' ? parseInt(localStorage.getItem('kreathief_credits') || '50', 10) : 50,
   comments: [],
   snapshots: [],
   tags: [],
@@ -176,7 +183,27 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setIsSmartMaskMode: (isSmartMaskMode) => set({ isSmartMaskMode }),
   setHoveredMaskBoundary: (hoveredMaskBoundary) => set({ hoveredMaskBoundary }),
   setAspectLocked: (aspectLocked) => set({ aspectLocked }),
-  setUser: (user) => set({ user }),
+  setUser: (user) => {
+    if (user && user.credits !== undefined) {
+      set({ user, credits: user.credits });
+    } else if (user && !user.isGuest && user.id !== 'guest') {
+      set({ user });
+      import('../../lib/supabase/client').then(({ db }) => {
+        db.from('user_subscriptions')
+          .select('ai_credits_balance')
+          .eq('user_id', user.id)
+          .maybeSingle()
+          .then(({ data }) => {
+            if (data && data.ai_credits_balance !== undefined) {
+              set({ credits: data.ai_credits_balance });
+              try { localStorage.setItem('kreathief_credits', String(data.ai_credits_balance)); } catch {}
+            }
+          });
+      }).catch(() => {});
+    } else {
+      set({ user });
+    }
+  },
   setCommandPaletteOpen: (isCommandPaletteOpen) => set({ isCommandPaletteOpen }),
   setShowAIOverlay: (show, tab) => set(tab ? { showAIOverlay: show, aiOverlayTab: tab } : { showAIOverlay: show }),
   setAIOverlayTab: (aiOverlayTab) => set({ aiOverlayTab }),
@@ -226,6 +253,33 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
   setShowShareModal: (show) => set({ showShareModal: show }),
   setShowFeedbackModal: (show) => set({ showFeedbackModal: show }),
   setShowProfileModal: (show) => set({ showProfileModal: show }),
+  setShowPricingModal: (showPricingModal) => set({ showPricingModal }),
+  setCredits: (credits) => {
+    try { localStorage.setItem('kreathief_credits', String(credits)); } catch {}
+    set({ credits });
+  },
+  deductCredit: (amount = 1) => {
+    const current = get().credits ?? 50;
+    if (current < amount) {
+      set({ showPricingModal: true });
+      get().addToast?.('You have run out of AI generation credits! Please upgrade to continue.', 'warning');
+      return false;
+    }
+    const nextCredits = current - amount;
+    try { localStorage.setItem('kreathief_credits', String(nextCredits)); } catch {}
+    set({ credits: nextCredits });
+
+    const user = get().user;
+    if (user && !user.isGuest && user.id !== 'guest') {
+      import('../../lib/supabase/client').then(({ db }) => {
+        db.from('user_subscriptions')
+          .update({ ai_credits_balance: nextCredits })
+          .eq('user_id', user.id)
+          .then();
+      }).catch(() => {});
+    }
+    return true;
+  },
   setShowPresentation: (show) => set({ showPresentation: show }),
   setShowVersionDiff: (show: boolean, snapshotId: string | null = null) =>
     set({ showVersionDiff: show, versionDiffSnapshotId: snapshotId }),

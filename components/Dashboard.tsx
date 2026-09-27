@@ -82,7 +82,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [isLoading, setIsLoading] = useState(true);
   const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const showPricingModal = useStore((state) => (state as any).showPricingModal);
+  const setShowPricingModal = useStore((state) => (state as any).setShowPricingModal);
+  const credits = useStore((state) => (state as any).credits ?? 50);
   const [templateCategory, setTemplateCategory] = useState('All');
   const [templateSort, setTemplateSort] = useState<'newest' | 'popular' | 'name'>('newest');
   const [templatePage, setTemplatePage] = useState(1);
@@ -608,6 +610,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               }
             }}
           >
+
+            {/* Live AI Credit Counter Pill */}
+            <button
+              onClick={() => setShowPricingModal(true)}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 hover:border-amber-400 text-amber-300 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+              title="AI Credits Remaining — Click to view plans & upgrade"
+            >
+              <Icons.Zap className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span>{credits}</span>
+              <span className="hidden md:inline text-[10px] font-normal text-amber-400/80">credits</span>
+            </button>
+
             <div className="text-right hidden sm:block">
               <div className="text-xs font-black uppercase tracking-widest text-white">{user.name}</div>
               <button
@@ -1297,14 +1311,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       )}
 
       {showPricingModal && (
-        <PricingModal
-          onClose={() => setShowPricingModal(false)}
-          onUpgrade={() => {
-            // No payment backend yet — be honest instead of pretending to upgrade
-            addToast('Pro subscriptions are not live yet — everything is free during the beta!', 'info');
-            setShowPricingModal(false);
-          }}
-        />
+        <PricingModal onClose={() => setShowPricingModal(false)} />
       )}
 
       <ConfirmModal

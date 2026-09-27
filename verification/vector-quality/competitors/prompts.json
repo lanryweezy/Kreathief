@@ -1,0 +1,27 @@
+[
+  {
+    "id": "logo-mark",
+    "label": "Abstract logo mark",
+    "prompt": "Minimal flat geometric logo mark of a single water droplet containing a leaf, two colors only, clean bezier curves, generous whitespace, no gradients, no text"
+  },
+  {
+    "id": "wordmark",
+    "label": "Wordmark",
+    "prompt": "Bold modern wordmark reading \"KREATHIEF\", tight kerning, geometric sans-serif, single solid color, transparent background"
+  },
+  {
+    "id": "icon-badge",
+    "label": "App icon / badge",
+    "prompt": "Circular app-icon badge with a lightning bolt cut out of the center, flat vector, one accent color on dark, crisp edges"
+  },
+  {
+    "id": "icon-set",
+    "label": "Three-icon set",
+    "prompt": "A matching set of three line icons: search, cart, and user profile. Consistent 2px stroke, rounded caps, single color, no fills"
+  },
+  {
+    "id": "brand-lockup",
+    "label": "Full logo lockup",
+    "prompt": "Horizontal brand lockup: a simple mountain-peak icon to the left of the wordmark \"SUMMIT\", aligned baseline, two colors, editable text, vector"
+  }
+]

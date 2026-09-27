@@ -56,6 +56,7 @@ import { MobileTransformController } from './MobileTransformController';
 import { useCollaboration } from '../hooks/useCollaboration';
 import { CursorOverlay } from './collaboration/CursorOverlay';
 import { PresenceBar } from './collaboration/PresenceBar';
+import { CanvasHealthPill } from './canvas/CanvasHealthPill';
 
 interface EditorProps {
   initialProject?: Project;
@@ -83,6 +84,16 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const zoom = rawZoom || 1;
 
   const showAIOverlay = useStore((state) => state.showAIOverlay);
+  const wasManuallyCollapsedRef = useRef(false);
+
+  // Responsive "Sidebar Crush" prevention:
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
+  // When the right AI overlay opens on screens <1536px, auto-collapse the left drawer
+  // so the central canvas retains full breathing room.
+  const isRightPanelOpen = showAIOverlay && !isMobile;
+  const isCrushedScreen = typeof window !== 'undefined' && window.innerWidth < 1536;
+  const shouldAutoCollapse = activeTab === NavTab.MOCKUP || (isRightPanelOpen && isCrushedScreen);
   const aiTab = useStore((state) => state.aiOverlayTab);
   const setAiTab = useStore((state) => state.setAIOverlayTab);
   const setShowAIOverlay = useStore((state) => state.setShowAIOverlay);
@@ -120,6 +131,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
+    import('../services/FontLoader').then((m) => m.initFontLoader?.());
     return () => {
       if (previewTimeoutRef.current) {
         clearTimeout(previewTimeoutRef.current);
@@ -127,7 +139,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     };
   }, []);
 
-  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
+
 
   // AutoLayout Reactivity Engine
   useEffect(() => {
@@ -149,7 +161,9 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           if (target) {
             let changed = false;
             for (const key of Object.keys(partial)) {
-              if ((target as any)[key] !== (partial as any)[key]) {
+              const t = (target as any)[key];
+              const p = (partial as any)[key];
+              if (typeof t === 'number' && typeof p === 'number' ? Math.abs(t - p) > 0.01 : t !== p) {
                 changed = true;
                 break;
               }
@@ -286,7 +300,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       <div className={`flex flex-1 overflow-hidden relative ${hideHeaderOnMobile ? 'pb-0' : 'pb-16 md:pb-0'}`}>
         <div
           id="sidebar-container"
-          className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-all duration-300 ${isSidebarCollapsed || activeTab === NavTab.MOCKUP ? 'w-[72px]' : 'w-[392px]'}`}
+          className={`hidden md:flex flex-row h-full shrink-0 z-40 border-r border-white/5 shadow-[4px_0_24px_rgba(0,0,0,0.5)] transition-all duration-300 ${isSidebarCollapsed || shouldAutoCollapse ? 'w-[72px]' : 'w-[392px]'}`}
         >
           <ErrorBoundary componentName="Sidebar" variant="widget">
             <Sidebar
@@ -300,7 +314,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 setIsSidebarCollapsed(false);
               }}
             />
-            {!isSidebarCollapsed && activeTab !== NavTab.MOCKUP && (
+            {!(isSidebarCollapsed || shouldAutoCollapse) && activeTab !== NavTab.MOCKUP && (
               <SidePanel
                 onGenerate={handleGenerate}
                 onApplyTheme={(colors) => useStore.getState().applyBrandColors(colors)}
@@ -362,6 +376,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
               />
             </ErrorBoundary>
             <CursorOverlay />
+            <CanvasHealthPill />
 
             <div className="absolute bottom-4 right-4 z-[90] flex items-center bg-surface-dark-3/90 backdrop-blur-md rounded-xl p-1 border border-white/10 shadow-2xl">
               <div className="flex items-center px-1 gap-0.5">

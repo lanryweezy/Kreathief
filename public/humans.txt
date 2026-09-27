@@ -1,0 +1,15 @@
+/* TEAM */
+  Creator: Kreathief Inc.
+  Contact: hello@kreathief.com
+  Twitter: @kreathief
+  Location: San Francisco, CA
+
+/* THANKS */
+  Open-source community, Paper.js, Lucide, Tailwind CSS, ONNX Runtime, Transformers.js
+
+/* TECHNOLOGY & STANDARDS */
+  Architecture: React 18, TypeScript, Tailwind CSS, Vite
+  Graphics: HTML5 Canvas, WebGL, WebAssembly, Paper.js, SVG Bezier
+  AI Models: Gemini 2.5 Flash & Pro, Claude 3.5 Sonnet, ONNX LaMa Inpainting
+  Security: Content Security Policy, HSTS, Subresource Integrity, Strict Referrer
+  Standards: HTML5, CSS3, SVG 2.0, PDF/X, WCAG 2.1 AA Accessibility
