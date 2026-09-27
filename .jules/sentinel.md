@@ -300,3 +300,8 @@
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint contained an insecure CORS fallback (`req.headers.get('origin') || '*'`). A naive fix (restricting the origin strictly to `VITE_FRONTEND_URL`) broke preview deployments because it removed the necessary `VERCEL_URL` check.
 **Learning:** In Vercel environments, `VERCEL_URL` is dynamically generated for preview deployments, while `VITE_FRONTEND_URL` is typically only set for production. Removing the `VERCEL_URL` fallback completely breaks preview environments. However, falling back to the `Origin` header blindly or using a wildcard `*` allows any malicious site to exploit the proxy.
 **Prevention:** When securing CORS in Vercel API routes, require `VITE_FRONTEND_URL` in production, but safely fall back to `VERCEL_URL` if present. Never echo the request's `Origin` header blindly (`req.headers.get('origin')`) or default to a wildcard `*` on sensitive proxy endpoints.
+
+## 2024-10-25 - [Removed Client-Side Exposure and Hardcoding of Pexels API Key]
+**Vulnerability:** The application was fetching `import.meta.env.VITE_PEXELS_API_KEY` and contained a hardcoded Pexels API key in `api/pexels.ts`, which was bundled into the client-side code, exposing the secret directly to users.
+**Learning:** Storing API keys in client-side files or using the `VITE_` prefix for secrets securely meant for backend usage leads to direct key exposure via the compiled frontend bundle.
+**Prevention:** Always implement a server-side proxy route (e.g., an Edge Function) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and never hardcode API keys in source code.
