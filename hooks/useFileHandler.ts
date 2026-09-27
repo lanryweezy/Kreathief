@@ -94,26 +94,21 @@ const fallbackExportStrategy: ExportStrategy = {
     const mimeType = ctx.format === 'jpeg' ? 'jpeg' : ctx.format;
     const includeBg = ctx.bgColor !== 'transparent';
     const fillBg = includeBg ? ctx.bgColor : 'transparent';
-    
+
     try {
       // 1. Generate pristine SVG from layer geometry
       // We use originalLayers if available to prevent double-scaling if SVG does its own relative bounds mapping,
       // but exportToSVG expects exact dimensions, so we pass scaledLayers.
       const layersToExport = ctx.scaledLayers;
-      const svgString = await exportService.exportToSVG(
-        ctx.exportWidth,
-        ctx.exportHeight,
-        fillBg,
-        layersToExport
-      );
-      
+      const svgString = await exportService.exportToSVG(ctx.exportWidth, ctx.exportHeight, fillBg, layersToExport);
+
       // 2. Draw SVG to Canvas for High-DPI rasterization without HTML2Canvas DOM overhead
       const canvas = document.createElement('canvas');
       canvas.width = ctx.exportWidth;
       canvas.height = ctx.exportHeight;
       const canvasCtx = canvas.getContext('2d');
       if (!canvasCtx) throw new Error('Could not get 2D canvas context');
-      
+
       // Paint background manually if format is JPEG since it doesn't support transparency
       if (mimeType === 'jpeg' && !includeBg) {
         canvasCtx.fillStyle = '#ffffff';
@@ -122,7 +117,7 @@ const fallbackExportStrategy: ExportStrategy = {
 
       const img = new Image();
       // Ensure cross-origin data urls work properly
-      img.crossOrigin = 'anonymous'; 
+      img.crossOrigin = 'anonymous';
       img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgString);
 
       await new Promise<void>((resolve, reject) => {
@@ -358,11 +353,7 @@ export const useFileHandler = () => {
         x: l.x * scaleX,
         y: l.y * scaleY,
         width: l.width * scaleX,
-        height: (l as any).height
-          ? (l as any).height * scaleY
-          : l.type === 'text'
-            ? (l as any).fontSize * 1.2
-            : l.width * scaleX,
+        height: l.height ? l.height * scaleY : l.type === 'text' ? (l as any).fontSize * 1.2 : l.width * scaleX,
         ...(l.type === 'text' ? { fontSize: (l as any).fontSize * scaleY } : {}),
       })) as any[];
 

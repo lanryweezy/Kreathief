@@ -91,8 +91,8 @@ export const useCanvasSelection = ({
               return;
             }
 
-            const lw = (l as any).width || 0;
-            const lh = (l as any).height || 0;
+            const lw = l.width || 0;
+            const lh = l.height || 0;
             const gx = l.x + artboard.x;
             const gy = l.y + artboard.y;
 

@@ -115,7 +115,7 @@ export const useLayerMask = (layer: Layer | null) => {
     return () => {
       isMounted = false;
     };
-  }, [layer?.id, layer?.type, (layer as any)?.pathData, (layer as any)?.width, (layer as any)?.height]);
+  }, [layer?.id, layer?.type, (layer as any)?.pathData, layer?.width, layer?.height]);
 
   return { maskPath, isProcessing };
 };
