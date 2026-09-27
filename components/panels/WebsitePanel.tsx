@@ -929,6 +929,7 @@ export const WebsitePanel: React.FC = () => {
               <button
                 onClick={() => !isGeneratingAI && setShowAIModal(false)}
                 className="text-gray-400 hover:text-white"
+                aria-label="Close AI generation modal"
               >
                 <AnyIcons.X className="w-4 h-4" />
               </button>
@@ -990,6 +991,7 @@ export const WebsitePanel: React.FC = () => {
               <button
                 onClick={() => !isDeploying && setShowDeployModal(false)}
                 className="text-gray-400 hover:text-white"
+                aria-label="Close publish website modal"
               >
                 <AnyIcons.X className="w-4 h-4" />
               </button>
