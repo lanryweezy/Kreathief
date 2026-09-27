@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Layer, ShapeLayer } from '../../types';
 
-export const useBitmapCache = (
-  layers: Layer[],
-  selectedLayerIds: string[],
-  zoom: number,
-  isInteracting?: boolean
-) => {
+export const useBitmapCache = (layers: Layer[], selectedLayerIds: string[], zoom: number, isInteracting?: boolean) => {
   const [cachedUrl, setCachedUrl] = useState<string | null>(null);
   const [cachedLayerIds, setCachedLayerIds] = useState<Set<string>>(new Set());
   const cacheTimeoutRef = useRef<number | null>(null);
@@ -42,7 +37,7 @@ export const useBitmapCache = (
 
       // Check if cache needs update by comparing layer IDs
       const newCacheIds = new Set(cacheableLayers.map((l) => l.id));
-      
+
       const generateCache = async () => {
         // Find bounding box
         let minX = Infinity;
@@ -53,8 +48,8 @@ export const useBitmapCache = (
         cacheableLayers.forEach((l) => {
           minX = Math.min(minX, l.x);
           minY = Math.min(minY, l.y);
-          maxX = Math.max(maxX, l.x + (l as any).width);
-          maxY = Math.max(maxY, l.y + (l as any).height);
+          maxX = Math.max(maxX, l.x + l.width);
+          maxY = Math.max(maxY, l.y + l.height);
         });
 
         if (minX === Infinity) return;
@@ -105,7 +100,6 @@ export const useBitmapCache = (
       };
 
       generateCache();
-
     }, 500);
 
     return () => {
