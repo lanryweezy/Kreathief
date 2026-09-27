@@ -2,7 +2,11 @@ import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
-import { promptArchetypeStrategies, DEFAULT_ARCHETYPE_GUIDANCE, DEFAULT_ARCHETYPE_LOCAL_SUFFIX } from './promptArchetypes';
+import {
+  promptArchetypeStrategies,
+  DEFAULT_ARCHETYPE_GUIDANCE,
+  DEFAULT_ARCHETYPE_LOCAL_SUFFIX,
+} from './promptArchetypes';
 import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
@@ -11,7 +15,6 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 // Helper to call backend serverless endpoint — routed through OpenRouter
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
-
 
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
   const messages: { role: string; content: string | any[] }[] = [];
@@ -70,19 +73,21 @@ export const callBackendGeminiAPI = async (payload: any) => {
     'claude-opus-4': 'anthropic/claude-opus-4',
     'gpt-4o': 'openai/gpt-4o',
     'gpt-4o-mini': 'openai/gpt-4o-mini',
-    'o3': 'openai/o3',
+    o3: 'openai/o3',
     'llama-4-scout': 'meta-llama/llama-4-scout',
   };
-  const rawModel = payload.modelName || (() => {
-    try {
-      // Lazily import store to avoid circular deps — safe because this is always called at runtime
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { useStore } = require('../store/useStore');
-      return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
-    } catch {
-      return 'google/gemini-2.5-flash';
-    }
-  })();
+  const rawModel =
+    payload.modelName ||
+    (() => {
+      try {
+        // Lazily import store to avoid circular deps — safe because this is always called at runtime
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { useStore } = require('../store/useStore');
+        return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
+      } catch {
+        return 'google/gemini-2.5-flash';
+      }
+    })();
   // If the model already looks like an OpenRouter path (contains '/'), use it directly.
   const model = rawModel.includes('/') ? rawModel : (modelMap[rawModel] ?? 'google/gemini-2.5-flash');
 
@@ -274,6 +279,75 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
   }
 };
 
+export const rewriteTextTone = async (text: string, instruction: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are a world-class Brand Voice Copywriter for a design tool.
+Your job is to rewrite the user's text based on their instruction.
+If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
+
+Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+    const sanitizedInstruction = instruction.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The rewritten text',
+        },
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `Original Text: "${sanitizedText}"\nInstruction: "${sanitizedInstruction}"` }],
+        },
+      ],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || text;
+  } catch (error) {
+    log.error('rewriteTextTone Error:', error);
+    throw error;
+  }
+};
+
+export const suggestTypographyForText = async (text: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
+
+Choose ONLY ONE from this curated list of premium Google Fonts:
+[Inter, Playfair Display, Space Grotesk, Syne, Anton, Oswald, Roboto Mono, Archivo Black, Cinzel, Bebas Neue, Lora, Montserrat, Outfit, Plus Jakarta Sans, Clash Display]
+
+Return ONLY the exact font name. Nothing else.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The exact name of the suggested font',
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Text: "${sanitizedText}"` }] }],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || 'Inter';
+  } catch (error) {
+    log.error('suggestTypographyForText Error:', error);
+    return 'Inter';
+  }
+};
+
 export const generateText = async (
   currentText: string,
   instruction: string = 'Rewrite this to be more creative and catchy.'
@@ -418,9 +492,7 @@ export const generateAltText = async (src: string): Promise<string> => {
       b64 = cleanBase64(dataUrl);
     }
 
-    const parts = [
-      { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
-    ];
+    const parts = [{ inlineData: { mimeType: b64!.mimeType, data: b64!.data } }];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
       // 🤖 Astra: Moved persona and rules to native systemInstruction field to prevent context confusion
