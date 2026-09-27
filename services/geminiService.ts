@@ -2,7 +2,11 @@ import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
-import { promptArchetypeStrategies, DEFAULT_ARCHETYPE_GUIDANCE, DEFAULT_ARCHETYPE_LOCAL_SUFFIX } from './promptArchetypes';
+import {
+  promptArchetypeStrategies,
+  DEFAULT_ARCHETYPE_GUIDANCE,
+  DEFAULT_ARCHETYPE_LOCAL_SUFFIX,
+} from './promptArchetypes';
 import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
@@ -11,7 +15,6 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 // Helper to call backend serverless endpoint — routed through OpenRouter
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
-
 
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
   const messages: { role: string; content: string | any[] }[] = [];
@@ -70,19 +73,21 @@ export const callBackendGeminiAPI = async (payload: any) => {
     'claude-opus-4': 'anthropic/claude-opus-4',
     'gpt-4o': 'openai/gpt-4o',
     'gpt-4o-mini': 'openai/gpt-4o-mini',
-    'o3': 'openai/o3',
+    o3: 'openai/o3',
     'llama-4-scout': 'meta-llama/llama-4-scout',
   };
-  const rawModel = payload.modelName || (() => {
-    try {
-      // Lazily import store to avoid circular deps — safe because this is always called at runtime
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { useStore } = require('../store/useStore');
-      return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
-    } catch {
-      return 'google/gemini-2.5-flash';
-    }
-  })();
+  const rawModel =
+    payload.modelName ||
+    (() => {
+      try {
+        // Lazily import store to avoid circular deps — safe because this is always called at runtime
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { useStore } = require('../store/useStore');
+        return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
+      } catch {
+        return 'google/gemini-2.5-flash';
+      }
+    })();
   // If the model already looks like an OpenRouter path (contains '/'), use it directly.
   const model = rawModel.includes('/') ? rawModel : (modelMap[rawModel] ?? 'google/gemini-2.5-flash');
 
@@ -295,7 +300,12 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
           description: 'The rewritten text',
         },
       },
-      contents: [{ role: 'user', parts: [{ text: `Original Text: "${sanitizedText}"\nInstruction: "${sanitizedInstruction}"` }] }],
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `Original Text: "${sanitizedText}"\nInstruction: "${sanitizedInstruction}"` }],
+        },
+      ],
     });
 
     const parsed = safeParseJSON<string | null>(data.text || 'null', null);
@@ -482,9 +492,7 @@ export const generateAltText = async (src: string): Promise<string> => {
       b64 = cleanBase64(dataUrl);
     }
 
-    const parts = [
-      { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
-    ];
+    const parts = [{ inlineData: { mimeType: b64!.mimeType, data: b64!.data } }];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
       // 🤖 Astra: Moved persona and rules to native systemInstruction field to prevent context confusion

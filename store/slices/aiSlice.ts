@@ -126,7 +126,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
   applyPresetStyleReference: (presetId) => {
     const preset = CURATED_STYLE_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {
+      return;
+    }
     const ref = presetToStyleReference(preset);
     ref.strength = get().referenceStrength;
     set({ styleReference: ref });
@@ -541,7 +543,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     const { updateLayer, artboards, activeArtboardId } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
@@ -563,7 +567,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     const { updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
