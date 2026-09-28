@@ -94,3 +94,7 @@
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+
+## 2025-02-22 - Extracted duplicate layer search loops
+**Learning:** Custom store utilities like `findLayerById` and `findLayerByComponentId` often duplicate nested `artboards -> layers` loop traversal logic instead of reusing a generic finder function, leading to structural duplication.
+**Action:** When adding search methods for deeply nested structures (like layers within artboards), verify if a generic predicate-based finder already exists (`findLayerInArtboards`) and reuse it rather than manually writing loops.

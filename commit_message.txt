@@ -1,7 +1,15 @@
-🔩 Hinge: TextWarpEngine Strategy Registry
+🏗️ Mason: Refactor layer search utilities to reuse findLayerInArtboards
 
-🔍 Pressure: The `warpPoint` function relied on a hard-coded switch statement with 5 cases ('arch', 'flag', 'rise', 'wave', 'bulge').
-💡 Extension point: Extracted the logic into a `TextWarpStrategy` interface and a `textWarpStrategies` registry Map.
-🔒 Additive: Existing callers of `warpPoint` require zero changes.
-📋 Contract: Implementors provide a `warp` method that takes (x, y, nx, ny, magnitude) and returns the modified {x, y} coordinates.
-✅ Verification: Migrated all 5 existing implementations to the registry. Unit tests pass successfully.
+💡 What:
+Refactored `findLayerById` and `findLayerByComponentId` in `store/slices/layer/utils.ts` to delegate to the existing `findLayerInArtboards` utility, removing the manual nested iteration through artboards and layers. Removed an unused `TextLayer` import.
+
+🎯 Why:
+To eliminate structural duplication (nested for loops iterating over artboards -> layers) that existed in three separate utility functions within the same file, centralizing the layer traversal logic into a single generic finder function.
+
+🔒 Behavior:
+No observable logic was changed. `findLayerById` returns the exact same object shape (or `null`), and `findLayerByComponentId` continues to extract and return just the layer object (or `null`).
+
+✅ Verification:
+- Tests pass (`pnpm test run tests/unit/utils/layers.test.ts`)
+- Lint checks pass on the modified file
+- The git diff confirms only structural deduplication and zero behavior changes.

@@ -1,4 +1,4 @@
-import { Layer, TextLayer, LayerFilters, Artboard } from '../../../types';
+import { Layer, LayerFilters, Artboard } from '../../../types';
 
 
 export function findLayerInArtboards(
@@ -20,27 +20,12 @@ export function findLayerById(
   artboards: Artboard[],
   id: string
 ): { layer: Layer; artboard: Artboard; index: number } | null {
-  for (const artboard of artboards) {
-    const layers = artboard.layers;
-    for (let i = 0; i < layers.length; i++) {
-      if (layers[i].id === id) {
-        return { layer: layers[i], artboard, index: i };
-      }
-    }
-  }
-  return null;
+  return findLayerInArtboards(artboards, (layer) => layer.id === id);
 }
 
 export function findLayerByComponentId(artboards: Artboard[], componentId: string): Layer | null {
-  for (const artboard of artboards) {
-    const layers = artboard.layers;
-    for (let i = 0; i < layers.length; i++) {
-      if (layers[i].componentId === componentId) {
-        return layers[i];
-      }
-    }
-  }
-  return null;
+  const result = findLayerInArtboards(artboards, (layer) => layer.componentId === componentId);
+  return result ? result.layer : null;
 }
 
 export const DEFAULT_LAYER_FILTERS: LayerFilters = {
