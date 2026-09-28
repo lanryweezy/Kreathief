@@ -1,6 +1,5 @@
 import { Layer, LayerFilters, Artboard } from '../../../types';
 
-
 export function findLayerInArtboards(
   artboards: Artboard[],
   predicate: (layer: Layer) => boolean

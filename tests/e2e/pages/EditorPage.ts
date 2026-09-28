@@ -59,7 +59,9 @@ export class EditorPage {
       let c = 0;
       for (const el of all) {
         if (el.getAttribute('data-testid')?.includes('layer') || el.classList.toString().includes('layer')) {
-          if (el.getAttribute('data-testid') === 'layer-item' || el.getAttribute('role') === 'treeitem') c++;
+          if (el.getAttribute('data-testid') === 'layer-item' || el.getAttribute('role') === 'treeitem') {
+            c++;
+          }
         }
       }
       return document.querySelectorAll('[role="treeitem"], [data-testid="layer-item"]').length;
