@@ -86,11 +86,21 @@
 \n## 2026-08-25 - Safely Casting Subtype Properties on Union Types\n\n**Learning:** When removing `as any` casts for properties that only exist on specific subtypes of a union type (e.g., `color` or `fontFamily` on `Partial<Layer>`), it's important to cast the object to the specific partial subtype (e.g., `as Partial<TextLayer>`) rather than keeping `as any`. This maintains type safety while resolving 'Property does not exist on type' errors.\n**Action:** When resolving TypeScript property access errors on union types where a property only exists on one variant, use a precise subtype cast like `as Partial<TextLayer>` instead of `as any` to restore type safety without changing behavior.
 
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
+
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+
 ## 2024-05-24 - Extract duplicate browser API capability checks
+
 **Learning:** Repetitive `if ('api' in navigator)` checks for browser APIs (like `vibrate`) across multiple utility methods create unnecessary boilerplate and inconsistent error handling (some had try/catch, some didn't).
 **Action:** When creating utility wrappers for browser APIs with multiple methods, extract the capability check and safe execution (try/catch) into a single private helper function within the module.
+
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
+
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+
+## 2025-02-22 - Extracted duplicate layer search loops
+
+**Learning:** Custom store utilities like `findLayerById` and `findLayerByComponentId` often duplicate nested `artboards -> layers` loop traversal logic instead of reusing a generic finder function, leading to structural duplication.
+**Action:** When adding search methods for deeply nested structures (like layers within artboards), verify if a generic predicate-based finder already exists (`findLayerInArtboards`) and reuse it rather than manually writing loops.
