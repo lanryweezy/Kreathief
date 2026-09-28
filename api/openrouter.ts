@@ -36,7 +36,7 @@ export default async function handler(req: Request) {
   try {
     await requireAuth(req);
   } catch (error) {
-    if (error instanceof Response) return error;
+    if (error instanceof Response) {return error;}
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -151,7 +151,7 @@ export default async function handler(req: Request) {
         ...noStoreHeaders(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     log.error('[OpenRouter API] Handler failed', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
