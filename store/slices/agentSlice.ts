@@ -253,8 +253,17 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
         throw new Error('No active artboard');
       }
 
-      const targetLayers = activeArtboard.layers.filter((l: Layer) => layerIds.includes(l.id));
-      const contextLayers = activeArtboard.layers.filter((l: Layer) => !layerIds.includes(l.id));
+      // ⚡ Bolt: Replace O(N*M) array.includes inside filter with O(N) single-pass Set lookup
+      const layerIdSet = new Set(layerIds);
+      const targetLayers: Layer[] = [];
+      const contextLayers: Layer[] = [];
+      for (const l of activeArtboard.layers) {
+        if (layerIdSet.has(l.id)) {
+          targetLayers.push(l);
+        } else {
+          contextLayers.push(l);
+        }
+      }
 
       // Stage 1: Creative Refinement (always runs)
       const draftedVariants = await creativeAgentRefine(intent, targetLayers, contextLayers, canvasSize);

@@ -303,6 +303,17 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
   },
 ];
 
+export const IMAGE_MODELS_BY_CATEGORY: Record<ImageModelCategory, ImageGenModel[]> = (() => {
+  const grouped = {} as Record<ImageModelCategory, ImageGenModel[]>;
+  for (const model of IMAGE_GEN_MODELS) {
+    if (!grouped[model.category]) {
+      grouped[model.category] = [];
+    }
+    grouped[model.category].push(model);
+  }
+  return grouped;
+})();
+
 export const DEFAULT_IMAGE_MODEL = 'nano-banana-2';
 
 /** Default backend for prompt-driven edits when the caller has no model preference. */

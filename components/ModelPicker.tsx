@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Icons } from '../constants';
-import { IMAGE_GEN_MODELS, IMAGE_MODEL_CATEGORIES, ImageModelCategory } from '../config/imageModels';
+import { IMAGE_GEN_MODELS, IMAGE_MODEL_CATEGORIES, IMAGE_MODELS_BY_CATEGORY, ImageModelCategory } from '../config/imageModels';
 
 interface ModelPickerProps {
   value: string;
@@ -61,7 +61,7 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({ value, onChange, dropD
                 <div className="px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-muted">
                   {IMAGE_MODEL_CATEGORIES[cat].label} — {IMAGE_MODEL_CATEGORIES[cat].description}
                 </div>
-                {IMAGE_GEN_MODELS.filter((m) => m.category === cat).map((model) => (
+                {IMAGE_MODELS_BY_CATEGORY[cat]?.map((model) => (
                   <button
                     key={model.id}
                     onClick={() => {
