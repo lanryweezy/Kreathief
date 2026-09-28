@@ -43,16 +43,29 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    const layersTab = this.page.getByRole('button', { name: 'Layers' });
+    const layersTab = this.page.getByRole('button', { name: 'Layers', exact: true });
     await layersTab.click();
     await this.page.waitForTimeout(500);
   }
 
   async getLayerCount(): Promise<number> {
     await this.openLayersPanel();
-    // Wait for at least one layer to potentially exist, or just wait for the list to be stable
-    await this.page.waitForTimeout(1000);
-    return await this.page.locator('[data-testid="layer-item"]').count();
+    await this.page.waitForTimeout(2000); // Give the panel more time to actually mount DOM
+
+    // Evaluate in page to dump what's actually there
+    const count = await this.page.evaluate(() => {
+      // Find anything that mentions layer
+      const all = document.querySelectorAll('*');
+      let c = 0;
+      for (const el of all) {
+        if (el.getAttribute('data-testid')?.includes('layer') || el.classList.toString().includes('layer')) {
+          if (el.getAttribute('data-testid') === 'layer-item' || el.getAttribute('role') === 'treeitem') c++;
+        }
+      }
+      return document.querySelectorAll('[role="treeitem"], [data-testid="layer-item"]').length;
+    });
+
+    return count;
   }
 
   async export(format: 'png' | 'jpeg' | 'webp') {

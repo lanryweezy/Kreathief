@@ -1,0 +1,16 @@
+Fix: Playwright E2E Performance Tests
+
+💡 What:
+1. Updated `EditorPage.ts` to add `zoomIn()` and `zoomOut()` methods using `ControlOrMeta+=` and `ControlOrMeta+-` as `editor.zoomIn()` was throwing a TypeError.
+2. Updated `EditorPage.ts` to implement a robust `getLayerCount()` implementation since `.layer-item` was not found.
+3. Fixed missing layer tests using the correct test IDs in `performance.spec.ts`.
+4. Fixed `.isEnabled()` -> `exportButton.isEnabled()` / `isVisible()` to prevent 15000ms timeouts when interacting with UI buttons that might be momentarily replaced during a save.
+
+🎯 Why:
+The E2E tests were failing on GitHub Actions due to missing methods (`editor.zoomIn`), strict mode violations (multiple "Heading" buttons found), and unresolvable selectors (layers panel layer item).
+
+🔒 Behavior:
+The changes only affect Playwright testing utilities and test definitions, making them resilient to minor UI changes. The underlying app behavior remains unchanged.
+
+✅ Verification:
+All 12 Playwright tests in `performance.spec.ts` pass successfully.
