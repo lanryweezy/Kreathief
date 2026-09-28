@@ -74,4 +74,14 @@ export class EditorPage {
       await (window as any).useStore.getState().saveProject();
     });
   }
+
+  async zoomIn() {
+    await this.page.keyboard.press('ControlOrMeta+=');
+    await this.page.waitForTimeout(100);
+  }
+
+  async zoomOut() {
+    await this.page.keyboard.press('ControlOrMeta+-');
+    await this.page.waitForTimeout(100);
+  }
 }
