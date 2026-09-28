@@ -32,17 +32,6 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
 
-
-  try {
-    await requireAuth(req);
-  } catch (error) {
-    if (error instanceof Response) {return error;}
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
-
   if (req.method === 'OPTIONS') {
     return new Response(null, {
       status: 200,
@@ -51,6 +40,16 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
+    });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    if (error instanceof Response) {return error;}
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
     });
   }
 

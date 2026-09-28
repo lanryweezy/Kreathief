@@ -310,3 +310,8 @@
 **Vulnerability:** The `api/openrouter.ts` edge function used `setInterval` at the module scope for rate-limit cleanup.
 **Learning:** In Vercel Edge and serverless functions, isolates suspend between requests. Using active timers like `setInterval` causes them to freeze, hang, or leak memory because the V8 isolate is frozen between invocations, potentially leading to denial-of-service through resource exhaustion.
 **Prevention:** Never use `setInterval` or `setTimeout` for background tasks in serverless environments. Instead, use passive, request-driven cleanup logic (e.g., checking timestamps on invocation) to manage state expiration.
+
+## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions]
+**Vulnerability:** The `api/openrouter.ts` proxy endpoint enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
+**Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
+**Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
