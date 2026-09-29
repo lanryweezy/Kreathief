@@ -3,6 +3,7 @@ import { log } from '../utils/log';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab } from '../types';
@@ -64,28 +65,52 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
-  const rawSelectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const rawCanvasSize = useStore((state) => state.canvasSize);
-  const activeTab = useStore((state) => state.activeTab);
-  const rawZoom = useStore((state) => state.zoom);
-  const showShortcuts = useStore((state) => state.showShortcuts);
-  const showRulers = useStore((state) => state.showRulers);
-  const showGrid = useStore((state) => state.showGrid);
-  const selectedIntent = useStore((state) => state.selectedIntent);
-  const projectId = useStore((state) => state.projectId);
-  const projectTitle = useStore((state) => state.projectTitle);
-  const showShareModal = useStore((state) => state.showShareModal);
-  const showFeedbackModal = useStore((state) => state.showFeedbackModal);
-  const rawArtboards = useStore((state) => state.artboards);
+  // ⚡ Bolt Optimization: Consolidate multiple property extractions into a single
+  // useShallow call to reduce Zustand subscription overhead
+  const {
+    rawSelectedLayerIds,
+    rawCanvasSize,
+    activeTab,
+    rawZoom,
+    showShortcuts,
+    showRulers,
+    showGrid,
+    selectedIntent,
+    projectId,
+    projectTitle,
+    showShareModal,
+    showFeedbackModal,
+    rawArtboards,
+    showAIOverlay,
+    aiTab,
+    setAiTab,
+    setShowAIOverlay
+  } = useStore(
+    useShallow((state) => ({
+      rawSelectedLayerIds: state.selectedLayerIds,
+      rawCanvasSize: state.canvasSize,
+      activeTab: state.activeTab,
+      rawZoom: state.zoom,
+      showShortcuts: state.showShortcuts,
+      showRulers: state.showRulers,
+      showGrid: state.showGrid,
+      selectedIntent: state.selectedIntent,
+      projectId: state.projectId,
+      projectTitle: state.projectTitle,
+      showShareModal: state.showShareModal,
+      showFeedbackModal: state.showFeedbackModal,
+      rawArtboards: state.artboards,
+      showAIOverlay: state.showAIOverlay,
+      aiTab: state.aiOverlayTab,
+      setAiTab: state.setAIOverlayTab,
+      setShowAIOverlay: state.setShowAIOverlay
+    }))
+  );
+
   const artboards = rawArtboards || [];
   const selectedLayerIds = rawSelectedLayerIds || [];
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
   const zoom = rawZoom || 1;
-
-  const showAIOverlay = useStore((state) => state.showAIOverlay);
-  const aiTab = useStore((state) => state.aiOverlayTab);
-  const setAiTab = useStore((state) => state.setAIOverlayTab);
-  const setShowAIOverlay = useStore((state) => state.setShowAIOverlay);
 
   const selectedLayer = useStore(selectedLayerSelector);
 
