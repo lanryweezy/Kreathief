@@ -1,3 +1,4 @@
+import { fuzzyMatch } from '../utils/search';
 import { log } from '../utils/log';
 
 export interface MaterialIconResult {
@@ -88,7 +89,7 @@ async function fetchIcons(query: string): Promise<MaterialIconResult[]> {
   }
 
   const q = query.trim().toLowerCase();
-  const matched = COMMON_MATERIAL_ICONS.filter((name) => !q || name.includes(q));
+  const matched = COMMON_MATERIAL_ICONS.filter((name) => !q || fuzzyMatch(q, name));
   return matched.map((name) => ({
     name,
     svgUrl: `https://fonts.gstatic.com/s/materialicons/${encodeURIComponent(name)}.svg`,
