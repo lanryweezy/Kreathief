@@ -49,13 +49,27 @@ test.describe('Phase 0 Smoke Test - 6 Core Loops', () => {
 
     // Verify no fatal console errors during load
     const fatalErrors = consoleErrors.filter((e) => {
-      if (e.includes('Download the React DevTools')) return false;
-      if (e.includes('Failed to load resource: the server responded with a status of 403')) return false;
-      if (e.includes('Failed to load resource: the server responded with a status of 404')) return false;
-      if (e.includes('WebSocket connection to')) return false;
-      if (e.includes('[Collaboration] Failed to join channel')) return false;
-      if (e.includes('net::ERR_NAME_NOT_RESOLVED')) return false;
-      if (e.includes('collaborationService.ts')) return false;
+      if (e.includes('Download the React DevTools')) {
+        return false;
+      }
+      if (e.includes('Failed to load resource: the server responded with a status of 403')) {
+        return false;
+      }
+      if (e.includes('Failed to load resource: the server responded with a status of 404')) {
+        return false;
+      }
+      if (e.includes('WebSocket connection to')) {
+        return false;
+      }
+      if (e.includes('[Collaboration] Failed to join channel')) {
+        return false;
+      }
+      if (e.includes('net::ERR_NAME_NOT_RESOLVED')) {
+        return false;
+      }
+      if (e.includes('collaborationService.ts')) {
+        return false;
+      }
       return true;
     });
     expect(fatalErrors.length, `Console errors on load: ${fatalErrors.join(', ')}`).toBe(0);

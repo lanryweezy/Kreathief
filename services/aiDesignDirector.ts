@@ -2747,11 +2747,11 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
                     type: SchemaType.OBJECT,
                     properties: {
                       color: { type: SchemaType.STRING },
-                      position: { type: SchemaType.NUMBER }
-                    }
-                  }
-                }
-              }
+                      position: { type: SchemaType.NUMBER },
+                    },
+                  },
+                },
+              },
             },
             layers: {
               type: SchemaType.ARRAY,
@@ -2778,11 +2778,11 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
                           type: SchemaType.OBJECT,
                           properties: {
                             color: { type: SchemaType.STRING },
-                            position: { type: SchemaType.NUMBER }
-                          }
-                        }
-                      }
-                    }
+                            position: { type: SchemaType.NUMBER },
+                          },
+                        },
+                      },
+                    },
                   },
                   cornerRadius: {
                     type: SchemaType.OBJECT,
@@ -2790,15 +2790,15 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
                       tl: { type: SchemaType.NUMBER },
                       tr: { type: SchemaType.NUMBER },
                       br: { type: SchemaType.NUMBER },
-                      bl: { type: SchemaType.NUMBER }
-                    }
+                      bl: { type: SchemaType.NUMBER },
+                    },
                   },
                   stroke: {
                     type: SchemaType.OBJECT,
                     properties: {
                       color: { type: SchemaType.STRING },
-                      width: { type: SchemaType.NUMBER }
-                    }
+                      width: { type: SchemaType.NUMBER },
+                    },
                   },
                   shadow: {
                     type: SchemaType.OBJECT,
@@ -2806,8 +2806,8 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
                       color: { type: SchemaType.STRING },
                       blur: { type: SchemaType.NUMBER },
                       offsetX: { type: SchemaType.NUMBER },
-                      offsetY: { type: SchemaType.NUMBER }
-                    }
+                      offsetY: { type: SchemaType.NUMBER },
+                    },
                   },
                   blendMode: { type: SchemaType.STRING },
                   text: { type: SchemaType.STRING },
@@ -2824,15 +2824,15 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
                       color: { type: SchemaType.STRING },
                       blur: { type: SchemaType.NUMBER },
                       offsetX: { type: SchemaType.NUMBER },
-                      offsetY: { type: SchemaType.NUMBER }
-                    }
-                  }
+                      offsetY: { type: SchemaType.NUMBER },
+                    },
+                  },
                 },
-                required: ['type', 'name', 'x', 'y', 'width', 'height']
-              }
-            }
+                required: ['type', 'name', 'x', 'y', 'width', 'height'],
+              },
+            },
           },
-          required: ['title', 'description', 'backgroundColor', 'layers']
+          required: ['title', 'description', 'backgroundColor', 'layers'],
         },
         temperature: 0.75,
       },
