@@ -35,31 +35,111 @@ export interface DesignCritiqueResult {
 
 // The 12 scoring dimensions with weights
 const DIMENSIONS: Array<{ id: string; name: string; weight: number; description: string }> = [
-  { id: 'visual_hierarchy', name: 'Visual Hierarchy', weight: 12, description: 'Clear focal point, reading order, size/weight contrast guiding the eye' },
-  { id: 'color_harmony', name: 'Color Harmony', weight: 10, description: 'Palette cohesion, contrast ratios, emotional alignment, WCAG compliance' },
-  { id: 'typography', name: 'Typography Quality', weight: 10, description: 'Font pairing, scale hierarchy, readability, line height, letter spacing' },
-  { id: 'whitespace', name: 'Whitespace & Breathing Room', weight: 8, description: 'Not cramped, not empty — balanced density with intentional negative space' },
-  { id: 'composition', name: 'Composition & Balance', weight: 10, description: 'Visual weight distribution, alignment grids, golden ratio, rule of thirds' },
-  { id: 'brand_consistency', name: 'Brand Consistency', weight: 8, description: 'Colors/fonts/voice match the stated brand or industry expectations' },
-  { id: 'emotional_impact', name: 'Emotional Impact', weight: 8, description: 'Does it evoke the intended feeling? Bold, calm, urgent, luxurious, etc.' },
-  { id: 'trend_alignment', name: 'Trend Alignment', weight: 6, description: 'Uses current design trends appropriately without being dated or gimmicky' },
-  { id: 'commercial_viability', name: 'Commercial Viability', weight: 8, description: 'Would this work in the real market? CTA clarity, message communication' },
-  { id: 'accessibility', name: 'Accessibility', weight: 8, description: 'Color contrast, text size, alt text, keyboard navigation potential' },
-  { id: 'technical_execution', name: 'Technical Execution', weight: 6, description: 'Alignment precision, consistent spacing, no overlapping/clipping issues' },
-  { id: 'originality', name: 'Originality & Distinctiveness', weight: 6, description: 'Does it stand out? Not generic, has a unique visual voice' },
+  {
+    id: 'visual_hierarchy',
+    name: 'Visual Hierarchy',
+    weight: 12,
+    description: 'Clear focal point, reading order, size/weight contrast guiding the eye',
+  },
+  {
+    id: 'color_harmony',
+    name: 'Color Harmony',
+    weight: 10,
+    description: 'Palette cohesion, contrast ratios, emotional alignment, WCAG compliance',
+  },
+  {
+    id: 'typography',
+    name: 'Typography Quality',
+    weight: 10,
+    description: 'Font pairing, scale hierarchy, readability, line height, letter spacing',
+  },
+  {
+    id: 'whitespace',
+    name: 'Whitespace & Breathing Room',
+    weight: 8,
+    description: 'Not cramped, not empty — balanced density with intentional negative space',
+  },
+  {
+    id: 'composition',
+    name: 'Composition & Balance',
+    weight: 10,
+    description: 'Visual weight distribution, alignment grids, golden ratio, rule of thirds',
+  },
+  {
+    id: 'brand_consistency',
+    name: 'Brand Consistency',
+    weight: 8,
+    description: 'Colors/fonts/voice match the stated brand or industry expectations',
+  },
+  {
+    id: 'emotional_impact',
+    name: 'Emotional Impact',
+    weight: 8,
+    description: 'Does it evoke the intended feeling? Bold, calm, urgent, luxurious, etc.',
+  },
+  {
+    id: 'trend_alignment',
+    name: 'Trend Alignment',
+    weight: 6,
+    description: 'Uses current design trends appropriately without being dated or gimmicky',
+  },
+  {
+    id: 'commercial_viability',
+    name: 'Commercial Viability',
+    weight: 8,
+    description: 'Would this work in the real market? CTA clarity, message communication',
+  },
+  {
+    id: 'accessibility',
+    name: 'Accessibility',
+    weight: 8,
+    description: 'Color contrast, text size, alt text, keyboard navigation potential',
+  },
+  {
+    id: 'technical_execution',
+    name: 'Technical Execution',
+    weight: 6,
+    description: 'Alignment precision, consistent spacing, no overlapping/clipping issues',
+  },
+  {
+    id: 'originality',
+    name: 'Originality & Distinctiveness',
+    weight: 6,
+    description: 'Does it stand out? Not generic, has a unique visual voice',
+  },
 ];
 
 function scoreToGrade(score: number): string {
-  if (score >= 95) return 'A+';
-  if (score >= 90) return 'A';
-  if (score >= 85) return 'A-';
-  if (score >= 80) return 'B+';
-  if (score >= 75) return 'B';
-  if (score >= 70) return 'B-';
-  if (score >= 65) return 'C+';
-  if (score >= 60) return 'C';
-  if (score >= 55) return 'C-';
-  if (score >= 50) return 'D';
+  if (score >= 95) {
+    return 'A+';
+  }
+  if (score >= 90) {
+    return 'A';
+  }
+  if (score >= 85) {
+    return 'A-';
+  }
+  if (score >= 80) {
+    return 'B+';
+  }
+  if (score >= 75) {
+    return 'B';
+  }
+  if (score >= 70) {
+    return 'B-';
+  }
+  if (score >= 65) {
+    return 'C+';
+  }
+  if (score >= 60) {
+    return 'C';
+  }
+  if (score >= 55) {
+    return 'C-';
+  }
+  if (score >= 50) {
+    return 'D';
+  }
   return 'F';
 }
 
@@ -80,21 +160,32 @@ function extractDesignData(artboard: Artboard, context: DesignContext, brandKit?
   const layerPositions: Array<{ x: number; y: number; w: number; h: number; type: string }> = [];
 
   for (const layer of layers) {
-    if ('color' in layer && typeof (layer as any).color === 'string') colors.add((layer as any).color);
+    if ('color' in layer && typeof (layer as any).color === 'string') {
+      colors.add((layer as any).color);
+    }
     if (layer.type === 'text') {
       textLayers++;
-      if ((layer as any).fontFamily) fonts.add((layer as any).fontFamily);
+      if ((layer as any).fontFamily) {
+        fonts.add((layer as any).fontFamily);
+      }
       if ((layer as any).fontSize) {
         fontSizes.push((layer as any).fontSize);
         maxFontSize = Math.max(maxFontSize, (layer as any).fontSize);
         minFontSize = Math.min(minFontSize, (layer as any).fontSize);
       }
     }
-    if (layer.type === 'image') imageLayers++;
-    if (['rectangle', 'circle', 'triangle', 'polygon', 'path', 'star', 'line'].includes(layer.type)) shapeLayers++;
+    if (layer.type === 'image') {
+      imageLayers++;
+    }
+    if (['rectangle', 'circle', 'triangle', 'polygon', 'path', 'star', 'line'].includes(layer.type)) {
+      shapeLayers++;
+    }
 
     layerPositions.push({
-      x: layer.x, y: layer.y, w: layer.width, h: layer.height,
+      x: layer.x,
+      y: layer.y,
+      w: layer.width,
+      h: layer.height,
       type: layer.type,
     });
   }
@@ -116,11 +207,13 @@ function extractDesignData(artboard: Artboard, context: DesignContext, brandKit?
     minFontSize: minFontSize === Infinity ? 0 : minFontSize,
     fontSizeRatio: maxFontSize > 0 && minFontSize > 0 ? maxFontSize / minFontSize : 1,
     layerPositions: layerPositions.slice(0, 50), // cap for token budget
-    brandKit: brandKit ? {
-      name: brandKit.name,
-      colors: brandKit.colors?.slice(0, 5),
-      fonts: brandKit.fonts?.slice(0, 3),
-    } : null,
+    brandKit: brandKit
+      ? {
+          name: brandKit.name,
+          colors: brandKit.colors?.slice(0, 5),
+          fonts: brandKit.fonts?.slice(0, 3),
+        }
+      : null,
     context: {
       purpose: context.purpose || 'general',
       hasText: context.hasText,
@@ -138,8 +231,8 @@ export async function critiqueDesign(
 ): Promise<DesignCritiqueResult> {
   const designData = extractDesignData(artboard, context, brandKit);
 
-  const dimensionDescriptions = DIMENSIONS.map(d =>
-    `- "${d.id}": ${d.name} (weight ${d.weight}/100) — ${d.description}`
+  const dimensionDescriptions = DIMENSIONS.map(
+    (d) => `- "${d.id}": ${d.name} (weight ${d.weight}/100) — ${d.description}`
   ).join('\n');
 
   const prompt = `You are a senior design director with 20 years of experience across branding, UI/UX, print, and digital design. You've judged design competitions and mentored hundreds of designers.
@@ -207,7 +300,7 @@ RULES:
       dimensionMap.set(d.id, d);
     }
 
-    const dimensions: CritiqueDimension[] = DIMENSIONS.map(dim => {
+    const dimensions: CritiqueDimension[] = DIMENSIONS.map((dim) => {
       const scored = dimensionMap.get(dim.id);
       return {
         id: dim.id,
@@ -220,7 +313,7 @@ RULES:
     });
 
     // Calculate weighted overall score
-    const weightedSum = dimensions.reduce((sum, d) => sum + (d.score * d.weight), 0);
+    const weightedSum = dimensions.reduce((sum, d) => sum + d.score * d.weight, 0);
     const totalWeight = dimensions.reduce((sum, d) => sum + d.weight, 0);
     const overallScore = Math.round(weightedSum / totalWeight);
 
@@ -244,42 +337,113 @@ RULES:
 
 // ─── Heuristic Fallback (no API call) ────────────────────────────────────────
 
+/**
+ * Extensibility Point: Critique Heuristic Strategy Registry
+ * Evidence of pressure: The `heuristicCritique` function relied on a hard-coded switch statement
+ * with 7+ cases for evaluating design dimensions.
+ * Contract: Implementors must provide an `evaluate` method that accepts the extracted design data
+ * and a baseline score, returning the updated score.
+ * The registry enables adding new dimension heuristics without modifying core evaluation logic.
+ */
+export interface CritiqueHeuristicStrategy {
+  evaluate(data: any, baseline: number): number;
+}
+
+export const critiqueHeuristicRegistry = new Map<string, CritiqueHeuristicStrategy>();
+
+critiqueHeuristicRegistry.set('visual_hierarchy', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.fontSizeRatio >= 2) {
+      score += 15;
+    }
+    if (data.fontSizeRatio >= 3) {
+      score += 10;
+    }
+    if (data.textLayers === 0) {
+      score -= 20;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('color_harmony', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.colors.length >= 2 && data.colors.length <= 5) {
+      score += 10;
+    }
+    if (data.colors.length > 8) {
+      score -= 10;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('typography', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.fonts.length <= 3 && data.fonts.length >= 1) {
+      score += 10;
+    }
+    if (data.fonts.length > 4) {
+      score -= 15;
+    }
+    if (data.fontSizeRatio >= 2) {
+      score += 10;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('whitespace', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.layerCount <= 15) {
+      score += 10;
+    }
+    if (data.layerCount > 30) {
+      score -= 10;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('composition', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.layerCount >= 3) {
+      score += 5;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('brand_consistency', {
+  evaluate(data, baseline) {
+    let score = baseline;
+    if (data.brandKit) {
+      score += 15;
+    }
+    return score;
+  },
+});
+
+critiqueHeuristicRegistry.set('accessibility', {
+  evaluate(data, baseline) {
+    return 55;
+  },
+});
+
 function heuristicCritique(data: any): DesignCritiqueResult {
-  const dims: CritiqueDimension[] = DIMENSIONS.map(dim => {
+  const dims: CritiqueDimension[] = DIMENSIONS.map((dim) => {
     let score = 60; // baseline
 
-    switch (dim.id) {
-      case 'visual_hierarchy':
-        // Reward font size contrast
-        if (data.fontSizeRatio >= 2) score += 15;
-        if (data.fontSizeRatio >= 3) score += 10;
-        if (data.textLayers === 0) score -= 20;
-        break;
-      case 'color_harmony':
-        if (data.colors.length >= 2 && data.colors.length <= 5) score += 10;
-        if (data.colors.length > 8) score -= 10;
-        break;
-      case 'typography':
-        if (data.fonts.length <= 3 && data.fonts.length >= 1) score += 10;
-        if (data.fonts.length > 4) score -= 15;
-        if (data.fontSizeRatio >= 2) score += 10;
-        break;
-      case 'whitespace':
-        if (data.layerCount <= 15) score += 10;
-        if (data.layerCount > 30) score -= 10;
-        break;
-      case 'composition':
-        if (data.layerCount >= 3) score += 5;
-        break;
-      case 'brand_consistency':
-        if (data.brandKit) score += 15;
-        break;
-      case 'accessibility':
-        // Can't check contrast without rendering, give benefit of doubt
-        score = 55;
-        break;
-      default:
-        score = 55 + Math.floor(Math.random() * 15);
+    const strategy = critiqueHeuristicRegistry.get(dim.id);
+    if (strategy) {
+      score = strategy.evaluate(data, score);
+    } else {
+      score = 55 + Math.floor(Math.random() * 15);
     }
 
     score = Math.max(20, Math.min(90, score));
@@ -294,7 +458,7 @@ function heuristicCritique(data: any): DesignCritiqueResult {
     };
   });
 
-  const weightedSum = dims.reduce((sum, d) => sum + (d.score * d.weight), 0);
+  const weightedSum = dims.reduce((sum, d) => sum + d.score * d.weight, 0);
   const totalWeight = dims.reduce((sum, d) => sum + d.weight, 0);
   const overallScore = Math.round(weightedSum / totalWeight);
 
