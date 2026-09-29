@@ -283,7 +283,13 @@ test.describe('Performance Tests', () => {
 
     // Try to interact with UI immediately
     await page.waitForTimeout(100);
-    const isResponsive = await editor.projectTitleInput.isEnabled();
+    // Use an incredibly short timeout, we just want to know if it's responsive now, not wait for it
+    let isResponsive = false;
+    try {
+      isResponsive = await editor.projectTitleInput.isEnabled({ timeout: 500 });
+    } catch (e) {
+      isResponsive = false;
+    }
 
     const saveTime = Date.now() - startTime;
     console.log(`Save responsiveness: ${saveTime}ms, UI responsive: ${isResponsive}`);
