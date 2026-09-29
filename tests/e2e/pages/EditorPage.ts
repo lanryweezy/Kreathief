@@ -43,7 +43,7 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    const layersTab = this.page.getByRole('button', { name: 'Layers' });
+    const layersTab = this.page.getByRole('button', { name: 'Layers', exact: true });
     await layersTab.click();
     await this.page.waitForTimeout(500);
   }

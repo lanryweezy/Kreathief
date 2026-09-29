@@ -60,7 +60,7 @@ test.describe('Component Functionality', () => {
 
     // Verify text appears on canvas (indirect verification)
     // Check Layers Tab
-    await page.getByRole('button', { name: 'Layers' }).click();
+    await page.getByRole('button', { name: 'Layers', exact: true }).click();
 
     // Take a screenshot to debug
     await page.screenshot({ path: 'debug_layers_text.png' });
@@ -89,7 +89,7 @@ test.describe('Component Functionality', () => {
 
     // Verify shape added to layers
     // Ensure sidebar is scrolled if needed
-    const layersTab = page.getByRole('button', { name: 'Layers' });
+    const layersTab = page.getByRole('button', { name: 'Layers', exact: true });
     await layersTab.scrollIntoViewIfNeeded();
     await layersTab.click();
 
