@@ -107,3 +107,7 @@
 ## 2026-09-26 - Typo-tolerant Resource Search in Services
 **Learning:** The fallback resource search functionality in `services/fallbackPhotos.ts`, `services/stickerService.ts`, and `services/freepikService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific photos, stickers, icons, or vectors, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
+
+## 2024-11-20 - Typo-tolerant Icon Search in Services
+**Learning:** The fallback icon search functionality in `services/lucideIconService.ts`, `services/phosphorIconService.ts`, and `services/materialIconService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific icons, degrading the search experience.
+**Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
