@@ -143,3 +143,8 @@
 
 **Learning:** Refactoring inline AI implementations (like `handleToneRewrite` and `suggestFontPairing` which use generic `generateText` with concatenated prompts) into dedicated helper functions in `geminiService` centralizes logic, avoids convoluted stacked personas, leverages native `systemInstruction`, and enables input sanitization to mitigate prompt injection and payload bloat.
 **Action:** When creating features needing AI-generated text, do not construct prompts inline in state controllers using generic text generators. Instead, build dedicated helper functions in the AI service layer that leverage the native `systemInstruction` field, sanitize inputs, and use the `@google/generative-ai` `SchemaType` validation API.
+
+## 2026-09-29 - Enforce response schema in AI Design Director
+
+**Learning:** Omitting `responseSchema` for structured multi-layer artboard generation in `services/aiDesignDirector.ts` caused unpredictable JSON outputs that failed to parse correctly, falling back to basic procedurally generated content.
+**Action:** Always provide an explicit `responseSchema` using `SchemaType` matching the required structure alongside `responseMimeType: 'application/json'` when calling `callBackendGeminiAPI` to ensure the LLM strictly adheres to the requested schema.
