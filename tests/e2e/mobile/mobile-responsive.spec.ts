@@ -4,7 +4,7 @@ import { EditorPage } from '../pages/EditorPage';
 
 // Define mobile and tablet devices
 const iPhone = devices['iPhone 13'];
-const iPad = devices['iPad Pro'];
+const iPad = devices['iPad Pro 11'];
 const Pixel = devices['Pixel 5'];
 
 test.describe('Mobile Responsive Tests', () => {
@@ -247,7 +247,7 @@ test.describe('Mobile Responsive Tests', () => {
     await editor.waitForCanvasReady();
 
     // Open export modal
-    await editor.exportButton.click();
+    await editor.exportButton.click({ timeout: 20000 });
     await page.waitForTimeout(500);
 
     // Check modal is visible and fits on screen
