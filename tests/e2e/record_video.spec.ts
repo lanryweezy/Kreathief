@@ -24,9 +24,13 @@ test('record video', async ({ page }) => {
 
   // 1. Add Text
   const textTab = page.locator('button[aria-label="Text"]').first();
-  if (await textTab.isVisible()) { await textTab.click(); }
+  if (await textTab.isVisible()) {
+    await textTab.click();
+  }
   const addHeadingBtn = page.getByTestId('add-heading-btn');
-  if (await addHeadingBtn.isVisible()) { await addHeadingBtn.click(); }
+  if (await addHeadingBtn.isVisible()) {
+    await addHeadingBtn.click();
+  }
   await page.waitForTimeout(1000);
 
   // 2. Change Color
@@ -46,7 +50,7 @@ test('record video', async ({ page }) => {
   await page.waitForTimeout(1500);
 
   // 5. Open Layers
-  await page.getByRole('button', { name: 'Layers' }).click();
+  await page.getByRole('button', { name: 'Layers', exact: true }).click();
   await page.waitForTimeout(1500);
 
   // 6. Export
