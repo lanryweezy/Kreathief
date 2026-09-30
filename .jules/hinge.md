@@ -30,3 +30,7 @@
 
 **Learning:** When abstracting a switch statement that controls UI behavior into a registry, extracting only the logic is insufficient if the UI metadata (labels, icons) remains hardcoded in an array in the React component. This still requires modifying the core file for new extensions.
 **Action:** Ensure the strategy interface includes both the execution logic and the UI metadata (label, desc, icon), allowing the core component to dynamically render its UI directly from the registry's values.
+
+## 2024-10-25 - Graphic Design Style Strategy Registry
+**Learning:** The `internalBuildComposition` function in `services/graphicDesignStyles.ts` used a hard-coded switch statement to delegate to 11+ different design style builders. Any new design movement would require modifying this core dispatcher. It proved to be a significant extension bottleneck.
+**Action:** Extracted this into a `GraphicDesignStyleStrategy` interface and `graphicDesignStyleStrategies` map registry. Design styles now self-register, decoupling the core dispatcher from specific style implementations.
