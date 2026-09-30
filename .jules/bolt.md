@@ -224,3 +224,8 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2026-09-30 - Optimize mobile component Zustand subscriptions
+
+**Learning:** Components like `MobileQuickActions` and `MobileTransformController` often define multiple `useStore` hooks to extract several pieces of state independently. While this works, each `useStore` hook creates a separate subscription to the Zustand store, increasing CPU overhead during rapid state updates (e.g. while dragging or nudging).
+**Action:** When extracting multiple state properties in React 18+ components using Zustand, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`.

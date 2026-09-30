@@ -2,13 +2,26 @@ import React from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
 import { haptics } from '../utils/haptics';
+import { useShallow } from 'zustand/react/shallow';
 
 export const MobileTransformController: React.FC = () => {
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
-  const updateLayer = useStore((state) => state.updateLayer);
-  const nudgeLayer = useStore((state) => state.nudgeLayer);
-  const artboards = useStore((state) => state.artboards);
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  // ⚡ Bolt: Consolidating multiple useStore hooks into a single useShallow call
+  // Reduces store subscriptions from 5 to 1, minimizing CPU overhead during drag/nudge events
+  const {
+    selectedLayerIds = [],
+    updateLayer,
+    nudgeLayer,
+    artboards,
+    activeArtboardId,
+  } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+      nudgeLayer: state.nudgeLayer,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+    }))
+  );
 
   const selectedLayer = React.useMemo(() => {
     if (selectedLayerIds.length !== 1) {
