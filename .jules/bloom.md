@@ -111,3 +111,7 @@
 ## 2024-11-20 - Typo-tolerant Icon Search in Services
 **Learning:** The fallback icon search functionality in `services/lucideIconService.ts`, `services/phosphorIconService.ts`, and `services/materialIconService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific icons, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
+
+## 2026-10-01 - Specific error messaging for Asset Upload failures
+**Learning:** The `AssetUploadModal` feature was displaying a generic "Failed to upload asset" or raw error message on failure, despite the codebase already having a `getErrorDetails` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback (differentiating file size, quota limits, and network errors).
+**Action:** Replaced the generic error fallback in the catch block of `AssetUploadModal` with dynamic messages and suggestions constructed using `getErrorDetails(err)`. This closed the quality gap in upload error reporting, providing actionable recovery steps for users.

@@ -4,6 +4,7 @@ import { Input } from '../Input';
 import { ModalWrapper } from './ModalWrapper';
 import { db } from '../../lib/supabase/client';
 import { Icons } from '../../constants';
+import { getErrorDetails } from '../../utils/errorMessages';
 
 interface AssetUploadModalProps {
   isOpen: boolean;
@@ -98,7 +99,8 @@ export const AssetUploadModal: React.FC<AssetUploadModalProps> = React.memo(func
         }
         onClose();
       } catch (err: any) {
-        setError(err.message || 'Failed to upload asset');
+        const details = getErrorDetails(err);
+        setError(`Upload failed: ${details.message}. ${details.suggestion}`);
       } finally {
         setIsSubmitting(false);
       }
