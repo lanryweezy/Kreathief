@@ -77,10 +77,13 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
         }
 
         try {
-          await btn.hover();
+          await btn.hover({ timeout: 2000, force: true });
           logInteraction(`Hovered button: ${text?.trim() || 'icon-button'}`);
-          await btn.click({ force: true, delay: 50 });
+          await btn.click({ force: true, delay: 50, timeout: 2000 });
           logInteraction(`Clicked button: ${text?.trim() || 'icon-button'}`);
+
+          // Dismiss any modals that might have opened to prevent blocking subsequent clicks
+          await page.keyboard.press('Escape');
         } catch (e) {
           console.log(`Could not interact with button: ${e}`);
         }

@@ -61,7 +61,9 @@ const textToVectorSchema = z.object({
 // Tool handlers - use layout utilities directly
 const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length === 0) return;
+  if (nodes.length === 0) {
+    return;
+  }
   const state = useStore.getState();
   const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
   const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
@@ -70,7 +72,9 @@ const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length < 2) return;
+  if (nodes.length < 2) {
+    return;
+  }
   const state = useStore.getState();
   const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
   const changes = distributeLayersUtil(nodes as any, distType as any);
@@ -79,14 +83,18 @@ const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type 
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length < 2) return;
+  if (nodes.length < 2) {
+    return;
+  }
   const state = useStore.getState();
   // Simple grid layout
   if (type === 'grid') {
     const cols = Math.ceil(Math.sqrt(nodes.length));
     const gap = 16;
     nodes.forEach((node, i) => {
-      if (!node) return;
+      if (!node) {
+        return;
+      }
       const col = i % cols;
       const row = Math.floor(i / cols);
       state.updateLayer(node.id, {
@@ -98,11 +106,15 @@ const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) =
 };
 
 const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ colors }) => {
-  if (colors.length === 0) return;
+  if (colors.length === 0) {
+    return;
+  }
   const nodes = getSelectedNodes();
   const state = useStore.getState();
   nodes.forEach((node, i) => {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     state.updateLayer(node.id, { fill: colors[i % colors.length] } as any);
   });
 };
