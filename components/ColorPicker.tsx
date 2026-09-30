@@ -228,7 +228,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = React.memo(
         <Dropdown anchorRef={popoverRef} isOpen={isOpen} onClose={() => setIsOpen(false)} align="left">
           <div
             ref={dropdownContainerRef}
-            className="bg-surface-dark-2 border border-gray-700 rounded-lg shadow-2xl p-3 w-[360px] max-h-[calc(100vh-140px)] overflow-y-auto overflow-x-hidden animate-fade-in focus:outline-none"
+            className="bg-surface-dark-2 border border-gray-700 rounded-lg shadow-2xl p-3 w-[360px] max-h-[calc(100dvh-140px)] overflow-y-auto overflow-x-hidden animate-fade-in focus:outline-none"
             tabIndex={-1}
             onKeyDown={(e) => {
               if (e.key === 'Escape') {

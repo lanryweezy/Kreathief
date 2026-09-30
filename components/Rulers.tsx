@@ -357,7 +357,7 @@ export const Rulers: React.FC<RulersProps> = React.memo(({
                     left: dragGuide.screenPos,
                     top: 0,
                     width: '1px',
-                    height: '100vh',
+                    height: '100dvh',
                     borderLeft: '1px dashed #00e5ff',
                     boxShadow: '0 0 8px rgba(0, 229, 255, 0.7)',
                   }),

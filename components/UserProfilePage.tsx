@@ -46,7 +46,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-surface-dark-2 flex items-center justify-center">
+      <div className="min-h-dvh bg-surface-dark-2 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-brand-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -54,7 +54,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-surface-dark-2 flex items-center justify-center text-center p-8">
+      <div className="min-h-dvh bg-surface-dark-2 flex items-center justify-center text-center p-8">
         <div>
           <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
             <Icons.User className="w-8 h-8 text-gray-600" />
@@ -70,7 +70,7 @@ export const UserProfilePage: React.FC<UserProfilePageProps> = ({ userId, onBack
   }
 
   return (
-    <div className="min-h-screen bg-surface-dark-2">
+    <div className="min-h-dvh bg-surface-dark-2">
       {/* Header */}
       <div className="border-b border-white/5">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center gap-4">

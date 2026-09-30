@@ -4,7 +4,7 @@ import { Icons } from '../../constants';
 
 export const ComparisonSection: React.FC = () => {
   return (
-    <section className="py-32 relative bg-surface-dark-0 overflow-hidden flex flex-col justify-center min-h-screen">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden flex flex-col justify-center min-h-dvh">
       {/* Background Image and Effects */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute inset-0 bg-surface-dark-0/50 z-10" />
