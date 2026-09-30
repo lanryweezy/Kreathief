@@ -214,10 +214,10 @@ test.describe('Mobile Responsive Tests', () => {
     await editor.waitForCanvasReady();
 
     // Check sidebar is visible
-    await expect(page.locator("nav[aria-label=\"Main navigation\"]")).toBeVisible({ timeout: 20000 });
+    await expect(page.locator('nav[aria-label="Main navigation"]')).toBeVisible({ timeout: 20000 });
 
     // Check sidebar tabs are touch-friendly
-    const sidebarTabs = page.locator("nav[aria-label=\"Main navigation\"] button");
+    const sidebarTabs = page.locator('nav[aria-label="Main navigation"] button');
     const count = await sidebarTabs.count();
 
     for (let i = 0; i < Math.min(count, 5); i++) {

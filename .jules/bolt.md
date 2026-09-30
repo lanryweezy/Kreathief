@@ -222,7 +222,7 @@
 
 ## 2026-09-28 - Optimize Array Intersection with Set Lookups
 
-**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
 
 ## 2026-09-30 - Optimize mobile component Zustand subscriptions

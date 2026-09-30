@@ -17,9 +17,11 @@ export class EditorPage {
     this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
     this.projectTitleInput = page.getByTestId('project-title-input');
     this.projectTitleDisplay = page.getByTestId('project-title-display');
-    this.exportButton = page.locator('button:has-text("Export"), button[aria-label="Export"], button:has(svg.lucide-download)').first();
+    this.exportButton = page
+      .locator('button:has-text("Export"), button[aria-label="Export"], button:has(svg.lucide-download)')
+      .first();
     this.layersPanel = page.getByTestId('layers-panel');
-    this.sidebar = page.locator('#sidebar, [data-testid="sidebar"], #sidebar-container').first();
+    this.sidebar = page.locator('#sidebar-container, #sidebar, [data-testid="sidebar"]').first();
     this.toolbar = page.locator('#toolbar, [data-testid="toolbar"], .toolbar').first();
   }
 
