@@ -223,10 +223,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
         // If we haven't already found a difference, check this layer
         if (!isDifferent) {
-          if (
-            prevIndex >= allLayersRef.current.length ||
-            allLayersRef.current[prevIndex].id !== layer.id
-          ) {
+          if (prevIndex >= allLayersRef.current.length || allLayersRef.current[prevIndex].id !== layer.id) {
             isDifferent = true;
           }
         }
@@ -402,10 +399,19 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     maxZoom: 10,
   });
 
-  const selectedLayers = useMemo(
-    () => allLayers.filter((l) => selectedLayerIds.includes(l.id)),
-    [allLayers, selectedLayerIds]
-  );
+  const selectedLayers = useMemo(() => {
+    if (selectedLayerIds.length === 0) return [];
+    const idSet = new Set(selectedLayerIds);
+    const result = [];
+    for (let i = 0; i < allLayers.length; i++) {
+      const layer = allLayers[i];
+      if (idSet.has(layer.id)) {
+        result.push(layer);
+        if (result.length === idSet.size) break;
+      }
+    }
+    return result;
+  }, [allLayers, selectedLayerIds]);
 
   const { suggestions, snapPoints, applySuggestion, dismissSuggestion } = useSmartInteraction(
     allLayers,
@@ -464,7 +470,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           const estimatedWidth = Math.max(60, Math.round(newText.length * (fontSize * 0.6)));
           const updates: Partial<TextLayer> = {
             text: newText,
-            width: currentLayer.groupId ? estimatedWidth : (currentLayer.width || estimatedWidth),
+            width: currentLayer.groupId ? estimatedWidth : currentLayer.width || estimatedWidth,
             name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
           };
           onUpdateLayers?.({ [editingTextId]: updates });

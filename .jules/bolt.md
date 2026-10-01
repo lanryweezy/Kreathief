@@ -224,3 +224,7 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2024-10-01 - Early exit in Set-based layer intersections
+**Learning:** When using a Set for O(1) lookups during array intersection (e.g., finding selected layers out of all layers), checking if the accumulated result length matches `Set.size` allows for early loop termination. This turns an O(N) worst-case traversal into an O(K) average-case (where K is the index of the last selected item), providing an additional performance boost in large canvases.
+**Action:** Combine O(1) `Set` lookups with a manual `for` loop and an early `break` condition (`result.length === set.size`) when extracting subsets of known sizes.
