@@ -207,21 +207,22 @@ test.describe('Mobile Responsive Tests', () => {
     }
   });
 
-  test('should have mobile-friendly sidebar', async ({ page }) => {
+  test('should have mobile-friendly editor navigation', async ({ page }) => {
     await page.setViewportSize(iPhone.viewport);
     await page.goto('/');
     await page.locator('#templates-grid button').first().click();
     await editor.waitForCanvasReady();
 
-    // Check sidebar is visible
-    await expect(editor.sidebar).toBeVisible({ timeout: 20000 });
+    // Check mobile nav is visible instead of sidebar on mobile
+    const mobileNav = page.locator('nav[role="navigation"]').last();
+    await expect(mobileNav).toBeVisible({ timeout: 20000 });
 
-    // Check sidebar tabs are touch-friendly
-    const sidebarTabs = editor.sidebar.locator('button[aria-label]');
-    const count = await sidebarTabs.count();
+    // Check nav tabs are touch-friendly
+    const navTabs = mobileNav.locator('button');
+    const count = await navTabs.count();
 
     for (let i = 0; i < Math.min(count, 5); i++) {
-      const tab = sidebarTabs.nth(i);
+      const tab = navTabs.nth(i);
       const size = await tab.evaluate((el) => {
         const rect = el.getBoundingClientRect();
         return { width: rect.width, height: rect.height };
