@@ -17,7 +17,7 @@ export class EditorPage {
     this.canvasContainer = page.locator('#canvas-container, .canvas-container, [data-testid="canvas-container"]');
     this.projectTitleInput = page.getByTestId('project-title-input');
     this.projectTitleDisplay = page.getByTestId('project-title-display');
-    this.exportButton = page.getByRole('button', { name: 'Export' });
+    this.exportButton = page.getByTestId('export-btn');
     this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
     this.toolbar = page.locator('#toolbar, [data-testid="toolbar"], .toolbar').first();

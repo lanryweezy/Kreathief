@@ -216,7 +216,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
     for (let i = 0; i < artboards.length; i++) {
       const layers = artboards[i].layers;
-      if (!layers) continue;
+      if (!layers) {
+        continue;
+      }
       for (let j = 0; j < layers.length; j++) {
         const layer = layers[j];
         newLayers.push(layer);
@@ -400,14 +402,18 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
   });
 
   const selectedLayers = useMemo(() => {
-    if (selectedLayerIds.length === 0) return [];
+    if (selectedLayerIds.length === 0) {
+      return [];
+    }
     const idSet = new Set(selectedLayerIds);
     const result = [];
     for (let i = 0; i < allLayers.length; i++) {
       const layer = allLayers[i];
       if (idSet.has(layer.id)) {
         result.push(layer);
-        if (result.length === idSet.size) break;
+        if (result.length === idSet.size) {
+          break;
+        }
       }
     }
     return result;
