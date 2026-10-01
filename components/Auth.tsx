@@ -68,7 +68,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         onLogin(result.user);
       }
     } catch (err) {
-      setError('Failed to sign in as guest');
+      // 🌸 Bloom: Replaced generic 'Failed to sign in as guest' error with specific error formatter to close the quality gap in error reporting.
+      setError(`Guest sign-in failed: ${getErrorDetails(err).message}`);
       setLoading(false);
     }
   };
@@ -85,7 +86,8 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       }
       // Valid OAuth handshakes will navigate away. No further state updates needed here.
     } catch (err) {
-      setError('Failed to start Google Sign In');
+      // 🌸 Bloom: Replaced generic 'Failed to start Google Sign In' error with specific error formatter to close the quality gap in error reporting.
+      setError(`Google sign-in failed: ${getErrorDetails(err).message}`);
       setLoading(false);
     }
   };

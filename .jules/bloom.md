@@ -111,3 +111,8 @@
 ## 2024-11-20 - Typo-tolerant Icon Search in Services
 **Learning:** The fallback icon search functionality in `services/lucideIconService.ts`, `services/phosphorIconService.ts`, and `services/materialIconService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific icons, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
+
+## 2024-05-18 - Specific error messaging for Authentication
+
+**Learning:** The Guest and Google sign-in methods in `Auth.tsx` displayed generic "Failed to sign in" errors when catching exceptions, hiding valuable context (like network issues or rate limits) that users need to troubleshoot.
+**Action:** Replaced hardcoded generic error strings in authentication catch blocks with dynamic messages constructed using `getErrorDetails(err).message` to provide specific, actionable guidance to users during login failures.
