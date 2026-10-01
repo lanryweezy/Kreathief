@@ -35,13 +35,6 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Server misconfigured: VITE_FRONTEND_URL missing' }), { status: 500 });
   }
 
-  try {
-    await requireAuth(req);
-  } catch (error) {
-    if (error instanceof Response) return error;
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
-  }
-
   const now = Date.now();
 
   // Periodic cleanup of expired rate limit entries to prevent memory leaks
@@ -63,6 +56,13 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       },
     });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
