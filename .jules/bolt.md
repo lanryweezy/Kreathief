@@ -222,5 +222,10 @@
 
 ## 2026-09-28 - Optimize Array Intersection with Set Lookups
 
-**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2026-10-02 - Optimize inline array/object fallbacks
+
+**Learning:** To maintain referential stability and prevent unnecessary re-renders in React components, avoid using inline array or object fallbacks (e.g., `value || []` or `value || {}`) directly in the render body. When a raw value from `useStore` is falsy (e.g., during initialization), `value || []` creates a brand new empty array reference on _every single render cycle_. Passing these unstable references down to child components or hooks triggers unnecessary re-evaluations and degrades performance.
+**Action:** When destructuring values from a global store that might be nullish and require a default array/object, wrap the fallback in `useMemo` (e.g., `const safeValue = useMemo(() => value || [], [value])`). This guarantees that a stable reference is used across renders.
