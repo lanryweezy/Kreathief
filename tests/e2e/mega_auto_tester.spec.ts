@@ -77,12 +77,18 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
         }
 
         try {
-          await btn.hover();
+          await btn.hover({ timeout: 1000 });
           logInteraction(`Hovered button: ${text?.trim() || 'icon-button'}`);
-          await btn.click({ force: true, delay: 50 });
+          await btn.click({ force: true, delay: 50, timeout: 1000 });
           logInteraction(`Clicked button: ${text?.trim() || 'icon-button'}`);
         } catch (e) {
-          console.log(`Could not interact with button: ${e}`);
+          // If a modal popped up and blocked interaction, dismiss it
+          const modalBackdrop = page.locator('.fixed.inset-0.z-\\[400\\]').first();
+          if (await modalBackdrop.isVisible().catch(() => false)) {
+            await page.keyboard.press('Escape').catch(() => {});
+            await page.waitForTimeout(200);
+          }
+          console.log(`Could not interact with button: ${e.message || e}`);
         }
       }
     }
@@ -112,7 +118,12 @@ test.describe('Mega Auto-Tester (500+ Interactions)', () => {
     // 4. Test Text Tools & Color Picker (Verifying the fix)
     const textToolBtn = page.locator('button[title="Text Tools"], button:has-text("Text")').first();
     if (await textToolBtn.isVisible()) {
-      await textToolBtn.click();
+      const modalBackdrop = page.locator('.fixed.inset-0.z-\\[400\\]').first();
+      if (await modalBackdrop.isVisible().catch(() => false)) {
+        await page.keyboard.press('Escape').catch(() => {});
+        await page.waitForTimeout(200);
+      }
+      await textToolBtn.click({ force: true });
       logInteraction('Opened Text Tools');
 
       const colorPicker = page
