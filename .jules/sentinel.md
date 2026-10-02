@@ -315,3 +315,8 @@
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
 **Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
 **Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
+
+## 2024-10-27 - [Replace Math.random with crypto.randomUUID for Secure ID Generation in UI and Brand Memory]
+**Vulnerability:** Weak pseudo-random number generators (`Math.random()`) were used in `store/slices/uiSlice.ts` and `services/brandMemory.ts` for generating unique IDs (guide IDs and brand kit IDs).
+**Learning:** `Math.random()` provides insufficient entropy and is predictable, which can lead to ID collisions or expose the internal state of the PRNG. SAST tools heavily flag the usage of `Math.random()` for any form of unique identification as it violates secure coding standards.
+**Prevention:** Always use the cryptographically secure `crypto.randomUUID()` for generating universally unique identifiers to guarantee unguessability and zero-collision rates.

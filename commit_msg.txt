@@ -1,8 +1,7 @@
-feat: AI multi-layer design engine, smart snapping guides, batch alignment, auto-layout cards, and asset expansion
+🛡️ Sentinel: [MEDIUM] Replace weak PRNG Math.random() with crypto.randomUUID() for ID generation
 
-- Build AI Design Director structured JSON engine (services/aiDesignDirector.ts) with archetypes and multi-layer artboard generation
-- Add Smart Snapping & Magnetic Guidelines with equal spacing interval detection
-- Add 1-click Batch Alignment Toolbar (align left/center/right/top/middle/bottom, distribute rows/cols) and Ctrl+G / Ctrl+Shift+G grouping shortcuts
-- Integrate Dynamic Auto-Layout Cards for auto-expanding/shrinking buttons & badges on text edits
-- Expand Lucide & Tabler vector icon pack and stock photo library
-- Ensure full WYSIWYG export parity and 0 TypeScript errors
+🚨 Severity: MEDIUM
+💡 Vulnerability: `Math.random()` was being used for generating unique identifiers (like guide IDs and brand kit IDs) in `store/slices/uiSlice.ts` and `services/brandMemory.ts`. `Math.random()` provides insufficient entropy and is predictable, which can lead to ID collisions or expose the internal state of the PRNG.
+🎯 Impact: Using weak pseudo-random number generators for unique identification violates secure coding standards, triggers SAST tool warnings, and introduces the risk of ID collisions across sessions or predictable entity creation.
+🔧 Fix: Replaced all identified `Math.random()` ID generation logic with the cryptographically secure `crypto.randomUUID()`, using `.substring(0, 8)` to maintain the short length of the generated IDs.
+✅ Verification: Ran unit tests (`pnpm test`) and linting (`pnpm exec eslint store/slices/uiSlice.ts services/brandMemory.ts`) to ensure the changes did not break existing functionality and the codebase remains stable.
