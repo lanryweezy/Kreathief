@@ -94,3 +94,6 @@
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+## 2026-10-02 - Extract duplicate worker callback rejection logic
+**Learning:** The `WorkerServiceBase` contained nearly identical `for` loops in multiple places (`onerror` and `terminate`) that iterated through the callbacks map, cleared timers, and called `.reject()` on each pending promise.
+**Action:** Consolidate identical repetitive iteration blocks over internal collections (like maps of promises or callbacks) into a single private helper method. This reduces the risk of logic diverging over time and clarifies the purpose of the iteration block.
