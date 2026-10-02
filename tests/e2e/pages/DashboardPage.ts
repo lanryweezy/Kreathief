@@ -14,8 +14,14 @@ export class DashboardPage {
     this.templatesGrid = page.getByTestId('dashboard-templates-grid');
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
     this.searchInput = page.getByTestId('dashboard-search-input');
-    this.userMenu = page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"], header img[alt="Profile"]').first();
-    this.logoutButton = page.locator('[data-testid="logout-btn"], button[role="menuitem"]:has-text("Sign Out"), button:has-text("Sign Out")');
+    this.userMenu = page
+      .locator(
+        '[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"], header img[alt="Profile"]'
+      )
+      .first();
+    this.logoutButton = page.locator(
+      '[data-testid="logout-btn"], button[role="menuitem"]:has-text("Sign Out"), button:has-text("Sign Out")'
+    );
     this.templatesTab = page.locator('[data-testid="nav-templates"], button:has-text("Templates")');
   }
 
@@ -44,7 +50,9 @@ export class DashboardPage {
       localStorage.removeItem('kreathief_guest_session');
       localStorage.removeItem('kreathief_qa_session');
     });
-    const profileBtn = this.page.locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]').first();
+    const profileBtn = this.page
+      .locator('[data-testid="profile-menu-btn"], header button[aria-label="Open account menu"]')
+      .first();
     if (await profileBtn.isVisible()) {
       await profileBtn.click();
       await this.page.waitForTimeout(200);

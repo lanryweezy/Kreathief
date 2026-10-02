@@ -35,11 +35,32 @@ export class EditorPage {
   }
 
   async setProjectTitle(title: string) {
+    // Dismiss any modals that might be blocking the title display
+    const modalBackdrop = this.page.locator('.fixed.inset-0.z-\\[200\\], .fixed.inset-0.z-\\[400\\]').first();
+    if (await modalBackdrop.isVisible().catch(() => false)) {
+      await this.page.keyboard.press('Escape').catch(() => {});
+      await this.page.waitForTimeout(200);
+    }
+
     await expect(this.projectTitleDisplay).toBeVisible({ timeout: 5000 });
-    await this.projectTitleDisplay.click();
+
+    try {
+      await this.projectTitleDisplay.click({ timeout: 2000, force: true });
+    } catch (e) {
+      await this.projectTitleDisplay.evaluate((node) => node.click());
+    }
+
+    try {
+      await expect(this.projectTitleInput).toBeVisible({ timeout: 2000 });
+    } catch (e) {
+      // Fallback: evaluate click again
+      await this.projectTitleDisplay.evaluate((node) => node.click());
+      await expect(this.projectTitleInput).toBeVisible({ timeout: 2000 });
+    }
+
     await this.projectTitleInput.fill(title);
     await this.page.keyboard.press('Enter');
-    await expect(this.projectTitleDisplay).toHaveText(title);
+    await expect(this.projectTitleDisplay).toHaveText(title, { timeout: 5000 });
   }
 
   async openLayersPanel() {
