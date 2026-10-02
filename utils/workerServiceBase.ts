@@ -40,13 +40,7 @@ export abstract class WorkerServiceBase {
       this.worker.onerror = (e) => {
         log.error(`${this.serviceName} Error:`, e);
         // Reject all pending callbacks so UI promises don't hang indefinitely
-        for (const [id, callback] of this.callbacks.entries()) {
-          if (callback.timer) {
-            clearTimeout(callback.timer);
-          }
-          callback.reject(new Error(`${this.serviceName} crashed: ${e.message || 'Worker error'}`));
-        }
-        this.callbacks.clear();
+        this.rejectAllCallbacks(new Error(`${this.serviceName} crashed: ${e.message || 'Worker error'}`));
         this.worker = null;
       };
     } catch (err) {
@@ -95,14 +89,18 @@ export abstract class WorkerServiceBase {
     });
   }
 
-  public terminate() {
+  private rejectAllCallbacks(reason: Error) {
     for (const [id, callback] of this.callbacks.entries()) {
       if (callback.timer) {
         clearTimeout(callback.timer);
       }
-      callback.reject(new Error(`${this.serviceName} terminated`));
+      callback.reject(reason);
     }
     this.callbacks.clear();
+  }
+
+  public terminate() {
+    this.rejectAllCallbacks(new Error(`${this.serviceName} terminated`));
     this.worker?.terminate();
     this.worker = null;
   }
