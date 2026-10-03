@@ -224,3 +224,8 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2026-10-02 - Ensure Code Comments accompany Micro-Optimizations
+
+**Learning:** When performing optimizations like wrapping multiple Zustand subscriptions into a single `useShallow` selector, forgetting to include a descriptive code comment can lead to confusion for future developers, or PR feedback requesting explanations.
+**Action:** Always include a code comment block explicitly explaining *why* the micro-optimization was implemented (e.g. "Consolidated X separate Zustand subscriptions to reduce listener overhead and prevent unnecessary React re-renders") directly above the changed code segment.
