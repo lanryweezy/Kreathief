@@ -87,7 +87,7 @@ function saveLocalBrandKits(kits: BrandKit[]): void {
 export function createBrandKit(data: Omit<BrandKit, 'id' | 'createdAt' | 'updatedAt' | 'version'>): BrandKit {
   const kit: BrandKit = {
     ...data,
-    id: `brand_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    id: `brand_${crypto.randomUUID()}`,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     version: 1,
