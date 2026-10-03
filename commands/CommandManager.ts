@@ -26,14 +26,14 @@ export class CommandManager {
   }
 
   static undo() {
-    if (this.past.length === 0) return;
+    if (this.past.length === 0) {return;}
     const command = this.past.pop()!;
     command.undo();
     this.future.push(command);
   }
 
   static redo() {
-    if (this.future.length === 0) return;
+    if (this.future.length === 0) {return;}
     const command = this.future.pop()!;
     command.execute();
     this.past.push(command);
@@ -56,7 +56,7 @@ export class CommandManager {
       this.pendingBatch = [];
     }
   }
-  
+
   static clear() {
     this.past = [];
     this.future = [];
@@ -71,7 +71,7 @@ export class BatchCommand implements Command {
   private commands: Command[];
 
   constructor(name: string, commands: Command[]) {
-    this.id = Math.random().toString(36).substr(2, 9);
+    this.id = crypto.randomUUID();
     this.name = name;
     this.commands = commands;
   }
