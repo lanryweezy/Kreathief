@@ -837,6 +837,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
                     value={videoDuration}
                     onChange={(e) => setVideoDuration(parseInt(e.target.value, 10))}
                     className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-600"
+                    aria-label="Video Duration"
                   />
                   <div className="flex justify-between text-[9px] text-gray-500 font-mono">
                     <span>1s (Short Loop)</span>
@@ -1033,10 +1034,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
 
                 {/* Color Profile */}
                 <div>
-                  <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block">
+                  <label
+                    htmlFor="color-profile-select"
+                    className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 block"
+                  >
                     Color Profile
                   </label>
                   <select
+                    id="color-profile-select"
                     value={colorProfile}
                     onChange={(e) => setColorProfile(e.target.value as ColorProfile)}
                     className="w-full bg-surface-dark-4 border border-gray-600 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-600 outline-none"

@@ -132,6 +132,7 @@ export const PresentationModal: React.FC = () => {
                 ? 'bg-brand-600/20 text-brand-400 border-brand-500/50'
                 : 'bg-white/5 text-gray-400 border-white/10 hover:text-white'
             }`}
+            aria-pressed={smartAnimateEnabled}
           >
             <Icons.Zap className="w-3.5 h-3.5" />
             Smart Animate {smartAnimateEnabled ? 'ON' : 'OFF'}
@@ -144,6 +145,7 @@ export const PresentationModal: React.FC = () => {
                 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
                 : 'bg-brand-600 hover:bg-brand-500 text-white'
             }`}
+            aria-pressed={isPlaying}
           >
             {isPlaying ? <Icons.Pause className="w-3.5 h-3.5" /> : <Icons.Play className="w-3.5 h-3.5" />}
             {isPlaying ? 'Pause' : 'Autoplay'}
@@ -197,10 +199,12 @@ export const PresentationModal: React.FC = () => {
                 setIndex(idx);
                 setActiveArtboardId(art.id);
               }}
-              className={`h-2 rounded-full transition-all ${
+              className={`h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark-1 ${
                 index === idx ? 'w-6 bg-brand-500' : 'w-2 bg-white/20 hover:bg-white/40'
               }`}
               title={art.name || `Slide ${idx + 1}`}
+              aria-label={art.name || `Slide ${idx + 1}`}
+              aria-pressed={index === idx}
             />
           ))}
         </div>

@@ -60,3 +60,7 @@
 ## 2026-09-26 - Explicit ARIA states for icon toggles
 **Learning:** State toggle buttons (like lock/unlock, show/hide) need explicit aria-pressed states for screen readers, as changing only the aria-label or visual styling isn't always enough to convey the active/inactive state clearly to assistive technologies.
 **Action:** Always include aria-pressed={boolean} on UI elements that function as state toggles to guarantee accessibility parity with visual styles.
+
+## 2026-10-02 - Screen Reader and Keyboard Accessibility for Pagination Dots
+**Learning:** When using visual dots for carousel or presentation slide navigation, relying only on a `title` attribute is insufficient for screen readers and keyboard users. They often lack focus states, making them invisible during keyboard navigation, and without `aria-label` and `aria-pressed` (or `aria-current`), users cannot tell which slide is active or what the buttons control.
+**Action:** Always add `focus-visible` styles for keyboard navigation, along with `aria-label` and `aria-pressed={boolean}` states on pagination dot buttons to ensure full accessibility.
