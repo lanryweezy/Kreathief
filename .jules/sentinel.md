@@ -315,3 +315,8 @@
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
 **Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
 **Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
+
+## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions (Fal & Freepik)]
+**Vulnerability:** The `api/fal.ts` and `api/freepik.ts` proxy endpoints enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
+**Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
+**Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
