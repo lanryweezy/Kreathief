@@ -294,7 +294,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
       onMouseDown={handleClose}
     >
       <div
-        className={`bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_0_100px_rgba(0,0,0,0.5)] ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[1100px] max-w-[calc(100vw-2rem)] h-[800px] max-h-[calc(100vh-2rem)]'} flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMounted ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
+        className={`bg-[#1a1a1c] border border-white/10 rounded-2xl shadow-[0_0_100px_rgba(0,0,0,0.5)] ${isFullscreen ? 'w-full h-full rounded-none' : 'w-[1100px] max-w-[calc(100vw-2rem)] h-[800px] max-h-[calc(100dvh-2rem)]'} flex flex-col overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${isMounted ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}
         onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#1f1f23]/50 backdrop-blur-xl z-10 shrink-0">

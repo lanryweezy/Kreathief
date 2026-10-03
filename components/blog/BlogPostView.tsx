@@ -15,7 +15,7 @@ export const BlogPostView: React.FC = () => {
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-surface-dark-0 flex items-center justify-center text-white">
+      <div className="min-h-dvh bg-surface-dark-0 flex items-center justify-center text-white">
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4 rotate-3 text-red-500">404: Post Not Found</h1>
           <Link
@@ -54,7 +54,7 @@ export const BlogPostView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-dark-0 text-white selection:bg-brand-600 pt-32 pb-32">
+    <div className="min-h-dvh bg-surface-dark-0 text-white selection:bg-brand-600 pt-32 pb-32">
       <SEO
         title={post.title}
         description={post.excerpt}

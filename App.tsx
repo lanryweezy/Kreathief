@@ -93,7 +93,7 @@ const AudienceView = React.lazy(() =>
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
-  <div className="flex h-screen w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
+  <div className="flex h-dvh w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
     <div className="w-8 h-8 rounded-full border-4 border-[#7d2ae8] border-t-transparent animate-spin"></div>
     <div className="text-gray-400 font-medium animate-pulse">Loading Kreathief...</div>
   </div>

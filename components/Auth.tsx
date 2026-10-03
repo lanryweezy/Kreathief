@@ -91,7 +91,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-surface-dark-0 flex items-center justify-center relative overflow-hidden">
+    <div className="min-h-dvh w-full bg-surface-dark-0 flex items-center justify-center relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-brand-900/10 rounded-full blur-[140px] animate-pulse-slow"></div>

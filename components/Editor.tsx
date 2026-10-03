@@ -213,7 +213,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const hideHeaderOnMobile = isMobile && selectedLayerIds.length > 0;
 
   return (
-    <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
+    <div id="editor-root" className="flex flex-col h-dvh bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
       <AnimatePresence>
         {!hideHeaderOnMobile && (
           <motion.div
