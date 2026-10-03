@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Icons } from '../constants';
 import { haptics } from '../utils/haptics';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Mobile Quick Actions Toolbar
@@ -10,13 +11,27 @@ import { useStore } from '../store/useStore';
  */
 export const MobileQuickActions: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds) || [];
-  const deleteSelected = useStore((state) => state.deleteSelected);
-  const duplicateSelected = useStore((state) => state.duplicateSelected);
-  const undo = useStore((state) => state.undo);
-  const redo = useStore((state) => state.redo);
-  const resetZoom = useStore((state) => state.resetZoom);
-  const moveLayer = useStore((state) => state.moveLayer);
+  // ⚡ Bolt: Consolidating multiple useStore hooks into a single useShallow call
+  // Reduces store subscriptions from 7 to 1, improving rendering performance
+  const {
+    selectedLayerIds = [],
+    deleteSelected,
+    duplicateSelected,
+    undo,
+    redo,
+    resetZoom,
+    moveLayer,
+  } = useStore(
+    useShallow((state) => ({
+      selectedLayerIds: state.selectedLayerIds,
+      deleteSelected: state.deleteSelected,
+      duplicateSelected: state.duplicateSelected,
+      undo: state.undo,
+      redo: state.redo,
+      resetZoom: state.resetZoom,
+      moveLayer: state.moveLayer,
+    }))
+  );
 
   const hasSelection = selectedLayerIds.length > 0;
   const singleSelection = selectedLayerIds.length === 1;
