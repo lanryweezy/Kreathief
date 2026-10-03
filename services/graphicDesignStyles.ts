@@ -781,6 +781,25 @@ export const GRAPHIC_DESIGN_STYLES: Record<GraphicDesignStyleId, GraphicDesignSt
   },
 };
 
+
+/**
+ * Extensibility Point: GraphicDesignStyleStrategy Registry
+ * Evidence of pressure: The `internalBuildComposition` function relied on a hard-coded switch statement
+ * with 11+ cases for different design movements and trends.
+ * Contract: Implementors must provide an `id` and a `buildComposition` method that accepts
+ * the `StyleBuildOptions` and returns a complete `ArtboardDesignResult`.
+ */
+export interface GraphicDesignStyleStrategy {
+  id: GraphicDesignStyleId;
+  buildComposition(opts: StyleBuildOptions): ArtboardDesignResult;
+}
+
+export const graphicDesignStyleStrategies = new Map<GraphicDesignStyleId, GraphicDesignStyleStrategy>();
+
+export function registerGraphicDesignStyleStrategy(strategy: GraphicDesignStyleStrategy) {
+  graphicDesignStyleStrategies.set(strategy.id, strategy);
+}
+
 export interface StyleBuildOptions {
   width: number;
   height: number;
@@ -3115,3 +3134,16 @@ export const GRAPHIC_DESIGN_STYLE_LIST: GraphicDesignStyleMeta[] = Object.values
 export function getStylesByCategory(category: GraphicDesignStyleCategory): GraphicDesignStyleMeta[] {
   return GRAPHIC_DESIGN_STYLE_LIST.filter((s) => s.category === category);
 }
+
+// ─── Register Existing Strategies ───────────────────────────────────────────
+registerGraphicDesignStyleStrategy({ id: 'bentoGrid', buildComposition: buildBentoGridDesign });
+registerGraphicDesignStyleStrategy({ id: 'aurora', buildComposition: buildAuroraDesign });
+registerGraphicDesignStyleStrategy({ id: 'neoBrutalism', buildComposition: buildNeoBrutalistDesign });
+registerGraphicDesignStyleStrategy({ id: 'luxuryTypography', buildComposition: buildLuxuryTypographyDesign });
+registerGraphicDesignStyleStrategy({ id: 'y2k', buildComposition: buildY2kDesign });
+registerGraphicDesignStyleStrategy({ id: 'bauhaus', buildComposition: buildBauhausDesign });
+registerGraphicDesignStyleStrategy({ id: 'artDeco', buildComposition: buildArtDecoDesign });
+registerGraphicDesignStyleStrategy({ id: 'swissStyle', buildComposition: buildSwissStyleDesign });
+registerGraphicDesignStyleStrategy({ id: 'popArt', buildComposition: buildPopArtDesign });
+registerGraphicDesignStyleStrategy({ id: 'psychedelic', buildComposition: buildPsychedelicDesign });
+registerGraphicDesignStyleStrategy({ id: 'brutalism', buildComposition: buildBrutalistDesign });
