@@ -1,0 +1,195 @@
+import { log } from '../utils/log';
+import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
+import { requireAuth } from './_auth';
+
+export const config = {
+  runtime: 'edge',
+};
+
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 30;
+
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
+
+let lastCleanup = Date.now();
+
+export default async function handler(req: Request) {
+  // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
+  const origin = process.env.VITE_FRONTEND_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
+  if (!origin) {
+    return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
+  }
+
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
+
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': origin,
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      },
+    });
+  }
+
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    if (error instanceof Response) return error;
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimitState = rateLimitMap.get(clientIp);
+
+  if (rateLimitState) {
+    if (now > rateLimitState.resetTime) {
+      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    } else {
+      if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
+        return new Response(JSON.stringify({ error: 'Too many requests' }), {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin,
+          },
+        });
+      }
+      rateLimitState.count++;
+    }
+  } else {
+    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+  }
+
+  const apiKey = process.env.REPLICATE_API_KEY;
+
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'Replicate credentials not configured on server' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': origin,
+      },
+    });
+  }
+
+  try {
+    const url = new URL(req.url);
+    const action = url.searchParams.get('action');
+
+    const BASE_URL = 'https://api.replicate.com/v1';
+
+    if (action === 'start' && req.method === 'POST') {
+      let payload;
+      try {
+        payload = await req.json();
+      } catch (err) {
+        return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin,
+          },
+        });
+      }
+
+      const { image, scale, face_enhance } = payload;
+
+      const response = await fetch(`${BASE_URL}/predictions`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Token ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          version: 'a3d6ea1a94e8e4b3b9c375ba2f32c8e21a7b3d2f4e5a6b7c8d9e0f1a2b3c4d5', // Real-ESRGAN v3
+          input: {
+            image,
+            scale,
+            face_enhance: !!face_enhance,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Replicate Start failed');
+      }
+
+      const data = await response.json();
+
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          ...noStoreHeaders(),
+        },
+      });
+    } else if (action === 'poll' && req.method === 'GET') {
+      const id = url.searchParams.get('id');
+      if (!id) {
+        return new Response(JSON.stringify({ error: 'id is required' }), {
+          status: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': origin,
+          },
+        });
+      }
+
+      const response = await fetch(`${BASE_URL}/predictions/${encodeURIComponent(id)}`, {
+        headers: {
+          Authorization: `Token ${apiKey}`,
+          Accept: 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Replicate poll fetch failed');
+      }
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        status: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          ...noStoreHeaders(),
+        },
+      });
+    }
+
+    return new Response(JSON.stringify({ error: 'Unknown action' }), {
+      status: 400,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': origin,
+      },
+    });
+  } catch (error: any) {
+    log.error('API Route Error', error, { url: req.url });
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': origin,
+      },
+    });
+  }
+}
