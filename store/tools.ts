@@ -61,32 +61,40 @@ const textToVectorSchema = z.object({
 // Tool handlers - use layout utilities directly
 const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length === 0) return;
+  if (nodes.length === 0) {
+    return;
+  }
   const state = useStore.getState();
   const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
   const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
-  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
+  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
 };
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length < 2) return;
+  if (nodes.length < 2) {
+    return;
+  }
   const state = useStore.getState();
   const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
   const changes = distributeLayersUtil(nodes as any, distType as any);
-  changes.forEach(c => state.updateLayer(c.id, c.changes as any));
+  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
 };
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {
   const nodes = getSelectedNodes();
-  if (nodes.length < 2) return;
+  if (nodes.length < 2) {
+    return;
+  }
   const state = useStore.getState();
   // Simple grid layout
   if (type === 'grid') {
     const cols = Math.ceil(Math.sqrt(nodes.length));
     const gap = 16;
     nodes.forEach((node, i) => {
-      if (!node) return;
+      if (!node) {
+        return;
+      }
       const col = i % cols;
       const row = Math.floor(i / cols);
       state.updateLayer(node.id, {
@@ -98,21 +106,29 @@ const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) =
 };
 
 const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ colors }) => {
-  if (colors.length === 0) return;
+  if (colors.length === 0) {
+    return;
+  }
   const nodes = getSelectedNodes();
   const state = useStore.getState();
   nodes.forEach((node, i) => {
-    if (!node) return;
+    if (!node) {
+      return;
+    }
     state.updateLayer(node.id, { fill: colors[i % colors.length] } as any);
   });
 };
 
 const groupSelected: ToolHandler<Record<string, never>> = () => {
-  // Group not implemented in simplified store — no-op
+  // Stitch: Original intent was marked as not implemented, but the actions
+  // exist on the store via groupingSlice. Wiring them up to match UI implementation.
+  (useStore.getState() as any).groupSelected?.();
 };
 
 const ungroupSelected: ToolHandler<Record<string, never>> = () => {
-  // Ungroup not implemented in simplified store — no-op
+  // Stitch: Original intent was marked as not implemented, but the actions
+  // exist on the store via groupingSlice. Wiring them up to match UI implementation.
+  (useStore.getState() as any).ungroupSelected?.();
 };
 
 const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {

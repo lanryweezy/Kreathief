@@ -305,3 +305,23 @@
 **Vulnerability:** The application was fetching `import.meta.env.VITE_PEXELS_API_KEY` and contained a hardcoded Pexels API key in `api/pexels.ts`, which was bundled into the client-side code, exposing the secret directly to users.
 **Learning:** Storing API keys in client-side files or using the `VITE_` prefix for secrets securely meant for backend usage leads to direct key exposure via the compiled frontend bundle.
 **Prevention:** Always implement a server-side proxy route (e.g., an Edge Function) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and never hardcode API keys in source code.
+
+## 2026-10-27 - [Fix setInterval Memory Leak in Edge Environment]
+**Vulnerability:** The `api/openrouter.ts` edge function used `setInterval` at the module scope for rate-limit cleanup.
+**Learning:** In Vercel Edge and serverless functions, isolates suspend between requests. Using active timers like `setInterval` causes them to freeze, hang, or leak memory because the V8 isolate is frozen between invocations, potentially leading to denial-of-service through resource exhaustion.
+**Prevention:** Never use `setInterval` or `setTimeout` for background tasks in serverless environments. Instead, use passive, request-driven cleanup logic (e.g., checking timestamps on invocation) to manage state expiration.
+
+## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions]
+**Vulnerability:** The `api/openrouter.ts` proxy endpoint enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
+**Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
+**Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
+
+## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions (Fal & Freepik)]
+**Vulnerability:** The `api/fal.ts` and `api/freepik.ts` proxy endpoints enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
+**Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
+**Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
+
+## 2026-10-27 - [Fix Client-Side Exposure of Replicate API Key]
+**Vulnerability:** The application fetched `import.meta.env.VITE_REPLICATE_API_KEY` on the client side in `services/upscaleService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
+**Learning:** Using the `VITE_` prefix for secrets meant for external backend usage leads to direct key exposure via the compiled frontend bundle because Vite statically injects them into the build.
+**Prevention:** Always implement a server-side proxy route (e.g., an Edge Function like `api/replicate.ts`) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and update client services to call the internal proxy.

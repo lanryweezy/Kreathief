@@ -3,7 +3,7 @@ import { Skeleton } from './Skeleton';
 
 export const EditorSkeleton: React.FC = () => {
   return (
-    <div className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden">
+    <div className="flex flex-col h-dvh bg-surface-dark-2 overflow-hidden">
       {/* Header Skeleton */}
       <div className="h-14 bg-surface-dark-1 border-b border-white/5 flex items-center justify-between px-6 shrink-0">
         <div className="flex items-center gap-4">

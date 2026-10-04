@@ -569,7 +569,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   }, [searchQuery, templateCategory, templateSort]);
 
   return (
-    <div className="min-h-screen bg-surface-dark-0 text-white flex flex-col relative z-0">
+    <div className="min-h-dvh bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
         <a href="/" className="flex items-center gap-4 group cursor-pointer" title="Go to Landing Page">

@@ -245,12 +245,12 @@ export const VideoAgentPanel: React.FC = () => {
             
             <div className="rounded-xl overflow-hidden border border-white/10 bg-black aspect-video relative group shadow-2xl">
               <video src={videoResult} autoPlay loop muted controls className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
-                <Button size="icon" variant="primary" className="bg-brand-600 hover:bg-brand-500 text-white rounded-full w-10 h-10 shadow-xl shadow-brand-500/50" title="Add to Canvas">
-                  <Icons.Plus className="w-5 h-5" />
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" title="Add to Canvas" aria-label="Add to Canvas">
+                  <Icons.Plus className="w-3.5 h-3.5" />
                 </Button>
-                <Button size="icon" variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-none rounded-full w-10 h-10 backdrop-blur-md" title="Download Source">
-                  <Icons.Download className="w-5 h-5" />
+                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" title="Download Video" aria-label="Download Video">
+                  <Icons.Download className="w-3.5 h-3.5" />
                 </Button>
               </div>
             </div>

@@ -56,7 +56,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="min-h-screen bg-[#0a0a0c] text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
+      <div className="min-h-dvh bg-surface-dark-0 text-white selection:bg-[#8b5cf6] selection:text-white font-sans overflow-x-hidden relative">
       {/* Global tactile noise overlay */}
       <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-[0.025] mix-blend-overlay"></div>
       <div ref={sentinelRef} className="absolute top-0 left-0 w-full h-8 pointer-events-none -z-10" aria-hidden="true" />

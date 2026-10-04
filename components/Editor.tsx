@@ -3,6 +3,7 @@ import { log } from '../utils/log';
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
 import { useStore } from '../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { selectedLayerSelector } from '../store/selectors';
 import { NavTab } from '../types';
@@ -18,12 +19,8 @@ import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { generateShareLink } from '../utils/shareUtils';
 import { storageService } from '../services/storageService';
-const ExportModal = React.lazy(() =>
-  import('./modals/ExportModal').then((m) => ({ default: m.ExportModal }))
-);
-const ShareModal = React.lazy(() =>
-  import('./modals/ShareModal').then((m) => ({ default: m.ShareModal }))
-);
+const ExportModal = React.lazy(() => import('./modals/ExportModal').then((m) => ({ default: m.ExportModal })));
+const ShareModal = React.lazy(() => import('./modals/ShareModal').then((m) => ({ default: m.ShareModal })));
 import { MockupPanel } from './panels/MockupPanel';
 import { ComponentPropertiesPanel } from './panels/ComponentPropertiesPanel';
 
@@ -35,16 +32,12 @@ const CommandPalette = React.lazy(() =>
   import('./modals/CommandPalette').then((module) => ({ default: module.CommandPalette }))
 );
 import { Toolbar } from './Toolbar';
-const ShortcutOverlay = React.lazy(() =>
-  import('./ShortcutOverlay').then((m) => ({ default: m.ShortcutOverlay }))
-);
+const ShortcutOverlay = React.lazy(() => import('./ShortcutOverlay').then((m) => ({ default: m.ShortcutOverlay })));
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
 import { buildEditorShortcuts } from './editor/EditorShortcuts';
 import { computeAutoLayout } from '../utils/autoLayout';
-const FeedbackModal = React.lazy(() =>
-  import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
-);
+const FeedbackModal = React.lazy(() => import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal })));
 const PresentationModal = React.lazy(() =>
   import('./modals/PresentationModal').then((m) => ({ default: m.PresentationModal }))
 );
@@ -66,19 +59,46 @@ interface EditorProps {
 }
 
 export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) => {
-  const rawSelectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const rawCanvasSize = useStore((state) => state.canvasSize);
-  const activeTab = useStore((state) => state.activeTab);
-  const rawZoom = useStore((state) => state.zoom);
-  const showShortcuts = useStore((state) => state.showShortcuts);
-  const showRulers = useStore((state) => state.showRulers);
-  const showGrid = useStore((state) => state.showGrid);
-  const selectedIntent = useStore((state) => state.selectedIntent);
-  const projectId = useStore((state) => state.projectId);
-  const projectTitle = useStore((state) => state.projectTitle);
-  const showShareModal = useStore((state) => state.showShareModal);
-  const showFeedbackModal = useStore((state) => state.showFeedbackModal);
-  const rawArtboards = useStore((state) => state.artboards);
+  const {
+    rawSelectedLayerIds,
+    rawCanvasSize,
+    activeTab,
+    rawZoom,
+    showShortcuts,
+    showRulers,
+    showGrid,
+    selectedIntent,
+    projectId,
+    projectTitle,
+    showShareModal,
+    showFeedbackModal,
+    rawArtboards,
+    showAIOverlay,
+    aiTab,
+    setAiTab,
+    setShowAIOverlay,
+  } = useStore(
+    useShallow((state) => ({
+      rawSelectedLayerIds: state.selectedLayerIds,
+      rawCanvasSize: state.canvasSize,
+      activeTab: state.activeTab,
+      rawZoom: state.zoom,
+      showShortcuts: state.showShortcuts,
+      showRulers: state.showRulers,
+      showGrid: state.showGrid,
+      selectedIntent: state.selectedIntent,
+      projectId: state.projectId,
+      projectTitle: state.projectTitle,
+      showShareModal: state.showShareModal,
+      showFeedbackModal: state.showFeedbackModal,
+      rawArtboards: state.artboards,
+      showAIOverlay: state.showAIOverlay,
+      aiTab: state.aiOverlayTab,
+      setAiTab: state.setAIOverlayTab,
+      setShowAIOverlay: state.setShowAIOverlay,
+    }))
+  );
+
   const artboards = rawArtboards || [];
   const selectedLayerIds = rawSelectedLayerIds || [];
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
@@ -98,7 +118,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const aiTab = useStore((state) => state.aiOverlayTab);
   const setAiTab = useStore((state) => state.setAIOverlayTab);
   const setShowAIOverlay = useStore((state) => state.setShowAIOverlay);
-
   const selectedLayer = useStore(selectedLayerSelector);
 
   const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(projectId, user);
@@ -181,8 +200,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       useStore.getState().updateLayers(allUpdates);
     }
   }, [artboards]);
-
-
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
@@ -265,7 +282,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const hideHeaderOnMobile = isMobile && selectedLayerIds.length > 0;
 
   return (
-    <div id="editor-root" className="flex flex-col h-screen bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
+    <div id="editor-root" className="flex flex-col h-dvh bg-surface-dark-2 overflow-hidden text-[#e5e7eb] font-sans">
       <AnimatePresence>
         {!hideHeaderOnMobile && (
           <motion.div

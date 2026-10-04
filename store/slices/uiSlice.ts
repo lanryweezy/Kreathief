@@ -272,7 +272,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
       guides: [
         ...state.guides,
         {
-          id: `guide-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          id: `guide-${crypto.randomUUID()}`,
           type,
           position: Math.round(position),
         },

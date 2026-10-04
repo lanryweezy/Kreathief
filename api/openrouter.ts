@@ -9,33 +9,27 @@ export const config = {
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 20;
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 
-// Periodic cleanup of expired rate limit entries to prevent memory leak
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitMap) {
-    if (now > value.resetTime) rateLimitMap.delete(key);
-  }
-}, RATE_LIMIT_WINDOW_MS);
-
-
+let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
+  const now = Date.now();
+
+  // Periodic cleanup of expired rate limit entries to prevent memory leaks
+  if (now - lastCleanup > CLEANUP_INTERVAL_MS) {
+    for (const [ip, state] of rateLimitMap.entries()) {
+      if (now > state.resetTime) {
+        rateLimitMap.delete(ip);
+      }
+    }
+    lastCleanup = now;
+  }
+
   // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
   const origin = process.env.VITE_FRONTEND_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
   if (!origin) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
-  }
-
-
-  try {
-    await requireAuth(req);
-  } catch (error) {
-    if (error instanceof Response) return error;
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
   }
 
   if (req.method === 'OPTIONS') {
@@ -49,6 +43,16 @@ export default async function handler(req: Request) {
     });
   }
 
+  try {
+    await requireAuth(req);
+  } catch (error) {
+    if (error instanceof Response) {return error;}
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
@@ -57,7 +61,6 @@ export default async function handler(req: Request) {
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const now = Date.now();
 
   // Rate limiting
   const state = rateLimitMap.get(clientIp);
@@ -147,7 +150,7 @@ export default async function handler(req: Request) {
         ...noStoreHeaders(),
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     log.error('[OpenRouter API] Handler failed', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

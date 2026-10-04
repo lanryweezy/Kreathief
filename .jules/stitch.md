@@ -9,3 +9,8 @@
 **Learning:** Internal store tracking variables meant for batching or sync logic (like `__batchDepth` and `__hasPendingBatchChange`) are often initialized in the main store aggregator (e.g., `useStore.ts`) but forgotten in the specific slice's TypeScript interface. The codebase convention uses `@ts-expect-error TODO: fix type - internal slice property` instead of addressing the type error directly.
 
 **Action:** When searching for completeness tasks, search for `@ts-expect-error TODO:` comments in the store/state management files. Fixing them usually involves simply declaring the exact initialized variable and its type in the corresponding slice's interface.
+
+## 2026-09-30 - Completing Group/Ungroup Tool Handlers
+
+**Learning:** Tool handlers defined in `store/tools.ts` might be marked as "not implemented in simplified store," but the corresponding actions (`groupSelected`, `ungroupSelected`) may actually exist and be fully implemented in specific state slices (like `groupingSlice.ts`). The original intent is sometimes obscured by outdated stub comments.
+**Action:** When encountering "not implemented" stubs in tool/command registries, check the actual store slices to see if the implementation was added later but the registry was forgotten.

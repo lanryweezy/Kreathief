@@ -388,17 +388,28 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
 export const DEFAULT_IMAGE_MODEL = 'flux-1-1-pro-ultra';
 
 /** Default backend for prompt-driven edits when the caller has no model preference. */
-export const DEFAULT_EDIT_MODEL = 'nano-banana-2';
-
-/**
- * Design Agent specialist routing constants — change here to swap models per layer role.
- */
-/** Hero-cutout layers → native RGBA transparent PNG; no secondary bg-removal round-trip. */
-export const DEFAULT_CUTOUT_MODEL = 'qwen-image-2-1';
-/** Vector accent layers → pure editable SVG paths via Recraft V3. */
-export const DEFAULT_VECTOR_ACCENT_MODEL = 'recraft-v3-svg';
-/** Background layers → photorealistic/atmospheric raster stage (must contain no text). */
-export const DEFAULT_BACKGROUND_MODEL = 'flux-1-1-pro-ultra';
+export const DEFAULT_EDIT_MODEL = 'nano-banana-2';
+
+
+
+/**
+
+ * Design Agent specialist routing constants — change here to swap models per layer role.
+
+ */
+
+/** Hero-cutout layers → native RGBA transparent PNG; no secondary bg-removal round-trip. */
+
+export const DEFAULT_CUTOUT_MODEL = 'qwen-image-2-1';
+
+/** Vector accent layers → pure editable SVG paths via Recraft V3. */
+
+export const DEFAULT_VECTOR_ACCENT_MODEL = 'recraft-v3-svg';
+
+/** Background layers → photorealistic/atmospheric raster stage (must contain no text). */
+
+export const DEFAULT_BACKGROUND_MODEL = 'flux-1-1-pro-ultra';
+
 
 
 export const getImageModel = (modelId?: string): ImageGenModel | undefined =>
@@ -482,3 +493,14 @@ export const IMAGE_MODEL_CATEGORIES: Record<ImageModelCategory, { label: string;
   quality: { label: 'Quality', description: 'Best output' },
   vector: { label: 'Vector', description: 'Editable SVG' },
 };
+
+export const IMAGE_MODELS_BY_CATEGORY: Record<ImageModelCategory, ImageGenModel[]> = (() => {
+  const grouped = {} as Record<ImageModelCategory, ImageGenModel[]>;
+  for (const model of IMAGE_GEN_MODELS) {
+    if (!grouped[model.category]) {
+      grouped[model.category] = [];
+    }
+    grouped[model.category].push(model);
+  }
+  return grouped;
+})();

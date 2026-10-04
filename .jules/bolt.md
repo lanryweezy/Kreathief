@@ -219,3 +219,13 @@
 
 **Learning:** When removing inline array operations (like chained `.filter().map()`) from JSX render blocks by extracting them, wrapping the extraction in a `useMemo` block inside the component still causes the array to be allocated and the loop to run every time the component mounts. If the data source is a static constant imported from outside (like `CANVAS_SIZE_PRESETS`), this is unnecessary overhead.
 **Action:** Move the pre-computation logic (e.g., categorizing an array into a dictionary) completely outside of the React component's scope using an IIFE (Immediately Invoked Function Expression). This ensures the work is done exactly once per application load, maximizing rendering performance and avoiding remount recalculation penalties.
+
+## 2026-09-28 - Optimize Array Intersection with Set Lookups
+
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2026-09-30 - Optimize mobile component Zustand subscriptions
+
+**Learning:** Components like `MobileQuickActions` and `MobileTransformController` often define multiple `useStore` hooks to extract several pieces of state independently. While this works, each `useStore` hook creates a separate subscription to the Zustand store, increasing CPU overhead during rapid state updates (e.g. while dragging or nudging).
+**Action:** When extracting multiple state properties in React 18+ components using Zustand, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`.
