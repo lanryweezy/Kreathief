@@ -19,12 +19,8 @@ import { useEditorLogic } from '../hooks/useEditorLogic';
 import { useFileHandler } from '../hooks/useFileHandler';
 import { generateShareLink } from '../utils/shareUtils';
 import { storageService } from '../services/storageService';
-const ExportModal = React.lazy(() =>
-  import('./modals/ExportModal').then((m) => ({ default: m.ExportModal }))
-);
-const ShareModal = React.lazy(() =>
-  import('./modals/ShareModal').then((m) => ({ default: m.ShareModal }))
-);
+const ExportModal = React.lazy(() => import('./modals/ExportModal').then((m) => ({ default: m.ExportModal })));
+const ShareModal = React.lazy(() => import('./modals/ShareModal').then((m) => ({ default: m.ShareModal })));
 import { MockupPanel } from './panels/MockupPanel';
 import { ComponentPropertiesPanel } from './panels/ComponentPropertiesPanel';
 
@@ -36,15 +32,11 @@ const CommandPalette = React.lazy(() =>
   import('./modals/CommandPalette').then((module) => ({ default: module.CommandPalette }))
 );
 import { Toolbar } from './Toolbar';
-const ShortcutOverlay = React.lazy(() =>
-  import('./ShortcutOverlay').then((m) => ({ default: m.ShortcutOverlay }))
-);
+const ShortcutOverlay = React.lazy(() => import('./ShortcutOverlay').then((m) => ({ default: m.ShortcutOverlay })));
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
 import { buildEditorShortcuts } from './editor/EditorShortcuts';
-const FeedbackModal = React.lazy(() =>
-  import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
-);
+const FeedbackModal = React.lazy(() => import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal })));
 const PresentationModal = React.lazy(() =>
   import('./modals/PresentationModal').then((m) => ({ default: m.PresentationModal }))
 );
@@ -151,8 +143,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth < 768);
-
-
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
