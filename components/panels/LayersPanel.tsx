@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { List } from 'react-window';
 import { TextLayer, ShapeLayer, ImageLayer, Layer, Artboard } from '../../types';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
@@ -85,7 +84,7 @@ const LayerItem = React.memo(
     }, [layer.isExpanded]);
 
     useEffect(() => {
-      if (isSelected && itemRef.current) {
+      if (isSelected && itemRef.current && typeof itemRef.current.scrollIntoView === 'function') {
         itemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
     }, [isSelected]);
@@ -365,7 +364,6 @@ export const LayersPanel = () => {
   const [layerSearch, setLayerSearch] = useState('');
   const [showOverlapping, setShowOverlapping] = useState(false);
   const [expandedLayerId, setExpandedLayerId] = useState<string | null>(null);
-  const listRef = useRef<List>(null);
 
   // Compute bounding box intersection for "Overlapping" filter mode
   const filteredLayers = useMemo(() => {
@@ -464,44 +462,6 @@ export const LayersPanel = () => {
 
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    if (listRef.current && typeof (listRef.current as any).resetAfterIndex === 'function') {
-      (listRef.current as any).resetAfterIndex(0);
-    }
-  }, [expandedLayerId, filteredLayers.length]);
-
-  const getItemSize = (index: number) => {
-    const layer = filteredLayers[index];
-    if (layer && layer.id === expandedLayerId) {
-      return 260; // Approximate height when settings are expanded
-    }
-    return 57; // Base height of a layer item
-  };
-
-  const RowComponent = ({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const layer = filteredLayers[index];
-    if (!layer) return null;
-    return (
-      <LayerItem
-        layer={layer}
-        index={index}
-        isSelected={selectedLayerIds.includes(layer.id)}
-        onSelect={() => selectLayer(layer.id)}
-        onSelectMultiple={() => multiSelectLayer(layer.id, true)}
-        onUpdate={(c) => updateLayer(layer.id, c)}
-        onDelete={() => deleteLayer(layer.id)}
-        onDrop={(id, target, pos) =>
-          reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
-        }
-        tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
-        onKeyDown={(e) => handleLayerKeyDown(e, index)}
-        isExpandedSettings={expandedLayerId === layer.id}
-        onToggleSettings={() => setExpandedLayerId(expandedLayerId === layer.id ? null : layer.id)}
-        style={{...style, paddingBottom: expandedLayerId === layer.id ? 8 : 0}} // prevent jumping
-      />
-    );
-  };
 
   return (
     <div data-testid="layers-panel" className="flex flex-col h-full bg-transparent">
@@ -610,21 +570,27 @@ export const LayersPanel = () => {
                 <Icons.Search className="w-6 h-6 text-gray-600 mb-2" />
                 <p className="text-[10px] text-gray-500">No layers match “{layerSearch}”</p>
               </div>
-            ) : listHeight > 0 ? (
-              <List
-                listRef={listRef}
-                rowCount={filteredLayers.length}
-                rowHeight={getItemSize}
-                rowComponent={RowComponent}
-                rowProps={{}}
-                overscanCount={5}
-                className="no-scrollbar"
-                style={{
-                  height: selectedLayerIds.length === 1 && layers.length > 1 ? listHeight - 50 : listHeight,
-                  width: '100%',
-                }}
-              />
-            ) : null}
+            ) : (
+              filteredLayers.map((layer, index) => (
+                <LayerItem
+                  key={layer.id}
+                  layer={layer}
+                  index={index}
+                  isSelected={selectedLayerIds.includes(layer.id)}
+                  onSelect={() => selectLayer(layer.id)}
+                  onSelectMultiple={() => multiSelectLayer(layer.id, true)}
+                  onUpdate={(c) => updateLayer(layer.id, c)}
+                  onDelete={() => deleteLayer(layer.id)}
+                  onDrop={(id, target, pos) =>
+                    reorderLayer(id, layers.findIndex((l) => l.id === target) + (pos === 'above' ? 1 : 0))
+                  }
+                  tabIndex={focusedLayerIndex === index || (focusedLayerIndex === -1 && index === 0) ? 0 : -1}
+                  onKeyDown={(e) => handleLayerKeyDown(e, index)}
+                  isExpandedSettings={expandedLayerId === layer.id}
+                  onToggleSettings={() => setExpandedLayerId(expandedLayerId === layer.id ? null : layer.id)}
+                />
+              ))
+            )}
             {selectedLayerIds.length === 1 && layers.length > 1 && (
               <div className="flex items-center justify-center gap-2 px-4 py-2 mt-auto border-t border-white/[0.03]">
                 <button

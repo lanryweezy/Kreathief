@@ -95,7 +95,7 @@ export const FeatureLandingPage: React.FC = () => {
             All Creative Tools
           </Link>
           <button
-            onClick={handleLaunchEditor}
+            onClick={() => handleLaunchEditor()}
             className="px-4 py-2 text-xs font-bold bg-brand-600 hover:bg-brand-500 text-white rounded-lg shadow-glow-brand transition-all hover:scale-105 active:scale-95 flex items-center gap-1.5"
           >
             <span>Open Canvas</span>
@@ -122,7 +122,7 @@ export const FeatureLandingPage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
-              onClick={handleLaunchEditor}
+              onClick={() => handleLaunchEditor()}
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white font-extrabold rounded-xl shadow-lg shadow-purple-950/50 hover:scale-105 transition-all text-sm flex items-center justify-center gap-2"
             >
               <span>{feature.heroCta}</span>

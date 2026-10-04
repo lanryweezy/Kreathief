@@ -29,7 +29,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
 
-    if ('IntersectionObserver' in window) {
+    if (typeof IntersectionObserver !== 'undefined') {
       const observer = new IntersectionObserver(
         ([entry]) => {
           setScrolled(!entry.isIntersecting);

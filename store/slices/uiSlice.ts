@@ -204,11 +204,11 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     } else if (user && !user.isGuest && user.id !== 'guest') {
       set({ user });
       import('../../lib/supabase/client').then(({ db }) => {
-        db.from('user_subscriptions')
+        (db as any).from('user_subscriptions')
           .select('ai_credits_balance')
           .eq('user_id', user.id)
           .maybeSingle()
-          .then(({ data }) => {
+          .then(({ data }: any) => {
             if (data && data.ai_credits_balance !== undefined) {
               set({ credits: data.ai_credits_balance });
               try { localStorage.setItem('kreathief_credits', String(data.ai_credits_balance)); } catch {}
@@ -313,7 +313,7 @@ export const createUISlice: StateCreator<StoreState, [], [], UISlice> = (set, ge
     const user = get().user;
     if (user && !user.isGuest && user.id !== 'guest') {
       import('../../lib/supabase/client').then(({ db }) => {
-        db.from('user_subscriptions')
+        (db as any).from('user_subscriptions')
           .update({ ai_credits_balance: nextCredits })
           .eq('user_id', user.id)
           .then();

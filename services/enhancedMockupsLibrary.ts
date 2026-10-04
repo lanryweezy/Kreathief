@@ -1,4 +1,5 @@
 import { fuzzyMatch } from '../utils/search';
+import { CornerPoints } from './perspectiveTransform';
 // Enhanced Mockup Library - 50+ Templates
 // Organized by category with advanced placement data
 
@@ -27,6 +28,8 @@ export interface MockupDef {
   category: string;
   subcategory?: string;
   bg: string;
+  previewUrl?: string;
+  perspectiveCorners?: CornerPoints | [number, number][];
   defaultPlacement: MockupPlacement;
   tags?: string[];
   isPremium?: boolean;

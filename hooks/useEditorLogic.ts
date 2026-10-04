@@ -10,6 +10,7 @@ import { performBooleanOnLayers, BooleanOperations, getBooleanOperation } from '
 import { log } from '../utils/log';
 import { debounce } from '../utils/debounce';
 import { generateLayerId } from '../utils/layers/layerUtils';
+import { loadFonts } from '../services/FontLoader';
 
 const DEFAULT_FILTERS: CanvasFilters = {
   brightness: 100,

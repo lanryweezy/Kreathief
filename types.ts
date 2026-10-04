@@ -718,6 +718,7 @@ export const REFERENCE_ASPECT_LABELS: Record<ReferenceAspect, string> = {
 /** Vision-extracted description of a reference image, cached so it is analyzed once. */
 export interface ExtractedReferenceStyle {
   summary: string;
+  aestheticSummary?: string;
   palette: string[];
   composition: string;
   typography: string;

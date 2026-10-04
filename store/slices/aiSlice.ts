@@ -710,7 +710,7 @@ Return ONLY the exact font name. Nothing else.`;
             fontFamily: pairing.body,
             fontWeight: '500',
           });
-        } else if (role === 'cta' || role === 'eyebrow') {
+        } else if ((role as string) === 'cta' || (role as string) === 'eyebrow' || role === 'cta_label' || role === 'hero_badge') {
           updateLayer(txt.id, {
             fontFamily: pairing.accent || pairing.heading,
             fontWeight: '700',

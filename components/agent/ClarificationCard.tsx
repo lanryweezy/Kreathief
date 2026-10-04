@@ -119,7 +119,7 @@ export const ClarificationCard: React.FC = () => {
 
       <div className="space-y-4 pl-1">
         {agentClarification.questions.map((question, i) => (
-          <div key={question.id} className="space-y-1.5">
+          <div key={question.requirementKey} className="space-y-1.5">
             <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">
               {agentAnswers[question.requirementKey] ? '✓' : `${i + 1}.`}
             </span>

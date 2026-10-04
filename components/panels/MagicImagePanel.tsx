@@ -43,17 +43,9 @@ export const MagicImagePanel = React.memo(({ selectedLayer }: MagicImagePanelPro
     setIsFilling(true);
     try {
       await onRemix(selectedLayer.id, fillPrompt);
-      addToast({
-        title: 'Generative Fill Applied',
-        message: 'Replaced selected area using FLUX.1 Inpainting',
-        type: 'success',
-      });
+      addToast('Generative Fill Applied: Replaced selected area using FLUX.1 Inpainting', 'success');
     } catch (e: any) {
-      addToast({
-        title: 'Generative Fill Failed',
-        message: e?.message || 'Inpainting error',
-        type: 'error',
-      });
+      addToast(e?.message || 'Generative Fill Failed: Inpainting error', 'error');
     } finally {
       setIsFilling(false);
       setFillPrompt('');
@@ -70,17 +62,9 @@ export const MagicImagePanel = React.memo(({ selectedLayer }: MagicImagePanelPro
         qtres: 0.5,
         ltres: 0.5,
       });
-      addToast({
-        title: 'Vectorized Successfully',
-        message: 'Raster image converted to editable SVG vector paths',
-        type: 'success',
-      });
+      addToast('Vectorized Successfully: Raster image converted to editable SVG vector paths', 'success');
     } catch (e: any) {
-      addToast({
-        title: 'Vectorization Failed',
-        message: e?.message || 'Could not trace image',
-        type: 'error',
-      });
+      addToast(e?.message || 'Vectorization Failed: Could not trace image', 'error');
     } finally {
       setIsVectorizing(false);
     }

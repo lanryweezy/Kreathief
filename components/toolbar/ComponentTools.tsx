@@ -10,7 +10,7 @@ interface ComponentToolsProps {
 }
 
 export const ComponentTools = React.memo(({ selectedLayer, handleUpdateLayer }: ComponentToolsProps) => {
-  const isComponent = selectedLayer.type === 'component_instance' || selectedLayer.type === 'component_master';
+  const isComponent = (selectedLayer.type as string) === 'component_instance' || (selectedLayer.type as string) === 'component_master';
 
   return (
     <>

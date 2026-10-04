@@ -78,6 +78,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
+
+  const toggleProjectSelection = (e: React.MouseEvent, projectId: string) => {
+    e.stopPropagation();
+    setSelectedProjectIds((prev) =>
+      prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
+    );
+  };
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => localStorage.getItem('kreathief_dashboard_favs') === 'true');
   
   useEffect(() => {
@@ -839,7 +846,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                     Extracting color palette, lighting & layout...
                                   </span>
                                 ) : (
-                                  styleReference.extracted?.aestheticSummary ||
+                                  (styleReference.extracted?.summary || styleReference.extracted?.aestheticSummary) ||
                                   'AI will preserve layout, palette & aesthetic during generation'
                                 )}
                               </p>

@@ -139,7 +139,7 @@ export function suggestSpatialActions(pin: SpatialPin, artboard: Artboard): Spat
     ];
   }
 
-  if (target?.type === 'rectangle' || target?.type === 'ellipse' || target?.type === 'path') {
+  if (target?.type === 'rectangle' || (target?.type as string) === 'circle' || (target?.type as string) === 'ellipse' || target?.type === 'path') {
     return [
       { id: 'glassmorphism', label: '🔮 Frosted Glassmorphism', prompt: 'Style this shape with frosted glass backdrop blur, white border glow, and subtle shadow' },
       { id: 'gradient', label: '🌈 Mesh Gradient Fill', prompt: 'Apply a modern chromatic gradient fill to this vector element' },

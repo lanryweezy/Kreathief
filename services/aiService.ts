@@ -752,7 +752,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
     return {
       id: uuidv4(),
       themeIdea: `${polished.title} (${archKey.toUpperCase()}) — ${polished.description}`,
-      source: 'procedural',
+      source: 'procedural' as const,
       layers: polished.layers.map((l, lIdx) => ({
         ...l,
         name: lIdx === 0 && !(l.name || '').includes('Card') ? `${l.name || 'Hero'} Card` : l.name || 'Layer',

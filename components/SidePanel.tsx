@@ -32,6 +32,7 @@ const MagicImagePanel = React.lazy(() => import('./panels/MagicImagePanel').then
 const TextAgentPanel = React.lazy(() => import('./panels/TextAgentPanel').then((m) => ({ default: m.TextAgentPanel })));
 const VideoAgentPanel = React.lazy(() => import('./panels/VideoAgentPanel').then((m) => ({ default: m.VideoAgentPanel })));
 const CampaignPanel = React.lazy(() => import('./panels/CampaignPanel').then((m) => ({ default: m.CampaignPanel })));
+const PrototypingPanel = React.lazy(() => import('./panels/PrototypingPanel').then((m) => ({ default: m.PrototypingPanel })));
 
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 

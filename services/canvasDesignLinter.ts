@@ -321,7 +321,7 @@ export function applyLintAutoFix(artboard: Artboard, issue: DesignLintIssue): Ar
  * Applies all available deterministic auto-fixes to an Artboard in one pass.
  */
 export function applyAllLintAutoFixes(artboard: Artboard, issues: DesignLintIssue[]): Artboard {
-  const patchesByLayerId = new Map<string, Partial<Layer>>();
+  const patchesByLayerId = new Map<string, any>();
 
   for (const issue of issues) {
     if (issue.autoFix) {

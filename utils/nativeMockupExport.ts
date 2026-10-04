@@ -8,13 +8,22 @@ import { log } from './log';
 export async function generateNativeMockup(
   baseImageUrl: string,
   overlayImageUrl: string,
-  corners: CornerPoints,
+  corners: CornerPoints | [number, number][],
   width: number,
   height: number,
   blendMode: string = 'multiply'
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     try {
+      const activeCorners: CornerPoints = Array.isArray(corners)
+        ? {
+            topLeft: { x: corners[0]?.[0] ?? 0, y: corners[0]?.[1] ?? 0 },
+            topRight: { x: corners[1]?.[0] ?? 0, y: corners[1]?.[1] ?? 0 },
+            bottomRight: { x: corners[2]?.[0] ?? 0, y: corners[2]?.[1] ?? 0 },
+            bottomLeft: { x: corners[3]?.[0] ?? 0, y: corners[3]?.[1] ?? 0 },
+          }
+        : corners;
+
       const canvas = document.createElement('canvas');
       canvas.width = width;
       canvas.height = height;
@@ -72,15 +81,15 @@ export async function generateNativeMockup(
 
           // Fallback to bounding box draw if affine fails, but masked to the polygon
           ctx.beginPath();
-          ctx.moveTo(corners.topLeft.x, corners.topLeft.y);
-          ctx.lineTo(corners.topRight.x, corners.topRight.y);
-          ctx.lineTo(corners.bottomRight.x, corners.bottomRight.y);
-          ctx.lineTo(corners.bottomLeft.x, corners.bottomLeft.y);
+          ctx.moveTo(activeCorners.topLeft.x, activeCorners.topLeft.y);
+          ctx.lineTo(activeCorners.topRight.x, activeCorners.topRight.y);
+          ctx.lineTo(activeCorners.bottomRight.x, activeCorners.bottomRight.y);
+          ctx.lineTo(activeCorners.bottomLeft.x, activeCorners.bottomLeft.y);
           ctx.closePath();
           ctx.clip();
           
           // Draw the overlay (warped)
-          ctx.drawImage(overlayImg, corners.topLeft.x, corners.topLeft.y, corners.topRight.x - corners.topLeft.x, corners.bottomLeft.y - corners.topLeft.y);
+          ctx.drawImage(overlayImg, activeCorners.topLeft.x, activeCorners.topLeft.y, activeCorners.topRight.x - activeCorners.topLeft.x, activeCorners.bottomLeft.y - activeCorners.topLeft.y);
           
           ctx.restore();
           

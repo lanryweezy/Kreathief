@@ -142,6 +142,7 @@ export interface ArtboardDesignResult {
   backgroundColor: string;
   backgroundGradient?: Gradient;
   layers: Layer[];
+  textureOverlay?: any;
 }
 
 /**

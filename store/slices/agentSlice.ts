@@ -83,7 +83,6 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
   agentAnswers: {},
 
   addThinkingEvent: (agent, message) => {
-<<<<<<< HEAD
     set((state: any) => ({
       // Cap the trace: an endless log is noise, not information.
       thinkingLog: [...state.thinkingLog.slice(-40), { id: uuidv4().substring(0, 8), agent, message, timestamp: Date.now() }],

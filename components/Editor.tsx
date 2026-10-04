@@ -41,6 +41,7 @@ const ShortcutOverlay = React.lazy(() =>
 import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts';
 import { haptics } from '../utils/haptics';
 import { buildEditorShortcuts } from './editor/EditorShortcuts';
+import { computeAutoLayout } from '../utils/autoLayout';
 const FeedbackModal = React.lazy(() =>
   import('./modals/FeedbackModal').then((m) => ({ default: m.FeedbackModal }))
 );
@@ -139,8 +140,10 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
     };
   }, []);
 
-
-
+  // AutoLayout Reactivity Engine
+  useEffect(() => {
+    const allUpdates: Record<string, any> = {};
+    let didFindUpdates = false;
 
     for (const artboard of artboards) {
       const groupsWithLayout = artboard.layers.filter((l: Layer) => l.type === 'group' && (l as any).autoLayout);
@@ -156,7 +159,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           const target = artboard.layers.find((l: Layer) => l.id === id);
           if (target) {
             let changed = false;
-            for (const key of Object.keys(partial)) {
+            for (const key of Object.keys(partial as object)) {
               const t = (target as any)[key];
               const p = (partial as any)[key];
               if (typeof t === 'number' && typeof p === 'number' ? Math.abs(t - p) > 0.01 : t !== p) {
@@ -311,7 +314,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                 setIsSidebarCollapsed(false);
               }}
             />
-            {!(isSidebarCollapsed || shouldAutoCollapse) && activeTab !== NavTab.MOCKUP && (
+            {!(isSidebarCollapsed || shouldAutoCollapse) && (
               <SidePanel
                 onGenerate={handleGenerate}
                 onApplyTheme={(colors) => useStore.getState().applyBrandColors(colors)}

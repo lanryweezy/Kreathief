@@ -708,7 +708,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       if (activeMockupConfig && activeMockupConfig.perspectiveCorners) {
         log.info('[MockupPanel] Running local affine warp to corners:', activeMockupConfig.perspectiveCorners);
         result = await generateNativeMockup(
-          activeMockupConfig.previewUrl,
+          activeMockupConfig.previewUrl || activeMockupConfig.bg,
           designUrl,
           activeMockupConfig.perspectiveCorners,
           1200, 
