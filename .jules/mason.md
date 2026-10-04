@@ -94,3 +94,6 @@
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+## 2026-10-04 - Removed Unnecessary Type Casts in store/tools.ts
+**Learning:** Found multiple instances in `store/tools.ts` where layers and store state variables were unnecessarily cast to `any` (e.g., `nodes as any`, `state as any`, `(layer as any).flipX`). Using explicit typing or leveraging the already defined `Layer` subtypes (like casting to `Extract<Layer, { flipX: boolean }>`) allows TypeScript to correctly enforce property access without resorting to the global `any` escape hatch.
+**Action:** Always verify if a type cast `as any` is actually required. Many times, proper interface definitions exist and can be utilized natively or via TS utility types (like `Extract`) to retain type safety while solving compilation errors.

@@ -66,8 +66,8 @@ const alignLayers: ToolHandler<z.infer<typeof alignSchema>> = ({ type }) => {
   }
   const state = useStore.getState();
   const alignmentType = type === 'center' ? 'h-center' : type === 'middle' ? 'v-center' : type;
-  const changes = alignLayersUtil(nodes as any, alignmentType as any, { width: 1080, height: 1080 });
-  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
+  const changes = alignLayersUtil(nodes, alignmentType, { width: 1080, height: 1080 });
+  changes.forEach((c) => state.updateLayer(c.id, c.changes));
 };
 
 const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type }) => {
@@ -77,8 +77,8 @@ const distributeLayers: ToolHandler<z.infer<typeof distributeSchema>> = ({ type 
   }
   const state = useStore.getState();
   const distType = type === 'horizontal' ? 'h-spacing' : 'v-spacing';
-  const changes = distributeLayersUtil(nodes as any, distType as any);
-  changes.forEach((c) => state.updateLayer(c.id, c.changes as any));
+  const changes = distributeLayersUtil(nodes, distType);
+  changes.forEach((c) => state.updateLayer(c.id, c.changes));
 };
 
 const layoutLayersTool: ToolHandler<z.infer<typeof layoutSchema>> = ({ type }) => {
@@ -115,44 +115,44 @@ const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ 
     if (!node) {
       return;
     }
-    state.updateLayer(node.id, { fill: colors[i % colors.length] } as any);
+    state.updateLayer(node.id, { fill: colors[i % colors.length] });
   });
 };
 
 const groupSelected: ToolHandler<Record<string, never>> = () => {
   // Stitch: Original intent was marked as not implemented, but the actions
   // exist on the store via groupingSlice. Wiring them up to match UI implementation.
-  (useStore.getState() as any).groupSelected?.();
+  useStore.getState().groupSelected?.();
 };
 
 const ungroupSelected: ToolHandler<Record<string, never>> = () => {
   // Stitch: Original intent was marked as not implemented, but the actions
   // exist on the store via groupingSlice. Wiring them up to match UI implementation.
-  (useStore.getState() as any).ungroupSelected?.();
+  useStore.getState().ungroupSelected?.();
 };
 
 const flipSelected: ToolHandler<z.infer<typeof flipSchema>> = ({ axis }) => {
   const state = useStore.getState();
-  const layer = selectedLayerSelector(state as any);
+  const layer = selectedLayerSelector(state);
   if (!layer || layer.type === 'text') {
     return;
   }
   if (axis === 'horizontal') {
-    state.updateLayer(layer.id, { flipX: !(layer as any).flipX });
+    state.updateLayer(layer.id, { flipX: !(layer as Extract<Layer, { flipX: boolean }>).flipX });
   } else {
-    state.updateLayer(layer.id, { flipY: !(layer as any).flipY });
+    state.updateLayer(layer.id, { flipY: !(layer as Extract<Layer, { flipY: boolean }>).flipY });
   }
 };
 
 const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () => {
-  const state = useStore.getState() as any;
-  const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
+  const state = useStore.getState();
+  const artboard = (state.artboards || []).find((a) => a.id === state.activeArtboardId) || state.artboards?.[0];
   if (!artboard) {
     return;
   }
   const ids: string[] = state.selectedLayerIds || [];
   for (const id of ids) {
-    const l = (artboard.layers || []).find((x: any) => x.id === id);
+    const l = (artboard.layers || []).find((x) => x.id === id);
     if (!l) {
       continue;
     }
@@ -165,47 +165,47 @@ const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () =
     const name = await gemini.generateLayerName(desc);
     state.updateLayer(id, { name });
   }
-  (useStore.getState() as any).addToast?.('Auto-named selected layers', 'success');
+  useStore.getState().addToast?.('Auto-named selected layers', 'success');
 };
 
 const altTextForImages: ToolHandler<z.infer<typeof altTextSchema>> = async () => {
   // Stitch: Original intent was wired to a success toast but the actual API call
   // and store update were missing. Matching the pattern from `autoNameSelected`.
-  const state = useStore.getState() as any;
-  const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
+  const state = useStore.getState();
+  const artboard = (state.artboards || []).find((a) => a.id === state.activeArtboardId) || state.artboards?.[0];
   if (!artboard) {
     return;
   }
   const ids: string[] = state.selectedLayerIds || [];
   for (const id of ids) {
-    const l = (artboard.layers || []).find((x: any) => x.id === id);
+    const l = (artboard.layers || []).find((x) => x.id === id);
     if (!l || l.type !== 'image') {
       continue;
     }
     const altText = await gemini.generateAltText(l.src);
     state.updateLayer(id, { altText });
   }
-  (useStore.getState() as any).addToast?.('Generated alt text for images', 'success');
+  useStore.getState().addToast?.('Generated alt text for images', 'success');
 };
 
 const magicResizeTool: ToolHandler<z.infer<typeof magicResizeSchema>> = ({ targets }) => {
-  const state = useStore.getState() as any;
+  const state = useStore.getState();
   for (const t of targets) {
     state.magicResize(t.width, t.height, t.name);
   }
-  (useStore.getState() as any).addToast?.('Created resized artboards', 'success');
+  useStore.getState().addToast?.('Created resized artboards', 'success');
 };
 
 const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ prompt, quality = 'standard' }) => {
-  const state = useStore.getState() as any;
-  const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
+  const state = useStore.getState();
+  const artboard = (state.artboards || []).find((a) => a.id === state.activeArtboardId) || state.artboards?.[0];
   if (!artboard) {
     return;
   }
   const dataUrl = await gemini.generateBackground(prompt, artboard.width || 1080, artboard.height || 1080, quality);
   // Create explicit layer so we can reorder to back
   const id = generateLayerId('image');
-  const layer: any = {
+  const layer = {
     id,
     type: 'image',
     name: 'AI Background',
@@ -223,7 +223,7 @@ const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ p
   };
   state.addLayer(layer);
   state.reorderLayer(id, 0);
-  (useStore.getState() as any).addToast?.('Background added', 'success');
+  useStore.getState().addToast?.('Background added', 'success');
 };
 
 const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async ({
@@ -231,8 +231,8 @@ const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async 
   quality = 'standard',
   color,
 }) => {
-  const state = useStore.getState() as any;
-  const artboard = (state.artboards || []).find((a: any) => a.id === state.activeArtboardId) || state.artboards?.[0];
+  const state = useStore.getState();
+  const artboard = (state.artboards || []).find((a) => a.id === state.activeArtboardId) || state.artboards?.[0];
   if (!artboard) {
     return;
   }
@@ -252,7 +252,7 @@ const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async 
       256,
       256
     );
-    (useStore.getState() as any).addToast?.('Inserted raster icon (vectorization fallback)', 'warning');
+    useStore.getState().addToast?.('Inserted raster icon (vectorization fallback)', 'warning');
     return;
   }
   const primary = paths[0];
@@ -271,7 +271,7 @@ const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async 
     pathData: primary.d,
     color: color || primary.fill,
   });
-  (useStore.getState() as any).addToast?.('Vector icon inserted', 'success');
+  useStore.getState().addToast?.('Vector icon inserted', 'success');
 };
 
 export const tools = {
@@ -341,15 +341,15 @@ export type ToolName = keyof typeof tools;
 
 export async function runTool<N extends ToolName>(name: N, params: unknown) {
   const def = tools[name];
-  const parsed = def.schema.safeParse(params as any);
+  const parsed = def.schema.safeParse(params);
   if (!parsed.success) {
     throw new Error(`Invalid parameters for ${name}: ${parsed.error.issues.map((i) => i.message).join(', ')}`);
   }
   // Batch to coalesce history into a single undo step
-  const { beginBatch, endBatch } = useStore.getState() as any;
+  const { beginBatch, endBatch } = useStore.getState();
   try {
     beginBatch?.();
-    const res = def.handler(parsed.data as any);
+    const res = def.handler(parsed.data);
     if (res instanceof Promise) {
       await res;
     }
