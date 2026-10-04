@@ -69,34 +69,29 @@ function blobToDataUrl(blob: Blob): Promise<string> {
  * Falls back gracefully on any error to avoid blocking PDF export.
  */
 async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<string | null> {
-  const apiKey = (import.meta as any).env?.VITE_REPLICATE_API_KEY;
-  if (!apiKey) {
-    log.warn('[UpscaleService] VITE_REPLICATE_API_KEY not set. Skipping cloud upscale.');
-    return null;
-  }
-
   try {
-    // Replicate expects a publicly accessible URL, not a data URL.
-    // We use a Supabase Storage pre-signed upload as a staging area.
-    // For self-hosted or data-URL only workflows, we base64-encode and send directly.
-    const startRes = await fetch('https://api.replicate.com/v1/predictions', {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const startUrl = new URL('/api/replicate', origin);
+    startUrl.searchParams.append('action', 'start');
+
+    const startRes = await fetch(startUrl.toString(), {
       method: 'POST',
       headers: {
-        Authorization: `Token ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        version: 'a3d6ea1a94e8e4b3b9c375ba2f32c8e21a7b3d2f4e5a6b7c8d9e0f1a2b3c4d5', // Real-ESRGAN v3
-        input: {
-          image: dataUrl,
-          scale: scale,
-          face_enhance: false,
-        },
+        image: dataUrl,
+        scale: scale,
+        face_enhance: false,
       }),
     });
 
     if (!startRes.ok) {
-      log.warn('[UpscaleService] Replicate API returned non-OK status', { responseText: await startRes.text() });
+      if (startRes.status === 500) {
+        log.warn('[UpscaleService] Cloud upscale skipped (API key likely not configured on server)');
+        return null;
+      }
+      log.warn('[UpscaleService] Replicate API proxy returned non-OK status', { responseText: await startRes.text() });
       return null;
     }
 
@@ -107,8 +102,12 @@ async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<s
     const maxAttempts = 15;
     for (let i = 0; i < maxAttempts; i++) {
       await new Promise((r) => setTimeout(r, 2000));
-      const pollRes = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
-        headers: { Authorization: `Token ${apiKey}` },
+      const pollUrl = new URL('/api/replicate', origin);
+      pollUrl.searchParams.append('action', 'poll');
+      pollUrl.searchParams.append('id', predictionId);
+
+      const pollRes = await fetch(pollUrl.toString(), {
+        headers: { Accept: 'application/json' },
       });
 
       if (!pollRes.ok) continue;
@@ -186,7 +185,7 @@ async function upscaleClientSide(dataUrl: string, scale: number): Promise<string
  * for print, it is returned unchanged. Otherwise, upscaling is attempted.
  *
  * Strategy:
- *  1. If VITE_REPLICATE_API_KEY is set (Pro tier cloud) -> use Real-ESRGAN API.
+ *  1. If REPLICATE_API_KEY is set on server (Pro tier cloud) -> use Real-ESRGAN API via proxy.
  *  2. Fallback: client-side 2x canvas bicubic upscale.
  *  3. If everything fails -> return original src with wasUpscaled=false.
  *
