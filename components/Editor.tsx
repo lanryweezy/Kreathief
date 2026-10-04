@@ -541,33 +541,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && !isMobile && (
           <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shrink-0">
-            {/* Tab header */}
-            <div className="flex items-center gap-1 p-3 border-b border-white/5 shrink-0">
-              <button
-                onClick={() => setAiTab('generate')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'generate' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-              >
-                <Icons.Sparkles className="w-3.5 h-3.5" />
-                Image Gen
-              </button>
-              <button
-                onClick={() => setAiTab('assistant')}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all ${aiTab === 'assistant' ? 'bg-brand-600/20 text-brand-400' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}`}
-              >
-                <Icons.Sparkles className="w-3.5 h-3.5" />
-                Agent
-              </button>
-
-              <button
-                onClick={() => setShowAIOverlay(false)}
-                aria-label="Close AI panel"
-                className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 hover:text-white hover:bg-white/5 transition-all ml-1 shrink-0"
-              >
-                <Icons.X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Panel content */}
+            {/* Panel content (Unified Agent Interface) */}
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col relative">
               <React.Suspense
                 fallback={
@@ -576,17 +550,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                   </div>
                 }
               >
-                {aiTab === 'generate' && (
-                  <div className="px-4 pb-4">
-                    <MagicPanel onGenerate={handleGenerate || (() => {})} uploadedImage={uploadedImage ?? null} />
-                  </div>
-                )}
-                {aiTab === 'assistant' && (
-                  <AssistantPanel
-                    getCanvasSnapshot={handleExportDataUrl || (async () => '')}
-                    onStartDesign={handleStartDesign}
-                  />
-                )}
+                <AssistantPanel
+                  getCanvasSnapshot={handleExportDataUrl || (async () => '')}
+                  onStartDesign={handleStartDesign}
+                  onClose={() => setShowAIOverlay(false)}
+                />
               </React.Suspense>
             </div>
           </div>

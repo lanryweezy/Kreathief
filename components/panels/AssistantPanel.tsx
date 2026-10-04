@@ -9,11 +9,12 @@ import { Icons as AgentIcons } from '../../constants';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 interface AssistantPanelProps {
-  getCanvasSnapshot: () => Promise<string>;
+  getCanvasSnapshot?: () => Promise<string>;
   onStartDesign?: (prompt: string) => void;
+  onClose?: () => void;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
   const {
     agentStatus,
     agentVariants,
@@ -192,14 +193,25 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = () => {
         <h3 className="font-medium text-white flex items-center gap-2 text-sm tracking-wide">
           Agent
         </h3>
-        {agentStatus !== 'idle' && (
-          <button
-            onClick={resetAgentState}
-            className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
-          >
-            Reset
-          </button>
-        )}
+        <div className="flex items-center gap-4">
+          {agentStatus !== 'idle' && (
+            <button
+              onClick={resetAgentState}
+              className="text-[10px] font-bold text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+            >
+              Reset
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-white transition-colors"
+              aria-label="Close Agent Panel"
+            >
+              <AgentIcons.X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Content Area */}
