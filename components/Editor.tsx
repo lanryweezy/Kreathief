@@ -104,7 +104,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const canvasSize = rawCanvasSize || { width: 1080, height: 1080, name: 'Square' };
   const zoom = rawZoom || 1;
 
-  const showAIOverlay = useStore((state) => state.showAIOverlay);
   const wasManuallyCollapsedRef = useRef(false);
 
   // Responsive "Sidebar Crush" prevention:
@@ -115,9 +114,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   const isRightPanelOpen = showAIOverlay && !isMobile;
   const isCrushedScreen = typeof window !== 'undefined' && window.innerWidth < 1536;
   const shouldAutoCollapse = activeTab === NavTab.MOCKUP || (isRightPanelOpen && isCrushedScreen);
-  const aiTab = useStore((state) => state.aiOverlayTab);
-  const setAiTab = useStore((state) => state.setAIOverlayTab);
-  const setShowAIOverlay = useStore((state) => state.setShowAIOverlay);
   const selectedLayer = useStore(selectedLayerSelector);
 
   const { broadcastCursor, broadcastLayerChange, updatePresence } = useCollaboration(projectId, user);
