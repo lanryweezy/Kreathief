@@ -54,6 +54,8 @@ export interface DraftStageOptions {
   onProgress?: (stage: DraftProgressStage, message: string, current?: number, total?: number) => void;
   /** Optional strategy brief from the Strategy Agent (forward-looking hook). */
   strategy?: any;
+  /** Creative variation seed for procedural variation engine. */
+  variationSeed?: number;
 }
 
 const VALID_BLUEPRINT_TYPES = new Set([
@@ -432,7 +434,7 @@ export async function draftAgentVariants(
   options: DraftStageOptions = { plan: 'free' }
 ): Promise<AgentVariant[]> {
   // Pathway A runs concurrently — it is the guaranteed floor for quality/latency.
-  const proceduralPromise = creativeAgentDraft(intent, canvasSize, 3, strategy);
+  const proceduralPromise = creativeAgentDraft(intent, canvasSize, 3, strategy, undefined, options.variationSeed);
 
   let blueprintVariant: AgentVariant | null = null;
   try {

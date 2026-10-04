@@ -1,5 +1,6 @@
 import React, { useState, useCallback, Suspense } from 'react';
 import { useStore } from '../store/useStore';
+import { placeDesignNonDestructively } from '../utils/canvasPlacement';
 
 const NodeGraph = React.lazy(() => import('../components/nodes/NodeGraph').then((m) => ({ default: m.NodeGraph })));
 const AIGenerateModal = React.lazy(() =>
@@ -24,6 +25,25 @@ export const EditorAIPanel = ({
 
   const handleAIGenerate = useCallback(
     (result: AIGenerateResult) => {
+      if (Array.isArray(result.layers) && result.layers.length > 0) {
+        const state = useStore.getState() as any;
+        state.saveToHistory?.();
+        const placement = placeDesignNonDestructively(
+          state.artboards,
+          state.activeArtboardId,
+          { name: 'AI Design', layers: result.layers, width: canvasSize.width, height: canvasSize.height },
+          canvasSize
+        );
+        useStore.setState({ artboards: placement.artboards, activeArtboardId: placement.activeArtboardId } as any);
+        state.addToast?.(
+          placement.placedOnNewArtboard
+            ? 'Added as a new artboard beside your existing work — nothing was replaced.'
+            : 'AI design added to canvas!',
+          'success'
+        );
+        setShowAIGenerate(false);
+        return;
+      }
       if (result.image) {
         addLayer({
           id: `ai-${Date.now()}`,

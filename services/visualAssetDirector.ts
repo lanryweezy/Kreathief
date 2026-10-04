@@ -359,3 +359,42 @@ export function resolveHeroPhoto(archetype: string, promptText?: string): Visual
     dominantDarkTone: '#0a0a12',
   };
 }
+
+/**
+ * Ranked, de-duplicated hero photo candidates relevant to an archetype/prompt.
+ * Keyword-matched photos come first (by score), then the archetype pool.
+ * Used by the creative variation engine so repeated generations rotate imagery.
+ */
+export function listHeroPhotoCandidates(archetype: string, promptText?: string): VisualHeroAsset[] {
+  const pLower = (promptText || '').toLowerCase();
+  const normalizedArch = ARCHETYPE_ALIASES[archetype] || archetype;
+  const scored = Object.values(ARCHETYPE_HERO_PHOTOS)
+    .flat()
+    .map((photo) => ({
+      photo,
+      score: photo.tags.reduce((s, tag) => (pLower.includes(tag.toLowerCase()) ? s + 1 : s), 0),
+    }))
+    .filter((p) => p.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((p) => p.photo);
+  const pool = ARCHETYPE_HERO_PHOTOS[normalizedArch] || ARCHETYPE_HERO_PHOTOS.editorial || [];
+  const seen = new Set<string>();
+  const ordered: BasePhoto[] = [];
+  for (const photo of [...scored, ...pool]) {
+    if (photo && !seen.has(photo.id)) {
+      seen.add(photo.id);
+      ordered.push(photo);
+    }
+  }
+  return ordered.map((p) => ({
+    id: p.id,
+    url: p.url,
+    thumbnail: p.thumbnail,
+    alt: p.alt,
+    author: p.author,
+    aspectRatio: 1.5,
+    category: normalizedArch,
+    suggestedScrimOpacity: 0.65,
+    dominantDarkTone: '#0a0a12',
+  }));
+}

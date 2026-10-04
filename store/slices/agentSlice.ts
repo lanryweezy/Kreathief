@@ -25,6 +25,7 @@ import {
 import { auditGeometry } from '../../utils/geometryJudge';
 import { Layer, NavTab } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
+import { placeDesignNonDestructively } from '../../utils/canvasPlacement';
 import { composeGenerationPrompt } from '../../services/imageGenService';
 import { analyticsService } from '../../services/analyticsService';
 import { classifyUserIntentFast, routeGenerativePathwayFast, selectOptimalFalModel } from '../../services/systemOneDecisionEngine';
@@ -334,6 +335,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
       const draftedVariants = await draftAgentVariants(composedIntent, canvasSize, strategy, {
         plan: userPlan,
+        variationSeed: Date.now() ^ Math.floor(Math.random() * 1000000),
         onProgress: (stage, message) => {
           if (stage === 'assets') {
             set({ agentStatus: 'rendering' });
@@ -568,58 +570,69 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
     }
 
     // Determine if we are using the new multi-artboard schema or legacy layers schema
-    const artboardsToApply =
+    const artboardsToApply: Array<{ name?: string; layers: Layer[]; width?: number; height?: number }> =
       variant.artboards && variant.artboards.length > 0
-        ? variant.artboards
+        ? (variant.artboards as any[])
         : [{ name: 'Artboard', layers: variant.layers || [] }];
 
-    if (artboardsToApply.length === 1) {
-      // Single artboard scenario - apply to current active artboard
-      const sourceArtboard = artboardsToApply[0];
+    const variantSize = {
+      width: variant.width || state.canvasSize.width,
+      height: variant.height || state.canvasSize.height,
+    };
+    const baseName = (variant.themeIdea || 'AI Design').split(' — ')[0].slice(0, 48);
+    let addedBeside = false;
+
+    const activeBoard = state.artboards[activeArtboardIndex];
+    const boardLayerIds = new Set(activeBoard.layers.map((l: Layer) => l.id));
+    const isRefinement =
+      artboardsToApply.length === 1 && artboardsToApply[0].layers.some((l: Layer) => boardLayerIds.has(l.id));
+
+    if (isRefinement) {
+      // In-place edit (transform/refine keeps layer ids) — merge into the existing artboard.
+      const sourceLayers = artboardsToApply[0].layers;
+      const merged = activeBoard.layers.map((l: Layer) => sourceLayers.find((vl: Layer) => vl.id === l.id) || l);
+      const additions = sourceLayers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
       const newArtboards = state.artboards.map((a: any, i: number) =>
-        i === activeArtboardIndex ? { ...a, layers: [...a.layers] } : a
+        i === activeArtboardIndex ? { ...a, layers: [...merged, ...structuredClone(additions)] } : a
       );
-      const artboard = newArtboards[activeArtboardIndex];
-
-      const boardLayerIds = new Set(artboard.layers.map((l: Layer) => l.id));
-      const isRefinement = sourceArtboard.layers.some((l: Layer) => boardLayerIds.has(l.id));
-
-      if (isRefinement) {
-        artboard.layers = artboard.layers.map((l: Layer) => {
-          const match = sourceArtboard.layers.find((vl: Layer) => vl.id === l.id);
-          return match || l;
-        });
-        const newLayers = sourceArtboard.layers.filter((vl: Layer) => !boardLayerIds.has(vl.id));
-        artboard.layers = [...artboard.layers, ...newLayers];
-      } else {
-        artboard.layers = structuredClone(sourceArtboard.layers);
-      }
       set({ artboards: newArtboards });
     } else {
-      // Multi-artboard scenario - Gamma/Campaign style
-      // We will create entirely new artboards and append them
-      const newArtboards = [...state.artboards];
-      // Generate some offset to place them side by side
-      let currentX = newArtboards.length > 0 ? Math.max(...newArtboards.map((a) => a.x + a.width)) + 100 : 0;
-
-      for (const sourceArtboard of artboardsToApply) {
-        newArtboards.push({
-          id: crypto.randomUUID(),
-          name: sourceArtboard.name,
-          width: state.canvasSize.width,
-          height: state.canvasSize.height,
-          x: currentX,
-          y: 0,
-          layers: structuredClone(sourceArtboard.layers),
-        });
-        currentX += state.canvasSize.width + 100;
-      }
-      set({ artboards: newArtboards });
+      // Fresh design(s): NEVER overwrite existing work. An empty active board is
+      // filled; otherwise each design lands on a new artboard to the side.
+      let artboards = state.artboards;
+      let activeId: string = state.activeArtboardId;
+      artboardsToApply.forEach((source, idx) => {
+        const placement = placeDesignNonDestructively(
+          artboards,
+          activeId,
+          {
+            name:
+              artboardsToApply.length > 1
+                ? source.name || `${baseName} ${idx + 1}`
+                : baseName || source.name,
+            layers: source.layers || [],
+            width: source.width || variantSize.width,
+            height: source.height || variantSize.height,
+          },
+          variantSize
+        );
+        artboards = placement.artboards;
+        activeId = placement.activeArtboardId;
+        addedBeside = addedBeside || placement.placedOnNewArtboard;
+      });
+      set({ artboards, activeArtboardId: activeId } as any);
     }
     if (state.endBatch) {
       state.endBatch();
     }
-    state.addToast?.('Design variant applied to canvas!', 'success');
+    state.addToast?.(
+      isRefinement
+        ? 'Edit applied to your design!'
+        : addedBeside
+          ? 'Added as a new artboard beside your existing work — nothing was replaced.'
+          : 'Design variant applied to canvas!',
+      'success'
+    );
   },
 
   resetAgentState: () => {

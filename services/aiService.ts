@@ -25,6 +25,16 @@ import {
   ARCHETYPE_SUBHEADS,
 } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GRAPHIC_DESIGN_STYLES } from './graphicDesignStyles';
+import {
+  applyDesignGenome,
+  COPY_ANGLES,
+  deriveGenome,
+  describeGenome,
+  mulberry32,
+  recentHeadlines,
+  rememberHeadlines,
+  seededShuffle,
+} from './creativeVariation';
 
 
 // ─── Cache ───────────────────────────────────────────────────────────────────
@@ -294,16 +304,30 @@ export async function creativeAgentDraft(
   canvasSize: { width: number; height: number },
   variantCount: number = 3,
   strategy?: any,
-  brandKit?: import('../types').BrandKit | null
+  brandKit?: import('../types').BrandKit | null,
+  variationSeed?: number
 ): Promise<AgentVariant[]> {
-  const cacheKey = `draft:${intent}:${canvasSize.width}x${canvasSize.height}:${variantCount}`;
+  // A variation seed means "explore fresh design space" — the seed is part of
+  // the key, so re-running the same prompt never returns the cached lineup.
+  const cacheKey = `draft:${intent}:${canvasSize.width}x${canvasSize.height}:${variantCount}${
+    variationSeed !== undefined ? `:${variationSeed}` : ''
+  }`;
   const cached = getCached<AgentVariant[]>(cacheKey);
   if (cached) {
     return cached;
   }
 
   // Generate high-aesthetic multi-layer graphic design variants with hero photography and contrast scrims
-  const proceduralVariants = generateProceduralDrafts(intent, canvasSize, brandKit);
+  const proceduralVariants = generateProceduralDrafts(intent, canvasSize, brandKit, variationSeed);
+
+  const copyRng = variationSeed !== undefined ? mulberry32(variationSeed ^ 0x5bd1e995) : null;
+  const angles = copyRng ? seededShuffle(COPY_ANGLES, copyRng).slice(0, 3) : null;
+  const avoid = variationSeed !== undefined ? recentHeadlines(intent) : [];
+  const variationDirective = angles
+    ? `\nCREATIVE VARIATION (mandatory): write style 1 as ${angles[0]}, style 2 as ${angles[1]}, style 3 as ${angles[2]}. Each headline must use different vocabulary from the others.${
+        avoid.length ? `\nDo NOT reuse or paraphrase any of these previously generated headlines: ${avoid.map((h) => `"${h}"`).join(', ')}.` : ''
+      }\nVariation token: ${variationSeed}`
+    : '';
 
   // Attempt to enrich copy using AI if available, otherwise return the production-grade compositions immediately
   try {
@@ -315,7 +339,7 @@ Generate punchy, high-impact marketing copy for 3 visual design styles:
 3. Glass Card: { tag: string (1-2 words), headline: string (3-5 words), subtitle: string (8-14 words), metric: string (e.g. "★ 4.9 Rating · Verified Authentic"), cta: string (2-3 words) }
 
 CRITICAL RULE: The subtitle MUST NEVER equal or repeat the headline. Subtitle must provide descriptive supporting detail.
-Return ONLY JSON array of 3 objects with these keys.`;
+Return ONLY JSON array of 3 objects with these keys.${variationDirective}`;
 
     const data = await callBackendGeminiAPI({
       modelName: 'gemini-2.5-flash',
@@ -338,7 +362,7 @@ Return ONLY JSON array of 3 objects with these keys.`;
             },
           },
         },
-        temperature: 0.7,
+        temperature: variationSeed !== undefined ? 0.95 : 0.7,
       },
       contents: [{ role: 'user', parts: [{ text: `Generate marketing copy for: "${intent}"` }] }],
     });
@@ -411,6 +435,10 @@ Return ONLY JSON array of 3 objects with these keys.`;
         };
       });
 
+      rememberHeadlines(
+        intent,
+        parsedCopy.slice(0, 3).map((c: any) => String(c?.headline || ''))
+      );
       setCache(cacheKey, enriched);
       return enriched;
     }
@@ -645,7 +673,12 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
   }
 }
 
-export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }, brandKit?: import('../types').BrandKit | null): AgentVariant[] {
+export function generateProceduralDrafts(
+  intent: string,
+  canvasSize: { width: number; height: number },
+  brandKit?: import('../types').BrandKit | null,
+  variationSeed?: number
+): AgentVariant[] {
   const movement = classifyDesignMovement(intent);
   const primaryArchetype = classifyDesignIntent(intent);
 
@@ -691,13 +724,24 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
     ecommerce: ['saas', 'fitness'],
   };
 
-  const selectedArchetypes = [
-    primaryArchetype,
-    ...(alternativeMap[primaryArchetype] || ['editorial', 'saas']),
-  ].slice(0, 3);
+  const pool = ['editorial', 'saas', 'cyberpunk', 'luxury', 'event', 'fitness', 'fashion', 'ecommerce'];
+  const rng = variationSeed !== undefined ? mulberry32(variationSeed) : null;
+
+  let selectedArchetypes: string[];
+  if (rng) {
+    // Seeded exploration: keep the primary archetype, then draw two alternatives
+    // from the curated neighbours plus the wider pool so reruns differ.
+    const neighbours = alternativeMap[primaryArchetype] || ['editorial', 'saas'];
+    const candidates = [...new Set([...neighbours, ...seededShuffle(pool, rng)])].filter((a) => a !== primaryArchetype);
+    selectedArchetypes = [primaryArchetype, ...seededShuffle(candidates.slice(0, 4), rng).slice(0, 2)];
+  } else {
+    selectedArchetypes = [
+      primaryArchetype,
+      ...(alternativeMap[primaryArchetype] || ['editorial', 'saas']),
+    ].slice(0, 3);
+  }
 
   // Guarantee 3 unique archetypes
-  const pool = ['editorial', 'saas', 'cyberpunk', 'luxury', 'event', 'fitness', 'fashion', 'ecommerce'];
   while (selectedArchetypes.length < 3) {
     const candidate = pool.find((a) => !selectedArchetypes.includes(a));
     if (candidate) selectedArchetypes.push(candidate);
@@ -743,22 +787,35 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
       rationale: 'Frosted glass container card with inset photography, ambient glow, and refined typography.',
     },
   ];
+  const orderedFrameworks = rng ? seededShuffle(frameworks, rng) : frameworks;
 
   const variants = selectedArchetypes.map((archKey, index) => {
-    const framework = frameworks[index % frameworks.length];
+    const framework = orderedFrameworks[index % orderedFrameworks.length];
     const rawResult = framework.build(archKey);
     const polished = polishDesignOutput(rawResult);
+    const genome = variationSeed !== undefined ? deriveGenome(variationSeed, index + 1, archKey) : null;
+    const baseLayers = polished.layers.map((l, lIdx) => ({
+      ...l,
+      name: lIdx === 0 && !(l.name || '').includes('Card') ? `${l.name || 'Hero'} Card` : l.name || 'Layer',
+      opacity: 1,
+      aiProvenance: { source: 'procedural' as const, role: l.name || `Layer ${lIdx + 1}` },
+    })) as Layer[];
+    const layers = genome
+      ? applyDesignGenome(baseLayers, genome, {
+          width: canvasSize.width,
+          height: canvasSize.height,
+          archetype: archKey,
+          prompt: intent,
+          lockFonts: Boolean(brandKit?.fonts?.length),
+          lockColors: Boolean(brandKit?.colors?.length),
+        })
+      : baseLayers;
 
     return {
       id: uuidv4(),
-      themeIdea: `${polished.title} (${archKey.toUpperCase()}) — ${polished.description}`,
+      themeIdea: `${polished.title} (${archKey.toUpperCase()}) — ${polished.description}${genome ? ` · ${describeGenome(genome)}` : ''}`,
       source: 'procedural' as const,
-      layers: polished.layers.map((l, lIdx) => ({
-        ...l,
-        name: lIdx === 0 && !(l.name || '').includes('Card') ? `${l.name || 'Hero'} Card` : l.name || 'Layer',
-        opacity: 1,
-        aiProvenance: { source: 'procedural' as const, role: l.name || `Layer ${lIdx + 1}` },
-      })),
+      layers,
       width: canvasSize.width,
       height: canvasSize.height,
       performanceScore: 88 + index * 4,
@@ -772,6 +829,18 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
   });
 
   if (movementVariant) {
+    if (variationSeed !== undefined) {
+      const genome = deriveGenome(variationSeed, 0, primaryArchetype);
+      // Movement styles carry an authentic type system and palette — only vary handedness/imagery.
+      movementVariant.layers = applyDesignGenome(movementVariant.layers, genome, {
+        width: canvasSize.width,
+        height: canvasSize.height,
+        archetype: primaryArchetype,
+        prompt: intent,
+        lockFonts: true,
+        lockColors: true,
+      });
+    }
     return [movementVariant, ...variants.slice(0, 2)];
   }
 

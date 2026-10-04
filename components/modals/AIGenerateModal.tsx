@@ -5,6 +5,7 @@ import { getNodeDefinition } from '../../data/nodeDefinitions';
 import { useNodeGraph } from '../../hooks/useNodeGraph';
 import { getAIErrorMessage } from '../../utils/errorMessages';
 import { generateDesignFromBrief, TwoStageDesignResult } from '../../services/aiDesignDirector';
+import { useStore } from '../../store/useStore';
 
 interface AIGenerateModalProps {
   isOpen: boolean;
@@ -72,10 +73,11 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
     try {
       // Stage 1: Generate design blueprint
       // Stage 2: Generate assets and build layers
+      const { width: genW, height: genH } = useStore.getState().canvasSize || { width: 1080, height: 1080 };
       const twoStageResult: TwoStageDesignResult = await generateDesignFromBrief(
         prompt,
-        1080,
-        1080,
+        genW || 1080,
+        genH || 1080,
         {
           onProgress: (current, total, layerName) => {
             setGenerationStage('assets');
