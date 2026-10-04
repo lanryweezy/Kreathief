@@ -32,3 +32,5 @@ export const ComponentTools = React.memo(({ selectedLayer, handleUpdateLayer }: 
     </>
   );
 });
+
+ComponentTools.displayName = 'ComponentTools';

@@ -115,7 +115,6 @@ describe('Vector output-quality benchmark (exported SVG is real, editable vector
       raster: r.metrics.rasterImages,
       maxAnchors: r.metrics.maxAnchorsPerPath,
     }));
-    // eslint-disable-next-line no-console
     console.table(table);
   });
 });
@@ -205,7 +204,6 @@ describe('Head-to-head competitor scoring (same analyzer)', () => {
       metrics: analyzeSvg(render(c), `kreathief-${c.name}`),
     }));
     if (files.length === 0) {
-      // eslint-disable-next-line no-console
       console.log('[vector-quality] competitors/ is empty — template README written; drop rival SVGs to enable scoring.');
       writeFileSync(join(COMPETITOR_DIR, 'kreathief-baseline.md'), mdTable(ours), 'utf8');
       return;
@@ -217,7 +215,6 @@ describe('Head-to-head competitor scoring (same analyzer)', () => {
     const matched = parsed.filter((p) => !isRejection(p.result));
     const rejected = parsed.filter((p) => isRejection(p.result));
     for (const r of rejected) {
-      // eslint-disable-next-line no-console
       console.warn(`[vector-quality] REJECTED ${r.file}: ${(r.result as { reason: string }).reason}`);
     }
     const rivals = matched.map((p) => ({
@@ -226,7 +223,6 @@ describe('Head-to-head competitor scoring (same analyzer)', () => {
       metrics: analyzeSvg(readFileSync(join(COMPETITOR_DIR, p.file), 'utf8'), p.file),
     }));
     if (rivals.length === 0) {
-      // eslint-disable-next-line no-console
       console.log('[vector-quality] competitors/ has files but none validly named — writing ours baseline only.');
       writeFileSync(join(COMPETITOR_DIR, 'kreathief-baseline.md'), mdTable(ours), 'utf8');
       return;
@@ -238,7 +234,6 @@ describe('Head-to-head competitor scoring (same analyzer)', () => {
       JSON.stringify(all.map((r) => ({ tool: r.tool, file: r.file, metrics: r.metrics })), null, 2),
       'utf8'
     );
-    // eslint-disable-next-line no-console
     console.table(all.map((r) => ({ file: r.file, score: r.metrics.score, raster: r.metrics.rasterImages, anchors: r.metrics.totalAnchors })));
     expect(all.length).toBeGreaterThan(ours.length);
     expect(existsSync(join(COMPETITOR_DIR, 'head-to-head.md'))).toBe(true);
@@ -327,7 +322,6 @@ describe('Clean-vector export pass (geometry/simplify via exportToSvg)', () => {
     expect(clean.undefinedTokens).toBe(0);
     expect(clean.rasterImages).toBe(0);
     expect(clean.score).toBeGreaterThanOrEqual(85);
-    // eslint-disable-next-line no-console
     console.log(`[vector-quality] clean pass: anchors ${raw.maxAnchorsPerPath} -> ${clean.maxAnchorsPerPath}`);
   });
 });

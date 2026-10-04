@@ -65,13 +65,9 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
   handleProRender,
   isProGenerating,
   handleAddToCanvas,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   substrateColor: _substrateColor,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   setSubstrateColor: _setSubstrateColor,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   handleSocialPack: _handleSocialPack,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   isGeneratingPack: _isGeneratingPack,
 }) => {
   if (variant === 'full') {

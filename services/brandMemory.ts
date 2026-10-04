@@ -8,6 +8,7 @@
 import { db as supabase } from '../lib/supabase/client';
 import { isSupabaseConfigured } from '../lib/supabase/client';
 import { log } from '../utils/log';
+import { useStore } from '../store/useStore';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -189,8 +190,7 @@ export function setActiveBrandKit(id: string | null): void {
   }
   // Also update the Zustand store
   try {
-    const { useStore } = require('../store/useStore');
-    useStore.getState().setActiveBrandKitId(id);
+    useStore.getState().setActiveBrandKit?.(id);
   } catch {
     // Store not available (e.g., during testing)
   }
