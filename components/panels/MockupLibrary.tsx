@@ -267,7 +267,7 @@ export const MockupLibrary: React.FC<MockupLibraryProps> = ({
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-brand-600 transition-all flex flex-col items-center justify-center gap-2 bg-[#1a1d21] group"
+            className="w-full aspect-square rounded-lg border-2 border-dashed border-gray-700 hover:border-brand-600 transition-all flex flex-col items-center justify-center gap-2 bg-surface-dark-2 group"
           >
             <Icons.Upload className="w-6 h-6 text-gray-500 group-hover:text-brand-600 transition-colors" />
             <span className="text-[9px] font-bold text-gray-500 group-hover:text-white transition-colors">

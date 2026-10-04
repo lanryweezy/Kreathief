@@ -79,7 +79,7 @@ export const ComponentsPanel: React.FC = () => {
                 className="group relative bg-[#1c1f24] border border-gray-800 rounded-xl p-3 cursor-pointer hover:border-brand-600 hover:bg-[#25282e] transition-all flex flex-col items-center gap-2 overflow-hidden aspect-square justify-center shadow-sm"
               >
                 {/* Simplified Preview */}
-                <div className="w-12 h-12 rounded-lg bg-[#0e1318] flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 rounded-lg bg-surface-dark-1 flex items-center justify-center text-brand-600 group-hover:scale-110 transition-transform">
                   {master.type === 'image' && <Icons.Image className="w-6 h-6" />}
                   {master.type === 'text' && <Icons.Text className="w-6 h-6" />}
                   {master.type !== 'image' && master.type !== 'text' && <Icons.Shapes className="w-6 h-6" />}
@@ -98,7 +98,7 @@ export const ComponentsPanel: React.FC = () => {
         )}
       </div>
 
-      <div className="p-4 bg-[#1a1d21] border-t border-gray-800">
+      <div className="p-4 bg-surface-dark-2 border-t border-gray-800">
         <p className="text-[10px] text-gray-500 leading-relaxed italic">
           Tip: Instances preserve text/image overrides but sync colors, shadows, and effects from the Master.
         </p>

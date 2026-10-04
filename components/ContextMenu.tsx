@@ -314,8 +314,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         name: layer.name || 'Component',
         x: 0,
         y: 0,
-        width: (layer as any).width || 100,
-        height: (layer as any).height || 100,
+        width: layer.width || 100,
+        height: layer.height || 100,
         layers: [layer],
       };
       const code = exportToReactCode(fakeArtboard as any, {

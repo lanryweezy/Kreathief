@@ -9,6 +9,7 @@ import { SmartSnap } from './SmartSnap';
 import { SmartSuggestion } from '../../hooks/useSmartInteraction';
 import { ErrorBoundary } from '../ErrorBoundary';
 import { CropOverlay } from './CropOverlay';
+import { useBitmapCache } from '../../hooks/canvas/useBitmapCache';
 
 const noop = () => {};
 
@@ -20,7 +21,7 @@ interface CanvasRendererProps {
   zoom: number;
   getEffectiveLayer: (layer: Layer) => Layer;
   onLayerRef: (id: string, el: HTMLDivElement | null) => void;
-  handleMouseDownLayer: (e: React.MouseEvent, layer: Layer) => void;
+  handleMouseDownLayer: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
   handleContextMenu: (e: React.MouseEvent, layerId: string) => void;
@@ -39,6 +40,9 @@ interface CanvasRendererProps {
   setHoveredLayerId: (id: string | null) => void;
   setActiveArtboardId: (id: string) => void;
   showGrid: boolean;
+  gridSize?: number;
+  gridColor?: string;
+  gridStyle?: 'lines' | 'dots';
   isDrawing: boolean;
   isRefining: boolean;
   isVectorPenMode?: boolean;
@@ -67,7 +71,7 @@ interface ArtboardItemProps {
   zoom: number;
   getEffectiveLayer: (layer: Layer) => Layer;
   onLayerRef: (id: string, el: HTMLDivElement | null) => void;
-  handleMouseDownLayer: (e: React.MouseEvent, layer: Layer) => void;
+  handleMouseDownLayer: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   handleResizeStart: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   handleRotateStart: (e: React.MouseEvent, layer: Layer) => void;
   handleContextMenu: (e: React.MouseEvent, layerId: string) => void;
@@ -86,6 +90,9 @@ interface ArtboardItemProps {
   setHoveredLayerId: (id: string | null) => void;
   setActiveArtboardId: (id: string) => void;
   showGrid: boolean;
+  gridSize?: number;
+  gridColor?: string;
+  gridStyle?: 'lines' | 'dots';
   isDrawing: boolean;
   isRefining: boolean;
   isInteracting?: boolean;
@@ -130,6 +137,9 @@ const ArtboardItem = React.memo(
     setHoveredLayerId,
     setActiveArtboardId,
     showGrid,
+    gridSize = 20,
+    gridColor = '#7c3aed',
+    gridStyle = 'lines',
     isDrawing,
     isRefining,
     isVectorPenMode = false,
@@ -155,10 +165,17 @@ const ArtboardItem = React.memo(
       return found && found.type === 'image' ? found : null;
     });
 
+    const { cachedUrl, cachedLayerIds } = useBitmapCache(
+      artboard.layers,
+      selectedLayerIds,
+      zoom,
+      isInteracting
+    );
+
     const effectiveLayers = React.useMemo(() => {
       const layers = artboard.layers || [];
-      // Skip map if getEffectiveLayer is basically an identity function
-      const isIdentity = !getEffectiveLayer || (layers.length > 0 && getEffectiveLayer(layers[0]) === layers[0]);
+      // Skip map if getEffectiveLayer is basically an identity function and we don't have cached layers
+      const isIdentity = (!getEffectiveLayer || (layers.length > 0 && getEffectiveLayer(layers[0]) === layers[0])) && cachedLayerIds.size === 0;
       if (isIdentity) {
         return layers;
       }
@@ -166,13 +183,14 @@ const ArtboardItem = React.memo(
       // Bolt: Use a single pass to map, filter, and unique to avoid O(N) intermediate allocations
       const uniqueMap = new Map<string, Layer>();
       for (const l of layers) {
+        if (cachedLayerIds.has(l.id)) continue;
         const effective = getEffectiveLayer(l);
         if (effective) {
           uniqueMap.set(effective.id, effective as Layer);
         }
       }
       return Array.from(uniqueMap.values());
-    }, [artboard.layers, getEffectiveLayer]);
+    }, [artboard.layers, getEffectiveLayer, cachedLayerIds]);
 
     const handleArtboardClick = React.useCallback(() => {
       setActiveArtboardId(artboard.id);
@@ -229,6 +247,33 @@ const ArtboardItem = React.memo(
             opacity: activeArtboardId === artboard.id ? canvasFilters.opacity : 1,
           }}
         >
+          {/* Render Cached Bitmap Layer below active DOM layers */}
+          {cachedUrl && (
+            <img 
+              src={cachedUrl} 
+              alt="Cached static layers" 
+              className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
+            />
+          )}
+
+          {/* Artboard Texture Overlay Layer */}
+          {artboard.textureOverlay && (
+            <div
+              data-testid={`artboard-texture-overlay-${artboard.textureOverlay.id}`}
+              className="absolute inset-0 w-full h-full pointer-events-none z-[999]"
+              style={{
+                backgroundImage: `url("${artboard.textureOverlay.svgDataUri}")`,
+                backgroundRepeat: 'repeat',
+                backgroundSize: artboard.textureOverlay.scale && artboard.textureOverlay.scale !== 1 
+                  ? `${artboard.textureOverlay.scale * 100}%` 
+                  : 'auto',
+                opacity: artboard.textureOverlay.opacity,
+                mixBlendMode: artboard.textureOverlay.blendMode as any,
+                filter: artboard.textureOverlay.invert ? 'invert(1)' : undefined,
+              }}
+            />
+          )}
+
           <CanvasLayerRenderer
             layers={artboard.layers}
             effectiveLayers={effectiveLayers}
@@ -281,11 +326,14 @@ const ArtboardItem = React.memo(
             <>
               {showGrid && (
                 <div
-                  className="absolute inset-0 pointer-events-none z-[60] opacity-10"
+                  className="absolute inset-0 pointer-events-none z-[60]"
                   style={{
+                    opacity: 0.25,
                     backgroundImage:
-                      'linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px)',
-                    backgroundSize: '100px 100px',
+                      gridStyle === 'dots'
+                        ? `radial-gradient(${gridColor} 1.5px, transparent 1.5px)`
+                        : `linear-gradient(${gridColor} 1px, transparent 1px), linear-gradient(90deg, ${gridColor} 1px, transparent 1px)`,
+                    backgroundSize: `${gridSize}px ${gridSize}px`,
                   }}
                 />
               )}
@@ -380,6 +428,9 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
     setHoveredLayerId,
     setActiveArtboardId,
     showGrid,
+    gridSize,
+    gridColor,
+    gridStyle,
     isDrawing,
     isRefining,
     drawingCanvasRef,
@@ -430,6 +481,9 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = React.memo(
             setHoveredLayerId={setHoveredLayerId}
             setActiveArtboardId={setActiveArtboardId}
             showGrid={showGrid}
+            gridSize={gridSize}
+            gridColor={gridColor}
+            gridStyle={gridStyle}
             isDrawing={isDrawing}
             isRefining={isRefining}
             drawingCanvasRef={drawingCanvasRef}

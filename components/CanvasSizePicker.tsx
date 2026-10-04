@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Icons, CANVAS_SIZE_PRESETS } from '../constants';
 import { CanvasSize } from '../types';
 import { useStore } from '../store/useStore';
@@ -9,6 +9,21 @@ interface CanvasSizePickerProps {
   currentSize: CanvasSize;
   onSizeChange: (size: CanvasSize) => void;
 }
+
+// ⚡ Bolt Optimization: Pre-categorize sizes outside component to avoid recalculation
+// and prevent inline O(N) array allocation and .filter().map() chains during render
+const categorizedPresets = (() => {
+  const dict: Record<string, typeof CANVAS_SIZE_PRESETS> = {};
+  for (let i = 0; i < CANVAS_SIZE_PRESETS.length; i++) {
+    const preset = CANVAS_SIZE_PRESETS[i];
+    if (!dict[preset.category]) {
+      dict[preset.category] = [];
+    }
+    dict[preset.category].push(preset);
+  }
+  return dict;
+})();
+const categories = Object.keys(categorizedPresets);
 
 export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize, onSizeChange }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,8 +43,6 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
         return <Icons.Layout className="w-3.5 h-3.5" />;
     }
   };
-
-  const categories = Array.from(new Set(CANVAS_SIZE_PRESETS.map((p) => p.category)));
 
   return (
     <div className="relative">
@@ -82,7 +95,7 @@ export const CanvasSizePicker: React.FC<CanvasSizePickerProps> = ({ currentSize,
                   {cat}
                 </div>
                 <div className="space-y-0.5">
-                  {CANVAS_SIZE_PRESETS.filter((p) => p.category === cat).map((preset) => (
+                  {categorizedPresets[cat].map((preset) => (
                     <button
                       key={preset.id}
                       onClick={() => {

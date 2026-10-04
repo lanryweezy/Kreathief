@@ -14,7 +14,7 @@ interface LazyImageProps {
  * Skeleton loader component for image placeholders
  */
 export const ImageSkeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`w-full h-full bg-[#1a1d21] animate-pulse overflow-hidden relative ${className}`}>
+  <div className={`w-full h-full bg-surface-dark-2 animate-pulse overflow-hidden relative ${className}`}>
     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-shimmer" />
     <style>{`
       @keyframes shimmer {
@@ -94,7 +94,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 
       {/* Error state */}
       {hasError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#1a1d21] text-gray-600 gap-2 p-4 text-center">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dark-2 text-gray-600 gap-2 p-4 text-center">
           <svg className="w-6 h-6 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"

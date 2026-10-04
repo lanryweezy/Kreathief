@@ -1,4 +1,4 @@
-import { Layer, Artboard } from '../types';
+import { Layer, Artboard, GuideLine } from '../types';
 
 export interface SnapLine {
   type: 'vertical' | 'horizontal';
@@ -21,6 +21,7 @@ interface SortedTarget {
 
 let cachedArtboardId: string | null = null;
 let cachedLayerCount = -1;
+let cachedGuideFingerprint = '';
 let cachedLayerPositions: { id: string; x: number; y: number }[] | null = null;
 let cachedSortedX: SortedTarget[] = [];
 let cachedSortedY: SortedTarget[] = [];
@@ -28,7 +29,8 @@ let cachedSortedY: SortedTarget[] = [];
 function buildTargets(
   allLayers: Layer[],
   movingIds: Set<string>,
-  activeArtboard: Artboard
+  activeArtboard: Artboard,
+  guides: GuideLine[] = []
 ): { sortedX: SortedTarget[]; sortedY: SortedTarget[] } {
   const targetsX: SortedTarget[] = [
     { value: 0, origin: 0, extent: activeArtboard.height },
@@ -42,12 +44,21 @@ function buildTargets(
     { value: activeArtboard.height / 2, origin: 0, extent: activeArtboard.width },
   ];
 
+  // User Guides
+  for (const g of guides) {
+    if (g.type === 'vertical') {
+      targetsX.push({ value: g.position, origin: 0, extent: activeArtboard.height });
+    } else {
+      targetsY.push({ value: g.position, origin: 0, extent: activeArtboard.width });
+    }
+  }
+
   for (const l of allLayers) {
     if (movingIds.has(l.id) || l.locked || !l.visible || l.groupId) {
       continue;
     }
-    const w = (l as any).width || 0;
-    const h = (l as any).height || 0;
+    const w = l.width || 0;
+    const h = l.height || 0;
 
     targetsX.push({ value: l.x, origin: l.y, extent: h });
     targetsX.push({ value: l.x + w, origin: l.y, extent: h });
@@ -114,7 +125,8 @@ export class SnappingOracle {
     allLayers: Layer[],
     activeArtboard: Artboard,
     threshold: number = 5,
-    zoom: number = 1
+    zoom: number = 1,
+    guides: GuideLine[] = []
   ): SnapResult {
     const result: SnapResult = { x: null, y: null, lines: [] };
     if (movingLayers.length === 0) {
@@ -128,8 +140,8 @@ export class SnappingOracle {
     for (const l of movingLayers) {
       minX = Math.min(minX, l.x);
       minY = Math.min(minY, l.y);
-      const w = (l as any).width || 0;
-      const h = (l as any).height || 0;
+      const w = l.width || 0;
+      const h = l.height || 0;
       maxX = Math.max(maxX, l.x + w);
       maxY = Math.max(maxY, l.y + h);
     }
@@ -139,11 +151,17 @@ export class SnappingOracle {
 
     const movingIds = new Set(movingLayers.map((l) => l.id));
     const layerCount = allLayers.length;
+    let guideFingerprint = '';
+    for (let i = 0; i < guides.length; i++) {
+      const g = guides[i];
+      guideFingerprint += `${g.id}:${g.type}:${g.position};`;
+    }
 
     let isCacheValid = false;
     if (
       cachedArtboardId === activeArtboard.id &&
       cachedLayerCount === layerCount &&
+      cachedGuideFingerprint === guideFingerprint &&
       cachedLayerPositions !== null &&
       cachedLayerPositions.length === allLayers.length
     ) {
@@ -159,11 +177,12 @@ export class SnappingOracle {
     }
 
     if (!isCacheValid) {
-      const targets = buildTargets(allLayers, movingIds, activeArtboard);
+      const targets = buildTargets(allLayers, movingIds, activeArtboard, guides);
       cachedSortedX = targets.sortedX;
       cachedSortedY = targets.sortedY;
       cachedArtboardId = activeArtboard.id;
       cachedLayerCount = layerCount;
+      cachedGuideFingerprint = guideFingerprint;
       // ⚡ Bolt Optimization: Replace map().join() with an imperative array loop check to avoid massive string allocations in hot render loop.
       cachedLayerPositions = [];
       for (let i = 0; i < allLayers.length; i++) {
@@ -204,7 +223,7 @@ export class SnappingOracle {
     if (!xSnap && movingLayers.length === 1) {
       const otherLayersX = allLayers
         .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
-        .map((l) => ({ x: l.x, right: l.x + ((l as any).width || 0), y: l.y, height: (l as any).height || 0 }))
+        .map((l) => ({ x: l.x, right: l.x + (l.width || 0), y: l.y, height: l.height || 0 }))
         .sort((a, b) => a.x - b.x);
 
       for (let i = 0; i < otherLayersX.length - 1; i++) {
@@ -231,7 +250,7 @@ export class SnappingOracle {
     if (!ySnap && movingLayers.length === 1) {
       const otherLayersY = allLayers
         .filter((l) => !movingIds.has(l.id) && l.visible && !l.locked)
-        .map((l) => ({ y: l.y, bottom: l.y + ((l as any).height || 0), x: l.x, width: (l as any).width || 0 }))
+        .map((l) => ({ y: l.y, bottom: l.y + (l.height || 0), x: l.x, width: l.width || 0 }))
         .sort((a, b) => a.y - b.y);
 
       for (let i = 0; i < otherLayersY.length - 1; i++) {

@@ -91,8 +91,8 @@ export const useCanvasSelection = ({
               return;
             }
 
-            const lw = (l as any).width || 0;
-            const lh = (l as any).height || 0;
+            const lw = l.width || 0;
+            const lh = l.height || 0;
             const gx = l.x + artboard.x;
             const gy = l.y + artboard.y;
 
@@ -100,14 +100,14 @@ export const useCanvasSelection = ({
               // Instead of adding the child directly, find its top-most group
               let targetId = l.id;
               let currentLayer = l;
-              
+
               while (currentLayer.groupId) {
-                const parent = artboard.layers.find(p => p.id === currentLayer.groupId);
+                const parent = artboard.layers.find((p) => p.id === currentLayer.groupId);
                 if (!parent) break;
                 targetId = parent.id;
                 currentLayer = parent;
               }
-              
+
               if (!layersInBox.includes(targetId)) {
                 layersInBox.push(targetId);
               }

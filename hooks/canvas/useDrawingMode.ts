@@ -188,6 +188,15 @@ export const useDrawingMode = ({ zoom, isDrawing, panOffset }: UseDrawingModePro
         return;
       }
 
+      // Lock the pointer to the canvas so strokes don't break if fingers slide outside
+      if ((e as React.PointerEvent).pointerId !== undefined) {
+        try {
+          canvas.setPointerCapture((e as React.PointerEvent).pointerId);
+        } catch (err) {
+          // Ignore if pointer capture fails
+        }
+      }
+
       // Eyedropper: Alt+click uses native browser EyeDropper API to pick color from any screen element
       if (altHeldRef.current) {
         if (typeof window !== 'undefined' && 'EyeDropper' in (window as any)) {

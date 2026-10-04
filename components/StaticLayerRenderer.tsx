@@ -44,7 +44,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
               layer={layerWithZIndex as AdjustmentLayer}
               isSelected={false}
               isHovered={false}
-              onMouseDown={() => {}}
+              onPointerDown={() => {}}
               onResize={() => {}}
               onRotate={() => {}}
               onContextMenu={() => {}}
@@ -59,7 +59,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
               layer={layerWithZIndex as ImageLayer}
               isSelected={false}
               isHovered={false}
-              onMouseDown={() => {}}
+              onPointerDown={() => {}}
               onResize={() => {}}
               onRotate={() => {}}
               onContextMenu={() => {}}
@@ -74,7 +74,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
               layer={layerWithZIndex as TextLayer}
               isSelected={false}
               isHovered={false}
-              onMouseDown={() => {}}
+              onPointerDown={() => {}}
               onResize={() => {}}
               onRotate={() => {}}
               onContextMenu={() => {}}
@@ -89,7 +89,7 @@ export const StaticLayerRenderer: React.FC<StaticLayerRendererProps> = ({
             layer={layerWithZIndex as ShapeLayer}
             isSelected={false}
             isHovered={false}
-            onMouseDown={() => {}}
+            onPointerDown={() => {}}
             onResize={() => {}}
             onRotate={() => {}}
             onContextMenu={() => {}}

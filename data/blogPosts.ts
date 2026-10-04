@@ -22,7 +22,7 @@ const BASE_BLOG_POSTS: BlogPost[] = [
       'Read why tens of thousands of designers and marketers are migrating from Canva to Kreathief to unlock true professional freedom without the subscription trap.',
     author: 'Sulaiman Adebayo',
     date: 'March 10, 2026',
-    image: '/images/hero_abstract_glass_1772614949077.png',
+    image: '/images/hero_abstract_glass_1772614949077.webp',
     category: 'Industry',
     readTime: '6 min read',
     content: `
@@ -37,7 +37,7 @@ Enter **Kreathief**. Designed from the ground up as a native browser application
 ## 1. Professional Vector Precision
 The fundamental flaw in many template-driven design apps is the inability to manipulate the core structure of elements. While Canva treats elements as rigid blocks or locked SVGs, Kreathief gives you access to the actual vector paths.
 
-![Kreathief Vector Editor](/images/feature_vector_mockup_1772615626869.png)
+![Kreathief Vector Editor](/images/feature_vector_mockup_1772615626869.webp)
 
 *Our advanced Pen Tool allows you to manipulate bezier curves natively in the browser.*
 
@@ -48,7 +48,7 @@ Both platforms offer background removal, but the underlying technology is vastly
 
 Kreathief utilizes a next-generation neural engine trained specifically on complex edge detection and alpha-channel mapping.
 
-![Background Removal Check](/images/feature_cutout_mockup_1772615585150.png)
+![Background Removal Check](/images/feature_cutout_mockup_1772615585150.webp)
 
 With our AI Cutout tool, you can extract subjects with flawless edges in milliseconds. But we do not stop there. Once the AI has done the heavy lifting, Kreathief provides manual refinement brushes, allowing professional retouchers to adjust the mask perfectly. You get the speed of AI combined with the precision of manual masking—a necessity for high-end e-commerce imagery and brand campaigns.
 
@@ -62,7 +62,7 @@ Typography is the backbone of good design, yet many cloud-based editors offer on
 
 Kreathief’s typography engine is built on standard CSS and advanced WebGL rendering, giving you pixel-perfect control over your text.
 
-![Typography Tool](/images/hero_typography_panel_1772614945039.png)
+![Typography Tool](/images/hero_typography_panel_1772614945039.webp)
 
 We support text-on-path capabilities, advanced blending modes, drop caps, and proper web-safe font handling. You can upload your own custom OTF/TTF files, ensuring that your corporate brand guidelines are meticulously followed. Our advanced styling even supports 3D extrusions and metallic text effects directly applied to live, editable text fields.
 
@@ -82,7 +82,7 @@ Kreathief offers the speed of a template editor with the power of a professional
       'Figma is great for UX, but is it the right tool for marketing graphics? We break down the differences and why Kreathief dominates the social media design workflow.',
     author: 'Sarah Jenkins',
     date: 'March 8, 2026',
-    image: '/images/template_thumb_1_1772615134954.png',
+    image: '/images/template_thumb_1_1772615134954.webp',
     category: 'Comparisons',
     readTime: '7 min read',
     content: `
@@ -109,7 +109,7 @@ If a marketer attempts this in Figma, they must rely on a fragmented ecosystem. 
 
 In **Kreathief**, generative AI and asset manipulation are native to the canvas.
 
-![Generative Fill in Action](/images/feature_generative_fill_1771994400635.png)
+![Generative Fill in Action](/images/feature_generative_fill_1771994400635.webp)
 
 Need an image of a neon-lit futuristic city? Generate it instantly with a text prompt. Need to remove the background of a portrait? Click the Neural Cutout tool and it's isolated with pixel-perfect edges in 1.2 seconds. Need to seamlessly expand the background to fit an Instagram Story ratio? Use Generative Fill. You accomplish the entire workflow without ever leaving your document.
 
@@ -117,7 +117,7 @@ Need an image of a neon-lit futuristic city? Generate it instantly with a text p
 
 Both platforms offer excellent real-time multiplayer editing—the famous "multiplayer cursor" experience. But not all collaboration is created equal.
 
-![Multiplayer Collaboration](/images/feature_collab_mockup_1772615650011.png)
+![Multiplayer Collaboration](/images/feature_collab_mockup_1772615650011.webp)
 
 Figma’s open real-time collaboration can be chaotic for marketing teams. When a copywriter jumps in to tweak the headline of an ad, they can accidentally delete layers, misalign grids, or alter the brand colors.
 
@@ -151,7 +151,7 @@ But if your team is launching an ad campaign, designing YouTube thumbnails, gene
       'We tested the top AI design software on the market, evaluating them on speed, accuracy, and usability. See who came out on top.',
     author: 'Alex Rivero',
     date: 'March 5, 2026',
-    image: '/images/hero_ai_design_future_1771994385499.png',
+    image: '/images/hero_ai_design_future_1771994385499.webp',
     category: 'Reviews',
     readTime: '8 min read',
     content: `
@@ -207,7 +207,7 @@ But what makes it amazing for UI designers makes it practically useless for mark
 
 Kreathief takes the highly-coveted #1 spot because it is the first platform to successfully marry Midjourney-level raw image generation with Adobe-level vector orchestration, entirely within the browser. 
 
-![Kreathief UI](/images/hero_screenshot_clean.png)
+![Kreathief UI](/images/hero_screenshot_clean.webp)
 
 Kreathief approaches AI not as a separate generative tool, but as a deeply integrated utility. Whether you need to generate a 3D isometric asset from scratch, instantly isolate the background of a complex photograph with our Neural Cutout engine, apply a golden-ratio typography layout, or vectorize a raster sketch—Kreathief handles it natively.
 
@@ -223,7 +223,7 @@ Because the AI is contextually aware of the canvas, you can use generative fill 
       "The ultimate showdown. We test Photoshop's Magic Wand against Kreathief's Neural Cutout engine on the hardest images we could find.",
     author: 'Sulaiman Adebayo',
     date: 'March 2, 2026',
-    image: '/images/feature_cutout_mockup_1772615585150.png',
+    image: '/images/feature_cutout_mockup_1772615585150.webp',
     category: 'Tutorial',
     readTime: '5 min read',
     content: `
@@ -269,7 +269,7 @@ Kreathief’s Neural engine doesn't just look for contrast edges; it *semantical
 
 The result instantly retained the wispy fur with a perfectly feathered, anti-aliased alpha channel. The transparency was mapped so perfectly across the motion blur of the paws that zero manual refinement was required. Even the color casting from the yellow grass reflecting on the dog's underbelly was intelligently neutralized.
 
-![Background Removal Check](/images/feature_cutout_mockup_1772615585150.png)
+![Background Removal Check](/images/feature_cutout_mockup_1772615585150.webp)
 
 ## Why Semantic Edge Detection Matters
 
@@ -290,7 +290,7 @@ However, if you are a modern marketer, content creator, or designer who wants a 
     excerpt: 'Why downloading a 2GB desktop app to draw a simple bezier curve is a thing of the past.',
     author: 'Marcus Chen',
     date: 'February 28, 2026',
-    image: '/images/feature_vector_mockup_1772615626869.png',
+    image: '/images/feature_vector_mockup_1772615626869.webp',
     category: 'Tech',
     readTime: '6 min read',
     content: `
@@ -324,7 +324,7 @@ This architectural decision allows Kreathief to handle incredible complexity:
 * Performing complex non-destructive Boolean operations (Union, Subtract, Intersect, Exclude) on live shapes.
 * Enabling real-time, 60-frames-per-second multiplayer editing where multiple designers can drag bezier handles on the same path without latency.
 
-![Vector Tools](/images/template_thumb_5_1772615512770.png)
+![Vector Tools](/images/template_thumb_5_1772615512770.webp)
 
 ## Typography and Vectorization
 
@@ -354,7 +354,7 @@ The browser has won. Welcome to the future of vector design.
       'Cursor-chasing is fun for two minutes, but terrible for actual productivity. Here’s how we redesigned multiplayer design.',
     author: 'Elena Rostova',
     date: 'February 26, 2026',
-    image: '/images/feature_collab_mockup_1772615650011.png',
+    image: '/images/feature_collab_mockup_1772615650011.webp',
     category: 'Product',
     readTime: '5 min read',
     content: `
@@ -383,7 +383,7 @@ Kreathief still offers the "see everyone's cursor" feature because it is genuine
 
 But for actual, structured production work, we introduced a suite of features we call **Guided Collaboration**.
 
-![Collaboration Engine](/images/template_thumb_4_1772615492900.png)
+![Collaboration Engine](/images/template_thumb_4_1772615492900.webp)
 
 ### 1. Role-Based Editing Modes
 Not everyone needs the Pen Tool. Not everyone should have access to the Drop Shadow settings. 
@@ -419,7 +419,7 @@ Kreathief’s Guided Collaboration engine brings sanity back to the creative rev
       'Explore the visual aesthetics that will shape digital design this year, from neuro-typography to tactile 3D.',
     author: 'David Wright',
     date: 'February 22, 2026',
-    image: '/images/blog_teaser_design_trends_1771994416495.png',
+    image: '/images/blog_teaser_design_trends_1771994416495.webp',
     category: 'Trends',
     readTime: '6 min read',
     content: `
@@ -437,7 +437,7 @@ It is typography that breathes. Brands are using letterforms that expand like a 
 ## 2. Ultra-Tactile 3D (The Anti-Glassmorphism)
 We've spent years polishing digital glass and frosted acrylics. In 2026, the pendulum has swung wildly in the opposite direction.
 
-![3D Tactile Design](/images/bento_grid_features_1772681955750.png)
+![3D Tactile Design](/images/bento_grid_features_1772681955750.webp)
 
 Designers are leveraging AI rendering to create UI elements that look like they are made of felt, imperfect clay, pitted brushed steel, or rough cardboard. It's high-fidelity realism applied to low-fi materials. We want buttons that look like they have physical mass and drop shadows that indicate real-world lighting.
 
@@ -468,7 +468,7 @@ A logo must be designed as a system of motion. How does it enter the screen? How
       'Mastering the art of text in user interfaces. From establishing hierarchies to ensuring maximum accessibility and legibility.',
     author: 'Maria Garcia',
     date: 'February 18, 2026',
-    image: '/images/auth_screenshot_1772019791162.png',
+    image: '/images/auth_screenshot_1772019791162.webp',
     category: 'Tutorial',
     readTime: '8 min read',
     content: `
@@ -499,7 +499,7 @@ Text needs room to breathe.The most common mistake junior designers make is leav
 * For body text(paragraphs): Aim for ** 1.5 to 1.6 ** (150 % - 160 %). 
 * For large headings: Tighten it up to ** 1.1 to 1.2 **.Large text with too much line height looks disconnected.
 
-![Typography Example](/images/blog_post_content_1_1772656090318.png)
+![Typography Example](/images/blog_post_content_1_1772656090318.webp)
 
 ### Line Length(Measure)
 A string of text that spans the entire width of a 27 - inch monitor is physically tiring to read.The eye loses its place when tracking back to the start of the next line.
@@ -536,7 +536,7 @@ Good UI typography is invisible.The user shouldn't look at an app and think "wow
       'Prompting is out. Direct manipulation is in. See how the best designers are using AI not as a slot machine, but as a paintbrush.',
     author: 'Sulaiman Adebayo',
     date: 'February 15, 2026',
-    image: '/images/hero_floating_palette_1772559659004.png',
+    image: '/images/hero_floating_palette_1772559659004.webp',
     category: 'Tutorial',
     readTime: '9 min read',
     content: `
@@ -556,7 +556,7 @@ Generative fill(inpainting) is where the real magic happens.Got a perfect photo 
 2. Type "holding a sleek black coffee cup".
 3. The AI replaces the object, perfectly matching the lighting, shadows, and depth of field of the original photograph.
 
-![AI Tools](/images/template_thumb_6_1772615671327.png)
+![AI Tools](/images/template_thumb_6_1772615671327.webp)
 
 ## Consistency
 The biggest hurdle has always been brand consistency.Kreathief allows you to upload your brand's specific style—be it minimalist 3D illustrations or gritty vintage photography—and standardizes all AI outputs to match that exact aesthetic fingerprint.
@@ -571,7 +571,7 @@ Stop fighting the machine and start directing it.
       'A step-by-step guide to setting up your fonts, color palettes, and logos to ensure your entire team designs on-brand, every single time.',
     author: 'Rachel Bloom',
     date: 'February 10, 2026',
-    image: '/images/hero_typography_panel_1772614945039.png',
+    image: '/images/hero_typography_panel_1772614945039.webp',
     category: 'Best Practices',
     readTime: '6 min read',
     content: `
@@ -589,7 +589,7 @@ Don't just pick "Red" and "Blue". Define your primary action colors, secondary b
 
 Kreathief allows you to generate harmonic combinations.If you only have one brand color, our tool will instantly generate perfect complementary, triadic, and analogous palettes.
 
-![Color Palette Engine](/images/hero_floating_palette_1772559659004.png)
+![Color Palette Engine](/images/hero_floating_palette_1772559659004.webp)
 
 ## 3. Set Typography Rules
 Select a Heading font(something bold with high personality) and a Body font(highly legible sans - serif like Inter or Roboto).Kreathief lets you lock these choices. 

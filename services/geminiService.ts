@@ -2,6 +2,11 @@ import { SchemaType } from '@google/generative-ai';
 import { MODEL_FAST, MODEL_PRO, FONT_FAMILIES } from '../constants';
 import { DesignTheme, ExtractedReferenceStyle, GenerationQuality } from '../types';
 import * as freepikService from './freepikService';
+import {
+  promptArchetypeStrategies,
+  DEFAULT_ARCHETYPE_GUIDANCE,
+  DEFAULT_ARCHETYPE_LOCAL_SUFFIX,
+} from './promptArchetypes';
 import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
@@ -10,7 +15,6 @@ import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
 // Helper to call backend serverless endpoint — routed through OpenRouter
 export const callBackendGeminiAPI = async (payload: any) => {
   const endpoint = process.env.NODE_ENV === 'test' ? 'http://localhost:3000/api/openrouter' : '/api/openrouter';
-
 
   // Translate Gemini-style payload into OpenAI/OpenRouter messages array
   const messages: { role: string; content: string | any[] }[] = [];
@@ -69,18 +73,21 @@ export const callBackendGeminiAPI = async (payload: any) => {
     'claude-opus-4': 'anthropic/claude-opus-4',
     'gpt-4o': 'openai/gpt-4o',
     'gpt-4o-mini': 'openai/gpt-4o-mini',
-    'o3': 'openai/o3',
+    o3: 'openai/o3',
     'llama-4-scout': 'meta-llama/llama-4-scout',
   };
-  const rawModel = payload.modelName || (() => {
-    try {
-      // Lazily import store to avoid circular deps — safe because this is always called at runtime
-      const { useStore } = require('../store/useStore');
-      return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
-    } catch {
-      return 'google/gemini-2.5-flash';
-    }
-  })();
+  const rawModel =
+    payload.modelName ||
+    (() => {
+      try {
+        // Lazily import store to avoid circular deps — safe because this is always called at runtime
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        const { useStore } = require('../store/useStore');
+        return useStore.getState().selectedAiModel || 'google/gemini-2.5-flash';
+      } catch {
+        return 'google/gemini-2.5-flash';
+      }
+    })();
   // If the model already looks like an OpenRouter path (contains '/'), use it directly.
   const model = rawModel.includes('/') ? rawModel : (modelMap[rawModel] ?? 'google/gemini-2.5-flash');
 
@@ -89,7 +96,7 @@ export const callBackendGeminiAPI = async (payload: any) => {
 
   const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
   const timeoutMs = isTest ? 100 : 60000;
-  const retries = isTest ? 0 : 3;
+  const retries = isTest ? 1 : 3;
   const backoffMs = isTest ? 10 : 1000;
 
   return retryWithBackoff(
@@ -272,6 +279,75 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
   }
 };
 
+export const rewriteTextTone = async (text: string, instruction: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are a world-class Brand Voice Copywriter for a design tool.
+Your job is to rewrite the user's text based on their instruction.
+If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
+
+Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it concise enough to fit in a standard design layout.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+    const sanitizedInstruction = instruction.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The rewritten text',
+        },
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: `Original Text: "${sanitizedText}"\nInstruction: "${sanitizedInstruction}"` }],
+        },
+      ],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || text;
+  } catch (error) {
+    log.error('rewriteTextTone Error:', error);
+    throw error;
+  }
+};
+
+export const suggestTypographyForText = async (text: string): Promise<string> => {
+  try {
+    const systemInstruction = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
+
+Choose ONLY ONE from this curated list of premium Google Fonts:
+[Inter, Playfair Display, Space Grotesk, Syne, Anton, Oswald, Roboto Mono, Archivo Black, Cinzel, Bebas Neue, Lora, Montserrat, Outfit, Plus Jakarta Sans, Clash Display]
+
+Return ONLY the exact font name. Nothing else.`;
+
+    const sanitizedText = text.trim().substring(0, 1000);
+
+    const data = await callBackendGeminiAPI({
+      modelName: 'gemini-2.5-flash',
+      systemInstruction,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.STRING,
+          description: 'The exact name of the suggested font',
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Text: "${sanitizedText}"` }] }],
+    });
+
+    const parsed = safeParseJSON<string | null>(data.text || 'null', null);
+    return parsed || 'Inter';
+  } catch (error) {
+    log.error('suggestTypographyForText Error:', error);
+    return 'Inter';
+  }
+};
+
 export const generateText = async (
   currentText: string,
   instruction: string = 'Rewrite this to be more creative and catchy.'
@@ -416,12 +492,11 @@ export const generateAltText = async (src: string): Promise<string> => {
       b64 = cleanBase64(dataUrl);
     }
 
-    const parts = [
-      { text: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.' },
-      { inlineData: { mimeType: b64!.mimeType, data: b64!.data } },
-    ];
+    const parts = [{ inlineData: { mimeType: b64!.mimeType, data: b64!.data } }];
     const data = await callBackendGeminiAPI({
       modelName: MODEL_FAST,
+      // 🤖 Astra: Moved persona and rules to native systemInstruction field to prevent context confusion
+      systemInstruction: 'Generate a concise, descriptive alt text for accessibility. No trailing punctuation.',
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: {
@@ -488,20 +563,10 @@ const ENHANCE_PROMPT_SYSTEM_V1 = `
 You are an expert prompt engineer for AI image generators.
 `;
 const getArchetypeGuidance = (archetype?: string): string => {
-  switch (archetype) {
-    case 'cinematic':
-      return 'Emphasize cinematic photography: 85mm f/1.4 lens optics, shallow depth of field, natural volumetric lighting, subtle film grain, 8k resolution, photorealistic realism.';
-    case 'artistic':
-      return 'Emphasize artistic painterly qualities: expressive brushstrokes, tactile canvas texture, rich color harmonies, and atmospheric emotional depth.';
-    case 'product':
-      return 'Emphasize commercial product photography: studio softbox illumination, clean rim highlights, pristine reflections, neutral cyclorama backdrop, commercial catalog sharpness.';
-    case 'render_3d':
-      return 'Emphasize high-end 3D digital art: Octane/Blender render, subsurface scattering, ambient occlusion, physically based rendering (PBR), and volumetric caustics.';
-    case 'vector_graphic':
-      return 'Emphasize modern graphic design: clean vector line work, bold flat colors, geometric balance, modern SVG illustration aesthetic.';
-    default:
-      return 'Include lighting, style, composition, camera perspective, and mood keywords.';
+  if (archetype && promptArchetypeStrategies.has(archetype)) {
+    return promptArchetypeStrategies.get(archetype)!.guidance;
   }
+  return DEFAULT_ARCHETYPE_GUIDANCE;
 };
 
 export const enhancePromptWithArchetype = async (simplePrompt: string, archetype?: string): Promise<string> => {
@@ -546,20 +611,10 @@ export const enhancePromptWithArchetype = async (simplePrompt: string, archetype
 
 const enhancePromptLocally = (simplePrompt: string, archetype?: string): string => {
   const clean = simplePrompt.trim();
-  switch (archetype) {
-    case 'cinematic':
-      return `${clean}, cinematic 35mm photography, natural volumetric lighting, shallow depth of field, f/1.8 aperture, 8k resolution, ultra detailed, photorealistic`;
-    case 'artistic':
-      return `${clean}, expressive concept art, rich painterly brush strokes, vibrant color harmony, atmospheric lighting, detailed composition`;
-    case 'product':
-      return `${clean}, professional studio product photography, clean reflections, softbox illumination, minimal cyclorama backdrop, catalog grade`;
-    case 'render_3d':
-      return `${clean}, 3D Octane render, smooth ray tracing, subsurface scattering, ambient occlusion, physically based shaders, 8k masterpiece`;
-    case 'vector_graphic':
-      return `${clean}, clean modern vector illustration, bold graphic lines, minimalist geometric styling, vibrant flat color palette, SVG vector`;
-    default:
-      return `${clean}, highly detailed, cinematic volumetric lighting, 8k resolution, photorealistic masterpiece, award winning composition`;
+  if (archetype && promptArchetypeStrategies.has(archetype)) {
+    return `${clean}${promptArchetypeStrategies.get(archetype)!.localSuffix}`;
   }
+  return `${clean}${DEFAULT_ARCHETYPE_LOCAL_SUFFIX}`;
 };
 
 export const enhancePrompt = async (simplePrompt: string, archetype?: string): Promise<string> => {

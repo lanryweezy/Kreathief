@@ -77,7 +77,7 @@ export const SmartTemplatesPanel: React.FC<SmartTemplatesPanelProps> = ({ onAppl
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#13161a]">
+    <div className="flex flex-col h-full bg-surface-dark-2">
       {/* Header */}
       <div className="p-4 border-b border-gray-700 bg-gradient-to-r from-brand-600/10 to-accent/10">
         <div className="flex items-center justify-between mb-3">
@@ -348,8 +348,8 @@ const SearchView: React.FC<{ onSelectTemplate: (s: SmartTemplateSuggestion) => v
 
   const aspectRatios = [
     { id: AspectRatio.SQUARE, label: '1:1 Square', icon: '⬜' },
-    { id: AspectRatio.LANDSCAPE, label: '16:9 Landscape', icon: <Icons.Monitor className="w-4 h-4" /> },
-    { id: AspectRatio.PORTRAIT, label: '9:16 Portrait', icon: <Icons.Smartphone className="w-4 h-4" /> },
+    { id: AspectRatio.LANDSCAPE, label: '16:9 Landscape', icon: '▭' },
+    { id: AspectRatio.PORTRAIT, label: '9:16 Portrait', icon: '▯' },
   ];
 
   return (

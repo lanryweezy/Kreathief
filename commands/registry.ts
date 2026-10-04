@@ -1,5 +1,6 @@
 import { useStore } from '../store/useStore';
 import { fuzzyMatch } from '../utils/search';
+import { executeFullBenchmarkSuite } from '../utils/performanceBenchmarks';
 
 export interface Command {
   id: string;
@@ -236,6 +237,74 @@ const builtins: Command[] = [
         { name: 'Facebook Post', width: 1200, height: 630 },
         { name: 'Presentation', width: 1920, height: 1080 },
       ]),
+  },
+  {
+    id: 'run-fps-benchmark',
+    label: 'Run FPS Benchmark',
+    category: 'Developer',
+    icon: '⚡',
+    action: () => executeFullBenchmarkSuite(),
+  },
+  {
+    id: 'auto-layout-toggle',
+    label: 'Toggle Auto Layout',
+    shortcut: 'Shift+A',
+    category: 'Layout',
+    icon: '⫴',
+    action: () => {
+      const state = useStore.getState() as any;
+      const selectedId = state.selectedLayerIds?.[0];
+      if (!selectedId) return;
+      const activeArtboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
+      const layer = activeArtboard?.layers?.find((l: any) => l.id === selectedId);
+      if (!layer) return;
+      if (layer.autoLayout) {
+        state.updateLayer?.(selectedId, { autoLayout: undefined });
+      } else {
+        state.updateLayer?.(selectedId, {
+          autoLayout: { direction: 'row', padding: 16, spacing: 12, alignment: 'center', sizing: { width: 'hug', height: 'hug' } },
+        });
+      }
+    },
+  },
+  {
+    id: 'ai-generate-template',
+    label: 'AI: Generate Template with Gemini',
+    category: 'AI',
+    icon: '🪄',
+    action: () => (useStore.getState() as any).setActiveTab?.('TEMPLATES'),
+  },
+  {
+    id: 'template-marketplace',
+    label: 'Browse Template Marketplace',
+    category: 'Templates',
+    icon: '🏪',
+    action: () => (useStore.getState() as any).setActiveTab?.('TEMPLATES'),
+  },
+  {
+    id: 'align-both-centers',
+    label: 'Align Both Centers',
+    category: 'Layout',
+    icon: '✛',
+    action: () => {
+      const state = useStore.getState() as any;
+      state.alignLayers?.('center');
+      state.alignLayers?.('middle');
+    },
+  },
+  {
+    id: 'distribute-h',
+    label: 'Distribute Horizontally',
+    category: 'Layout',
+    icon: '↔',
+    action: () => (useStore.getState() as any).distributeLayers?.('horizontal'),
+  },
+  {
+    id: 'distribute-v',
+    label: 'Distribute Vertically',
+    category: 'Layout',
+    icon: '↕',
+    action: () => (useStore.getState() as any).distributeLayers?.('vertical'),
   },
 ];
 

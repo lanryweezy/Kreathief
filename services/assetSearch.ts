@@ -4,6 +4,7 @@ import * as freepikService from './freepikService';
 import { iconScoutService } from './iconScoutService';
 import { getFallbackPhotos } from './fallbackPhotos';
 
+
 export interface NormalizedAsset {
   id: string;
   url: string;
@@ -108,7 +109,7 @@ registerSearchProvider({
         return getFallbackPhotos(query, 'pexels');
       }
       const data = await res.json();
-      if (!data.photos) return getFallbackPhotos(query, 'pexels');
+      if (!data.photos || data.photos.length === 0) return getFallbackPhotos(query, 'pexels');
 
       return data.photos.map((p: any) => ({
         id: `px-${p.id}`,

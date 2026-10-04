@@ -507,7 +507,7 @@ export const MockupModal: React.FC<MockupModalProps> = ({ designImage, onClose }
           )}
 
           {/* Preview Area */}
-          <div className="flex-1 bg-[#0e1318] flex items-center justify-center p-4 sm:p-8 relative overflow-hidden">
+          <div className="flex-1 bg-surface-dark-1 flex items-center justify-center p-4 sm:p-8 relative overflow-hidden">
             {/* Header Actions */}
             <div className="absolute top-6 right-6 z-20 flex gap-3">
               <button

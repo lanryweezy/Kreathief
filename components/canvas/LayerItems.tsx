@@ -98,7 +98,7 @@ interface LayerItemProps {
   layer: Layer;
   isSelected: boolean;
   isHovered: boolean;
-  onMouseDown: (e: React.MouseEvent, layer: Layer) => void;
+  onPointerDown: (e: React.MouseEvent | React.PointerEvent, layer: Layer) => void;
   onResize: (e: React.MouseEvent, layer: Layer, handle: ResizeHandle) => void;
   onRotate: (e: React.MouseEvent, layer: Layer) => void;
   onContextMenu: (e: React.MouseEvent, id: string) => void;
@@ -193,6 +193,62 @@ const layerPropsAreEqual = (prevProps: LayerItemProps, nextProps: LayerItemProps
   return deepEqual(p, n);
 };
 
+export const GroupLayerItem = React.memo(
+  React.forwardRef<HTMLDivElement, LayerItemProps & { children?: React.ReactNode }>(
+    (
+      {
+        layer,
+        isSelected,
+        isHovered,
+        onPointerDown,
+        onResize,
+        onRotate,
+        onContextMenu,
+        previewAnimation,
+        maskPath,
+        zoom,
+        isInteracting,
+        children
+      },
+      ref
+    ) => {
+      const animStyle = getAnimationStyle(isSelected && previewAnimation ? previewAnimation : layer.animation);
+
+      return (
+        <div
+          ref={ref}
+          className={`absolute ${isHovered && !isSelected && !isInteracting ? 'ring-1 ring-brand-400' : ''}`}
+          style={{
+            ...getLayerStyle(layer),
+            clipPath: maskPath,
+            WebkitClipPath: maskPath,
+            pointerEvents: 'none', // Groups typically pass clicks through to children
+          }}
+          onPointerDown={(e) => {
+            // Re-enable pointer events on the wrapper if you need to select the group as a whole
+            onPointerDown(e, layer);
+          }}
+          onContextMenu={(e) => onContextMenu(e, layer.id)}
+          data-layer-id={layer.id}
+          data-type="group"
+        >
+          {/* Render nested children */}
+          <div className="relative w-full h-full pointer-events-none">
+            {children}
+          </div>
+
+          <SelectionHandles
+            layer={layer}
+            onResize={onResize}
+            onRotate={onRotate}
+          />
+        </div>
+      );
+    }
+  ),
+  layerPropsAreEqual
+);
+
 /**
  * Image Layer Item
  */
@@ -203,7 +259,7 @@ export const ImageLayerItem = React.memo(
         layer,
         isSelected,
         isHovered,
-        onMouseDown,
+        onPointerDown,
         onResize,
         onRotate,
         onContextMenu,
@@ -337,7 +393,7 @@ export const ImageLayerItem = React.memo(
           ref={ref}
           role="img"
           aria-label={imgLayer.name || 'Image layer'}
-          onMouseDown={(e) => onMouseDown(e, imgLayer)}
+          onPointerDown={(e) => onPointerDown(e, imgLayer)}
           onDoubleClick={(e) => {
             e.stopPropagation();
             setRepositioning(true);
@@ -407,7 +463,7 @@ export const ImageLayerItem = React.memo(
                       transform: `scale(${scaleX}, ${scaleY})`,
                       transformOrigin: 'center center',
                     }}
-                    alt=""
+                    alt="Cropped image layer"
                   />
                 );
               })}
@@ -485,7 +541,7 @@ export const ShapeLayerItem = React.memo(
         layer,
         isSelected,
         isHovered,
-        onMouseDown,
+        onPointerDown,
         onResize,
         onRotate,
         onContextMenu,
@@ -572,7 +628,7 @@ export const ShapeLayerItem = React.memo(
           data-testid={`shape-layer-${shapeLayer.id}`}
           data-layer-id={shapeLayer.id}
           aria-label={shapeLayer.name || 'Shape layer'}
-          onMouseDown={(e) => onMouseDown(e, shapeLayer)}
+          onPointerDown={(e) => onPointerDown(e, shapeLayer)}
           onContextMenu={(e) => onContextMenu(e, shapeLayer.id)}
           onDragOver={(e) => {
             e.preventDefault();
@@ -819,7 +875,7 @@ export const TextLayerItem = React.memo(
         layer,
         isSelected,
         isHovered,
-        onMouseDown,
+        onPointerDown,
         onResize,
         onRotate,
         onContextMenu,
@@ -855,12 +911,12 @@ export const TextLayerItem = React.memo(
           data-testid={`text-layer-${textLayer.id}`}
           data-layer-id={textLayer.id}
           aria-label={textLayer.name || 'Text layer'}
-          onMouseDown={(e) => {
+          onPointerDown={(e) => {
             if (isEditing) {
               e.stopPropagation();
               return;
             }
-            onMouseDown(e, textLayer);
+            onPointerDown(e, textLayer);
           }}
           onContextMenu={(e) => onContextMenu(e, textLayer.id)}
           onDoubleClick={(e) => {
@@ -1016,7 +1072,7 @@ TextLayerItem.displayName = 'TextLayerItem';
  */
 export const AdjustmentLayerItem = React.memo(
   React.forwardRef<HTMLDivElement, LayerItemProps>(
-    ({ layer, isSelected, isHovered, onMouseDown, onResize, onRotate, onContextMenu }, ref) => {
+    ({ layer, isSelected, isHovered, onPointerDown, onResize, onRotate, onContextMenu }, ref) => {
       const adjLayer = layer as AdjustmentLayer;
       const filters = adjLayer.adjustmentFilters || {
         brightness: 100,
@@ -1034,7 +1090,7 @@ export const AdjustmentLayerItem = React.memo(
       return (
         <div
           ref={ref}
-          onMouseDown={(e) => onMouseDown(e, adjLayer)}
+          onPointerDown={(e) => onPointerDown(e, adjLayer)}
           onContextMenu={(e) => onContextMenu(e, adjLayer.id)}
           className="absolute cursor-move group adjustment-layer-item z-50 pointer-events-auto"
           style={{

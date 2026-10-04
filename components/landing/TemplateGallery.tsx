@@ -88,7 +88,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
     : TEMPLATE_COLLECTIONS.filter((t) => t.category === activeTab);
 
   return (
-    <section id="templates" className="py-36 relative bg-[#08080d] overflow-hidden">
+    <section id="templates" className="py-36 relative bg-surface-dark-0 overflow-hidden">
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.06] pointer-events-none" />
       <div className="absolute top-1/4 right-0 w-[600px] h-[600px] bg-neutral-600/10 blur-[180px] rounded-full pointer-events-none" />
 
@@ -129,7 +129,7 @@ export const TemplateGallery: React.FC<{ onGetStarted?: () => void }> = ({ onGet
         </div>
 
         {/* Gallery Grid */}
-        <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <motion.div layout id="templates-grid" data-testid="dashboard-templates-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <AnimatePresence>
             {filtered.map((item, idx) => (
               <motion.div

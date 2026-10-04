@@ -26,7 +26,7 @@ export const CommunityShowcase: React.FC<CommunityShowcaseProps> = ({ onGetStart
   }
 
   return (
-    <section className="py-32 relative bg-[#0a0a0c] overflow-hidden">
+    <section className="py-32 relative bg-surface-dark-0 overflow-hidden">
       <div className="max-w-[1400px] mx-auto px-6 mb-20 text-center flex flex-col items-center">
         <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight mb-6">
           Inspired by <span className="text-orange-500">Thousands.</span>
@@ -44,7 +44,7 @@ export const CommunityShowcase: React.FC<CommunityShowcaseProps> = ({ onGetStart
             <motion.div
               key={`${tmpl.id}-${idx}`}
               whileHover={{ y: -10, scale: 1.02 }}
-              className="w-[350px] aspect-video bg-[#13161a] rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative shrink-0 group/card"
+              className="w-[350px] aspect-video bg-surface-dark-2 rounded-3xl border border-white/5 overflow-hidden shadow-2xl relative shrink-0 group/card"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10" />
 

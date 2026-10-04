@@ -210,18 +210,50 @@ export function buildVariableStrokeOutline(pathData: string, widthFn: (t: number
   return d;
 }
 
-export function profileWidthFn(profile: 'uniform' | 'taper-start' | 'taper-end' | 'taper-both', baseWidth: number) {
+/**
+ * Extensibility Point: StrokeProfileStrategy Registry
+ * Evidence of pressure: The `profileWidthFn` function relied on a hard-coded switch statement
+ * and the options were hardcoded in `ShapeTools.tsx`.
+ * Contract: Implementors must provide a `getWidth` method that accepts the normalized parameter `t`
+ * and the `baseWidth` of the stroke, and returns the computed width. They must also provide
+ * `id` and `label` for UI generation.
+ * The registry enables registering new stroke profiles without touching core logic or UI elements.
+ */
+export interface StrokeProfileStrategy {
+  id: string;
+  label: string;
+  getWidth(t: number, baseWidth: number): number;
+}
+
+export const strokeProfileStrategies = new Map<string, StrokeProfileStrategy>();
+
+strokeProfileStrategies.set('uniform', {
+  id: 'uniform',
+  label: 'Uniform',
+  getWidth: (_t, baseWidth) => baseWidth,
+});
+
+strokeProfileStrategies.set('taper-start', {
+  id: 'taper-start',
+  label: 'Taper Start',
+  getWidth: (t, baseWidth) => baseWidth * (0.2 + 0.8 * t),
+});
+
+strokeProfileStrategies.set('taper-end', {
+  id: 'taper-end',
+  label: 'Taper End',
+  getWidth: (t, baseWidth) => baseWidth * (0.2 + 0.8 * (1 - t)),
+});
+
+strokeProfileStrategies.set('taper-both', {
+  id: 'taper-both',
+  label: 'Taper Both',
+  getWidth: (t, baseWidth) => baseWidth * (0.2 + 0.8 * (1 - Math.abs(0.5 - t) * 2)),
+});
+
+export function profileWidthFn(profile: string, baseWidth: number) {
   return (t: number) => {
-    switch (profile) {
-      case 'taper-start':
-        return baseWidth * (0.2 + 0.8 * t); // small at start, full at end
-      case 'taper-end':
-        return baseWidth * (0.2 + 0.8 * (1 - t)); // full at start, small at end
-      case 'taper-both':
-        return baseWidth * (0.2 + 0.8 * (1 - Math.abs(0.5 - t) * 2)); // small at both ends
-      case 'uniform':
-      default:
-        return baseWidth;
-    }
+    const strategy = strokeProfileStrategies.get(profile) || strokeProfileStrategies.get('uniform');
+    return strategy ? strategy.getWidth(t, baseWidth) : baseWidth;
   };
 }

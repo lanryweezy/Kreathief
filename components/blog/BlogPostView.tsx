@@ -159,7 +159,7 @@ export const BlogPostView: React.FC = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="aspect-[21/9] rounded-[32px] overflow-hidden mb-16 shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 bg-[#111] relative"
+            className="aspect-[21/9] rounded-[32px] overflow-hidden mb-16 shadow-[0_30px_60px_rgba(0,0,0,0.6)] border border-white/10 bg-surface-dark-1 relative"
           >
             <div className="absolute inset-0 bg-gradient-to-t from-surface-dark-0 via-transparent to-transparent z-10 opacity-60" />
             <img src={post.image} alt={post.title} className="w-full h-full object-cover relative z-0" />

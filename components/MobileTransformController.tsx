@@ -29,7 +29,7 @@ export const MobileTransformController: React.FC = () => {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 z-40 md:hidden animate-in slide-in-from-bottom-4 duration-300">
-      <div className="bg-[#1a1d21]/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 flex flex-col gap-4">
+      <div className="bg-surface-dark-2/90 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-4 flex flex-col gap-4">
         {/* Quick Sliders */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -127,14 +127,16 @@ export const MobileTransformController: React.FC = () => {
           <div className="flex flex-col gap-2">
             <div className="flex gap-2">
               <button
-                aria-label={selectedLayer.locked ? 'Unlock layer' : 'Lock layer'}
+                aria-label="Lock layer"
+                aria-pressed={selectedLayer.locked}
                 onClick={() => updateLayer(selectedLayer.id, { locked: !selectedLayer.locked })}
                 className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${selectedLayer.locked ? 'bg-orange-500/20 border-orange-500/30 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}
               >
                 {selectedLayer.locked ? <Icons.Lock className="w-5 h-5" /> : <Icons.Unlock className="w-5 h-5" />}
               </button>
               <button
-                aria-label={selectedLayer.visible ? 'Hide layer' : 'Show layer'}
+                aria-label="Hide layer"
+                aria-pressed={!selectedLayer.visible}
                 onClick={() => updateLayer(selectedLayer.id, { visible: !selectedLayer.visible })}
                 className={`w-12 h-12 flex items-center justify-center rounded-2xl border transition-all ${!selectedLayer.visible ? 'bg-red-500/20 border-red-500/30 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}
               >

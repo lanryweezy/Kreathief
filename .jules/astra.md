@@ -133,3 +133,13 @@
 
 **Learning:** Omitting `responseSchema` on complex nested LLM generations (like generating multi-layer structured artboards in `aiDesignDirector.ts`) causes unpredictable property omissions and format variations that lead to mapping failures. Additionally, interpolating raw `prompt` directly into the payload poses injection risks.
 **Action:** Always provide a fully populated `responseSchema` (using `SchemaType.OBJECT`) alongside `responseMimeType: 'application/json'` that matches the expected interface for complex output, and sanitize user prompts using `.trim().substring(0, 1000)` before use.
+
+## 2024-05-24 - Safe JSON Parsing Fallback
+
+**Learning:** When passing empty strings to `JSON.parse` (via wrappers like `safeParseJSON`), it throws a `SyntaxError: Unexpected end of JSON input`, which can lead to uncaught exceptions in the error handler if it attempts string operations like `.substring()`.
+**Action:** Always use `'null'` as the fallback string for raw LLM text inputs (e.g., `rawText || 'null'`) when calling JSON parsers to ensure they safely return `null` and trigger intended fallback/error-handling logic without crashing.
+
+## 2026-09-10 - Centralize AI Helpers with Native System Instructions and Input Sanitization
+
+**Learning:** Refactoring inline AI implementations (like `handleToneRewrite` and `suggestFontPairing` which use generic `generateText` with concatenated prompts) into dedicated helper functions in `geminiService` centralizes logic, avoids convoluted stacked personas, leverages native `systemInstruction`, and enables input sanitization to mitigate prompt injection and payload bloat.
+**Action:** When creating features needing AI-generated text, do not construct prompts inline in state controllers using generic text generators. Instead, build dedicated helper functions in the AI service layer that leverage the native `systemInstruction` field, sanitize inputs, and use the `@google/generative-ai` `SchemaType` validation API.

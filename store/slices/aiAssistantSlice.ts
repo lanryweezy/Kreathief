@@ -2,11 +2,11 @@ import { agenticCopilot } from '../../services/agenticCopilot';
 import { StateCreator } from 'zustand';
 import { AIAssistantState, DesignCritique, DesignSuggestion, ChatMessage, DesignContext, SpatialPin } from '../../types';
 import * as aiService from '../../services/aiService';
+import { critiqueDesign, DesignCritiqueResult } from '../../services/designCritiqueEngine';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { v4 as uuidv4 } from 'uuid';
 import type { StoreState } from '../useStore';
-
 
 export interface AIAssistantSlice extends AIAssistantState {
   // Actions
@@ -25,6 +25,10 @@ export interface AIAssistantSlice extends AIAssistantState {
   sendMessage: (message: string, overridePin?: SpatialPin | null) => Promise<void>;
   clearConversation: () => void;
 
+  // Enhanced critique
+  enhancedCritique: DesignCritiqueResult | null;
+  analyzeDesignEnhanced: () => Promise<DesignCritiqueResult | null>;
+
   // Suggestions
   dismissSuggestion: (suggestionId: string) => void;
   applySuggestion: (suggestionId: string) => void;
@@ -42,6 +46,7 @@ const initialState: AIAssistantState = {
   isActive: false,
   isAnalyzing: false,
   currentCritique: undefined,
+  enhancedCritique: null,
   conversationHistory: [],
   lastAnalysis: 0,
   autoSuggest: true,
@@ -158,9 +163,65 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
     }
   },
 
+  enhancedCritique: null,
+
+  analyzeDesignEnhanced: async () => {
+    const state = get();
+    const activeArtboard = state.artboards?.find((a: any) => a.id === state.activeArtboardId);
+
+    if (!activeArtboard) {
+      log.warn('[AI Assistant] No active artboard to analyze');
+      return null;
+    }
+
+    set({ isAnalyzing: true });
+
+    try {
+      const context: DesignContext = {
+        canvasSize: state.canvasSize || { width: 1080, height: 1080, name: 'Square' },
+        layerCount: activeArtboard.layers.length,
+        hasText: activeArtboard.layers.some((l: any) => l.type === 'text'),
+        hasImages: activeArtboard.layers.some((l: any) => l.type === 'image'),
+        colorPalette: (state as any).documentColors || [],
+        fontFamilies: [
+          ...new Set(
+            activeArtboard.layers
+              .filter((l: any) => l.type === 'text')
+              .map((l: any) => l.fontFamily as string)
+              .filter(Boolean)
+          ),
+        ] as string[],
+        brandKit: state.brandKits?.find((bk: any) => bk.id === state.activeBrandKitId),
+        purpose: state.projectTitle?.toLowerCase().includes('social') ? 'social_post' : undefined,
+      };
+
+      const result = await critiqueDesign(activeArtboard, context, context.brandKit);
+
+      set({
+        enhancedCritique: result,
+        isAnalyzing: false,
+        lastAnalysis: Date.now(),
+      });
+
+      const analysisMessage: ChatMessage = {
+        id: uuidv4(),
+        role: 'assistant',
+        content: `Design Critique: ${result.letterGrade} (${result.overallScore}/100)\n\n${result.summary}\n\nQuick wins:\n${result.quickWins.map((w) => `• ${w}`).join('\n')}`,
+        timestamp: Date.now(),
+      };
+
+      get().addMessage(analysisMessage);
+      return result;
+    } catch (error) {
+      log.error('[AI Assistant] Enhanced analysis failed', error);
+      set({ isAnalyzing: false });
+      return null;
+    }
+  },
+
   sendMessage: async (message: string, overridePin?: SpatialPin | null) => {
     const state = get();
-    
+
     analyticsService.track('agent_chat', { message_length: message.length });
 
     // Add user message
@@ -176,7 +237,7 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
       isAnalyzing: true,
       lastAnalysisTimestamp: Date.now(),
     }));
-    
+
     try {
       // 🚀 AGENTIC ROUTING 🚀
       // Route the natural language through the Agentic Copilot to execute state mutations
@@ -186,26 +247,26 @@ export const createAIAssistantSlice: StateCreator<StoreState, [], [], AIAssistan
 
       const targetPin = overridePin !== undefined ? overridePin : state.spatialPin;
       const aiResponse = await agenticCopilot.processCommand(message, targetPin);
-      
+
       if (typeof state.endBatch === 'function') state.endBatch();
-      
+
       const aiMessage: ChatMessage = {
         id: uuidv4(),
         role: 'assistant',
         content: aiResponse,
         timestamp: Date.now(),
       };
-      
+
       set((state: any) => ({
         conversation: [...state.conversation, aiMessage],
         isAnalyzing: false,
       }));
-      
     } catch (error) {
       log.error('[aiAssistantSlice] Error in Agentic Copilot:', error);
       set({ isAnalyzing: false });
     }
   },
+
   clearConversation: () => {
     set({
       conversationHistory: [],

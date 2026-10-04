@@ -4,16 +4,16 @@ import { COMPANY_LOGOS } from './CompanyLogos';
 
 export const LogoTicker: React.FC = () => {
   const avatars = [
-    '/images/avatar_1_1772614969136.png',
-    '/images/avatar_2_1772614992003.png',
-    '/images/avatar_3_1772615019487.png',
-    '/images/avatar_4_1772615076735.png',
-    '/images/avatar_5_1772615099721.png',
-    '/images/avatar_6_1772615117433.png',
+    '/images/avatar_1_1772614969136.webp',
+    '/images/avatar_2_1772614992003.webp',
+    '/images/avatar_3_1772615019487.webp',
+    '/images/avatar_4_1772615076735.webp',
+    '/images/avatar_5_1772615099721.webp',
+    '/images/avatar_6_1772615117433.webp',
   ];
 
   return (
-    <section className="py-20 relative bg-[#08080d] overflow-hidden border-y border-white/5">
+    <section className="py-20 relative bg-surface-dark-0 overflow-hidden border-y border-white/5">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
 
       <div className="max-w-7xl mx-auto px-6 mb-12 flex flex-col md:flex-row items-center justify-between gap-8">

@@ -545,6 +545,17 @@ export interface GroupLayer extends LayerBase {
 
 export type Layer = TextLayer | ImageLayer | ShapeLayer | AdjustmentLayer | GroupLayer;
 
+export interface TextureOverlayConfig {
+  id: string;
+  name: string;
+  category: 'paper' | 'halftone' | 'grunge' | 'film' | 'holographic' | 'fabric' | 'microgrid' | 'foil';
+  svgDataUri: string;
+  opacity: number; // 0-1
+  blendMode: 'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light' | 'normal';
+  scale?: number;
+  invert?: boolean;
+}
+
 export interface Artboard {
   id: string;
   name: string;
@@ -554,6 +565,7 @@ export interface Artboard {
   height: number;
   layers: Layer[];
   backgroundColor?: string;
+  textureOverlay?: TextureOverlayConfig;
 
   storyNode?: {
     id: string;
@@ -582,6 +594,12 @@ export interface CanvasFilters {
   overlayTexture?: string; // CSS url or data URI for vintage texture overlay
 }
 
+export interface GuideLine {
+  id: string;
+  type: 'horizontal' | 'vertical';
+  position: number; // in artboard coordinate space (px)
+}
+
 export interface HistoryState {
   artboards: Artboard[];
   activeArtboardId?: string;
@@ -590,6 +608,9 @@ export interface HistoryState {
   canvasSize?: { width: number; height: number; name: string };
   showGrid?: boolean;
   showRulers?: boolean;
+  guides?: GuideLine[];
+  gridSize?: number;
+  gridColor?: string;
   brandKits?: BrandKit[];
   selectedLayerIds?: string[];
 }
@@ -723,7 +744,7 @@ export type ReferenceAnalysisStatus = 'analyzing' | 'ready' | 'failed';
  */
 export type ReferenceAppliedMode = 'native' | 'descriptor' | 'none';
 export type ReferenceStrength = 'subtle' | 'balanced' | 'strong';
-export type PromptArchetype = 'cinematic' | 'artistic' | 'product' | 'render_3d' | 'vector_graphic';
+export type PromptArchetype = string; // Extensible archetype string
 
 export interface StyleReference {
   id: string;
@@ -894,6 +915,7 @@ export interface AIAssistantState {
   isActive: boolean;
   isAnalyzing: boolean;
   currentCritique?: DesignCritique;
+  enhancedCritique?: any; // DesignCritiqueResult from designCritiqueEngine
   conversationHistory: any[];
   lastAnalysis: number;
   autoSuggest: boolean;

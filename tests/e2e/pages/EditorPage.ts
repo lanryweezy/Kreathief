@@ -9,6 +9,7 @@ export class EditorPage {
   readonly exportButton: Locator;
   readonly layersPanel: Locator;
   readonly sidebar: Locator;
+  readonly toolbar: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -19,6 +20,7 @@ export class EditorPage {
     this.exportButton = page.getByRole('button', { name: 'Export' });
     this.layersPanel = page.getByTestId('layers-panel');
     this.sidebar = page.locator('#sidebar, [data-testid="sidebar"]').first();
+    this.toolbar = page.locator('#toolbar, [data-testid="toolbar"], .toolbar').first();
   }
 
   async goto() {
@@ -41,12 +43,9 @@ export class EditorPage {
   }
 
   async openLayersPanel() {
-    const isVisible = await this.page.locator('[data-testid="layers-panel"]').isVisible();
-    if (!isVisible) {
-      const layersTab = this.page.locator('button[aria-label="Layers"]').first();
-      await layersTab.click();
-      await this.page.waitForTimeout(500);
-    }
+    const layersTab = this.page.getByRole('button', { name: 'Layers' });
+    await layersTab.click();
+    await this.page.waitForTimeout(500);
   }
 
   async getLayerCount(): Promise<number> {

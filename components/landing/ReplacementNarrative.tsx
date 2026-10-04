@@ -16,7 +16,7 @@ export const ReplacementNarrative: React.FC<ReplacementNarrativeProps> = ({ onGe
   ];
 
   return (
-    <section className="py-24 relative bg-[#0a0a0c] border-y border-white/5">
+    <section className="py-24 relative bg-surface-dark-0 border-y border-white/5">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
           <motion.div

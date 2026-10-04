@@ -33,7 +33,7 @@ export const MobileNavBar: React.FC<MobileNavBarProps> = ({ activeTab, onSelectT
       aria-label="Main navigation"
     >
       {/* Backdrop blur effect */}
-      <div className="absolute inset-0 backdrop-blur-xl bg-[#0e1318]/95 border-t border-white/5" />
+      <div className="absolute inset-0 backdrop-blur-xl bg-surface-dark-1/95 border-t border-white/5" />
 
       <div className="relative flex justify-around items-center h-16 px-4 pb-safe">
         {navItems.map(({ id, icon: Icon, label, gradient }) => {

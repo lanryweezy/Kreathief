@@ -128,7 +128,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
             <button
               key={index}
               onClick={() => onColorSelect(color)}
-              className="px-2 py-1 bg-[#0e1318] border border-gray-700 rounded text-[10px] font-mono text-gray-300 hover:border-brand-600 transition-colors"
+              className="px-2 py-1 bg-surface-dark-1 border border-gray-700 rounded text-[10px] font-mono text-gray-300 hover:border-brand-600 transition-colors"
             >
               {color.toUpperCase()}
             </button>
@@ -177,7 +177,7 @@ export const ColorHarmonyGenerator: React.FC<ColorHarmonyGeneratorProps> = ({ ba
       </div>
 
       {/* Accessibility Info */}
-      <div className="bg-[#0e1318] rounded-lg p-3 border border-gray-800">
+      <div className="bg-surface-dark-1 rounded-lg p-3 border border-gray-800">
         <div className="flex items-center justify-between mb-2">
           <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
             <Icons.Shield className="w-3.5 h-3.5" />

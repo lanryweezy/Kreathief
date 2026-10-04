@@ -1,5 +1,4 @@
 import { log } from '../utils/log';
-import { computeAutoLayout } from '../utils/autoLayout';
 
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Icons } from '../constants';
@@ -26,6 +25,7 @@ const ShareModal = React.lazy(() =>
   import('./modals/ShareModal').then((m) => ({ default: m.ShareModal }))
 );
 import { MockupPanel } from './panels/MockupPanel';
+import { ComponentPropertiesPanel } from './panels/ComponentPropertiesPanel';
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
@@ -141,10 +141,6 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
 
 
 
-  // AutoLayout Reactivity Engine
-  useEffect(() => {
-    const allUpdates: Record<string, any> = {};
-    let didFindUpdates = false;
 
     for (const artboard of artboards) {
       const groupsWithLayout = artboard.layers.filter((l: Layer) => l.type === 'group' && (l as any).autoLayout);
@@ -182,6 +178,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
       useStore.getState().updateLayers(allUpdates);
     }
   }, [artboards]);
+
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -538,9 +535,12 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           </div>
         </div>
 
+        {/* Floating Panels */}
+        {!isMobile && <ComponentPropertiesPanel />}
+
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && !isMobile && (
-          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] shrink-0">
+          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-surface-dark-3 shrink-0">
             {/* Panel content (Unified Agent Interface) */}
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col relative">
               <React.Suspense

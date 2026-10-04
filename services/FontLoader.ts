@@ -13,8 +13,22 @@ const customFonts = new Set<string>();
 // Families that failed both local and CDN loads — avoids re-injecting dead <link> tags
 const failedFonts = new Set<string>();
 
-// Fonts already loaded globally via Google Fonts in index.html
-const LOCAL_FONTS = ['Inter', 'Outfit'];
+// Fonts already loaded globally via fonts.css
+const LOCAL_FONTS = [
+  'Inter',
+  'Space Grotesk',
+  'Outfit',
+  'Kreathief001',
+  'Kreathief002',
+  'Kreathief003',
+  'Kreathief004',
+  'Kreathief005',
+  'Kreathief006',
+  'Kreathief007',
+  'Kreathief009',
+  'Kreathief010',
+  'Kreathief011',
+];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
 type FontToastCallback = (message: string, type: 'success' | 'error' | 'warning' | 'info') => void;

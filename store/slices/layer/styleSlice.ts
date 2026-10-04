@@ -1,11 +1,11 @@
 import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
-import { Artboard, TextLayer } from '../../../types';
+import { Artboard, TextLayer, Layer } from '../../../types';
 import { LayerSlice } from './baseSlice';
 
 export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSlice>> = (set) => ({
   applyTexture: (textureUrl, _intensity) =>
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l) => {
@@ -18,7 +18,7 @@ export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSli
     })),
 
   removeTexture: () =>
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l) => {
@@ -43,7 +43,7 @@ export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSli
     // Pick a random palette
     const targetPalette = PALETTES[Math.floor(Math.random() * PALETTES.length)];
 
-    set((state: any) => {
+    set((state) => {
       // First, collect all unique solid colors currently used in the active artboard
       const activeArtboard =
         state.artboards.find((a: Artboard) => a.id === state.activeArtboardId) || state.artboards[0];
@@ -99,7 +99,7 @@ export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSli
   },
 
   syncTextStyleAcrossProject: (sourceLayerId: string) => {
-    set((state: any) => {
+    set((state) => {
       // Find the source layer
       let sourceLayer: TextLayer | undefined;
       for (const a of state.artboards) {
@@ -162,18 +162,18 @@ export const createStyleSlice: StateCreator<StoreState, [], [], Partial<LayerSli
   setEditingPathId: (id) => set({ editingPathId: id }),
 
   onUpdatePath: (id, updates) =>
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.map((l) => (l.id === id ? { ...l, ...updates } : l)),
+        layers: a.layers.map((l) => (l.id === id ? { ...l, ...updates } as Layer : l)),
       })),
     })),
 
   applyMask: (targetId, maskId) =>
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
-        layers: a.layers.map((l) => (l.id === targetId ? { ...l, maskLayerId: maskId || undefined } : l)),
+        layers: a.layers.map((l) => (l.id === targetId ? { ...l, maskLayerId: maskId || undefined } as Layer : l)),
       })),
     })),
 });

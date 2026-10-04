@@ -87,19 +87,19 @@ export const TransformPanel: React.FC = () => {
           x = first.x;
         }
         if (type === 'center') {
-          x = first.x + ((first as any).width - (l as any).width) / 2;
+          x = first.x + (first.width - l.width) / 2;
         }
         if (type === 'right') {
-          x = first.x + (first as any).width - (l as any).width;
+          x = first.x + first.width - l.width;
         }
         if (type === 'top') {
           y = first.y;
         }
         if (type === 'middle') {
-          y = first.y + ((first as any).height - (l as any).height) / 2;
+          y = first.y + (first.height - l.height) / 2;
         }
         if (type === 'bottom') {
-          y = first.y + (first as any).height - (l as any).height;
+          y = first.y + first.height - l.height;
         }
 
         updates[l.id] = { x, y };
@@ -203,7 +203,7 @@ export const TransformPanel: React.FC = () => {
               if (!isNaN(val)) {
                 if (aspectLocked && selectedLayers.length === 1) {
                   const layer = selectedLayers[0];
-                  const aspect = ((layer as any).width || 1) / ((layer as any).height || 1);
+                  const aspect = (layer.width || 1) / (layer.height || 1);
                   updateLayers({ [layer.id]: { width: val, height: Math.round(val / aspect) } as any });
                 } else {
                   handleBatchUpdate('width', val);
@@ -233,7 +233,7 @@ export const TransformPanel: React.FC = () => {
               if (!isNaN(val)) {
                 if (aspectLocked && selectedLayers.length === 1) {
                   const layer = selectedLayers[0];
-                  const aspect = ((layer as any).width || 1) / ((layer as any).height || 1);
+                  const aspect = (layer.width || 1) / (layer.height || 1);
                   updateLayers({ [layer.id]: { height: val, width: Math.round(val * aspect) } as any });
                 } else {
                   handleBatchUpdate('height', val);

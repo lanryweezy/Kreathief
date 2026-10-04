@@ -3,85 +3,61 @@
  * Provides tactile feedback for user interactions
  */
 
+const vibrate = (pattern: number | number[]) => {
+  if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+    try {
+      navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+};
+
 export const haptics = {
   /**
    * Light haptic feedback for subtle interactions
    * Use for: hover states, selections, minor actions
    */
-  light: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-  },
+  light: () => vibrate(10),
 
   /**
    * Medium haptic feedback for standard interactions
    * Use for: button clicks, toggles, confirmations
    */
-  medium: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(20);
-    }
-  },
+  medium: () => vibrate(20),
 
   /**
    * Heavy haptic feedback for important interactions
    * Use for: destructive actions, major changes
    */
-  heavy: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(30);
-    }
-  },
+  heavy: () => vibrate(30),
 
   /**
    * Success pattern - double tap
    * Use for: successful operations, completions
    */
-  success: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([10, 50, 10]);
-    }
-  },
+  success: () => vibrate([10, 50, 10]),
 
   /**
    * Error pattern - triple tap
    * Use for: errors, failures, warnings
    */
-  error: () => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate([20, 100, 20, 100, 20]);
-    }
-  },
+  error: () => vibrate([20, 100, 20, 100, 20]),
 
   /**
    * Selection pattern - single short tap
    * Use for: selecting items, toggling states
    */
-  selection: () => {
-    if ('vibrate' in navigator) {
-      try {
-        navigator.vibrate(15);
-      } catch (e) {}
-    }
-  },
+  selection: () => vibrate(15),
 
   /**
    * Snap pattern - micro tap when aligning to guides
    * Use for: snapping to center guides, edges, grid
    */
-  snap: () => {
-    if ('vibrate' in navigator) {
-      try {
-        navigator.vibrate(5);
-      } catch (e) {}
-    }
-  },
+  snap: () => vibrate(5),
 
   /**
    * Check if haptics are supported
    */
   isSupported: () => {
-    return 'vibrate' in navigator;
+    return typeof navigator !== 'undefined' && 'vibrate' in navigator;
   },
 };

@@ -1,7 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { DashboardPage } from '../pages/DashboardPage';
 import { EditorPage } from '../pages/EditorPage';
-import { ShapeToolsPage } from '../pages/ShapeToolsPage';
 
 test.describe('Full Design Workflow', () => {
   test('should complete full design workflow from creation to export', async ({ page }) => {
@@ -18,6 +17,8 @@ test.describe('Full Design Workflow', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     const dashboard = new DashboardPage(page);
@@ -46,8 +47,10 @@ test.describe('Full Design Workflow', () => {
     // Step 5: Add shape
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
-    await page.waitForTimeout(500);
-    const shapeBtn = page.locator('button[title*="Rectangle"], button[title*="Square"], button[title*="Circle"]').first();
+
+    const shapeBtn = page
+      .locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]')
+      .first();
     await expect(shapeBtn).toBeVisible({ timeout: 10000 });
     await shapeBtn.click();
     await page.waitForTimeout(500);
@@ -70,10 +73,9 @@ test.describe('Full Design Workflow', () => {
     expect(download.suggestedFilename()).toContain('.png');
 
     // Step 9: Navigate back to dashboard
-    const backBtn = page.locator('button[aria-label="Go back to Dashboard"], button[aria-label="Back"], button:has-text("Back")').first();
+    const backBtn = page.locator('button[aria-label="Back"], button:has-text("Back")');
     if (await backBtn.isVisible()) {
       await backBtn.click();
-      await page.waitForTimeout(1000);
       await dashboard.verifyDashboardLoaded();
     }
 

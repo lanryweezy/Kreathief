@@ -62,7 +62,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
       <div ref={sentinelRef} className="absolute top-0 left-0 w-full h-8 pointer-events-none -z-10" aria-hidden="true" />
       <SEO />
 
+            {/* Skip navigation link for keyboard/screen reader users */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
       {/* Navigation */}
+      <header>
       <nav
         className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${
           scrolled
@@ -151,8 +160,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
           </div>
         </motion.div>
       </nav>
+      </header>
 
-      <main>
+      <main id="main-content">
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
         <ModelIntegration />

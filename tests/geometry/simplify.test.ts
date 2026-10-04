@@ -1,6 +1,17 @@
 import { describe, it, expect } from 'vitest';
-import { parsePathData, cleanPathData, countAnchors } from '../../geometry/simplify';
+import {
+  parsePathData,
+  cleanPathData,
+  countAnchors,
+  simplifyPath,
+  smoothPath,
+  flattenPath,
+  reversePath,
+  splitPath,
+  removeSmallSegments,
+} from '../../geometry/simplify';
 import { Point } from '../../geometry/bezier';
+import { VectorPath } from '../../types';
 
 const allPoints = (d: string): Point[] =>
   parsePathData(d).flatMap((s) => s.pts);
@@ -30,7 +41,6 @@ describe('parsePathData', () => {
   });
 
   it('expands implicit repeated coordinate pairs', () => {
-    // "L 1 1 2 2" is two linetos.
     const pts = allPoints('M0 0 L1 1 2 2');
     expect(pts).toEqual([
       { x: 0, y: 0 },
@@ -47,7 +57,6 @@ describe('cleanPathData', () => {
     const cleaned = cleanPathData(dirty);
     const after = countAnchors(cleaned);
     expect(after).toBeLessThan(before);
-    // A rectangle should reduce to its 4 corners.
     expect(after).toBe(4);
     expect(cleaned).toContain('Z');
   });
@@ -72,14 +81,13 @@ describe('cleanPathData', () => {
   it('RDP collapses jitter along an otherwise-straight edge', () => {
     const noisy = 'M0 0 L10 0.3 L20 -0.2 L30 0.15 L40 0';
     const cleaned = cleanPathData(noisy, { simplifyTolerance: 1 });
-    expect(countAnchors(cleaned)).toBe(2); // M0 0 -> L40 0
+    expect(countAnchors(cleaned)).toBe(2);
   });
 
   it('does NOT increase anchors on an already-clean curve path', () => {
     const clean = 'M50 6 C74 34 86 58 50 94 C14 58 26 34 50 6 Z';
     const out = cleanPathData(clean);
     expect(countAnchors(out)).toBeLessThanOrEqual(countAnchors(clean));
-    // Curve control points survive.
     expect(out).toMatch(/C/);
   });
 
@@ -88,7 +96,6 @@ describe('cleanPathData', () => {
     const out = cleanPathData(d);
     expect(out).toContain('A');
     expect(out).not.toMatch(/NaN|undefined/);
-    // large-arc (0) and sweep (1) flags preserved.
     expect(out).toMatch(/A\s*10\s*10\s*0\s*0\s*1\s*20\s*0/);
   });
 
@@ -102,5 +109,110 @@ describe('cleanPathData', () => {
     const messy = 'M0 0 l10 0 10 0 h10 v10 l-20 0 Z';
     const out = cleanPathData(messy);
     expect(out).not.toMatch(/NaN|undefined/);
+  });
+});
+
+describe('simplifyPath', () => {
+  it('returns original path if less than 3 points', () => {
+    const path: VectorPath = {
+      points: [
+        { id: 'p1', x: 0, y: 0, type: 'sharp' },
+        { id: 'p2', x: 10, y: 10, type: 'sharp' },
+      ],
+      isClosed: false,
+    };
+    expect(simplifyPath(path)).toEqual(path);
+  });
+});
+
+describe('flattenPath', () => {
+  it('removes all handles and sets type to sharp', () => {
+    const path: VectorPath = {
+      points: [
+        {
+          id: 'p1',
+          x: 0,
+          y: 0,
+          type: 'smooth',
+          handleIn: { x: -5, y: -5 },
+          handleOut: { x: 5, y: 5 },
+        },
+        {
+          id: 'p2',
+          x: 50,
+          y: 50,
+          type: 'smooth',
+          handleIn: { x: -10, y: 0 },
+        },
+      ],
+      isClosed: false,
+    };
+    const flat = flattenPath(path);
+    expect(flat.points[0].handleIn).toBeUndefined();
+    expect(flat.points[0].handleOut).toBeUndefined();
+    expect(flat.points[0].type).toBe('sharp');
+    expect(flat.points[1].handleIn).toBeUndefined();
+  });
+});
+
+describe('reversePath', () => {
+  it('reverses order of points and swaps handleIn and handleOut', () => {
+    const path: VectorPath = {
+      points: [
+        { id: 'p1', x: 0, y: 0, type: 'smooth', handleIn: { x: -2, y: -2 }, handleOut: { x: 3, y: 3 } },
+        { id: 'p2', x: 100, y: 100, type: 'sharp' },
+      ],
+      isClosed: false,
+    };
+    const reversed = reversePath(path);
+    expect(reversed.points[0].x).toBe(100);
+    expect(reversed.points[1].x).toBe(0);
+    expect(reversed.points[1].handleIn).toEqual({ x: 3, y: 3 });
+    expect(reversed.points[1].handleOut).toEqual({ x: -2, y: -2 });
+  });
+});
+
+describe('splitPath', () => {
+  it('splits path at the given index into two paths', () => {
+    const path: VectorPath = {
+      points: [
+        { id: 'p0', x: 0, y: 0, type: 'sharp' },
+        { id: 'p1', x: 10, y: 10, type: 'sharp' },
+        { id: 'p2', x: 20, y: 20, type: 'sharp' },
+        { id: 'p3', x: 30, y: 30, type: 'sharp' },
+      ],
+      isClosed: false,
+    };
+    const [p1, p2] = splitPath(path, 2);
+    expect(p1.points.map((p) => p.id)).toEqual(['p0', 'p1', 'p2']);
+    expect(p2.points.map((p) => p.id)).toEqual(['p2', 'p3']);
+  });
+
+  it('returns original and empty path when split index is out of bounds', () => {
+    const path: VectorPath = {
+      points: [
+        { id: 'p0', x: 0, y: 0, type: 'sharp' },
+        { id: 'p1', x: 10, y: 10, type: 'sharp' },
+      ],
+      isClosed: false,
+    };
+    const [p1, p2] = splitPath(path, 0);
+    expect(p1).toEqual(path);
+    expect(p2.points).toEqual([]);
+  });
+});
+
+describe('removeSmallSegments', () => {
+  it('filters out consecutive points closer than threshold', () => {
+    const path: VectorPath = {
+      points: [
+        { id: 'p0', x: 0, y: 0, type: 'sharp' },
+        { id: 'p1', x: 0.5, y: 0.5, type: 'sharp' },
+        { id: 'p2', x: 10, y: 10, type: 'sharp' },
+      ],
+      isClosed: false,
+    };
+    const filtered = removeSmallSegments(path, 2);
+    expect(filtered.points.map((p) => p.id)).toEqual(['p0', 'p2']);
   });
 });

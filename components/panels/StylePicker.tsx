@@ -49,7 +49,7 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
           </span>
         </div>
         {onClose && (
-          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+          <button aria-label="Close style picker" onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
             <Icons.X className="w-4 h-4" />
           </button>
         )}
@@ -68,6 +68,7 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
           />
           {search && (
             <button
+              aria-label="Clear search"
               onClick={() => setSearch('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white"
             >
@@ -231,6 +232,7 @@ export const StyleChip: React.FC<{
       <span className="font-medium text-white">{style.icon} {style.name}</span>
       {onRemove && (
         <button
+          aria-label="Remove style"
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
           className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
         >

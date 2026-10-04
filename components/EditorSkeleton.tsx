@@ -24,7 +24,7 @@ export const EditorSkeleton: React.FC = () => {
 
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar Skeleton */}
-        <div className="w-[72px] bg-surface-dark-2 border-r border-[#1f1f1f] flex flex-col items-center py-4 gap-4 shrink-0">
+        <div className="w-[72px] bg-surface-dark-2 border-r border-surface-dark-3 flex flex-col items-center py-4 gap-4 shrink-0">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1 w-full px-2">
               <Skeleton className="w-10 h-10 rounded-xl" />
@@ -40,7 +40,7 @@ export const EditorSkeleton: React.FC = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col bg-surface-dark-3 relative overflow-hidden">
           {/* Toolbar Skeleton */}
-          <div className="h-12 bg-[#1a1d21] border-b border-white/5 flex items-center px-4 gap-4 shrink-0">
+          <div className="h-12 bg-surface-dark-2 border-b border-white/5 flex items-center px-4 gap-4 shrink-0">
             <Skeleton className="w-32 h-6 rounded-lg" />
             <div className="w-px h-4 bg-gray-800" />
             <Skeleton className="w-48 h-6 rounded-lg" />
@@ -59,7 +59,7 @@ export const EditorSkeleton: React.FC = () => {
         </div>
 
         {/* Properties Panel Skeleton (If expanded) */}
-        <div className="w-[320px] bg-surface-dark-2 border-l border-[#1f1f1f] hidden xl:flex flex-col p-6 gap-6">
+        <div className="w-[320px] bg-surface-dark-2 border-l border-surface-dark-3 hidden xl:flex flex-col p-6 gap-6">
           <div className="space-y-2">
             <Skeleton className="w-24 h-3 rounded uppercase tracking-widest opacity-50" />
             <Skeleton className="w-full h-10 rounded-xl" />

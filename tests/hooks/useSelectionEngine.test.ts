@@ -87,8 +87,86 @@ describe('useSelectionEngine', () => {
     expect(result.current.isLocked('l1')).toBe(true);
     expect(result.current.isLocked('l2')).toBe(false);
   });
-  it('selectionState defaults to idle', () => {
+  it('selectionState defaults to idle and transitions properly', () => {
     const { result } = renderHook(() => useSelectionEngine());
     expect(result.current.selectionState).toBe('idle');
+
+    act(() => result.current.startDragging());
+    expect(result.current.selectionState).toBe('dragging');
+
+    act(() => result.current.startResizing());
+    expect(result.current.selectionState).toBe('resizing');
+
+    act(() => result.current.startRotating());
+    expect(result.current.selectionState).toBe('rotating');
+
+    act(() => result.current.startSelecting());
+    expect(result.current.selectionState).toBe('selecting');
+
+    act(() => result.current.endInteraction());
+    expect(result.current.selectionState).toBe('idle');
+  });
+
+  describe('cycleSelectAtPoint', () => {
+    it('returns null and clears selection when clicking empty area', () => {
+      const { result } = renderHook(() => useSelectionEngine());
+      let chosen: string | null = null;
+      act(() => {
+        chosen = result.current.cycleSelectAtPoint({ x: 999, y: 999 });
+      });
+      expect(chosen).toBeNull();
+      expect(mockSetSelectedLayerIds).toHaveBeenCalledWith([]);
+    });
+
+    it('cycles through overlapping layers on repeated clicks at same point', () => {
+      // l1 and l3 overlap at (20, 20)
+      mockState.artboards[0].layers = [
+        layer({ id: 'l1', x: 0, y: 0, width: 50, height: 50 }),
+        layer({ id: 'l2', x: 200, y: 200, width: 50, height: 50 }),
+        layer({ id: 'l3', x: 10, y: 10, width: 50, height: 50 }),
+      ];
+
+      const { result } = renderHook(() => useSelectionEngine());
+
+      // First click at (20, 20) selects first candidate
+      let sel1: string | null = null;
+      act(() => {
+        sel1 = result.current.cycleSelectAtPoint({ x: 20, y: 20 });
+      });
+      expect(sel1).toBe('l1');
+      expect(mockSelectLayer).toHaveBeenCalledWith('l1');
+
+      // Second click at same point cycles to second candidate (l3)
+      let sel2: string | null = null;
+      act(() => {
+        sel2 = result.current.cycleSelectAtPoint({ x: 20, y: 20 });
+      });
+      expect(sel2).toBe('l3');
+      expect(mockSelectLayer).toHaveBeenCalledWith('l3');
+
+      // Third click cycles back to l1
+      let sel3: string | null = null;
+      act(() => {
+        sel3 = result.current.cycleSelectAtPoint({ x: 20, y: 20 });
+      });
+      expect(sel3).toBe('l1');
+    });
+
+    it('skips locked or invisible layers when cycling', () => {
+      mockState.artboards[0].layers = [
+        layer({ id: 'l1', x: 0, y: 0, width: 50, height: 50, locked: true }),
+        layer({ id: 'l2', x: 0, y: 0, width: 50, height: 50, visible: false }),
+        layer({ id: 'l3', x: 0, y: 0, width: 50, height: 50 }),
+      ];
+
+      const { result } = renderHook(() => useSelectionEngine());
+      let chosen: string | null = null;
+      act(() => {
+        chosen = result.current.cycleSelectAtPoint({ x: 25, y: 25 });
+      });
+      expect(chosen).toBe('l3');
+      expect(mockSelectLayer).toHaveBeenCalledWith('l3');
+    });
   });
 });
+

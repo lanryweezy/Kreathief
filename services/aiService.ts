@@ -21,7 +21,10 @@ import {
   buildHeroSplitComposition,
   buildFullBleedAtmosphericComposition,
   buildGlassCardComposition,
+  ARCHETYPE_SPECS,
+  ARCHETYPE_SUBHEADS,
 } from './designCompositionEngine';
+import { classifyDesignMovement, buildCompositionByStyleId, GRAPHIC_DESIGN_STYLES } from './graphicDesignStyles';
 
 
 // ─── Cache ───────────────────────────────────────────────────────────────────
@@ -290,7 +293,8 @@ export async function creativeAgentDraft(
   intent: string,
   canvasSize: { width: number; height: number },
   variantCount: number = 3,
-  strategy?: any
+  strategy?: any,
+  brandKit?: import('../types').BrandKit | null
 ): Promise<AgentVariant[]> {
   const cacheKey = `draft:${intent}:${canvasSize.width}x${canvasSize.height}:${variantCount}`;
   const cached = getCached<AgentVariant[]>(cacheKey);
@@ -299,17 +303,18 @@ export async function creativeAgentDraft(
   }
 
   // Generate high-aesthetic multi-layer graphic design variants with hero photography and contrast scrims
-  const proceduralVariants = generateProceduralDrafts(intent, canvasSize);
+  const proceduralVariants = generateProceduralDrafts(intent, canvasSize, brandKit);
 
   // Attempt to enrich copy using AI if available, otherwise return the production-grade compositions immediately
   try {
     const copyPrompt = `You are a World-Class Advertising Copywriter.
 Given the user's intent: "${intent.trim().substring(0, 500)}"
 Generate punchy, high-impact marketing copy for 3 visual design styles:
-1. Hero Split: { eyebrow: string (2-3 words), headline: string (3-5 words), subtitle: string (5-8 words), cta: string (2-3 words) }
-2. Full Bleed: { badge: string (2-3 words), headline: string (2-4 words), subtitle: string (4-7 words), cta: string (2-3 words) }
-3. Glass Card: { tag: string (1-2 words), headline: string (3-5 words), subtitle: string (4-8 words), metric: string, cta: string (2-3 words) }
+1. Hero Split: { eyebrow: string (2-3 words), headline: string (3-5 words), subtitle: string (8-14 words, MUST be a distinct explanatory value proposition, NEVER repeat the headline), cta: string (2-3 words) }
+2. Full Bleed: { badge: string (2-3 words), headline: string (2-4 words), subtitle: string (8-14 words, MUST be a distinct explanatory sentence, NEVER repeat the headline), cta: string (2-3 words) }
+3. Glass Card: { tag: string (1-2 words), headline: string (3-5 words), subtitle: string (8-14 words), metric: string (e.g. "★ 4.9 Rating · Verified Authentic"), cta: string (2-3 words) }
 
+CRITICAL RULE: The subtitle MUST NEVER equal or repeat the headline. Subtitle must provide descriptive supporting detail.
 Return ONLY JSON array of 3 objects with these keys.`;
 
     const data = await callBackendGeminiAPI({
@@ -317,6 +322,22 @@ Return ONLY JSON array of 3 objects with these keys.`;
       systemInstruction: copyPrompt,
       generationConfig: {
         responseMimeType: 'application/json',
+        // 🤖 Astra: Added explicit responseSchema to enforce strict output shape for marketing copy generation
+        responseSchema: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: {
+              eyebrow: { type: SchemaType.STRING },
+              headline: { type: SchemaType.STRING },
+              subtitle: { type: SchemaType.STRING },
+              cta: { type: SchemaType.STRING },
+              badge: { type: SchemaType.STRING },
+              tag: { type: SchemaType.STRING },
+              metric: { type: SchemaType.STRING },
+            },
+          },
+        },
         temperature: 0.7,
       },
       contents: [{ role: 'user', parts: [{ text: `Generate marketing copy for: "${intent}"` }] }],
@@ -324,33 +345,69 @@ Return ONLY JSON array of 3 objects with these keys.`;
 
     const parsedCopy = safeParseJSON<any[] | null>(data?.text || 'null', null);
     if (parsedCopy && Array.isArray(parsedCopy) && parsedCopy.length >= 3) {
+      const primaryArch = classifyDesignIntent(intent);
+
       // Inject AI-generated copy into the 3 composition frameworks
       const enriched = proceduralVariants.map((variant, idx) => {
         const copy = parsedCopy[idx];
         if (!copy) return variant;
+
+        const assignedHeadline = (copy.headline || '').trim();
+
+        // Helper: word-level similarity — returns true if ≥60% of subtitle words appear in headline
+        const isTooSimilar = (sub: string, head: string): boolean => {
+          const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+          const cleanSub2 = normalize(sub).replace(/[^a-z0-9]/g, '');
+          const cleanHead2 = normalize(head).replace(/[^a-z0-9]/g, '');
+          if (cleanSub2 === cleanHead2) return true;
+          const subWords = normalize(sub).split(/\s+/).filter(w => w.length > 2);
+          const headWords = new Set(normalize(head).split(/\s+/));
+          if (subWords.length === 0) return false;
+          const overlap = subWords.filter(w => headWords.has(w)).length;
+          return overlap / subWords.length >= 0.6;
+        };
 
         const updatedLayers = variant.layers.map((layer) => {
           if (layer.type !== 'text') return layer;
           const name = (layer.name || '').toLowerCase();
           let newText = (layer as any).text;
 
-          if (name.includes('eyebrow') || name.includes('pill') || name.includes('category')) {
+          if (name.includes('eyebrow') || name.includes('pill') || name.includes('category') || name.includes('tag')) {
             newText = (copy.eyebrow || copy.tag || copy.badge || newText).toUpperCase();
           } else if (name.includes('headline') || name.includes('title')) {
             newText = (copy.headline || newText).toUpperCase();
           } else if (name.includes('subtitle') || name.includes('subline') || name.includes('body')) {
-            newText = copy.subtitle || newText;
-          } else if (name.includes('cta') || name.includes('action')) {
-            newText = `${(copy.cta || 'EXPLORE NOW').toUpperCase()} →`;
+            const rawSub = (copy.subtitle || copy.subline || '').trim();
+
+            if (rawSub && rawSub.length > 5 && !isTooSimilar(rawSub, assignedHeadline)) {
+              newText = rawSub;
+            } else {
+              newText = ARCHETYPE_SUBHEADS[primaryArch] || 'Engineered with relentless precision, authentic materials, and uncompromising aesthetic clarity.';
+            }
+          } else if (name.includes('metric') || name.includes('spec') || name.includes('rating') || name.includes('stat')) {
+            newText = copy.metric || ARCHETYPE_SPECS[primaryArch] || newText;
+          } else if (name.includes('cta') || name.includes('action') || name.includes('button text')) {
+            const cleanCta = (copy.cta || 'EXPLORE NOW').replace(/→/g, '').trim().toUpperCase();
+            newText = `${cleanCta} →`;
           } else if (name.includes('badge') && copy.badge) {
             newText = copy.badge.toUpperCase();
           }
           return { ...layer, text: newText } as Layer;
         });
 
+        // Run post-enrichment polish to adjust bounding boxes and stacking for the new copy
+        const polishedVariant = polishDesignOutput({
+          title: variant.themeIdea,
+          description: variant.themeIdea,
+          backgroundColor: '#0a0a12',
+          width: variant.width || canvasSize.width,
+          height: variant.height || canvasSize.height,
+          layers: updatedLayers,
+        });
+
         return {
           ...variant,
-          layers: updatedLayers,
+          layers: polishedVariant.layers,
         };
       });
 
@@ -588,8 +645,35 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
   }
 }
 
-export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }): AgentVariant[] {
+export function generateProceduralDrafts(intent: string, canvasSize: { width: number; height: number }, brandKit?: import('../types').BrandKit | null): AgentVariant[] {
+  const movement = classifyDesignMovement(intent);
   const primaryArchetype = classifyDesignIntent(intent);
+
+  // If a graphic movement is detected, synthesize authentic movement design as primary variant
+  let movementVariant: AgentVariant | null = null;
+  if (movement) {
+    const rawResult = buildCompositionByStyleId(movement, canvasSize.width, canvasSize.height, intent);
+    const polished = polishDesignOutput(rawResult);
+    const meta = GRAPHIC_DESIGN_STYLES[movement];
+    movementVariant = {
+      id: uuidv4(),
+      themeIdea: `${polished.title} (${meta?.badge || movement.toUpperCase()}) — ${polished.description}`,
+      layers: polished.layers.map((l, lIdx) => ({
+        ...l,
+        name: l.name || `Layer ${lIdx + 1}`,
+        opacity: 1,
+      })),
+      width: canvasSize.width,
+      height: canvasSize.height,
+      performanceScore: 98,
+      performanceReasoning: `${meta?.name || 'Design'} Engine: Authentic ${meta?.era || 'Historic'} visual hierarchy, specialized palette, and typography pairing.`,
+      criticFeedback: [
+        `Faithful adherence to ${meta?.name || 'movement'} design language and principles`,
+        'Mathematical grid alignment and contrast hierarchy verified',
+        'Balanced typography, CTA prominence, and spatial structure',
+      ],
+    };
+  }
 
   // Curate 2 diverse alternative archetypes tailored to the primary selection
   const alternativeMap: Record<string, string[]> = {
@@ -629,6 +713,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
           width: canvasSize.width,
           height: canvasSize.height,
           prompt: intent,
+          brandKit,
         }),
       styleName: '50/50 Hero Split',
       rationale: 'Dual-zone balanced editorial layout with high-definition hero photography, category pill, and elevated CTA.',
@@ -640,6 +725,7 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
           width: canvasSize.width,
           height: canvasSize.height,
           prompt: intent,
+          brandKit,
         }),
       styleName: 'Full-Bleed Atmospheric Scrim',
       rationale: 'Cinematic full-canvas photographic poster with 3-stop contrast scrim and dynamic angled badge.',
@@ -651,13 +737,14 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
           width: canvasSize.width,
           height: canvasSize.height,
           prompt: intent,
+          brandKit,
         }),
       styleName: 'Floating Glassmorphism Card',
       rationale: 'Frosted glass container card with inset photography, ambient glow, and refined typography.',
     },
   ];
 
-  return selectedArchetypes.map((archKey, index) => {
+  const variants = selectedArchetypes.map((archKey, index) => {
     const framework = frameworks[index % frameworks.length];
     const rawResult = framework.build(archKey);
     const polished = polishDesignOutput(rawResult);
@@ -683,6 +770,12 @@ export function generateProceduralDrafts(intent: string, canvasSize: { width: nu
       ],
     };
   });
+
+  if (movementVariant) {
+    return [movementVariant, ...variants.slice(0, 2)];
+  }
+
+  return variants;
 }
 
 export async function researchAgentStrategy(intent: string, brandKit?: any): Promise<any> {

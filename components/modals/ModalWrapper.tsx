@@ -9,6 +9,7 @@ interface ModalWrapperProps {
   maxWidth?: string;
   showCloseButton?: boolean;
   closeOnBackdropClick?: boolean;
+  ariaLabel?: string;
 }
 
 export const ModalWrapper: React.FC<ModalWrapperProps> = ({
@@ -18,6 +19,7 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
   maxWidth = 'max-w-2xl',
   showCloseButton = true,
   closeOnBackdropClick = true,
+  ariaLabel,
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -88,7 +90,8 @@ export const ModalWrapper: React.FC<ModalWrapperProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             role="dialog"
             aria-modal="true"
-            className={`relative w-full ${maxWidth} max-h-[calc(100vh-2rem)] bg-[#13161a] border border-white/10 rounded-[32px] shadow-[0_32px_100px_rgba(0,0,0,0.6)] flex flex-col z-10`}
+            aria-label={ariaLabel || 'Dialog'}
+            className={`relative w-full ${maxWidth} max-h-[calc(100vh-2rem)] bg-surface-dark-2 border border-white/10 rounded-[32px] shadow-[0_32px_100px_rgba(0,0,0,0.6)] flex flex-col z-10`}
             onClick={(e) => e.stopPropagation()}
           >
             {showCloseButton && (

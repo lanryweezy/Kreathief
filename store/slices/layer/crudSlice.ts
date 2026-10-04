@@ -11,6 +11,8 @@ import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../typ
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS, findLayerById, applyAutoLayout } from './utils';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
+import { buildSceneGraph } from '../../../types/sceneGraph';
+import { duplicateSubtree, collectSubtreeIds } from '../../../utils/sceneGraph';
 
 // Constraint-aware layer remap used by Magic Resize (single + all-formats)
 const resizeLayersForSize = (currentArtboard: Artboard, newWidth: number, newHeight: number): Layer[] => {
@@ -114,7 +116,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     const lastArtboard = get().artboards[get().artboards.length - 1];
     const x = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: [...state.artboards, { id, name, x, y: 0, width, height, layers: [] }],
       activeArtboardId: id,
     }));
@@ -138,7 +140,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
 
     const newLayers = resizeLayersForSize(currentArtboard, newWidth, newHeight);
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: [
         ...state.artboards,
         {
@@ -194,7 +196,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       return artboard;
     });
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: [...state.artboards, ...newArtboards],
       activeArtboardId: newArtboards[0].id,
       selectedLayerIds: [],
@@ -206,7 +208,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       return;
     }
     get().saveToHistory?.();
-    set((state: any) => {
+    set((state) => {
       const artboards = state.artboards.filter((a: Artboard) => a.id !== id);
       return { artboards, activeArtboardId: state.activeArtboardId === id ? artboards[0].id : state.activeArtboardId };
     });
@@ -215,9 +217,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   addLayer: (layer) => {
     get().saveToHistory?.();
     const newLayer = layer.id ? layer : { ...layer, id: crypto.randomUUID() };
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));
@@ -225,9 +227,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
 
   addLayers: (newLayers) => {
     get().saveToHistory?.();
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, ...newLayers] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, ...newLayers]) } : a
       ),
       selectedLayerIds: newLayers.map((l) => l.id),
     }));
@@ -324,9 +326,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       ...style,
     };
 
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));
@@ -361,9 +363,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
         invert: 0,
       },
     };
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));
@@ -399,9 +401,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       rotateX: 0,
       rotateY: 0,
     };
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));
@@ -438,16 +440,16 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       stroke: { color: '#94a3b8', width: 1 },
       ...style,
     };
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === state.activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === state.activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));
   },
 
   updateLayer: (id, partial) =>
-    set((state: any) => {
+    set((state) => {
       const MAX_SAFE_VAL = 10000;
       const MIN_SAFE_VAL = -10000;
       const sanitizedPartial = { ...partial };
@@ -597,26 +599,31 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
 
   deleteLayer: (id) => {
     get().saveToHistory?.();
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => ({
-        ...a,
-        layers: a.layers
-          .filter((l: Layer) => l.id !== id)
-          .map((l: Layer) => {
-            const cleaned = { ...l };
-            if (cleaned.maskLayerId === id) {
-              cleaned.maskLayerId = undefined;
-            }
-            if (cleaned.groupId === id) {
-              cleaned.groupId = undefined;
-            }
-            if (cleaned.masterId === id) {
-              cleaned.masterId = undefined;
-              cleaned.overrides = [];
-            }
-            return cleaned;
-          }),
-      })),
+    set((state) => ({
+      artboards: state.artboards.map((a: Artboard) => {
+        const graph = buildSceneGraph(a.layers);
+        const node = graph.nodeMap.get(id);
+        const idsToDelete = new Set(node ? collectSubtreeIds(node) : [id]);
+        return {
+          ...a,
+          layers: applyAutoLayout(a.layers
+            .filter((l: Layer) => !idsToDelete.has(l.id))
+            .map((l: Layer) => {
+              const cleaned = { ...l };
+              if (cleaned.maskLayerId && idsToDelete.has(cleaned.maskLayerId)) {
+                cleaned.maskLayerId = undefined;
+              }
+              if (cleaned.groupId && idsToDelete.has(cleaned.groupId)) {
+                cleaned.groupId = undefined;
+              }
+              if (cleaned.masterId && idsToDelete.has(cleaned.masterId)) {
+                cleaned.masterId = undefined;
+                cleaned.overrides = [];
+              }
+              return cleaned;
+            })),
+        };
+      }),
       selectedLayerIds: state.selectedLayerIds.filter((sid: string) => sid !== id),
     }));
   },
@@ -624,28 +631,38 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   deleteSelected: () => {
     get().saveToHistory?.();
     const { selectedLayerIds } = get();
-    const deletedIds = new Set(selectedLayerIds);
-    set((state: any) => ({
-      artboards: state.artboards.map((a: Artboard) => ({
-        ...a,
-        layers: a.layers
-          .filter((l: Layer) => !deletedIds.has(l.id))
-          .map((l: Layer) => {
-            // Same orphan cleanup as deleteLayer, for every deleted id
-            const cleaned = { ...l };
-            if (cleaned.maskLayerId && deletedIds.has(cleaned.maskLayerId)) {
-              cleaned.maskLayerId = undefined;
-            }
-            if (cleaned.groupId && deletedIds.has(cleaned.groupId)) {
-              cleaned.groupId = undefined;
-            }
-            if (cleaned.masterId && deletedIds.has(cleaned.masterId)) {
-              cleaned.masterId = undefined;
-              cleaned.overrides = [];
-            }
-            return cleaned;
-          }),
-      })),
+    set((state) => ({
+      artboards: state.artboards.map((a: Artboard) => {
+        const graph = buildSceneGraph(a.layers);
+        const deletedIds = new Set<string>();
+        for (const sid of selectedLayerIds) {
+          const node = graph.nodeMap.get(sid);
+          if (node) {
+            collectSubtreeIds(node).forEach((cid) => deletedIds.add(cid));
+          } else {
+            deletedIds.add(sid);
+          }
+        }
+        return {
+          ...a,
+          layers: applyAutoLayout(a.layers
+            .filter((l: Layer) => !deletedIds.has(l.id))
+            .map((l: Layer) => {
+              const cleaned = { ...l };
+              if (cleaned.maskLayerId && deletedIds.has(cleaned.maskLayerId)) {
+                cleaned.maskLayerId = undefined;
+              }
+              if (cleaned.groupId && deletedIds.has(cleaned.groupId)) {
+                cleaned.groupId = undefined;
+              }
+              if (cleaned.masterId && deletedIds.has(cleaned.masterId)) {
+                cleaned.masterId = undefined;
+                cleaned.overrides = [];
+              }
+              return cleaned;
+            })),
+        };
+      }),
       selectedLayerIds: [],
     }));
   },
@@ -653,10 +670,17 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   duplicateLayer: (id) => {
     get().saveToHistory?.();
     let newLayerId = '';
-    set((state: any) => {
+    set((state) => {
       const artboards = state.artboards.map((a: Artboard) => {
-        const layer = a.layers.find((l) => l.id === id);
-        if (layer) {
+        const graph = buildSceneGraph(a.layers);
+        const node = graph.nodeMap.get(id);
+        if (node) {
+          if (node.children.length > 0) {
+            const { newLayers, clonedRootId } = duplicateSubtree(graph, id, { x: 20, y: 20 });
+            newLayerId = clonedRootId;
+            return { ...a, layers: applyAutoLayout([...a.layers, ...newLayers]) };
+          }
+          const layer = node.layer;
           const newLayer = {
             ...structuredClone(layer),
             id: uuidv4(),
@@ -665,11 +689,11 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
             name: (layer.name || 'Layer') + ' Copy',
           };
           newLayerId = newLayer.id;
-          return { ...a, layers: [...a.layers, newLayer] };
+          return { ...a, layers: applyAutoLayout([...a.layers, newLayer]) };
         }
         return a;
       });
-      return { artboards, selectedLayerIds: [newLayerId] };
+      return { artboards, selectedLayerIds: newLayerId ? [newLayerId] : [] };
     });
   },
 
@@ -722,28 +746,53 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     if (selectedLayerIds.length === 0) {
       return;
     }
-    set((state: any) => {
-      const newLayers: Layer[] = [];
+    set((state) => {
+      const newLayerIds: string[] = [];
       const artboards = state.artboards.map((a: Artboard) => {
         if (a.id !== activeArtboardId) {
           return a;
         }
-        const duplicated = a.layers
-          .filter((l) => selectedLayerIds.includes(l.id))
-          .map((l) => {
-            const nl = {
-              ...structuredClone(l),
-              id: uuidv4(),
-              x: l.x + 20,
-              y: l.y + 20,
-              name: (l.name || 'Layer') + ' Copy',
-            };
-            newLayers.push(nl);
-            return nl;
-          });
-        return { ...a, layers: [...a.layers, ...duplicated] };
+        const graph = buildSceneGraph(a.layers);
+        const processedRoots = new Set<string>();
+        const duplicatedLayers: Layer[] = [];
+
+        for (const sid of selectedLayerIds) {
+          const node = graph.nodeMap.get(sid);
+          if (!node) continue;
+
+          let ancestorInSelection = false;
+          let ancestor = node.parent;
+          while (ancestor) {
+            if (selectedLayerIds.includes(ancestor.id)) {
+              ancestorInSelection = true;
+              break;
+            }
+            ancestor = ancestor.parent;
+          }
+
+          if (!ancestorInSelection && !processedRoots.has(sid)) {
+            processedRoots.add(sid);
+            if (node.children.length > 0) {
+              const { newLayers, clonedRootId } = duplicateSubtree(graph, sid, { x: 20, y: 20 });
+              duplicatedLayers.push(...newLayers);
+              newLayerIds.push(clonedRootId);
+            } else {
+              const nl = {
+                ...structuredClone(node.layer),
+                id: uuidv4(),
+                x: node.layer.x + 20,
+                y: node.layer.y + 20,
+                name: (node.layer.name || 'Layer') + ' Copy',
+              };
+              duplicatedLayers.push(nl);
+              newLayerIds.push(nl.id);
+            }
+          }
+        }
+
+        return { ...a, layers: applyAutoLayout([...a.layers, ...duplicatedLayers]) };
       });
-      return { artboards, selectedLayerIds: newLayers.map((l) => l.id) };
+      return { artboards, selectedLayerIds: newLayerIds };
     });
   },
 
@@ -770,10 +819,10 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       y: clipboardLayer.y + 20,
       name: (clipboardLayer.name || 'Layer') + ' Copy',
       ...style,
-    };
-    set((state: any) => ({
+    } as Layer;
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) =>
-        a.id === activeArtboardId ? { ...a, layers: [...a.layers, newLayer] } : a
+        a.id === activeArtboardId ? { ...a, layers: applyAutoLayout([...a.layers, newLayer]) } : a
       ),
       selectedLayerIds: [newLayer.id],
     }));

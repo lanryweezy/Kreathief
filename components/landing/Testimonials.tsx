@@ -7,28 +7,28 @@ const TESTIMONIALS_ROW_1 = [
     author: "Sarah Chen",
     role: "Head of Product Design",
     company: "Stripe",
-    avatar: "/images/avatar_1_1772614969136.png",
+    avatar: "/images/avatar_1_1772614969136.webp",
   },
   {
     quote: "The vector engine handles 100k nodes without lagging a millisecond. We threw complex architectural diagrams at it and it never blinked.",
     author: "Marcus Rodriguez",
     role: "VP Creative",
     company: "R/GA",
-    avatar: "/images/avatar_2_1772614992003.png",
+    avatar: "/images/avatar_2_1772614992003.webp",
   },
   {
     quote: "I thought browser-based creative suites couldn't touch native apps. Kreathief proved me delightfully wrong. It's actually twice as fast.",
     author: "Emily Watson",
     role: "Lead Brand Identity",
     company: "Airbnb",
-    avatar: "/images/avatar_3_1772615019487.png",
+    avatar: "/images/avatar_3_1772615019487.webp",
   },
   {
     quote: "The generative fill inpainting preserves shadows and ambient light better than any dedicated generative tool I've tested.",
     author: "James Park",
     role: "Design Director",
     company: "Shopify",
-    avatar: "/images/avatar_4_1772615076735.png",
+    avatar: "/images/avatar_4_1772615076735.webp",
   },
 ];
 
@@ -38,34 +38,34 @@ const TESTIMONIALS_ROW_2 = [
     author: "Priya Nair",
     role: "Independent Art Director",
     company: "Studio Noir",
-    avatar: "/images/avatar_5_1772615099721.png",
+    avatar: "/images/avatar_5_1772615099721.webp",
   },
   {
     quote: "We switched our entire 40-designer branding department from Photoshop + Figma over to Kreathief. We shipped our rebranding 3 weeks early.",
     author: "Tom Okafor",
     role: "Design Systems Lead",
     company: "Meta",
-    avatar: "/images/avatar_6_1772615117433.png",
+    avatar: "/images/avatar_6_1772615117433.webp",
   },
   {
     quote: "CMYK proofing right in the browser saved us from 3 expensive print mistakes already. The color management is pristine.",
     author: "Helena Lindqvist",
     role: "Print & Packaging Architect",
     company: "Acne Studios",
-    avatar: "/images/avatar_1_1772614969136.png",
+    avatar: "/images/avatar_1_1772614969136.webp",
   },
   {
     quote: "Multiplayer with zero sync lag. Our client presentations happen directly inside the active artboard now.",
     author: "Alex Vane",
     role: "Creative Partner",
     company: "Pentagram Alumni",
-    avatar: "/images/avatar_2_1772614992003.png",
+    avatar: "/images/avatar_2_1772614992003.webp",
   },
 ];
 
 export const Testimonials: React.FC = () => {
   return (
-    <section className="py-36 relative bg-[#08080d] overflow-hidden">
+    <section className="py-36 relative bg-surface-dark-0 overflow-hidden">
       <div className="absolute inset-0 bg-dot-pattern opacity-[0.08] pointer-events-none" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px] bg-neutral-600/10 blur-[180px] rounded-full pointer-events-none" />
 

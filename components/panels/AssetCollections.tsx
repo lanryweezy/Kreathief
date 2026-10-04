@@ -95,7 +95,7 @@ export const AssetCollections: React.FC = () => {
     setDel(null);
   };
   return (
-    <div className="flex flex-col h-full bg-[#13161a] p-4 overflow-hidden">
+    <div className="flex flex-col h-full bg-surface-dark-2 p-4 overflow-hidden">
       <h3 className="font-bold text-white mb-4 flex items-center gap-2">
         <Icons.Folder className="w-5 h-5 text-accent" /> Collections
       </h3>

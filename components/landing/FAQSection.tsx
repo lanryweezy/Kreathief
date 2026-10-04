@@ -39,7 +39,7 @@ export const FAQSection: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="py-32 relative bg-[#0a0a0c] border-t border-white/5 overflow-hidden">
+    <section className="py-32 relative bg-surface-dark-0 border-t border-white/5 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_var(--tw-gradient-stops))] from-purple-900/10 via-[#0a0a0c] to-[#0a0a0c] pointer-events-none -z-10"></div>
       <div className="max-w-4xl mx-auto px-6">
         <div className="text-center mb-16">
@@ -80,7 +80,7 @@ export const FAQSection: React.FC = () => {
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
               key={faq.question}
-              className="bg-[#0a0a0c] border border-white/5 rounded-2xl overflow-hidden glass-edge group hover:border-white/10 transition-all duration-300 shadow-xl"
+              className="bg-surface-dark-0 border border-white/5 rounded-2xl overflow-hidden glass-edge group hover:border-white/10 transition-all duration-300 shadow-xl"
             >
               <button
                 onClick={() => setOpenIndex(openIndex === idx ? null : idx)}

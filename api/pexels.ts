@@ -1,6 +1,7 @@
 import { log } from '../utils/log';
 import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
+
 export const config = {
   runtime: 'edge',
 };
@@ -13,7 +14,9 @@ const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
 let lastCleanup = Date.now();
 
 export default async function handler(req: Request) {
-  const origin = process.env.VITE_FRONTEND_URL;
+  // Properly secure CORS: Require VITE_FRONTEND_URL in production, fallback to VERCEL_URL. Never echo origin header blindly.
+  const origin = process.env.VITE_FRONTEND_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
+
   if (!origin) {
     return new Response(JSON.stringify({ error: 'Server misconfigured' }), { status: 500 });
   }
@@ -96,7 +99,7 @@ export default async function handler(req: Request) {
       const page = url.searchParams.get('page') || '1';
 
       const response = await fetch(
-        `${BASE_URL}/search?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=30`,
+        `${BASE_URL}/search?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
             Authorization: apiKey,
@@ -106,7 +109,7 @@ export default async function handler(req: Request) {
       );
 
       if (!response.ok) {
-        throw new Error('Pexels Search failed');
+        throw new Error(`Pexels Search failed with status: ${response.status}`);
       }
 
       const data = await response.json();

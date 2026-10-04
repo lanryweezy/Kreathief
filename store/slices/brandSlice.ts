@@ -38,20 +38,20 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
   setActiveBrandKit: (id) => set({ activeBrandKitId: id }),
 
   addBrandKit: (kit) =>
-    set((state: any) => ({
+    set((state) => ({
       brandKits: [...state.brandKits, kit],
       hasUnsavedChanges: true,
     })),
 
   deleteBrandKit: (id) =>
-    set((state: any) => ({
+    set((state) => ({
       brandKits: state.brandKits.filter((k: BrandKit) => k.id !== id),
       activeBrandKitId: state.activeBrandKitId === id ? null : state.activeBrandKitId,
       hasUnsavedChanges: true,
     })),
 
   updateBrandKit: (id, updates) => {
-    set((state: any) => ({
+    set((state) => ({
       brandKits: state.brandKits.map((k: BrandKit) => (k.id === id ? { ...k, ...updates } : k)),
       hasUnsavedChanges: true,
     }));
@@ -125,7 +125,7 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
     const lightColors = sortedColors.filter((c) => getBrightness(c) > 128);
     const darkColors = sortedColors.filter((c) => getBrightness(c) <= 128);
 
-    set((state: any) => ({
+    set((state) => ({
       canvasBackgroundColor: background,
       artboards: state.artboards.map((artboard: any) => ({
         ...artboard,
@@ -166,7 +166,7 @@ export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (s
 
   applyBrandFonts: (heading, body, kitId?: string) => {
     get().saveToHistory?.();
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((artboard: any) => ({
         ...artboard,
         layers: artboard.layers.map((l: any) => {

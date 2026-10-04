@@ -13,7 +13,7 @@ export const WelcomeModal: React.FC<WelcomeModalProps> = ({ isOpen, onClose, onS
     <ModalWrapper isOpen={isOpen} onClose={onClose} maxWidth="max-w-2xl">
       <div className="flex flex-col relative overflow-y-auto overflow-x-hidden custom-scrollbar">
         <div className="p-6 md:p-8 md:pb-4 pb-2 text-center">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-[#0E1318] border border-white/10 rounded-[24px] md:rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-4 md:mb-6 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
+          <div className="w-16 h-16 md:w-20 md:h-20 bg-surface-dark-1 border border-white/10 rounded-[24px] md:rounded-[32px] flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-4 md:mb-6 transform -rotate-6 animate-in zoom-in spin-in-6 duration-700">
             <img src="/logo.svg" alt="Kreathief" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
           </div>
           <h2 className="text-2xl md:text-3xl font-black text-white mb-2 tracking-tighter italic uppercase">

@@ -23,11 +23,11 @@ export default defineConfig({
         'supabase/',
       ],
       thresholds: {
-        statements: 40,
-        branches: 30,
-        functions: 40,
-        lines: 40,
+        statements: 50,
+        branches: 40,
+        functions: 50,
+        lines: 50,
       },
     },
   },
-} as any);
+});

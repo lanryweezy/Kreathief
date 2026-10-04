@@ -127,7 +127,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
   },
 
   markOverride: (instanceId: string, propertyName: string) => {
-    set((state: any) => ({
+    set((state) => ({
       artboards: state.artboards.map((a: Artboard) => ({
         ...a,
         layers: a.layers.map((l) => {

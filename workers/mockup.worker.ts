@@ -14,6 +14,9 @@ interface MockupWorkerData {
   reflectionIntensity: number;
   lightingBrightness: number;
   lightingContrast: number;
+  substrateColor?: string;  // hex color e.g. '#2d5a27' for substrate recoloring
+  displacementIntensity?: number;
+  useCylindricalWrap?: boolean;
 }
 
 self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
@@ -27,6 +30,9 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
       reflectionIntensity,
       lightingBrightness,
       lightingContrast,
+      substrateColor,
+      displacementIntensity: _displacementIntensity,
+      useCylindricalWrap: _useCylindricalWrap,
     } = e.data;
 
     const width = bgBitmap.width;
@@ -44,6 +50,27 @@ self.onmessage = async (e: MessageEvent<MockupWorkerData>) => {
 
     // Draw background
     ctx.drawImage(bgBitmap, 0, 0);
+
+    // Substrate Color Recoloring (luminance masking technique)
+    if (substrateColor && substrateColor !== '') {
+      const clean = substrateColor.replace('#', '');
+      const tR = parseInt(clean.substring(0, 2), 16);
+      const tG = parseInt(clean.substring(2, 4), 16);
+      const tB = parseInt(clean.substring(4, 6), 16);
+      const strength = 0.82;
+
+      const imgData = ctx.getImageData(0, 0, width, height);
+      const d = imgData.data;
+      for (let i = 0; i < d.length; i += 4) {
+        if (d[i + 3] < 10) continue;
+        const lum = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+        const sf = (lum / 255) * 2.0;
+        d[i]     = Math.min(255, Math.round(d[i]     * (1 - strength) + Math.min(255, Math.round(tR * sf)) * strength));
+        d[i + 1] = Math.min(255, Math.round(d[i + 1] * (1 - strength) + Math.min(255, Math.round(tG * sf)) * strength));
+        d[i + 2] = Math.min(255, Math.round(d[i + 2] * (1 - strength) + Math.min(255, Math.round(tB * sf)) * strength));
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
 
     // Dynamic alpha-based ambient ground shadow (far superior to simple ellipse)
     if (shadowIntensity > 0) {

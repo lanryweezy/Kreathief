@@ -26,6 +26,8 @@ test.describe('Templates Features', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
       (window as any).VITE_QA_BYPASS = true;
     });
 

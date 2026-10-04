@@ -128,7 +128,7 @@ function buildDesignContext(layers: Layer[], artboards: any[], activeArtboardId:
     const type = l.type;
     const name = l.name || `${type} layer`;
     const pos = `(${Math.round(l.x)}, ${Math.round(l.y)})`;
-    const size = `${Math.round((l as any).width || 100)}x${Math.round((l as any).height || 100)}`;
+    const size = `${Math.round(l.width || 100)}x${Math.round(l.height || 100)}`;
     const opacity = Math.round((l.opacity || 1) * 100);
 
     if (type === 'text') {
@@ -336,8 +336,8 @@ registerAIActionHandler('modify', {
             changes[key] = (layer as any)[key] + parseInt(val);
           } else if (typeof val === 'string' && val.endsWith('%')) {
             const pct = parseInt(val) / 100;
-            changes.width = Math.round(((layer as any).width || 100) * pct);
-            changes.height = Math.round(((layer as any).height || 100) * pct);
+            changes.width = Math.round((layer.width || 100) * pct);
+            changes.height = Math.round((layer.height || 100) * pct);
           } else {
             changes[key] = val;
           }
@@ -392,8 +392,8 @@ registerAIActionHandler('arrange', {
         const layer = ab.layers.find((l: any) => l.id === id);
         if (layer) {
           updates[id] = {
-            x: (ab.width - ((layer as any).width || 100)) / 2,
-            y: (ab.height - ((layer as any).height || 100)) / 2,
+            x: (ab.width - (layer.width || 100)) / 2,
+            y: (ab.height - (layer.height || 100)) / 2,
           };
         }
       }

@@ -104,7 +104,7 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
       <div
         className={`
         relative overflow-hidden
-        bg-[#1a1d21]/95 backdrop-blur-xl
+        bg-surface-dark-2/95 backdrop-blur-xl
         border ${config.border}
         rounded-2xl shadow-2xl
       `}

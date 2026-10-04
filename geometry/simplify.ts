@@ -1,79 +1,269 @@
-import { Point } from './bezier';
+import paper from 'paper/dist/paper-core';
+import { VectorPath, VectorPoint } from '../types';
+import { VectorUtils } from '../utils/vectorUtils';
+import { log } from '../utils/log';
+
+let paperInitialized = false;
+
+function initPaper() {
+  if (!paperInitialized) {
+    paper.setup(new paper.Size(1, 1));
+    paperInitialized = true;
+  }
+}
 
 /**
- * Vector path cleaning / simplification.
- *
- * Why this exists: when a designer (or a reviewer opening our export in
- * Illustrator) looks at a "good" vector, the first things they check are node
- * count and coordinate precision. Recraft output, pen-tool paths, and
- * especially raster->trace results are frequently bloated with:
- *   - absurd coordinate precision (0.123456789 on a 512px canvas),
- *   - duplicate coincident anchors,
- *   - collinear vertices that do nothing but inflate the node count.
- *
- * This module reduces all three WITHOUT changing the visible shape:
- *   - rounding is bounded to a sub-pixel tolerance,
- *   - duplicate/collinear points are removed from *straight* runs only,
- *   - optional Ramer-Douglas-Peucker simplification for dense polylines,
- *   - curves (C/S/Q/T) and arcs (A) are preserved structurally — we only round
- *     their numbers, never drop their control points, and arc flags are left as
- *     exact 0/1 (rounding those would corrupt the path).
- *
- * Endpoints of the whole path and of every subpath are always preserved.
+ * Simplify path by reducing number of points while maintaining shape
  */
+export function simplifyPath(path: VectorPath, tolerance: number = 2.5): VectorPath {
+  if (path.points.length < 3) return path;
+
+  initPaper();
+
+  try {
+    const paperPath = new paper.Path();
+
+    path.points.forEach((point, i) => {
+      if (i === 0 || point.isMove) {
+        paperPath.moveTo(new paper.Point(point.x, point.y));
+      } else {
+        const prev = path.points[i - 1];
+        if (prev && (prev.handleOut || point.handleIn)) {
+          const cp1 = prev.handleOut
+            ? new paper.Point(prev.x + prev.handleOut.x, prev.y + prev.handleOut.y)
+            : new paper.Point(prev.x, prev.y);
+          const cp2 = point.handleIn
+            ? new paper.Point(point.x + point.handleIn.x, point.y + point.handleIn.y)
+            : new paper.Point(point.x, point.y);
+          paperPath.cubicCurveTo(cp1, cp2, new paper.Point(point.x, point.y));
+        } else {
+          paperPath.lineTo(new paper.Point(point.x, point.y));
+        }
+      }
+    });
+
+    if (path.isClosed) {
+      paperPath.closed = true;
+    }
+
+    paperPath.simplify(tolerance);
+
+    const simplifiedPoints: VectorPoint[] = paperPath.segments.map((segment) => {
+      const pt = VectorUtils.createPoint(segment.point.x, segment.point.y);
+      if (segment.handleIn.x !== 0 || segment.handleIn.y !== 0) {
+        pt.handleIn = { x: segment.handleIn.x, y: segment.handleIn.y };
+      }
+      if (segment.handleOut.x !== 0 || segment.handleOut.y !== 0) {
+        pt.handleOut = { x: segment.handleOut.x, y: segment.handleOut.y };
+      }
+      return pt;
+    });
+
+    setTimeout(() => {
+      try {
+        paperPath.remove();
+      } catch (e) {
+        log.warn('[PathOps] Failed to cleanup paper path', { error: e });
+      }
+    }, 0);
+
+    return {
+      points: simplifiedPoints,
+      isClosed: path.isClosed,
+    };
+  } catch (error) {
+    log.error('Path simplification failed', error);
+    return path;
+  }
+}
+
+/**
+ * Smooth a path by adjusting handles for better curves
+ */
+export function smoothPath(path: VectorPath, factor: number = 0.5): VectorPath {
+  if (path.points.length < 3) return path;
+
+  const smoothedPoints = path.points.map((point, i) => {
+    if (i === 0 || i === path.points.length - 1) {
+      return point;
+    }
+
+    const prev = path.points[i - 1];
+    const next = path.points[i + 1];
+    if (!prev || !next) return point;
+
+    const tangentX = (next.x - prev.x) * factor * 0.5;
+    const tangentY = (next.y - prev.y) * factor * 0.5;
+
+    const dist1 = Math.sqrt((point.x - prev.x) ** 2 + (point.y - prev.y) ** 2);
+    const dist2 = Math.sqrt((next.x - point.x) ** 2 + (next.y - point.y) ** 2);
+
+    const handleLength1 = dist1 * factor * 0.4;
+    const handleLength2 = dist2 * factor * 0.4;
+    const tangentLen = Math.sqrt(tangentX * tangentX + tangentY * tangentY);
+    const scale1 = tangentLen > 0 ? handleLength1 / tangentLen : 0;
+    const scale2 = tangentLen > 0 ? handleLength2 / tangentLen : 0;
+
+    return {
+      ...point,
+      type: 'smooth' as const,
+      handleIn: {
+        x: -tangentX * scale1,
+        y: -tangentY * scale1,
+      },
+      handleOut: {
+        x: tangentX * scale2,
+        y: tangentY * scale2,
+      },
+    };
+  });
+
+  return {
+    ...path,
+    points: smoothedPoints,
+  };
+}
+
+/**
+ * Flatten a path (convert all curves to straight lines)
+ */
+export function flattenPath(path: VectorPath): VectorPath {
+  const flattenedPoints = path.points.map((point) => ({
+    ...point,
+    handleIn: undefined,
+    handleOut: undefined,
+    type: 'sharp' as const,
+  }));
+
+  return {
+    ...path,
+    points: flattenedPoints,
+  };
+}
+
+/**
+ * Reverse path direction
+ */
+export function reversePath(path: VectorPath): VectorPath {
+  const reversedPoints = [...path.points].reverse().map((point) => ({
+    ...point,
+    handleIn: point.handleOut,
+    handleOut: point.handleIn,
+  }));
+
+  return {
+    ...path,
+    points: reversedPoints,
+  };
+}
+
+/**
+ * Split a path at a specific point index
+ */
+export function splitPath(path: VectorPath, pointIndex: number): [VectorPath, VectorPath] {
+  if (pointIndex < 1 || pointIndex >= path.points.length) {
+    return [path, { points: [], isClosed: false }];
+  }
+
+  const firstPath: VectorPath = {
+    points: path.points.slice(0, pointIndex + 1),
+    isClosed: false,
+  };
+
+  const secondPath: VectorPath = {
+    points: path.points.slice(pointIndex),
+    isClosed: false,
+  };
+
+  return [firstPath, secondPath];
+}
+
+/**
+ * Remove small segments below threshold
+ */
+export function removeSmallSegments(path: VectorPath, threshold: number = 2): VectorPath {
+  if (path.points.length < 3) return path;
+
+  const filteredPoints: VectorPoint[] = [path.points[0]!];
+
+  for (let i = 1; i < path.points.length; i++) {
+    const curr = path.points[i];
+    const prev = filteredPoints[filteredPoints.length - 1];
+
+    if (curr && prev) {
+      const dist = Math.sqrt(Math.pow(curr.x - prev.x, 2) + Math.pow(curr.y - prev.y, 2));
+
+      if (dist >= threshold) {
+        filteredPoints.push(curr);
+      }
+    }
+  }
+
+  return {
+    ...path,
+    points: filteredPoints,
+  };
+}
+
+/* ========================================================================= */
+/* SVG Path Data (d string) Simplification Engine                            */
+/* ========================================================================= */
 
 export interface CleanOptions {
-  /** Decimal places to round coordinates to. Default 2. */
+  /** Round coordinates to N decimal places (default 2, 0.01px precision). */
   decimals?: number;
-  /** Points closer than this are treated as duplicates and merged. Default 0.01. */
+  /** Deduplicate consecutive anchors closer than this distance (default 0.01). */
   dedupeEpsilon?: number;
-  /** Perpendicular distance under which an intermediate vertex is dropped. Default 0.1px. */
+  /** Drop intermediate vertices if distance to baseline < tolerance (default 0.1). */
   collinearTolerance?: number;
-  /**
-   * Ramer-Douglas-Peucker tolerance for dense straight runs. 0 disables RDP
-   * (only dedupe + collinear removal run). Set ~0.5-2 for traced input.
-   */
+  /** If > 0, run Ramer-Douglas-Peucker on straight line runs with this tolerance. */
   simplifyTolerance?: number;
 }
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 interface AbsSegment {
-  cmd: 'M' | 'L' | 'C' | 'Q' | 'Z';
-  pts: Point[]; // absolute points, already expanded (no H/V, relative resolved)
+  cmd: string;
+  pts: Point[];
 }
 
 const num = (v: number, decimals: number): string => {
-  // Avoid "-0" and scientific notation for the coordinate magnitudes we use.
-  const r = Number(v.toFixed(decimals));
-  return Object.is(r, -0) ? '0' : String(r);
+  const rounded = Number(v.toFixed(decimals));
+  return Number.isInteger(rounded) ? String(rounded) : String(rounded);
 };
 
-/** Tokenize + normalize a `d` string into absolute M/L/C/Q/Z segments. */
+const pairs = (arr: number[]): Point[] => {
+  const out: Point[] = [];
+  for (let i = 0; i < arr.length - 1; i += 2) {
+    out.push({ x: arr[i], y: arr[i + 1] });
+  }
+  return out;
+};
+
+/**
+ * Parse an SVG path `d` string into absolute-coordinate segments (M, L, C, Q, Z).
+ * Relative commands (m, l, h, v, c, s, q, t) are converted to absolute.
+ * Arc (`A`/`a`) commands are left unparsed to avoid distortion.
+ */
 export function parsePathData(d: string): AbsSegment[] {
   const segments: AbsSegment[] = [];
-  if (!d) return segments;
-
-  // Pull commands and their numeric args, preserving sign-packing like "1-2".
-  const re = /([MmLlHhVvCcSsQqTtAaZz])|(-?\d*\.?\d+(?:[eE][-+]?\d+)?)/g;
+  const re = /([a-df-z])|(-?\d*\.?\d+(?:e[-+]?\d+)?)/gi;
   let token: RegExpExecArray | null;
   let cmd = '';
   let args: number[] = [];
-
   let cx = 0;
-  let cy = 0; // current point
+  let cy = 0;
   let sx = 0;
-  let sy = 0; // subpath start
-
-  const pairs = (nums: number[]): Point[] => {
-    const out: Point[] = [];
-    for (let i = 0; i + 1 < nums.length; i += 2) out.push({ x: nums[i], y: nums[i + 1] });
-    return out;
-  };
+  let sy = 0;
 
   const flush = () => {
     if (!cmd) return;
-    const abs = cmd === cmd.toUpperCase();
     const upper = cmd.toUpperCase();
-    // Expand implicit repeats: args beyond the first group re-apply the command.
+    const abs = cmd === upper;
+
     if (upper === 'Z') {
       segments.push({ cmd: 'Z', pts: [] });
       cx = sx;
@@ -81,15 +271,10 @@ export function parsePathData(d: string): AbsSegment[] {
       return;
     }
     if (upper === 'M' || upper === 'L') {
-      const stride = 2;
-      for (let i = 0; i + 1 < args.length; i += stride) {
-        let x = args[i];
-        let y = args[i + 1];
-        if (!abs) {
-          x += cx;
-          y += cy;
-        }
-        const c = upper === 'M' ? 'M' : 'L';
+      for (let i = 0; i + 1 < args.length; i += 2) {
+        const x = abs ? args[i] : args[i] + cx;
+        const y = abs ? args[i + 1] : args[i + 1] + cy;
+        const c = upper === 'M' && i === 0 ? 'M' : 'L';
         segments.push({ cmd: c, pts: [{ x, y }] });
         cx = x;
         cy = y;
@@ -121,9 +306,6 @@ export function parsePathData(d: string): AbsSegment[] {
       return;
     }
     if (upper === 'S' || upper === 'Q' || upper === 'T') {
-      // Reflect handled loosely: we keep control/anchor as given (absolute) and
-      // do not attempt to smooth-join, to avoid altering shape. S/T are emitted
-      // as generic cubics/quadratics using their supplied points.
       const stride = upper === 'Q' ? 4 : upper === 'S' ? 4 : 2;
       for (let i = 0; i + stride - 1 < args.length; i += stride) {
         const grp = args.slice(i, i + stride);
@@ -141,11 +323,6 @@ export function parsePathData(d: string): AbsSegment[] {
       return;
     }
     if (upper === 'A') {
-      // Arcs: rx ry rot largeArc sweep x y. Keep endpoints only, dropping the arc
-      // is NOT acceptable, so we approximate by preserving the arc endpoint as a
-      // line ONLY when simplifyTolerance requests lossy mode; default keeps the
-      // raw arc via a passthrough marker (see serialize below is not used for A).
-      // To stay safe, we never parse A into our clean model; caller keeps original.
       return;
     }
   };
@@ -166,10 +343,9 @@ export function parsePathData(d: string): AbsSegment[] {
 
 const dist = (a: Point, b: Point): number => Math.hypot(b.x - a.x, b.y - a.y);
 
-/** Ramer-Douglas-Peucker on a polyline, always keeping first & last. */
 function rdp(points: Point[], tolerance: number): Point[] {
   if (points.length < 3 || tolerance <= 0) return points;
-  const [first, ...rest] = [points[0]];
+  const [first] = [points[0]];
   const last = points[points.length - 1];
   let maxDist = -1;
   let index = 0;
@@ -197,7 +373,6 @@ function perpDistance(p: Point, a: Point, b: Point): number {
   return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
 }
 
-/** Remove collinear intermediate points from a straight run (endpoints kept). */
 function dropCollinear(pts: Point[], tol: number): Point[] {
   if (pts.length < 3) return pts;
   const out: Point[] = [pts[0]];
@@ -214,7 +389,6 @@ function dropCollinear(pts: Point[], tol: number): Point[] {
   return out;
 }
 
-/** Merge points closer than epsilon within a run. */
 function dedupe(pts: Point[], eps: number): Point[] {
   if (pts.length === 0) return pts;
   const out: Point[] = [pts[0]];
@@ -234,7 +408,6 @@ function serialize(segments: AbsSegment[], decimals: number): string {
       lastCmd = 'Z';
       continue;
     }
-    // Suppress redundant repeat letters for line runs (SVG allows implicit reuse).
     const prefix = s.cmd === 'L' && lastCmd === 'L' ? '' : s.cmd;
     if (body) parts.push(`${prefix}${prefix ? ' ' : ''}${body}`);
     lastCmd = s.cmd;
@@ -253,13 +426,11 @@ export function cleanPathData(d: string, options: CleanOptions = {}): string {
   const colTol = options.collinearTolerance ?? 0.1;
   const sTol = options.simplifyTolerance ?? 0;
 
-  // Arcs are preserved verbatim by bailing out to the original string when present.
   if (/[Aa]/.test(d)) return roundOnly(d, decimals);
 
   const parsed = parsePathData(d);
   if (parsed.length === 0) return d;
 
-  // Group consecutive M/L runs for simplification; curves are barriers.
   const out: AbsSegment[] = [];
   let run: Point[] = [];
   let runStartIsMove = false;
@@ -269,7 +440,6 @@ export function cleanPathData(d: string, options: CleanOptions = {}): string {
     let cleaned = dedupe(run, eps);
     if (sTol > 0) cleaned = rdp(cleaned, sTol);
     cleaned = dropCollinear(cleaned, colTol);
-    // A trailing point that coincides with the subpath start is implied by Z.
     if (closing && cleaned.length > 2 && dist(cleaned[0], cleaned[cleaned.length - 1]) <= Math.max(eps, colTol)) {
       cleaned = cleaned.slice(0, -1);
     }
@@ -296,7 +466,6 @@ export function cleanPathData(d: string, options: CleanOptions = {}): string {
       flushRun(true);
       out.push({ cmd: 'Z', pts: [] });
     } else {
-      // Curve barrier: flush lines, keep the curve rounded.
       flushRun(false);
       out.push({ cmd: s.cmd, pts: s.pts.map((p) => ({ x: round(p.x, decimals), y: round(p.y, decimals) })) });
     }
@@ -310,7 +479,6 @@ function round(v: number, decimals: number): number {
   return Number(v.toFixed(decimals));
 }
 
-/** Lightweight pass: round numeric tokens only, leave structure/flags intact. */
 function roundOnly(d: string, decimals: number): string {
   return d.replace(/-?\d*\.?\d+/g, (m) => {
     const v = Number(m);

@@ -47,6 +47,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     toggleFavoriteProject,
     shareToCommunity,
     addToast,
+    brandKits,
+    activeBrandKitId,
+    setActiveBrandKit,
     styleReference,
     setStyleReference,
     clearStyleReference,
@@ -63,6 +66,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       toggleFavoriteProject: state.toggleFavoriteProject,
       shareToCommunity: state.shareToCommunity,
       addToast: state.addToast,
+      brandKits: state.brandKits,
+      activeBrandKitId: state.activeBrandKitId,
+      setActiveBrandKit: state.setActiveBrandKit,
       styleReference: state.styleReference,
       setStyleReference: state.setStyleReference,
       clearStyleReference: state.clearStyleReference,
@@ -422,7 +428,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         onOpenProject(created);
       }
     } catch (err) {
-      addToast('Failed to import PDF', 'error');
+      const details = getErrorDetails(err);
+      addToast(`Failed to import PDF: ${details.message}. ${details.suggestion}`, 'error');
     } finally {
       if (pdfInputRef.current) {
         pdfInputRef.current.value = '';
@@ -559,7 +566,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
         <a href="/" className="flex items-center gap-4 group cursor-pointer" title="Go to Landing Page">
-          <div className="w-10 h-10 bg-[#0E1318] border border-white/10 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg transition-all">
+          <div className="w-10 h-10 bg-surface-dark-1 border border-white/10 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg transition-all">
             <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
           <span className="font-black text-2xl tracking-tighter uppercase group-hover:text-purple-300 transition-colors">Kreathief</span>
@@ -745,7 +752,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
+      {/* Skip navigation for keyboard/screen reader users */}
+      <a
+        href="#dashboard-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-brand-600 focus:text-white focus:rounded-lg focus:text-sm focus:font-bold focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
+      <main id="dashboard-content" className="flex-1 flex overflow-hidden">
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 custom-scrollbar">
           <div className="max-w-[1200px] mx-auto">
@@ -941,6 +956,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                           >
                             <Icons.X className="w-3.5 h-3.5" />
                           </button>
+                        )}
+                        {/* Brand Kit Dropdown */}
+                        {brandKits && brandKits.length > 0 && (
+                          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-white/5 text-muted hover:bg-white/10 hover:text-white border border-white/10 ml-2">
+                            <Icons.Star className="w-3 h-3 text-yellow-400" />
+                            <select
+                              value={activeBrandKitId || ''}
+                              onChange={(e) => setActiveBrandKit(e.target.value || null)}
+                              className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
+                              title="Select which Brand Kit to apply to this generation"
+                            >
+                              <option value="" className="bg-surface-dark-1">No Brand Kit</option>
+                              {brandKits.map((kit) => (
+                                <option key={kit.id} value={kit.id} className="bg-surface-dark-1 text-white">
+                                  {kit.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         )}
                       </div>
                       <div className="flex items-center gap-2 ml-3 shrink-0">

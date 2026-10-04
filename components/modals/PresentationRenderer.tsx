@@ -26,7 +26,7 @@ export const PresentationRenderer: React.FC<PresentationRendererProps> = ({
           layer={l as ImageLayer}
           isSelected={false}
           isHovered={false}
-          onMouseDown={() => {}}
+          onPointerDown={() => {}}
           onResize={() => {}}
           onRotate={() => {}}
           onContextMenu={() => {}}
@@ -41,7 +41,7 @@ export const PresentationRenderer: React.FC<PresentationRendererProps> = ({
           layer={l as TextLayer}
           isSelected={false}
           isHovered={false}
-          onMouseDown={() => {}}
+          onPointerDown={() => {}}
           onResize={() => {}}
           onRotate={() => {}}
           onContextMenu={() => {}}
@@ -56,7 +56,7 @@ export const PresentationRenderer: React.FC<PresentationRendererProps> = ({
         layer={l as ShapeLayer}
         isSelected={false}
         isHovered={false}
-        onMouseDown={() => {}}
+        onPointerDown={() => {}}
         onResize={() => {}}
         onRotate={() => {}}
         onContextMenu={() => {}}
@@ -94,8 +94,8 @@ export const PresentationRenderer: React.FC<PresentationRendererProps> = ({
               position: 'absolute',
               left: l.x,
               top: l.y,
-              width: 'width' in l ? (l as any).width : 0,
-              height: 'height' in l ? (l as any).height : 0,
+              width: 'width' in l ? l.width : 0,
+              height: 'height' in l ? l.height : 0,
               zIndex: l.locked ? 49 : 50,
             }}
           >

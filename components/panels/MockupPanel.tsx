@@ -450,6 +450,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [reflectionIntensity, setReflectionIntensity] = useState(0);
   const [lightingContrast, setLightingContrast] = useState(100);
   const [lightingBrightness, setLightingBrightness] = useState(100);
+  const [substrateColor, setSubstrateColor] = useState<string>('');
 
   const liveIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -644,6 +645,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             reflectionIntensity,
             lightingBrightness,
             lightingContrast,
+            substrateColor,
           },
           [bgBitmap, designBitmap]
         );
@@ -679,7 +681,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       active = false;
       clearTimeout(timer);
     };
-  }, [placement, previewImage, currentMockup]);
+  }, [placement, previewImage, currentMockup, shadowIntensity, reflectionIntensity, lightingBrightness, lightingContrast, substrateColor]);
 
   const handleDownload = () => {
     if (generatedPreview) {
@@ -745,6 +747,44 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     }
   };
 
+  const [isGeneratingPack, setIsGeneratingPack] = useState(false);
+
+  const handleSocialPack = async () => {
+    if (!previewImage || !currentMockup) return;
+    setIsGeneratingPack(true);
+    try {
+      const { generateScenePack } = await import('../../services/mockupScenePack');
+      const result = await generateScenePack(previewImage, activeMockupId);
+      if (result && result.slides.length > 0) {
+        result.slides.forEach((slide, idx) => {
+          addLayer({
+            id: uuidv4(),
+            type: 'image',
+            name: slide.label,
+            src: slide.blobUrl,
+            x: 50 + idx * 520,
+            y: 50,
+            width: 500,
+            height: 500,
+            rotation: 0,
+            opacity: 1,
+            visible: true,
+            locked: false,
+            flipX: false,
+            flipY: false,
+            blendMode: 'normal',
+            filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, grayscale: 0, sepia: 0, hueRotate: 0, vignette: 0 },
+          });
+        });
+        addToast(`📦 Social Pack added — ${result.slides.length} slides for ${result.mockupName}!`, 'success');
+      }
+    } catch (e) {
+      addToast('Social Pack generation failed.', 'error');
+    } finally {
+      setIsGeneratingPack(false);
+    }
+  };
+
   const updatePlacement = (key: keyof MockupPlacement, val: any) => {
     setPlacement((p) => ({ ...p, [key]: val }));
   };
@@ -800,6 +840,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     setLightingBrightness,
     lightingContrast,
     setLightingContrast,
+    substrateColor,
+    setSubstrateColor,
     useCornerPinning,
     setUseCornerPinning,
     setCornerPoints,
@@ -813,6 +855,8 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     handleProRender,
     isProGenerating,
     handleAddToCanvas,
+    handleSocialPack,
+    isGeneratingPack,
   };
 
   if (variant === 'full') {
@@ -998,6 +1042,18 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           className="w-full py-2 bg-gray-800 text-gray-300 hover:text-white border border-gray-700 rounded text-xs font-bold transition-colors"
         >
           Add Mockup to Canvas
+        </button>
+        <button
+          onClick={handleSocialPack}
+          disabled={isGeneratingPack || !previewImage}
+          className="w-full py-2 bg-gradient-to-r from-brand-600/20 to-accent/20 text-brand-400 hover:text-white border border-brand-600/30 hover:border-brand-600 rounded text-xs font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+        >
+          {isGeneratingPack ? (
+            <div className="animate-spin w-3 h-3 border-2 border-brand-600 border-t-transparent rounded-full" />
+          ) : (
+            <Icons.Layers className="w-3.5 h-3.5" />
+          )}
+          {isGeneratingPack ? 'Generating Pack...' : '📦 Social Pack (3 slides)'}
         </button>
       </div>
 

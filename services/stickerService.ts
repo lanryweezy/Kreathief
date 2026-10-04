@@ -1,3 +1,4 @@
+import { fuzzyMatch } from "../utils/search";
 import { log } from '../utils/log';
 
 export interface StickerAsset {
@@ -637,7 +638,7 @@ export const getCuratedStickers = (query?: string): StickerAsset[] => {
     return CURATED_STICKERS;
   }
   const q = query.toLowerCase().trim();
-  const matched = CURATED_STICKERS.filter((s) => s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q));
+  const matched = CURATED_STICKERS.filter((s) => fuzzyMatch(q, s.name) || fuzzyMatch(q, s.id));
   return matched.length > 0 ? matched : CURATED_STICKERS;
 };
 

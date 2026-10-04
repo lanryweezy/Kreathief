@@ -51,7 +51,7 @@ export const AppearanceModal: React.FC<AppearanceModalProps> = ({ isOpen, onClos
                         : 'border-white/10 bg-white/[0.03] hover:border-white/20'
                     }`}
                   >
-                    <div className="w-full h-12 bg-[#0a0a0c] rounded-lg mb-2 border border-white/10" />
+                    <div className="w-full h-12 bg-surface-dark-0 rounded-lg mb-2 border border-white/10" />
                     <span className="text-xs font-bold text-white">Dark</span>
                   </button>
                   <button

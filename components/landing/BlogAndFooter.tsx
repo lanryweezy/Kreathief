@@ -47,7 +47,7 @@ export const BlogPreview: React.FC = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.1 }}
-              className="group relative bg-[#0a0a0c] rounded-[32px] overflow-hidden border border-white/5 transition-all duration-700 hover:-translate-y-2 hover:border-white/20"
+              className="group relative bg-surface-dark-0 rounded-[32px] overflow-hidden border border-white/5 transition-all duration-700 hover:-translate-y-2 hover:border-white/20"
             >
               <div className="aspect-[16/10] overflow-hidden relative">
                 <img
@@ -135,7 +135,7 @@ export const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="pt-24 pb-12 bg-[#08080a] border-t border-white/5 text-gray-400">
+    <footer className="pt-24 pb-12 bg-surface-dark-0 border-t border-white/5 text-gray-400">
       <div className="max-w-7xl mx-auto px-6">
         {/* Top Brand & Status Row */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-16 mb-16 border-b border-white/5 gap-8">

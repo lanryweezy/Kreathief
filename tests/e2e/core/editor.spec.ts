@@ -188,11 +188,23 @@ test.describe('Editor Core Features', () => {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
 
-    // Open export modal with keyboard shortcut Control+e or force click export button
+    // Ensure page is ready
+    await page.waitForLoadState('networkidle');
+
+    // Open export modal with keyboard shortcut Control+e
     await page.keyboard.press('Control+e');
     const exportModal = page.locator('[data-testid="export-modal"]');
-    if (!(await exportModal.isVisible())) {
-      await page.getByTestId('export-btn').click({ force: true });
+
+    try {
+      await expect(exportModal).toBeVisible({ timeout: 5000 });
+    } catch (e) {
+      // Fallback: evaluate click directly to bypass viewport issues
+      await page.evaluate(() => {
+        const btn = document.querySelector('[data-testid="export-btn"]') as HTMLButtonElement;
+        if (btn) {
+          btn.click();
+        }
+      });
     }
     await expect(exportModal).toBeVisible({ timeout: 10000 });
 

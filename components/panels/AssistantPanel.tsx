@@ -7,6 +7,12 @@ import { ClarificationCard } from '../agent/ClarificationCard';
 
 import { Icons as AgentIcons } from '../../constants';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
+import {
+  GRAPHIC_DESIGN_STYLE_LIST,
+  GraphicDesignStyleId,
+  GraphicDesignStyleCategory,
+  GRAPHIC_DESIGN_STYLES,
+} from '../../services/graphicDesignStyles';
 
 interface AssistantPanelProps {
   getCanvasSnapshot?: () => Promise<string>;
@@ -31,8 +37,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
     conversationHistory,
     isAnalyzing,
     currentCritique,
+    enhancedCritique,
     sendMessage,
     analyzeCurrentDesign,
+    analyzeDesignEnhanced,
     clearConversation,
     applySuggestion,
     dismissSuggestion,
@@ -61,8 +69,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
       conversationHistory: state.conversationHistory,
       isAnalyzing: state.isAnalyzing,
       currentCritique: state.currentCritique,
+      enhancedCritique: state.enhancedCritique,
       sendMessage: state.sendMessage,
       analyzeCurrentDesign: state.analyzeCurrentDesign,
+      analyzeDesignEnhanced: state.analyzeDesignEnhanced,
       clearConversation: state.clearConversation,
       applySuggestion: state.applySuggestion,
       dismissSuggestion: state.dismissSuggestion,
@@ -76,6 +86,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
   const isRefining = selectedLayerIds && selectedLayerIds.length > 0;
 
   const [input, setInput] = useState(agentIntent || '');
+  const [selectedStyleId, setSelectedStyleId] = useState<GraphicDesignStyleId | null>(null);
+  const [activeCategory, setActiveCategory] = useState<GraphicDesignStyleCategory | 'all'>('trends2026');
   const scrollRef = useRef<HTMLDivElement>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -113,10 +125,14 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
       setInput('');
       return;
     }
+
+    const finalPrompt = selectedStyleId
+      ? `${input} style: ${selectedStyleId} movement`
+      : input;
     if (isRefining) {
-      runAgenticRefine(input, selectedLayerIds);
+      runAgenticRefine(finalPrompt, selectedLayerIds);
     } else {
-      runAgenticWorkflow(input);
+      runAgenticWorkflow(finalPrompt);
     }
     setInput('');
   };
@@ -455,6 +471,58 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           </div>
         )}
 
+        {/* Enhanced Critique Results */}
+        {enhancedCritique && (
+          <div className="space-y-3 mt-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">12-Dimension Analysis</h4>
+              <span className={`text-lg font-black ${
+                enhancedCritique.overallScore >= 80 ? 'text-green-400' :
+                enhancedCritique.overallScore >= 60 ? 'text-yellow-400' :
+                enhancedCritique.overallScore >= 40 ? 'text-orange-400' : 'text-red-400'
+              }`}>
+                {enhancedCritique.letterGrade}
+              </span>
+            </div>
+
+            {/* Quick wins */}
+            {enhancedCritique.quickWins.length > 0 && (
+              <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/20">
+                <p className="text-[9px] font-bold text-green-400 mb-1.5 uppercase tracking-wider">Quick Wins</p>
+                {enhancedCritique.quickWins.map((w, i) => (
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">→ {w}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Critical issues */}
+            {enhancedCritique.criticalIssues.length > 0 && (
+              <div className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/20">
+                <p className="text-[9px] font-bold text-red-400 mb-1.5 uppercase tracking-wider">Critical Issues</p>
+                {enhancedCritique.criticalIssues.map((issue, i) => (
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">! {issue}</p>
+                ))}
+              </div>
+            )}
+
+            {/* Dimension scores (compact) */}
+            <div className="grid grid-cols-2 gap-1.5">
+              {enhancedCritique.dimensions.map(dim => (
+                <div key={dim.id} className="flex items-center gap-1.5">
+                  <div className="w-8 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
+                    <div
+                      className={`h-full rounded-full ${dim.score >= 80 ? 'bg-green-500' : dim.score >= 60 ? 'bg-yellow-500' : dim.score >= 40 ? 'bg-orange-500' : 'bg-red-500'}`}
+                      style={{ width: `${dim.score}%` }}
+                    />
+                  </div>
+                  <span className="text-[8px] text-gray-500 truncate">{dim.name}</span>
+                  <span className="text-[8px] font-bold text-gray-400 ml-auto">{dim.score}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Workflow Status */}
         {(agentStatus === 'strategy' || agentStatus === 'creative' || agentStatus === 'searching' || agentStatus === 'rendering' || agentStatus === 'critic' || agentStatus === 'performance') && (
           <div className="space-y-2">
@@ -495,15 +563,99 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
       </div>
 
       {/* Input Tray */}
-      <div className="p-6 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl">
+      <div className="p-4 border-t border-white/5 bg-surface-dark-3/80 backdrop-blur-xl space-y-3">
         {/* Pre-populated Prompt Chips */}
         {agentStatus === 'idle' && !input && (
-          <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar pb-1">
+          <div className="flex gap-2 mb-1 overflow-x-auto no-scrollbar pb-1">
             <button onClick={() => setInput('A 5-slide pitch deck for Nova Africa AI')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ 5-Slide Pitch Deck</button>
             <button onClick={() => setInput('A minimalist Instagram Ad Campaign for a sneaker drop')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Instagram Ad Campaign</button>
             <button onClick={() => setInput('A cinematic event flyer for a Tech Summit')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Tech Summit Flyer</button>
           </div>
         )}
+
+        {/* Style Selector Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              <span>🎨</span> Graphic Styles & 2026 Trends
+            </span>
+            {selectedStyleId && (
+              <button
+                onClick={() => setSelectedStyleId(null)}
+                className="text-[9px] font-bold text-gray-400 hover:text-red-400 transition-colors uppercase tracking-wider flex items-center gap-1"
+              >
+                <span>✕</span> Clear Style
+              </button>
+            )}
+          </div>
+
+          {/* Category Tabs */}
+          <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1 text-[10px] font-bold">
+            {[
+              { id: 'trends2026', label: '🔥 2026 Trends' },
+              { id: 'movements', label: '🏛️ Movements' },
+              { id: 'retroSubculture', label: '📼 Retro' },
+              { id: 'minimalDigital', label: '🌿 Minimal' },
+              { id: 'all', label: 'All (25)' },
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id as any)}
+                className={`px-2.5 py-1 rounded-lg shrink-0 transition-all ${
+                  activeCategory === cat.id
+                    ? 'bg-brand-600 text-white shadow-sm'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-gray-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Horizontal Chips Bar */}
+          <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1.5 pt-0.5">
+            {GRAPHIC_DESIGN_STYLE_LIST.filter(
+              (s) => activeCategory === 'all' || s.category === activeCategory
+            ).map((style) => {
+              const isSelected = selectedStyleId === style.id;
+              return (
+                <button
+                  key={style.id}
+                  onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
+                  title={`${style.name} (${style.era}): ${style.tagline}`}
+                  className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
+                    isSelected
+                      ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
+                      : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
+                  }`}
+                >
+                  <span className="text-xs">{style.icon}</span>
+                  <span>{style.name}</span>
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: style.palette.primary }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Selected Style Indicator Pill */}
+          {selectedStyleId && (() => {
+            const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
+            if (!activeMeta) return null;
+            return (
+              <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
+                <span className="text-brand-300 font-bold truncate">
+                  Locked: <span className="text-white">{activeMeta.icon} {activeMeta.name}</span> — <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
+                </span>
+                <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
+                  {activeMeta.era}
+                </span>
+              </div>
+            );
+          })()}
+        </div>
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
           
           {styleReference && (
@@ -548,7 +700,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 px-1 pb-1">
             <div className="flex gap-2">
               <button
-                onClick={() => analyzeCurrentDesign()}
+                onClick={() => analyzeDesignEnhanced()}
                 disabled={isAnalyzing}
                 className="px-4 py-1.5 flex items-center gap-1.5 bg-white/5 hover:bg-white/10 rounded-full border border-white/10 text-[10px] font-medium text-gray-300 hover:text-white transition-colors disabled:opacity-40"
               >

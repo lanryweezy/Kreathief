@@ -140,7 +140,7 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
   ];
 
   return (
-    <section id="pricing" className="py-36 relative bg-[#08080d]">
+    <section id="pricing" className="py-36 relative bg-surface-dark-0">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
           <motion.div

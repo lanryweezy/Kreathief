@@ -23,6 +23,8 @@ test.describe('Brand Kit Features', () => {
         })
       );
       localStorage.setItem('kreathief_onboarding_seen', 'true');
+      localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+      localStorage.setItem('kreathief_editor_tour_seen', 'true');
     });
 
     // Navigate to editor
@@ -71,9 +73,8 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Color Brand');
 
     // Add a shape first
-    const elementsTab = page.locator('button[aria-label="Elements"]').first();
-    await elementsTab.click();
-    const shapeBtn = page.locator('button[title*="Rectangle"], button[title*="Square"], button[title*="Circle"]').first();
+    await page.getByRole('button', { name: 'Components' }).click();
+    const shapeBtn = page.getByTestId(/shape-btn-/).first();
     await expect(shapeBtn).toBeVisible();
     await shapeBtn.click();
     await page.waitForTimeout(500);
@@ -84,7 +85,7 @@ test.describe('Brand Kit Features', () => {
 
     // Verify colors applied (check if shape color changed)
     // The layer might be a path or a basic shape
-    const shapeLayer = page.locator('.canvas-container .shape-layer, .canvas-container [data-layer-type="shape"]').last();
+    const shapeLayer = page.locator('.canvas-container .shape-layer').last();
     const fillColor = await shapeLayer.evaluate((el) => {
       const svg = el.querySelector('svg');
       if (svg) {
@@ -104,8 +105,7 @@ test.describe('Brand Kit Features', () => {
     await brandKit.addBrandKit('Apply Font Brand');
 
     // Add text first
-    const textTab = page.locator('button[aria-label="Text"]').first();
-    await textTab.click();
+    await page.getByRole('button', { name: 'Text' }).click();
     const addHeading = page.getByTestId('add-heading-btn');
     await addHeading.click();
     await page.waitForTimeout(500);

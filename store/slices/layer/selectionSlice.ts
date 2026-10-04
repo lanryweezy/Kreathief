@@ -6,7 +6,7 @@ export const createSelectionSlice: StateCreator<StoreState, [], [], Partial<Laye
   selectLayer: (id) => set({ selectedLayerIds: id ? [id] : [] }),
 
   multiSelectLayer: (id, shiftKey) => {
-    set((state: any) => {
+    set((state) => {
       const { selectedLayerIds } = state;
       if (!shiftKey) return { selectedLayerIds: [id] };
       if (selectedLayerIds.includes(id)) {

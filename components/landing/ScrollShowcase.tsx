@@ -21,7 +21,7 @@ const ART_ROW_2 = [
 
 export const ScrollShowcase: React.FC = () => {
   return (
-    <section className="py-28 relative bg-[#08080d] overflow-hidden border-y border-white/5">
+    <section className="py-28 relative bg-surface-dark-0 overflow-hidden border-y border-white/5">
       <div className="max-w-7xl mx-auto px-6 text-center mb-16 relative z-10">
 
         <motion.h2

@@ -3,7 +3,7 @@ import { AssetsPanel } from './AssetsPanel';
 import { UploadsPanel } from './UploadsPanel';
 import { PanelHeader } from './PanelHeader';
 
-type Tab = 'all' | 'unsplash' | 'freepik' | 'iconscout' | 'uploads';
+type Tab = 'all' | 'unsplash' | 'pexels' | 'freepik' | 'iconscout' | 'uploads';
 
 export const MediaPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<Tab>('all');
@@ -11,6 +11,7 @@ export const MediaPanel: React.FC = () => {
   const tabs: { id: Tab; label: string }[] = [
     { id: 'all', label: 'All' },
     { id: 'unsplash', label: 'Unsplash' },
+    { id: 'pexels', label: 'Pexels' },
     { id: 'freepik', label: 'Freepik' },
     { id: 'iconscout', label: 'Icons' },
     { id: 'uploads', label: 'Uploads' },
@@ -26,6 +27,9 @@ export const MediaPanel: React.FC = () => {
         </div>
         <div className={activeTab === 'unsplash' ? 'block h-full' : 'hidden'}>
           <AssetsPanel provider="unsplash" />
+        </div>
+        <div className={activeTab === 'pexels' ? 'block h-full' : 'hidden'}>
+          <AssetsPanel provider="pexels" />
         </div>
         <div className={activeTab === 'freepik' ? 'block h-full' : 'hidden'}>
           <AssetsPanel provider="freepik" />

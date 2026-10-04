@@ -5,7 +5,6 @@ import {
   ReferenceAspect,
   REFERENCE_ASPECT_LABELS,
   StyleReference,
-  PromptArchetype,
   ReferenceStrength,
 } from '../../types';
 import { CURATED_STYLE_PRESETS } from '../../config/stylePresets';
@@ -19,25 +18,18 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
-import { getAIErrorMessage } from '../../utils/errorMessages';
+import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
 import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
 import { ModelPicker } from '../ModelPicker';
+import { promptArchetypeStrategies } from '../../services/promptArchetypes';
 
 interface MagicPanelProps {
   onGenerate: (negPrompt?: string) => void;
   uploadedImage: string | null;
 }
-
-const PROMPT_ARCHETYPES: { id: PromptArchetype; label: string; icon: string }[] = [
-  { id: 'cinematic', label: 'Cinematic', icon: 'Camera' },
-  { id: 'artistic', label: 'Concept Art', icon: 'Brush' },
-  { id: 'product', label: 'Product Shot', icon: 'Box' },
-  { id: 'render_3d', label: '3D Octane', icon: 'Sparkles' },
-  { id: 'vector_graphic', label: 'Vector Graphic', icon: 'Edit' },
-];
 
 const INSPIRATION_TAGS = [
   'Volumetric Lighting',
@@ -303,7 +295,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       void setStyleReference(String(reader.result), file.name);
       setShowAspects(true);
     };
-    reader.onerror = () => addToast('Could not read that image.', 'error');
+    reader.onerror = () => addToast('Could not read that image. Please check the file and try again.', 'error');
     reader.readAsDataURL(file);
   };
 
@@ -466,7 +458,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 Prompt Mode
               </label>
               <div className="grid grid-cols-5 gap-1 bg-surface-dark-3 p-1 rounded-xl border border-white/5">
-                {PROMPT_ARCHETYPES.map((arch) => (
+                {Array.from(promptArchetypeStrategies.values()).map((arch) => (
                   <button
                     key={arch.id}
                     onClick={() => setPromptArchetype(arch.id)}
@@ -821,7 +813,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               <label className="text-[9px] font-bold text-gray-500 uppercase mb-1 block">Source Image</label>
               {uploadedImage ? (
                 <div className="relative group rounded-xl overflow-hidden border border-gray-600 aspect-[2/1] bg-black/50">
-                  <img src={uploadedImage} className="w-full h-full object-contain" />
+                  <img src={uploadedImage} alt="Uploaded reference image" className="w-full h-full object-contain" />
                   <button
                     className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => localFileInputRef.current?.click()}
@@ -878,7 +870,8 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 analyticsService.track('analyze_design', { score: result.score });
               } catch (e) {
                 log.error('[MagicPanel] Design analysis failed', e);
-                addToast('Analysis failed', 'error');
+                const details = getErrorDetails(e);
+                addToast(`Analysis failed: ${details.message}. ${details.suggestion}`, 'error');
               } finally {
                 setIsAnalyzing(false);
               }
@@ -970,7 +963,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                 } catch (e) {
                   log.error('Multi-layer generation failed', e);
                   useStore.setState({ isGenerating: false });
-                  addToast('Could not generate multi-layer artboard.', 'error');
+                  addToast(getAIErrorMessage(e), 'error');
                 }
               } else if (mode === AppMode.EDIT && selectedLayerId) {
                 await useStore.getState().onRemix(selectedLayerId);

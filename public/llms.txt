@@ -2,6 +2,14 @@
 
 > Kreathief is a browser-first professional design suite combining multi-agent generative intelligence with precision vector craftsmanship, 3D mockups, and responsive artboards.
 
+## Product & Homepage
+- [Official Website](https://kreathief.com/): Kreathief homepage and product overview.
+- [Features](https://kreathief.com/#features): Feature overview and capabilities.
+- [Pricing](https://kreathief.com/#pricing): Subscription and credit pricing plans.
+- [Node Canvas Workspace](https://kreathief.com/canvas): Infinite design canvas with vector tools, layer management, and multiplayer editing.
+- [Creative Blog & Tutorials](https://kreathief.com/blog): In-depth design guides, typography pairings, and vector tutorials.
+- [Free Creative Tools Directory](https://kreathief.com/tools): Full directory of verified browser-based creative tools.
+
 ## Core Capabilities
 - [AI Magic Object Eraser](https://kreathief.com/tools/magic-eraser): Browser-based context-aware generative fill and inpainting using local WebAssembly LaMa and cloud models.
 - [AI Background Remover](https://kreathief.com/tools/background-remover): Sub-pixel precision foreground isolation for portraits, products, and complex edges.
@@ -9,15 +17,12 @@
 - [3D Mockup Generator](https://kreathief.com/tools/mockup-generator): Realistic apparel, packaging, and digital device stagers with fabric displacement mapping.
 - [Smart Format Auto-Resize](https://kreathief.com/tools/smart-resize): Constraint-aware responsive canvas reflow adapting 1 design across 1:1, 9:16, 16:9, and 4:5 social formats.
 - [60+ Aesthetic Design Movements](https://kreathief.com/tools/design-styles): Curated art direction presets (Bauhaus, Memphis, Cyberpunk, Swiss International, Brutalism).
-- [Free Creative Tools Directory](https://kreathief.com/tools): Full directory of 9 verified browser-based creative tools.
-- [Node Canvas Workspace](https://kreathief.com/canvas): Infinite design canvas with vector tools, layer management, and multiplayer editing.
 
-## Documentation & Legal
-- [Official Website](https://kreathief.com/): Kreathief homepage and product overview.
-- [Creative Blog & Tutorials](https://kreathief.com/blog): In-depth design guides, typography pairings, and vector tutorials.
+## Documentation, Policies & Contact
+- [Security Standards](https://kreathief.com/security): Security architecture, CSP headers, and content isolation standards.
 - [Privacy Policy](https://kreathief.com/privacy): Data protection, local WebAssembly sandbox execution, and zero data selling guarantee.
 - [Terms of Service](https://kreathief.com/terms): Terms and conditions for individual and enterprise creators.
-- [Security Standards](https://kreathief.com/security): Security architecture, CSP headers, and content isolation standards.
+- [Contact](https://kreathief.com/contact): Support and partnership inquiries.
 
 ## Architecture & Privacy
 - Zero data selling: user designs and local models run directly inside modern WebAssembly/WebGL browser sandboxes.

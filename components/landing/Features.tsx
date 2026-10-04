@@ -104,7 +104,7 @@ export const Features: React.FC = () => {
               <MouseSpotlight color="rgba(236, 72, 153, 0.12)" className="h-full flex flex-col justify-between p-8">
                 <div className="absolute inset-0 pointer-events-none">
                   <img
-                    src="/images/landing_feature_magic_erase.png"
+                    src="/images/landing_feature_magic_erase.webp"
                     alt="Neural Magic Erase"
                     width="400"
                     height="440"
@@ -147,7 +147,7 @@ export const Features: React.FC = () => {
               <MouseSpotlight color="rgba(34, 211, 238, 0.12)" className="h-full flex flex-col justify-between p-8">
                 <div className="absolute inset-0 pointer-events-none">
                   <img
-                    src="/images/feature_cutout_mockup_1772615585150.png"
+                    src="/images/feature_cutout_mockup_1772615585150.webp"
                     alt="One-click Subject Masking"
                     width="400"
                     height="440"
@@ -200,7 +200,7 @@ export const Features: React.FC = () => {
 
                 <div className="absolute top-0 right-0 w-full sm:w-[60%] h-full pointer-events-none overflow-hidden">
                   <img
-                    src="/images/feature_gen_fill_pro.png"
+                    src="/images/feature_gen_fill_pro.webp"
                     alt="Generative Outpainting Canvas"
                     width="700"
                     height="440"
@@ -255,7 +255,7 @@ export const Features: React.FC = () => {
 
                 <div className="absolute bottom-0 right-0 w-[85%] sm:w-[62%] h-[80%] pointer-events-none">
                   <img
-                    src="/images/feature_vector_pro.png"
+                    src="/images/feature_vector_pro.webp"
                     alt="Precision Vector Editing"
                     width="600"
                     height="400"
@@ -364,7 +364,7 @@ export const Features: React.FC = () => {
 
                 <div className="absolute top-0 right-0 w-full sm:w-[58%] h-full pointer-events-none overflow-hidden">
                   <img
-                    src="/images/feature_collab_pro.png"
+                    src="/images/feature_collab_pro.webp"
                     alt="Multiplayer Collaboration Live"
                     width="700"
                     height="440"
@@ -378,9 +378,9 @@ export const Features: React.FC = () => {
 
                 <div className="relative z-10 flex items-center gap-3">
                   <div className="flex -space-x-2">
-                    <img src="/images/avatar_1_1772614969136.png" alt="Collaborator 1" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
-                    <img src="/images/avatar_2_1772614992003.png" alt="Collaborator 2" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
-                    <img src="/images/avatar_3_1772615019487.png" alt="Collaborator 3" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_1_1772614969136.webp" alt="Collaborator 1" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_2_1772614992003.webp" alt="Collaborator 2" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
+                    <img src="/images/avatar_3_1772615019487.webp" alt="Collaborator 3" width="32" height="32" loading="lazy" decoding="async" className="w-8 h-8 rounded-full border-2 border-black object-cover" />
                   </div>
                   <span className="text-xs font-mono text-emerald-400 font-bold">
                     3 Teammates Active Right Now
