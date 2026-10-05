@@ -5,6 +5,7 @@ import * as gemini from '../services/geminiService';
 import { vectorizerService } from '../services/vectorizerService';
 import { generateLayerId } from '../utils/layers/layerUtils';
 import { alignLayers as alignLayersUtil, distributeLayers as distributeLayersUtil } from '../utils/layoutUtils';
+import { Layer } from '../types';
 
 type ToolHandler<P> = (params: P) => Promise<void> | void;
 
@@ -115,11 +116,13 @@ const applyBrandColorsTool: ToolHandler<z.infer<typeof brandColorsSchema>> = ({ 
     if (!node) {
       return;
     }
-    state.updateLayer(node.id, { fill: colors[i % colors.length] });
+    if ((node as any).type === 'text' || (node as any).type === 'shape') {
+      state.updateLayer(node.id, { fill: colors[i % colors.length] } as any);
+    }
   });
 };
 
-const groupSelected: ToolHandler<Record<string, never>> = () => {
+const groupSelected: ToolHandler<any> = () => {
   // Stitch: Original intent was marked as not implemented, but the actions
   // exist on the store via groupingSlice. Wiring them up to match UI implementation.
   useStore.getState().groupSelected?.();
@@ -161,7 +164,7 @@ const autoNameSelected: ToolHandler<z.infer<typeof autoNameSchema>> = async () =
         ? `Text: "${l.text?.slice(0, 50) || ''}" size ${l.fontSize}`
         : l.type === 'image'
           ? `Image ${l.width}x${l.height}`
-          : `Shape ${l.type} ${l.width}x${l.height} color ${l.color}`;
+          : `Shape ${l.type} ${l.width}x${l.height} color ${(l as any).color}`;
     const name = await gemini.generateLayerName(desc);
     state.updateLayer(id, { name });
   }
@@ -205,7 +208,7 @@ const backgroundTool: ToolHandler<z.infer<typeof backgroundSchema>> = async ({ p
   const dataUrl = await gemini.generateBackground(prompt, artboard.width || 1080, artboard.height || 1080, quality);
   // Create explicit layer so we can reorder to back
   const id = generateLayerId('image');
-  const layer = {
+  const layer: any = {
     id,
     type: 'image',
     name: 'AI Background',
@@ -269,7 +272,7 @@ const textToVectorTool: ToolHandler<z.infer<typeof textToVectorSchema>> = async 
     locked: false,
     visible: true,
     pathData: primary.d,
-    color: color || primary.fill,
+    color: color || (primary as any).fill || '#000000',
   });
   useStore.getState().addToast?.('Vector icon inserted', 'success');
 };
@@ -349,7 +352,7 @@ export async function runTool<N extends ToolName>(name: N, params: unknown) {
   const { beginBatch, endBatch } = useStore.getState();
   try {
     beginBatch?.();
-    const res = def.handler(parsed.data);
+    const res = (def.handler as any)(parsed.data);
     if (res instanceof Promise) {
       await res;
     }
