@@ -92,7 +92,9 @@ function getAllLayers(artboards: Artboard[], layers: Layer[]): Layer[] {
 
 function getColors(layers: Layer[]): string[] {
   return Array.from(
-    new Set(layers.map((l) => (isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null)).filter(Boolean))
+    new Set(
+      layers.map((l) => (isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null)).filter(Boolean) as string[]
+    )
   );
 }
 
