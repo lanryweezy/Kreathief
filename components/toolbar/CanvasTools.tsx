@@ -1,6 +1,5 @@
 import React from 'react';
 import { useStore } from '../../store/useStore';
-import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { NavTab, BrushType } from '../../types';
 import { IconButton, Divider } from './ToolbarShared';
@@ -13,40 +12,19 @@ interface CanvasToolsProps {
 }
 
 export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => {
-  // ⚡ Bolt Optimization: Consolidate multiple useStore hooks into a single useShallow call
-  // to reduce subscription overhead and prevent unnecessary re-renders.
-  const {
-    canvasBackgroundColor,
-    setCanvasBackgroundColor,
-    canvasFilters,
-    setCanvasFilters,
-    canvasSize,
-    setCanvasSize,
-    isPenMode,
-    setPenMode,
-    brushType,
-    setBrushType,
-    setActiveTab,
-    isSpatialPinMode,
-    setSpatialPinMode,
-  } = useStore(
-    useShallow((state) => ({
-      canvasBackgroundColor: state.canvasBackgroundColor,
-      setCanvasBackgroundColor: state.setCanvasBackgroundColor,
-      canvasFilters: state.canvasFilters,
-      setCanvasFilters: state.setCanvasFilters,
-      canvasSize: state.canvasSize,
-      setCanvasSize: state.setCanvasSize,
-      isPenMode: state.isPenMode,
-      setPenMode: state.setPenMode,
-      brushType: state.brushType,
-      setBrushType: state.setBrushType,
-      setActiveTab: state.setActiveTab,
-      isSpatialPinMode: state.isSpatialPinMode,
-      setSpatialPinMode: state.setSpatialPinMode,
-    }))
-  );
-
+  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor);
+  const setCanvasBackgroundColor = useStore((state) => state.setCanvasBackgroundColor);
+  const canvasFilters = useStore((state) => state.canvasFilters);
+  const setCanvasFilters = useStore((state) => state.setCanvasFilters);
+  const canvasSize = useStore((state) => state.canvasSize);
+  const setCanvasSize = useStore((state) => state.setCanvasSize);
+  const isPenMode = useStore((state) => state.isPenMode);
+  const setPenMode = useStore((state) => state.setPenMode);
+  const brushType = useStore((state) => state.brushType);
+  const setBrushType = useStore((state) => state.setBrushType);
+  const setActiveTab = useStore((state) => state.setActiveTab);
+  const isSpatialPinMode = useStore((state) => state.isSpatialPinMode);
+  const setSpatialPinMode = useStore((state) => state.setSpatialPinMode);
   const [showResizeMenu, setShowResizeMenu] = React.useState(false);
   const resizeMenuRef = React.useRef<HTMLDivElement>(null);
 
