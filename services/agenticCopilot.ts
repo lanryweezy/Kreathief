@@ -4,6 +4,7 @@ import { callBackendGeminiAPI } from './geminiService';
 import { SpatialPin } from './spatialContextEngine';
 import { generateLayerId } from '../utils/layers/layerUtils';
 import { lintArtboardDesign } from './canvasDesignLinter';
+import { safeParseJSON } from '../utils/errorHandling';
 
 export interface AgenticAction {
   action: 'UPDATE_LAYER' | 'DELETE_LAYER' | 'ADD_TEXT' | 'ADD_SHAPE' | 'GROUP_SELECTED' | 'ALIGN_LAYERS' | 'APPLY_LINT_FIX';
@@ -110,7 +111,11 @@ Format:
         typeof result === 'string'
           ? result
           : (result?.text ?? result?.candidates?.[0]?.content?.parts?.[0]?.text ?? '');
-      const parsed = JSON.parse(text);
+      // 🤖 Astra: Passed 'null' fallback string to safeParseJSON instead of '{}' to prevent silent failures on empty LLM output and ensure error catching logic executes.
+      const parsed = safeParseJSON<any>(text || 'null', null);
+      if (!parsed) {
+        throw new Error('Failed to parse agentic copilot actions JSON');
+      }
 
       if (parsed.actions && Array.isArray(parsed.actions)) {
         this.executeActions(parsed.actions, spatialPin);

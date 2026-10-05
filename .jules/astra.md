@@ -148,3 +148,8 @@
 
 **Learning:** Omitting `responseSchema` for structured multi-layer artboard generation in `services/aiDesignDirector.ts` caused unpredictable JSON outputs that failed to parse correctly, falling back to basic procedurally generated content.
 **Action:** Always provide an explicit `responseSchema` using `SchemaType` matching the required structure alongside `responseMimeType: 'application/json'` when calling `callBackendGeminiAPI` to ensure the LLM strictly adheres to the requested schema.
+
+## 2026-10-05 - Null fallback standard for safeParseJSON masking silent failures
+
+**Learning:** `safeParseJSON` returns the provided fallback when parsing fails. Using `JSON.parse` manually without a try/catch, or using a fallback value that bypasses subsequent existence checks, can silently crash the application or mask the failure of AI outputs to comply with expected formats.
+**Action:** When extracting data from LLMs where an empty response should be treated as a failure, use `safeParseJSON` with `'null'` as the fallback string and `null` as the fallback value (e.g., `safeParseJSON<T | null>(data.text || 'null', null)`). This ensures `safeParseJSON` parses the literal `null`, which then correctly triggers subsequent `if (!parsed)` checks and fails loudly.
