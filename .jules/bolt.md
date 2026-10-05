@@ -229,3 +229,8 @@
 
 **Learning:** Components like `MobileQuickActions` and `MobileTransformController` often define multiple `useStore` hooks to extract several pieces of state independently. While this works, each `useStore` hook creates a separate subscription to the Zustand store, increasing CPU overhead during rapid state updates (e.g. while dragging or nudging).
 **Action:** When extracting multiple state properties in React 18+ components using Zustand, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`.
+
+## 2026-10-05 - Avoid Global Formatting
+
+**Learning:** Running global code formatters like `pnpm format` in repositories with massive existing caches or un-ignored output files can produce diffs spanning hundreds of unrelated files, violating scope boundaries for small micro-optimizations and polluting the commit history.
+**Action:** When applying small performance patches (e.g. optimizing Zustand hooks), strictly target the specific files modified (e.g., `pnpm exec prettier --write path/to/file.tsx`) rather than triggering project-wide scripts.
