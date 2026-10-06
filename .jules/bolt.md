@@ -229,3 +229,8 @@
 
 **Learning:** Components like `MobileQuickActions` and `MobileTransformController` often define multiple `useStore` hooks to extract several pieces of state independently. While this works, each `useStore` hook creates a separate subscription to the Zustand store, increasing CPU overhead during rapid state updates (e.g. while dragging or nudging).
 **Action:** When extracting multiple state properties in React 18+ components using Zustand, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`.
+
+## 2026-10-06 - Optimize Array Filtering in Transformation Hooks
+
+**Learning:** When performing double-array traversals like `layersRef.current.filter(...includes...).map(...)` inside high-frequency transformation event handlers (`useLayerTransformation`), the O(N*M) complexity can cause measurable CPU spikes and memory bloat, particularly with large layer selections.
+**Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, and implement an early exit (`if (results.length === set.size) break;`) to further reduce average-case traversal time.
