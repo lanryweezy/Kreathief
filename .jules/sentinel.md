@@ -325,3 +325,7 @@
 **Vulnerability:** The application fetched `import.meta.env.VITE_REPLICATE_API_KEY` on the client side in `services/upscaleService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** Using the `VITE_` prefix for secrets meant for external backend usage leads to direct key exposure via the compiled frontend bundle because Vite statically injects them into the build.
 **Prevention:** Always implement a server-side proxy route (e.g., an Edge Function like `api/replicate.ts`) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and update client services to call the internal proxy.
+## 2026-10-04 - [Replaced Insecure new Function() Math Evaluation]
+**Vulnerability:** A `new Function()` constructor was used to dynamically evaluate math expressions in `components/toolbar/ToolbarShared.tsx`.
+**Learning:** Using `new Function()` or `eval()` to execute dynamic strings is a severe anti-pattern that violates the "unsafe-eval" Content Security Policy (CSP). Even with rudimentary regex sanitization (e.g., stripping non-math characters), it exposes the application to potential code injection or application crash vectors and is heavily flagged by automated security scanners.
+**Prevention:** Never use `new Function()` or `eval()` for parsing math or logic from strings. Always rely on a dedicated parser or a battle-tested library like `mathjs` which safely evaluates mathematical expressions without invoking the JavaScript runtime compiler.
