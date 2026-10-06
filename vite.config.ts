@@ -8,7 +8,7 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
     server.middlewares.use(async (req: any, res: any, next: any) => {
       if (req.url?.startsWith('/api/openrouter') && req.method === 'POST') {
         let body = '';
-        req.on('data', (chunk: any) => body += chunk);
+        req.on('data', (chunk: any) => (body += chunk));
         req.on('end', async () => {
           if (!env.OPENROUTER_API_KEY) {
             res.setHeader('Content-Type', 'application/json');
@@ -21,27 +21,27 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+                Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
                 'HTTP-Referer': env.VITE_FRONTEND_URL || 'http://localhost:5173',
                 'X-Title': 'Kreathief',
               },
-              body: body
+              body: body,
             });
             const data = await response.text();
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = response.status;
             res.end(data);
-          } catch(e: any) {
+          } catch (e: any) {
             res.statusCode = 500;
-            res.end(JSON.stringify({error: e.message}));
+            res.end(JSON.stringify({ error: e.message }));
           }
         });
         return;
       }
-      
+
       if (req.url?.startsWith('/api/fal') && req.method === 'POST') {
         let body = '';
-        req.on('data', (chunk: any) => body += chunk);
+        req.on('data', (chunk: any) => (body += chunk));
         req.on('end', async () => {
           if (!env.FAL_KEY) {
             res.setHeader('Content-Type', 'application/json');
@@ -57,17 +57,17 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Key ${env.FAL_KEY}`
+                Authorization: `Key ${env.FAL_KEY}`,
               },
-              body: JSON.stringify(falBody)
+              body: JSON.stringify(falBody),
             });
             const data = await response.text();
             res.setHeader('Content-Type', 'application/json');
             res.statusCode = response.status;
             res.end(data);
-          } catch(e: any) {
+          } catch (e: any) {
             res.statusCode = 500;
-            res.end(JSON.stringify({error: e.message}));
+            res.end(JSON.stringify({ error: e.message }));
           }
         });
         return;
@@ -84,7 +84,7 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
                 bodyStr += chunk;
               }
             }
-            
+
             // Mock VITE_FRONTEND_URL for edge functions if not set
             process.env.VITE_FRONTEND_URL = env.VITE_FRONTEND_URL || 'http://localhost:5173';
             // Inject env variables to process.env since they use it
@@ -93,7 +93,7 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
             const webReq = new Request(url, {
               method: req.method,
               headers: req.headers as any,
-              body: bodyStr ? bodyStr : undefined
+              body: bodyStr ? bodyStr : undefined,
             });
 
             const webRes: Response = await mod.default(webReq);
@@ -110,10 +110,10 @@ const apiProxyPlugin = (env: Record<string, string>) => ({
           console.error(`API proxy error for ${endpoint}:`, err.message);
         }
       }
-      
+
       next();
     });
-  }
+  },
 });
 
 export default defineConfig(({ mode }) => {
@@ -185,7 +185,7 @@ export default defineConfig(({ mode }) => {
             'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
             'vendor-ml': ['@xenova/transformers'],
             'vendor-vector': ['paper', 'imagetracerjs'],
-            'vendor-canvas': ['html2canvas', 'react-window', 'jszip'],
+            'vendor-canvas': ['html2canvas', 'jszip'],
             'vendor-sentry': ['@sentry/react'],
             'vendor-supabase': ['@supabase/supabase-js'],
           },

@@ -65,7 +65,9 @@ function hexToHsl(hex: string): { h: number; s: number; l: number } {
     min = Math.min(r, g, b),
     d = max - min,
     l = (max + min) / 2;
-  if (d === 0) return { h: 0, s: 0, l };
+  if (d === 0) {
+    return { h: 0, s: 0, l };
+  }
   return {
     h: ((max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4) / 6) * 360,
     s: l > 0.5 ? d / (2 - max - min) : d / (max + min),
@@ -90,7 +92,9 @@ function getAllLayers(artboards: Artboard[], layers: Layer[]): Layer[] {
 
 function getColors(layers: Layer[]): string[] {
   return Array.from(
-    new Set(layers.map((l) => (isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null)).filter(Boolean))
+    new Set(
+      layers.map((l) => (isTextLayer(l) || isShapeLayer(l) ? (l as any).color : null)).filter(Boolean) as string[]
+    )
   );
 }
 
@@ -110,8 +114,12 @@ export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAna
     let minFontSize = fontSizes[0];
     let maxFontSize = fontSizes[0];
     for (let i = 1; i < fontSizes.length; i++) {
-      if (fontSizes[i] < minFontSize) minFontSize = fontSizes[i];
-      if (fontSizes[i] > maxFontSize) maxFontSize = fontSizes[i];
+      if (fontSizes[i] < minFontSize) {
+        minFontSize = fontSizes[i];
+      }
+      if (fontSizes[i] > maxFontSize) {
+        maxFontSize = fontSizes[i];
+      }
     }
     hasHierarchy = maxFontSize / minFontSize > 1.5;
   }
@@ -144,17 +152,27 @@ export function analyzeDesign(artboards: Artboard[], layers: Layer[]): DesignAna
         )
       : 100;
   const suggestions: string[] = [];
-  if (fonts.length > 3) suggestions.push('Reduce font families to max 3');
-  if (!hasHierarchy) suggestions.push('Add font size variation for hierarchy');
-  if (colors.length > 5) suggestions.push('Limit palette to 5 colors');
-  if (spacing < 50) suggestions.push('Increase spacing between elements');
-  if (alignment < 80) suggestions.push('Align text elements');
-  
+  if (fonts.length > 3) {
+    suggestions.push('Reduce font families to max 3');
+  }
+  if (!hasHierarchy) {
+    suggestions.push('Add font size variation for hierarchy');
+  }
+  if (colors.length > 5) {
+    suggestions.push('Limit palette to 5 colors');
+  }
+  if (spacing < 50) {
+    suggestions.push('Increase spacing between elements');
+  }
+  if (alignment < 80) {
+    suggestions.push('Align text elements');
+  }
+
   const layoutScore = Math.round((alignment + spacing + balance) / 3);
   const typeScore = Math.round((fonts.length <= 3 ? 100 : 50) + (hasHierarchy ? 100 : 40)) / 2;
   const colorScore = Math.round((contrast + (colors.length <= 5 ? 90 : 50)) / 2);
   const score = Math.round((layoutScore + typeScore + colorScore) / 3);
-  
+
   return {
     score,
     suggestions,
@@ -188,13 +206,14 @@ export function applyDesignIntent(intent: DesignIntent, artboards: Artboard[], l
         l.letterSpacing = 2;
         l.lineHeight = Math.max(l.lineHeight, 1.6);
       }
-      if (isShapeLayer(l))
+      if (isShapeLayer(l)) {
         l.shadow = {
           color: 'rgba(0,0,0,0.15)',
           blur: 20,
           offsetX: 0,
           offsetY: 4,
         };
+      }
       l.opacity = clamp(l.opacity + 0.05, 0, 1);
     }
     if (norm.includes('apple') || norm.includes('clean')) {
@@ -219,8 +238,12 @@ export function applyDesignIntent(intent: DesignIntent, artboards: Artboard[], l
         const h = hexToHsl(c);
         return `hsl(${h.h},${clamp(h.s * sMul, 0, 1)},${clamp(h.l + lAdd, 0, 1)})`;
       };
-      if (isTextLayer(l)) l.color = applyHsl(l.color, 1.4);
-      if (isShapeLayer(l)) l.color = applyHsl(l.color, 1.3, 0.05);
+      if (isTextLayer(l)) {
+        l.color = applyHsl(l.color, 1.4);
+      }
+      if (isShapeLayer(l)) {
+        l.color = applyHsl(l.color, 1.3, 0.05);
+      }
     }
     if (norm.includes('minimal') || norm.includes('simple')) {
       if (isShapeLayer(l)) {
@@ -280,7 +303,9 @@ export function generateLayoutVariants(artboards: Artboard[], layers: Layer[]): 
 
 export function optimizeForPlatform(artboards: Artboard[], targetPlatform: Platform): Artboard[] {
   const target = PLATFORM_SIZES[targetPlatform];
-  if (!target) return artboards;
+  if (!target) {
+    return artboards;
+  }
   const srcW = artboards[0]?.width || 800,
     srcH = artboards[0]?.height || 600;
   const scale = Math.min(target.width, target.height) / Math.min(srcW, srcH);
@@ -302,7 +327,9 @@ export function optimizeForPlatform(artboards: Artboard[], targetPlatform: Platf
           l.fontSize = Math.max(l.fontSize, 24);
           l.fontWeight = '700';
         }
-        if (targetPlatform === 'Business Card') l.fontSize = Math.min(l.fontSize, 12);
+        if (targetPlatform === 'Business Card') {
+          l.fontSize = Math.min(l.fontSize, 12);
+        }
       }
       return l;
     }),

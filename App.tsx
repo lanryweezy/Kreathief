@@ -16,12 +16,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { parseShareLink } from './utils/shareUtils';
 
 // Lazy load all route-level and modal components for code splitting
-const LandingPage = React.lazy(() =>
-  import('./components/LandingPage').then((m) => ({ default: m.LandingPage }))
-);
-const BlogList = React.lazy(() =>
-  import('./components/blog/BlogList').then((m) => ({ default: m.BlogList }))
-);
+const LandingPage = React.lazy(() => import('./components/LandingPage').then((m) => ({ default: m.LandingPage })));
+const BlogList = React.lazy(() => import('./components/blog/BlogList').then((m) => ({ default: m.BlogList })));
 const BlogPostView = React.lazy(() =>
   import('./components/blog/BlogPostView').then((m) => ({ default: m.BlogPostView }))
 );
@@ -40,15 +36,11 @@ const VersionDiffModal = React.lazy(() =>
 const UserProfilePage = React.lazy(() =>
   import('./components/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 );
-const AboutPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.AboutPage }))
-);
+const AboutPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.AboutPage })));
 const PrivacyPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.PrivacyPage }))
 );
-const TermsPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.TermsPage }))
-);
+const TermsPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.TermsPage })));
 const SecurityPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.SecurityPage }))
 );
@@ -61,9 +53,7 @@ const HelpCenterPage = React.lazy(() =>
 const ChangelogPage = React.lazy(() =>
   import('./components/pages/StaticPages').then((m) => ({ default: m.ChangelogPage }))
 );
-const APIPage = React.lazy(() =>
-  import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage }))
-);
+const APIPage = React.lazy(() => import('./components/pages/StaticPages').then((m) => ({ default: m.APIPage })));
 
 const NodeWorkspaceLanding = React.lazy(() =>
   import('./components/pages/NodeWorkspaceLanding').then((m) => ({ default: m.NodeWorkspaceLanding }))
@@ -95,11 +85,11 @@ const AuthCallback = React.lazy(() =>
     default: module.AuthCallback,
   }))
 );
-const AudienceView = React.lazy(() =>
-  import('./components/AudienceView').then((module) => ({
-    default: module.AudienceView,
-  }))
-);
+// const AudienceView = React.lazy(() =>
+//   import('./components/AudienceView').then((module) => ({
+//     default: module.AudienceView,
+//   }))
+// );
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
@@ -118,7 +108,7 @@ const App: React.FC = () => {
   const removeToast = useStore((state) => state.removeToast);
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
-  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [, setDeferredInstallPrompt] = useState<unknown>(null);
 
   const [showWelcome, setShowWelcome] = useState(false);
   const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
@@ -168,11 +158,11 @@ const App: React.FC = () => {
         if (window.location.pathname === '/editor') {
           const mirror = await storageService.getSessionMirror();
           if (mirror && mirror.state) {
-            let projectName = (mirror as any).projectName;
+            let projectName = (mirror as { projectName?: string }).projectName;
             if (!projectName && mirror.projectId) {
               try {
                 const projects = await storageService.getAllProjects();
-                const existing = projects.find((p: any) => p.id === mirror.projectId);
+                const existing = projects.find((p: { id: string }) => p.id === mirror.projectId);
                 if (existing?.name) {
                   projectName = existing.name;
                 }
@@ -307,7 +297,7 @@ const App: React.FC = () => {
     setActiveTour(location.pathname === '/editor' ? 'editor' : 'dashboard');
   };
 
-  const handleInstallApp = async () => {
+  /* const handleInstallApp = async () => {
     if (!deferredInstallPrompt) {
       return;
     }
@@ -316,7 +306,7 @@ const App: React.FC = () => {
     if (outcome === 'accepted') {
       setDeferredInstallPrompt(null);
     }
-  };
+  }; */
 
   const dashboardTourSteps: TourStep[] = [
     {
@@ -412,8 +402,22 @@ const App: React.FC = () => {
     <ErrorBoundary componentName="App Root" variant="full">
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
-          <Route path="/" element={<Suspense fallback={<LoadingFallback />}><LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} /></Suspense>} />
-          <Route path="/node" element={<Suspense fallback={<LoadingFallback />}><NodeWorkspaceLanding /></Suspense>} />
+          <Route
+            path="/"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <LandingPage onGetStarted={handleGuestEntry} onTryGuest={handleGuestEntry} />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/node"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <NodeWorkspaceLanding />
+              </Suspense>
+            }
+          />
           <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route
@@ -447,20 +451,111 @@ const App: React.FC = () => {
               )
             }
           />
-                    <Route path="/tools" element={<Suspense fallback={<LoadingFallback />}><ToolsDirectoryPage /></Suspense>} />
-          <Route path="/tools/:slug" element={<Suspense fallback={<LoadingFallback />}><FeatureLandingPage /></Suspense>} />
-          <Route path="/blog" element={<Suspense fallback={<LoadingFallback />}><BlogList /></Suspense>} />
-          <Route path="/blog/:id" element={<Suspense fallback={<LoadingFallback />}><BlogPostView /></Suspense>} />
-          <Route path="/profile/:userId" element={<Suspense fallback={<LoadingFallback />}><ProfileRoute /></Suspense>} />
+          <Route
+            path="/tools"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ToolsDirectoryPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/tools/:slug"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <FeatureLandingPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/blog"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <BlogList />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/blog/:id"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <BlogPostView />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ProfileRoute />
+              </Suspense>
+            }
+          />
 
-          <Route path="/about" element={<Suspense fallback={<LoadingFallback />}><AboutPage /></Suspense>} />
-          <Route path="/privacy" element={<Suspense fallback={<LoadingFallback />}><PrivacyPage /></Suspense>} />
-          <Route path="/terms" element={<Suspense fallback={<LoadingFallback />}><TermsPage /></Suspense>} />
-          <Route path="/security" element={<Suspense fallback={<LoadingFallback />}><SecurityPage /></Suspense>} />
-          <Route path="/contact" element={<Suspense fallback={<LoadingFallback />}><ContactPage /></Suspense>} />
-          <Route path="/help" element={<Suspense fallback={<LoadingFallback />}><HelpCenterPage /></Suspense>} />
-          <Route path="/changelog" element={<Suspense fallback={<LoadingFallback />}><ChangelogPage /></Suspense>} />
-          <Route path="/api" element={<Suspense fallback={<LoadingFallback />}><APIPage /></Suspense>} />
+          <Route
+            path="/about"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <AboutPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/privacy"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <PrivacyPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/terms"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <TermsPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/security"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <SecurityPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ContactPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/help"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <HelpCenterPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/changelog"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ChangelogPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/api"
+            element={
+              <Suspense fallback={<LoadingFallback />}>
+                <APIPage />
+              </Suspense>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
