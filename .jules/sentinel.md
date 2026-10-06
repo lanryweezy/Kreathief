@@ -325,3 +325,9 @@
 **Vulnerability:** The application fetched `import.meta.env.VITE_REPLICATE_API_KEY` on the client side in `services/upscaleService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** Using the `VITE_` prefix for secrets meant for external backend usage leads to direct key exposure via the compiled frontend bundle because Vite statically injects them into the build.
 **Prevention:** Always implement a server-side proxy route (e.g., an Edge Function like `api/replicate.ts`) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and update client services to call the internal proxy.
+
+## 2026-10-05 - [Replace Math.random with crypto.randomUUID for worker jobId]
+
+**Vulnerability:** A weak pseudo-random number generator (`Math.random()`) was used in `utils/exportWorkerBridge.ts` to generate `jobId` identifying web worker tasks.
+**Learning:** `Math.random()` provides insufficient entropy and is predictable. Using it to generate job IDs inside a worker bridge can lead to ID collisions, which could cause race conditions or misrouted task resolutions. It also flags SAST tools.
+**Prevention:** Always use the cryptographically secure `crypto.randomUUID()` to generate universally unique identifiers to guarantee zero-collision rates for worker task tracking.
