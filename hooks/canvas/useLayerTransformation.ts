@@ -73,13 +73,35 @@ export const useLayerTransformation = ({
 
     let initialChildren;
     if (layer.id === 'group_proxy') {
-      initialChildren = layersRef.current
-        .filter((l) => selectedLayerIdsRef.current.includes(l.id))
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
+      // PERFORMANCE OPTIMIZATION: Replace O(N*M) double-array traversal (.filter().includes())
+      // with an O(N) single-pass loop utilizing an O(1) Set lookup. Early exit added.
+      // Expected impact: Prevents memory bloat and CPU spikes during transformations with large layer counts.
+      const selectedSet = new Set(selectedLayerIdsRef.current);
+      initialChildren = [];
+      for (const l of layersRef.current) {
+        if (selectedSet.has(l.id)) {
+          initialChildren.push({
+            id: l.id,
+            x: l.x,
+            y: l.y,
+            width: l.width || 0,
+            height: l.height || 0,
+            rotation: l.rotation || 0,
+          });
+          if (initialChildren.length === selectedSet.size) break;
+        }
+      }
     } else if (layer.isGroup) {
       initialChildren = layersRef.current
         .filter((l) => l.groupId === layer.id)
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({
+          id: l.id,
+          x: l.x,
+          y: l.y,
+          width: l.width || 0,
+          height: l.height || 0,
+          rotation: l.rotation || 0,
+        }));
     }
 
     setTransformState({
@@ -120,13 +142,35 @@ export const useLayerTransformation = ({
 
     let initialChildren;
     if (layer.id === 'group_proxy') {
-      initialChildren = layersRef.current
-        .filter((l) => selectedLayerIdsRef.current.includes(l.id))
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
+      // PERFORMANCE OPTIMIZATION: Replace O(N*M) double-array traversal (.filter().includes())
+      // with an O(N) single-pass loop utilizing an O(1) Set lookup. Early exit added.
+      // Expected impact: Prevents memory bloat and CPU spikes during transformations with large layer counts.
+      const selectedSet = new Set(selectedLayerIdsRef.current);
+      initialChildren = [];
+      for (const l of layersRef.current) {
+        if (selectedSet.has(l.id)) {
+          initialChildren.push({
+            id: l.id,
+            x: l.x,
+            y: l.y,
+            width: l.width || 0,
+            height: l.height || 0,
+            rotation: l.rotation || 0,
+          });
+          if (initialChildren.length === selectedSet.size) break;
+        }
+      }
     } else if (layer.isGroup) {
       initialChildren = layersRef.current
         .filter((l) => l.groupId === layer.id)
-        .map((l) => ({ id: l.id, x: l.x, y: l.y, width: l.width || 0, height: l.height || 0, rotation: l.rotation || 0 }));
+        .map((l) => ({
+          id: l.id,
+          x: l.x,
+          y: l.y,
+          width: l.width || 0,
+          height: l.height || 0,
+          rotation: l.rotation || 0,
+        }));
     }
 
     setTransformState({
@@ -306,7 +350,8 @@ export const useLayerTransformation = ({
       updates[state.layerId] = partial;
 
       // Handle Group Children Transformations (Scaling & Rotation)
-      const layer = state.layerId === 'group_proxy' ? { isGroup: true } : layersRef.current.find((l) => l.id === state.layerId);
+      const layer =
+        state.layerId === 'group_proxy' ? { isGroup: true } : layersRef.current.find((l) => l.id === state.layerId);
       if (layer?.isGroup && state.initialChildren) {
         const gInitialCenterX = state.initialX + state.initialWidth / 2;
         const gInitialCenterY = state.initialY + state.initialHeight / 2;
