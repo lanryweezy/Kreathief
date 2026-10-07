@@ -23,8 +23,17 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
     useShallow((state) => ({ snapToGrid: state.snapToGrid, snapToObjects: state.snapToObjects }))
   );
 
-  const selectedLayers = layers.filter((l) => selectedIds.includes(l.id));
-  const otherLayers = layers.filter((l) => !selectedIds.includes(l.id) && !l.locked && l.visible);
+  const selectedSet = new Set(selectedIds);
+  const selectedLayers: Layer[] = [];
+  const otherLayers: Layer[] = [];
+
+  for (const layer of layers) {
+    if (selectedSet.has(layer.id)) {
+      selectedLayers.push(layer);
+    } else if (!layer.locked && layer.visible) {
+      otherLayers.push(layer);
+    }
+  }
 
   if (selectedLayers.length === 0 || (!snapToGrid && !snapToObjects)) return null;
 

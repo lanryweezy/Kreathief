@@ -410,10 +410,19 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     maxZoom: 10,
   });
 
-  const selectedLayers = useMemo(
-    () => allLayers.filter((l) => selectedLayerIds.includes(l.id)),
-    [allLayers, selectedLayerIds]
-  );
+  const selectedLayers = useMemo(() => {
+    // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal (.filter().includes())
+    // with an O(N) single-pass loop utilizing an O(1) Set lookup.
+    const set = new Set(selectedLayerIds);
+    const result = [];
+    for (const layer of allLayers) {
+      if (set.has(layer.id)) {
+        result.push(layer);
+        if (result.length === set.size) break;
+      }
+    }
+    return result;
+  }, [allLayers, selectedLayerIds]);
 
   const { suggestions, snapPoints, applySuggestion, dismissSuggestion } = useSmartInteraction(
     allLayers,

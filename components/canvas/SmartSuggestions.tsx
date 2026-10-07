@@ -34,7 +34,14 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
   useEffect(() => {
     if (!ref.current || selectedIds.length === 0) return;
 
-    const selectedLayers = layers.filter((l) => selectedIds.includes(l.id));
+    const selectedSet = new Set(selectedIds);
+    const selectedLayers = [];
+    for (const layer of layers) {
+      if (selectedSet.has(layer.id)) {
+        selectedLayers.push(layer);
+        if (selectedLayers.length === selectedSet.size) break;
+      }
+    }
     if (selectedLayers.length === 0) return;
 
     // ⚡ Bolt Optimization: Use a single for-loop for bounds calculation to avoid redundant O(N) array allocations

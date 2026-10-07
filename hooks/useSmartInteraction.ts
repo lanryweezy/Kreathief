@@ -20,7 +20,17 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
   const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
   const [snapPoints, setSnapPoints] = useState<SnapPoint[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const selectedLayers = useMemo(() => layers.filter((l) => selectedIds.includes(l.id)), [layers, selectedIds]);
+  const selectedLayers = useMemo(() => {
+    const set = new Set(selectedIds);
+    const result = [];
+    for (const layer of layers) {
+      if (set.has(layer.id)) {
+        result.push(layer);
+        if (result.length === set.size) break;
+      }
+    }
+    return result;
+  }, [layers, selectedIds]);
   const prevIdsRef = useRef<string>('');
 
   useEffect(() => {

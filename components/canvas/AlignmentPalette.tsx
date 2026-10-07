@@ -31,7 +31,14 @@ export const AlignmentPalette: React.FC<AlignmentPaletteProps> = React.memo(({ s
   const distributeLayers = useStore((s) => s.distributeLayers);
   const saveToHistory = useStore((s) => s.saveToHistory);
 
-  const selected = layers.filter((l) => selectedLayerIds.includes(l.id));
+  const selectedSet = new Set(selectedLayerIds);
+  const selected = [];
+  for (const layer of layers) {
+    if (selectedSet.has(layer.id)) {
+      selected.push(layer);
+      if (selected.length === selectedSet.size) break;
+    }
+  }
   if (selected.length < 2) return null;
 
   const bounds = GeometryOracle.getGroupBounds(selected);
