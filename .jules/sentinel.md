@@ -302,35 +302,43 @@
 **Prevention:** When securing CORS in Vercel API routes, require `VITE_FRONTEND_URL` in production, but safely fall back to `VERCEL_URL` if present. Never echo the request's `Origin` header blindly (`req.headers.get('origin')`) or default to a wildcard `*` on sensitive proxy endpoints.
 
 ## 2024-10-25 - [Removed Client-Side Exposure and Hardcoding of Pexels API Key]
+
 **Vulnerability:** The application was fetching `import.meta.env.VITE_PEXELS_API_KEY` and contained a hardcoded Pexels API key in `api/pexels.ts`, which was bundled into the client-side code, exposing the secret directly to users.
 **Learning:** Storing API keys in client-side files or using the `VITE_` prefix for secrets securely meant for backend usage leads to direct key exposure via the compiled frontend bundle.
 **Prevention:** Always implement a server-side proxy route (e.g., an Edge Function) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and never hardcode API keys in source code.
 
 ## 2026-10-27 - [Fix setInterval Memory Leak in Edge Environment]
+
 **Vulnerability:** The `api/openrouter.ts` edge function used `setInterval` at the module scope for rate-limit cleanup.
 **Learning:** In Vercel Edge and serverless functions, isolates suspend between requests. Using active timers like `setInterval` causes them to freeze, hang, or leak memory because the V8 isolate is frozen between invocations, potentially leading to denial-of-service through resource exhaustion.
 **Prevention:** Never use `setInterval` or `setTimeout` for background tasks in serverless environments. Instead, use passive, request-driven cleanup logic (e.g., checking timestamps on invocation) to manage state expiration.
 
 ## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions]
+
 **Vulnerability:** The `api/openrouter.ts` proxy endpoint enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
 **Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
 **Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
 
 ## 2026-10-27 - [Fix CORS Issue Due To Authentication Ordering in Edge Functions (Fal & Freepik)]
+
 **Vulnerability:** The `api/fal.ts` and `api/freepik.ts` proxy endpoints enforced `requireAuth(req)` before checking if the request was an `OPTIONS` CORS preflight request.
 **Learning:** Browsers do not send authentication headers (like Bearer tokens) with preflight `OPTIONS` requests. Placing the `requireAuth` logic before the `OPTIONS` handler rejects valid browser preflight requests with a 401 Unauthorized error, thereby causing a Cross-Origin Request Blocked failure in the client application.
 **Prevention:** When creating or modifying Vercel edge functions and proxy routes (e.g., inside the `api/` directory), always handle the CORS `OPTIONS` preflight request before enforcing authentication checks like `requireAuth`.
 
 ## 2026-10-27 - [Fix Client-Side Exposure of Replicate API Key]
+
 **Vulnerability:** The application fetched `import.meta.env.VITE_REPLICATE_API_KEY` on the client side in `services/upscaleService.ts`, directly exposing a secret API key to users via the compiled frontend bundle.
 **Learning:** Using the `VITE_` prefix for secrets meant for external backend usage leads to direct key exposure via the compiled frontend bundle because Vite statically injects them into the build.
 **Prevention:** Always implement a server-side proxy route (e.g., an Edge Function like `api/replicate.ts`) to handle requests to external services securely. Keep secrets safely stored in the server's environment without the `VITE_` prefix and update client services to call the internal proxy.
+
 ## 2026-10-04 - [Replaced Insecure new Function() Math Evaluation]
+
 **Vulnerability:** A `new Function()` constructor was used to dynamically evaluate math expressions in `components/toolbar/ToolbarShared.tsx`.
 **Learning:** Using `new Function()` or `eval()` to execute dynamic strings is a severe anti-pattern that violates the "unsafe-eval" Content Security Policy (CSP). Even with rudimentary regex sanitization (e.g., stripping non-math characters), it exposes the application to potential code injection or application crash vectors and is heavily flagged by automated security scanners.
 **Prevention:** Never use `new Function()` or `eval()` for parsing math or logic from strings. Always rely on a dedicated parser or a battle-tested library like `mathjs` which safely evaluates mathematical expressions without invoking the JavaScript runtime compiler.
 
 ## 2026-11-04 - [Replaced predictable Job ID generation with crypto.randomUUID()]
+
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate random IDs for worker jobs in `utils/exportWorkerBridge.ts`.
 **Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While worker job IDs are lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure to prevent ID collisions.
 **Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
