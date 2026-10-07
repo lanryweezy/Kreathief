@@ -329,3 +329,8 @@
 **Vulnerability:** A `new Function()` constructor was used to dynamically evaluate math expressions in `components/toolbar/ToolbarShared.tsx`.
 **Learning:** Using `new Function()` or `eval()` to execute dynamic strings is a severe anti-pattern that violates the "unsafe-eval" Content Security Policy (CSP). Even with rudimentary regex sanitization (e.g., stripping non-math characters), it exposes the application to potential code injection or application crash vectors and is heavily flagged by automated security scanners.
 **Prevention:** Never use `new Function()` or `eval()` for parsing math or logic from strings. Always rely on a dedicated parser or a battle-tested library like `mathjs` which safely evaluates mathematical expressions without invoking the JavaScript runtime compiler.
+
+## 2026-11-04 - [Replaced predictable Job ID generation with crypto.randomUUID()]
+**Vulnerability:** Weak PRNG `Math.random()` was used to generate random IDs for worker jobs in `utils/exportWorkerBridge.ts`.
+**Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While worker job IDs are lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure to prevent ID collisions.
+**Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
