@@ -87,7 +87,7 @@ test('verify all requested changes', async ({ page }) => {
 
   // 4. Verify Selection/Drag behavior
   // Go back to Elements to add a shape
-  await page.getByRole('button', { name: 'Elements' }).click();
+  await page.getByRole('button', { name: 'Elements', exact: true }).first().click();
   // Wait for shapes to load
   await page.waitForTimeout(2000);
   // Click on a shape (the first one in the grid)

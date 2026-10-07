@@ -224,17 +224,16 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
 
     for (let i = 0; i < artboards.length; i++) {
       const layers = artboards[i].layers;
-      if (!layers) continue;
+      if (!layers) {
+        continue;
+      }
       for (let j = 0; j < layers.length; j++) {
         const layer = layers[j];
         newLayers.push(layer);
 
         // If we haven't already found a difference, check this layer
         if (!isDifferent) {
-          if (
-            prevIndex >= allLayersRef.current.length ||
-            allLayersRef.current[prevIndex].id !== layer.id
-          ) {
+          if (prevIndex >= allLayersRef.current.length || allLayersRef.current[prevIndex].id !== layer.id) {
             isDifferent = true;
           }
         }
@@ -418,7 +417,9 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
     for (const layer of allLayers) {
       if (set.has(layer.id)) {
         result.push(layer);
-        if (result.length === set.size) break;
+        if (result.length === set.size) {
+          break;
+        }
       }
     }
     return result;
@@ -481,7 +482,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
           const estimatedWidth = Math.max(60, Math.round(newText.length * (fontSize * 0.6)));
           const updates: Partial<TextLayer> = {
             text: newText,
-            width: currentLayer.groupId ? estimatedWidth : (currentLayer.width || estimatedWidth),
+            width: currentLayer.groupId ? estimatedWidth : currentLayer.width || estimatedWidth,
             name: newText.length > 20 ? newText.slice(0, 20) + '…' : newText,
           };
           onUpdateLayers?.({ [editingTextId]: updates });

@@ -32,21 +32,30 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!ref.current || selectedIds.length === 0) return;
+    if (!ref.current || selectedIds.length === 0) {
+      return;
+    }
 
     const selectedSet = new Set(selectedIds);
     const selectedLayers = [];
     for (const layer of layers) {
       if (selectedSet.has(layer.id)) {
         selectedLayers.push(layer);
-        if (selectedLayers.length === selectedSet.size) break;
+        if (selectedLayers.length === selectedSet.size) {
+          break;
+        }
       }
     }
-    if (selectedLayers.length === 0) return;
+    if (selectedLayers.length === 0) {
+      return;
+    }
 
     // ⚡ Bolt Optimization: Use a single for-loop for bounds calculation to avoid redundant O(N) array allocations
     // and prevent Maximum call stack size exceeded errors from Math.min/max with spread operators on large arrays
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     let isValid = true;
     for (let i = 0; i < selectedLayers.length; i++) {
       const l = selectedLayers[i];
@@ -56,13 +65,23 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
         isValid = false;
         break;
       }
-      if (l.x < minX) minX = l.x;
-      if (l.y < minY) minY = l.y;
-      if (xw > maxX) maxX = xw;
-      if (yh > maxY) maxY = yh;
+      if (l.x < minX) {
+        minX = l.x;
+      }
+      if (l.y < minY) {
+        minY = l.y;
+      }
+      if (xw > maxX) {
+        maxX = xw;
+      }
+      if (yh > maxY) {
+        maxY = yh;
+      }
     }
 
-    if (!isValid) return;
+    if (!isValid) {
+      return;
+    }
 
     const bounds = {
       x: minX,
@@ -101,7 +120,9 @@ export const SmartSuggestions: React.FC<SmartSuggestionsProps> = ({
     onApply(suggestion);
   };
 
-  if (suggestions.length === 0) return null;
+  if (suggestions.length === 0) {
+    return null;
+  }
 
   return (
     <div

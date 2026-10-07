@@ -26,7 +26,9 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
     for (const layer of layers) {
       if (set.has(layer.id)) {
         result.push(layer);
-        if (result.length === set.size) break;
+        if (result.length === set.size) {
+          break;
+        }
       }
     }
     return result;
@@ -35,7 +37,9 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
 
   useEffect(() => {
     const idsKey = selectedIds.join(',');
-    if (idsKey === prevIdsRef.current) return;
+    if (idsKey === prevIdsRef.current) {
+      return;
+    }
     prevIdsRef.current = idsKey;
 
     if (!selectedLayers.length) {
@@ -73,10 +77,14 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
       );
     }
     setSuggestions(s);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = setTimeout(() => setSuggestions([]), 5000);
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [selectedLayers, selectedIds]);
 

@@ -36,10 +36,14 @@ export const AlignmentPalette: React.FC<AlignmentPaletteProps> = React.memo(({ s
   for (const layer of layers) {
     if (selectedSet.has(layer.id)) {
       selected.push(layer);
-      if (selected.length === selectedSet.size) break;
+      if (selected.length === selectedSet.size) {
+        break;
+      }
     }
   }
-  if (selected.length < 2) return null;
+  if (selected.length < 2) {
+    return null;
+  }
 
   const bounds = GeometryOracle.getGroupBounds(selected);
   const top = bounds.y - 38 / zoom;
