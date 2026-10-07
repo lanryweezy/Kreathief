@@ -143,12 +143,14 @@ export const VectorEditingPanel: React.FC = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-700">
+      <div className="flex border-b border-gray-700" role="tablist">
         {(['path', 'boolean', 'effects', 'transform'] as const).map((tab) => (
           <button
             key={tab}
+            role="tab"
+            aria-selected={activePanel === tab}
             onClick={() => setActivePanel(tab)}
-            className={`flex-1 px-3 py-2 text-xs font-medium capitalize transition-colors ${
+            className={`flex-1 px-3 py-2 text-xs font-medium capitalize transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 focus-visible:ring-offset-[-2px] ${
               activePanel === tab
                 ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-50/5'
                 : 'text-gray-400 hover:text-gray-300'

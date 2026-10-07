@@ -384,12 +384,14 @@ export const MockupControls: React.FC<MockupControlsProps> = ({
 
   return (
     <div className="bg-surface-dark-2">
-      <div className="flex border-b border-gray-800 bg-surface-dark-2">
+      <div className="flex border-b border-gray-800 bg-surface-dark-2" role="tablist">
         {(['placement', 'effects', 'presets'] as const).map((tab) => (
           <button
             key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all ${
+            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-[-2px] ${
               activeTab === tab
                 ? 'text-brand-600 border-b-2 border-brand-600 bg-brand-600/5'
                 : 'text-gray-500 hover:text-gray-300'
