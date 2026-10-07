@@ -94,29 +94,6 @@ export function placeDesignNonDestructively(
     return { artboards: next, activeArtboardId: filled.id, placedOnNewArtboard: false };
   }
 
-  if (active && isArtboardOccupied(active)) {
-    const maxLayerX = active.layers.reduce((max, l) => Math.max(max, (Number(l.x) || 0) + (Number(l.width) || 0)), 0);
-    const offsetX = maxLayerX + 50; // Add gap
-
-    const shiftedLayers = layers.map(l => ({
-      ...l,
-      x: (Number(l.x) || 0) + offsetX
-    }));
-
-    const newMaxX = shiftedLayers.reduce((max, l) => Math.max(max, (Number(l.x) || 0) + (Number(l.width) || 0)), maxLayerX);
-    const newWidth = Math.max(Number(active.width) || width, newMaxX + 50);
-
-    const updatedActive: Artboard = {
-      ...active,
-      width: newWidth,
-      layers: [...active.layers, ...shiftedLayers],
-    };
-    
-    const next = artboards.slice();
-    next[activeIndex] = updatedActive;
-    return { artboards: next, activeArtboardId: updatedActive.id, placedOnNewArtboard: false };
-  }
-
   const board: Artboard = {
     id: uuidv4(),
     name: design.name || `AI Design ${artboards.length + 1}`,

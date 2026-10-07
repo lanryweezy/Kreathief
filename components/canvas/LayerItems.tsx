@@ -467,6 +467,16 @@ export const ImageLayerItem = React.memo(
                   />
                 );
               })}
+            {imgLayer.colorTint?.enabled && imgLayer.colorTint.color && (
+              <div
+                className="absolute inset-0 pointer-events-none z-10"
+                style={{
+                  backgroundColor: imgLayer.colorTint.color,
+                  opacity: imgLayer.colorTint.opacity ?? 0.5,
+                  mixBlendMode: imgLayer.colorTint.blendMode || 'color',
+                }}
+              />
+            )}
             {imgLayer.isProcessing && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/20 backdrop-blur-[1px] rounded-lg animate-pulse pointer-events-none">
                 <div className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />

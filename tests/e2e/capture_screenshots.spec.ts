@@ -69,3 +69,56 @@ test('capture app screenshots', async ({ page }) => {
 
   await page.waitForTimeout(2000); // Final pause before closing
 });
+
+test('capture AI generated vibes for pitch deck', async ({ page }) => {
+  // Setup user session
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'kreathief_guest_session',
+      JSON.stringify({ id: 'test-user', name: 'Test Designer', plan: 'pro' })
+    );
+    localStorage.setItem('kreathief_onboarding_seen_v2', 'true');
+  });
+
+  // Go straight to editor
+  await page.goto('/editor/new');
+  await page.waitForLoadState('networkidle');
+  await page.waitForSelector('.design-artboard');
+  await page.keyboard.press('Escape');
+
+  const vibes = [
+    { name: 'Luxury', prompt: 'A premium luxury fashion campaign for a new winter coat, elegant minimal layout' },
+    { name: 'Cyberpunk', prompt: 'A neon cyberpunk music festival poster with glowing tech elements' },
+    { name: 'Brutalist', prompt: 'A raw brutalist typography heavy poster for a techno club night' },
+    { name: 'RetroBadge', prompt: 'A vintage coffee shop logo badge with arched text and a circle aesthetic' },
+    { name: 'CleanSaaS', prompt: 'A clean corporate tech webinar announcement for B2B SaaS' }
+  ];
+
+  for (const vibe of vibes) {
+    try {
+      // Open AI Modal
+      const aiBtn = page.getByRole('button', { name: /AI Generator|Generate/i }).first();
+      await aiBtn.click();
+      await page.waitForTimeout(500);
+
+      // Enter Prompt
+      const textarea = page.locator('textarea[placeholder*="Describe what you want to create"]');
+      await textarea.fill(vibe.prompt);
+      
+      // Submit
+      const generateBtn = page.getByRole('button', { name: 'Generate Design' });
+      await generateBtn.click();
+
+      // Wait for generation to complete (usually 10-20 seconds)
+      // We look for the AI modal to close or the new artboard to appear
+      await page.waitForSelector('.design-artboard', { state: 'visible', timeout: 35000 });
+      await page.waitForTimeout(3000); // Wait for images to load
+      
+      // Capture the result
+      await page.screenshot({ path: `verification/screenshots/vibe-${vibe.name.toLowerCase()}.png` });
+      
+    } catch (e) {
+      console.error(`Failed to generate ${vibe.name}`, e);
+    }
+  }
+});

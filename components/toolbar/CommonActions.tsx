@@ -20,15 +20,29 @@ export const CommonActions = React.memo(
     const appearanceButtonRef = useRef<HTMLButtonElement>(null);
     const lockButtonRef = useRef<HTMLButtonElement>(null);
 
+    const hasCustomBlend = selectedLayer.blendMode && selectedLayer.blendMode !== 'normal';
+    const hasCustomOpacity = (selectedLayer.opacity ?? 1) < 1;
+
     return (
       <div className="flex items-center gap-2">
         <div className="relative">
           <button
             ref={appearanceButtonRef}
             onClick={() => setShowEffects(!showEffects)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${showEffects ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30' : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'}`}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
+              hasCustomBlend || hasCustomOpacity
+                ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 shadow-md shadow-indigo-900/20'
+                : showEffects
+                  ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                  : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'
+            }`}
+            title="Layer Blend Mode & Opacity"
           >
-            <Icons.Blend className="w-3.5 h-3.5" /> Appearance
+            <Icons.Blend className={`w-3.5 h-3.5 ${hasCustomBlend ? 'text-indigo-400' : 'text-gray-400'}`} />
+            <span className="capitalize">{hasCustomBlend ? selectedLayer.blendMode : 'Blend'}</span>
+            <span className="text-[9px] font-mono bg-black/40 px-1 py-0.5 rounded text-gray-300">
+              {Math.round((selectedLayer.opacity ?? 1) * 100)}%
+            </span>
           </button>
           <Dropdown
             anchorRef={appearanceButtonRef}
@@ -36,11 +50,27 @@ export const CommonActions = React.memo(
             onClose={() => setShowEffects(false)}
             align="right"
           >
-            <div className="w-64 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-4 backdrop-blur-xl">
-              <div className="space-y-2">
-                <div className="flex justify-between items-center mb-1">
+            <div className="w-72 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-4 animate-fadeIn space-y-3.5 backdrop-blur-xl">
+              <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <Icons.Blend className="w-4 h-4 text-indigo-400" />
+                  Blend & Opacity
+                </span>
+                {(hasCustomBlend || hasCustomOpacity) && (
+                  <button
+                    onClick={() => handleUpdateLayer({ blendMode: 'normal', opacity: 1 })}
+                    className="text-[9px] text-gray-400 hover:text-white font-bold px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+
+              {/* Opacity slider */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Opacity</span>
-                  <span className="text-[10px] text-white font-mono">
+                  <span className="text-[10px] text-indigo-300 font-mono font-bold bg-indigo-900/30 px-1.5 py-0.5 rounded">
                     {Math.round((selectedLayer.opacity ?? 1) * 100)}%
                   </span>
                 </div>
@@ -51,47 +81,73 @@ export const CommonActions = React.memo(
                   step="0.01"
                   value={selectedLayer.opacity ?? 1}
                   onChange={(e) => handleUpdateLayer({ opacity: parseFloat(e.target.value) })}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-indigo-500 hover:accent-indigo-400 transition-all"
                 />
               </div>
-              <div className="pt-3 border-t border-white/5">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 block">
-                  Blend Mode
+
+              {/* Quick Blend Presets */}
+              <div className="pt-2 border-t border-white/5">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 block">
+                  Quick Blend Modes
                 </span>
-                <select
-                  value={selectedLayer.blendMode || 'normal'}
-                  onChange={(e) => handleUpdateLayer({ blendMode: e.target.value })}
-                  className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50 transition-all cursor-pointer"
-                >
-                  <optgroup label="Normal">
-                    <option value="normal">Normal</option>
-                  </optgroup>
-                  <optgroup label="Darken">
-                    <option value="darken">Darken</option>
-                    <option value="multiply">Multiply</option>
-                    <option value="color-burn">Color Burn</option>
-                  </optgroup>
-                  <optgroup label="Lighten">
-                    <option value="lighten">Lighten</option>
-                    <option value="screen">Screen</option>
-                    <option value="color-dodge">Color Dodge</option>
-                  </optgroup>
-                  <optgroup label="Contrast">
-                    <option value="overlay">Overlay</option>
-                    <option value="soft-light">Soft Light</option>
-                    <option value="hard-light">Hard Light</option>
-                  </optgroup>
-                  <optgroup label="Inversion">
-                    <option value="difference">Difference</option>
-                    <option value="exclusion">Exclusion</option>
-                  </optgroup>
-                  <optgroup label="Component">
-                    <option value="hue">Hue</option>
-                    <option value="saturation">Saturation</option>
-                    <option value="color">Color</option>
-                    <option value="luminosity">Luminosity</option>
-                  </optgroup>
-                </select>
+                <div className="grid grid-cols-4 gap-1 mb-2.5">
+                  {(['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'soft-light', 'color-dodge'] as const).map(
+                    (bm) => {
+                      const isActive = (selectedLayer.blendMode || 'normal') === bm;
+                      return (
+                        <button
+                          key={bm}
+                          onClick={() => handleUpdateLayer({ blendMode: bm })}
+                          className={`px-1.5 py-1 text-[9px] font-bold rounded border capitalize transition-all truncate ${
+                            isActive
+                              ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
+                              : 'bg-black/20 border-white/5 text-gray-300 hover:text-white hover:border-white/15'
+                          }`}
+                        >
+                          {bm.replace('-', ' ')}
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] text-gray-500 font-bold uppercase tracking-wider">All Modes</span>
+                  <select
+                    value={selectedLayer.blendMode || 'normal'}
+                    onChange={(e) => handleUpdateLayer({ blendMode: e.target.value })}
+                    className="flex-1 bg-black/40 border border-white/10 rounded-lg text-xs text-white p-1.5 outline-none focus:border-indigo-500/50 transition-all cursor-pointer capitalize"
+                  >
+                    <optgroup label="Normal">
+                      <option value="normal">Normal</option>
+                    </optgroup>
+                    <optgroup label="Darken">
+                      <option value="darken">Darken</option>
+                      <option value="multiply">Multiply</option>
+                      <option value="color-burn">Color Burn</option>
+                    </optgroup>
+                    <optgroup label="Lighten">
+                      <option value="lighten">Lighten</option>
+                      <option value="screen">Screen</option>
+                      <option value="color-dodge">Color Dodge</option>
+                    </optgroup>
+                    <optgroup label="Contrast">
+                      <option value="overlay">Overlay</option>
+                      <option value="soft-light">Soft Light</option>
+                      <option value="hard-light">Hard Light</option>
+                    </optgroup>
+                    <optgroup label="Inversion">
+                      <option value="difference">Difference</option>
+                      <option value="exclusion">Exclusion</option>
+                    </optgroup>
+                    <optgroup label="Component">
+                      <option value="hue">Hue</option>
+                      <option value="saturation">Saturation</option>
+                      <option value="color">Color</option>
+                      <option value="luminosity">Luminosity</option>
+                    </optgroup>
+                  </select>
+                </div>
               </div>
             </div>
           </Dropdown>

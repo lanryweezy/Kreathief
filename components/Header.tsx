@@ -185,7 +185,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Center Section: Project Title & Save Status */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+      <div className="absolute inset-0 pointer-events-none flex items-center justify-center mx-24 md:mx-64">
         <div className="pointer-events-auto flex items-center gap-2">
           {/* Project Title */}
           <div className="flex items-center max-w-[200px] md:max-w-[240px] shrink-0">
@@ -289,7 +289,7 @@ export const Header: React.FC<HeaderProps> = ({
           variant="primary"
           size="sm"
           onClick={onDownload}
-          className="hover:bg-accent hover:text-white hover:shadow-glow-accent active:scale-95"
+          className="flex items-center gap-1.5 hover:bg-accent hover:text-white hover:shadow-glow-accent active:scale-95"
         >
           <Icons.Download className="w-3.5 h-3.5" />
           <span className="hidden md:inline">Export</span>

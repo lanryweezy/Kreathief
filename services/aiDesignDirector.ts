@@ -1,5 +1,6 @@
 import { multiJudgeEval } from './vectorQuality/metrics';
 import { Layer, LayerBase, Gradient, CornerRadius, AutoLayoutSettings, AspectRatio } from '../types';
+import { planSemanticDesign } from './aiSemanticPlanner';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -3377,13 +3378,66 @@ export const generateDesignFromBrief = async (
   height: number = 1080,
   options: ProcessBlueprintOptions = {}
 ): Promise<TwoStageDesignResult> => {
-  log.info('[TwoStageDesign] Starting generation for prompt:', prompt);
+  log.info('[TwoStageDesign] Starting semantic generation for prompt:', prompt);
 
-  // Stage 1: Generate design blueprint
-  const blueprint = await generateDesignBlueprint(prompt, width, height);
+  // Stage 1: Generate semantic design AST & Solve Layout mathematically
+  const { blueprint, layers: solvedLayers } = await planSemanticDesign(prompt, width, height);
 
-  // Stage 2: Process blueprint and generate assets
-  const result = await processDesignBlueprint(blueprint, options);
+  // Stage 2: Process generated asset layers
+  const generatedAssets = new Map<string, string>();
+  
+  const imageLayers = solvedLayers.filter(l => l.aiProvenance?.source === 'generated');
+  log.info(`[AssetGenerator] Found ${imageLayers.length} layers requiring image generation`);
 
-  return result;
+  let processedCount = 0;
+  for (const layer of imageLayers) {
+    const role = layer.aiProvenance?.role || 'hero-cutout';
+    const assetPrompt = layer.aiProvenance?.prompt || prompt;
+    
+    // Backgrounds don't need background removal
+    const removeBackground = role !== 'background';
+
+    options.onProgress?.(processedCount + 1, imageLayers.length, layer.name || 'Asset');
+
+    try {
+      const finalPrompt = `${assetPrompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space.`;
+      
+      // Use existing generateImageAsset logic
+      const imageUrl = await generateImageAsset(finalPrompt, removeBackground, layer.width, layer.height);
+      
+      if (imageUrl) {
+        generatedAssets.set(layer.id, imageUrl);
+        options.onAssetGenerated?.(layer.id, imageUrl);
+        log.info('[AssetGenerator] Generated asset for layer:', layer.name);
+        
+        // Convert to actual image layer
+        layer.type = 'image';
+        (layer as any).src = imageUrl;
+        // Clean up placeholder props
+        delete (layer as any).color;
+      }
+    } catch (err) {
+      log.warn(`[AssetGenerator] Failed to generate asset for layer: ${layer.name}`, { error: String(err) });
+    }
+
+    processedCount++;
+  }
+
+  // Apply polish to the output
+  const polishedResult = polishDesignOutput({
+    title: blueprint.metadata?.theme || 'AI Generated Design',
+    description: blueprint.metadata?.vibe || '',
+    width: blueprint.canvas.width,
+    height: blueprint.canvas.height,
+    backgroundColor: blueprint.canvas.backgroundColor || '#ffffff',
+    layers: solvedLayers,
+  });
+
+  log.info('[AssetGenerator] Blueprint processing complete');
+
+  return {
+    blueprint: blueprint as any, // satisfy older type constraints temporarily if needed
+    layers: polishedResult.layers,
+    generatedAssets,
+  };
 };

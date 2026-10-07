@@ -360,6 +360,7 @@ export function layerToDesignNode(layer: any): DesignNode {
     pathEffects: layer.pathEffects,
     inpaintNodes: layer.inpaintNodes,
     stickerEffect: layer.stickerEffect,
+    colorTint: layer.colorTint,
     children: layer.children || layer.layerIds,
     zIndex: layer.zIndex ?? 0,
   } as DesignNode;
@@ -784,7 +785,16 @@ function renderNodeToSvg(
           }
         }
 
-        return `${clipDef ? `<defs>${clipDef}</defs>` : ''}<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}><image x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(node.imageUrl)}" preserveAspectRatio="${ar}"${clipAttr} />${inpaintSvg}${strokeSvg}</g>`;
+        // Color tint overlay
+        let tintSvg = '';
+        if ((node as any).colorTint && (node as any).colorTint.enabled && (node as any).colorTint.color) {
+          const tint = (node as any).colorTint;
+          const tintOp = typeof tint.opacity === 'number' ? tint.opacity : 0.5;
+          const tintBlend = tint.blendMode || 'color';
+          tintSvg = `<rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="${tint.color}" opacity="${tintOp}" style="mix-blend-mode:${tintBlend}"${rxAttr}${clipAttr} />`;
+        }
+
+        return `${clipDef ? `<defs>${clipDef}</defs>` : ''}<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}><image x="${x}" y="${y}" width="${node.width}" height="${node.height}" href="${escapeXml(node.imageUrl)}" preserveAspectRatio="${ar}"${clipAttr} />${tintSvg}${inpaintSvg}${strokeSvg}</g>`;
       }
       return `<g id="${node.id}"${opacity}${transform}${blendMode}${filterAttr}>
     <rect x="${x}" y="${y}" width="${node.width}" height="${node.height}" fill="${surface[3]}" />
@@ -876,6 +886,27 @@ export function exportToSvg(
       }
     }
   });
+
+  // Inject Google Fonts @import for any custom fonts used in text layers
+  const fontFamilies = new Set<string>();
+  const genericFamilies = new Set([
+    'arial', 'helvetica', 'times new roman', 'times', 'courier new', 'courier',
+    'georgia', 'verdana', 'sans-serif', 'serif', 'monospace', 'system-ui', 'inherit'
+  ]);
+  nodes.forEach((node) => {
+    if (node.type === 'text' && node.fontFamily) {
+      const cleanFont = node.fontFamily.replace(/['"]/g, '').trim();
+      if (cleanFont && !genericFamilies.has(cleanFont.toLowerCase())) {
+        fontFamilies.add(cleanFont);
+      }
+    }
+  });
+  if (fontFamilies.size > 0) {
+    const importStatements = Array.from(fontFamilies)
+      .map((font) => `@import url('https://fonts.googleapis.com/css2?family=${encodeURIComponent(font).replace(/%20/g, '+')}:wght@300;400;500;600;700;800;900&display=swap');`)
+      .join('\n      ');
+    defs.unshift(`<style>\n      ${importStatements}\n    </style>`);
+  }
 
   const bgStr = typeof background === 'string' ? background : backgroundColor || (background ? '#ffffff' : '');
   let bg = '';
@@ -1482,6 +1513,23 @@ export async function exportToCanvas(
             vgGrad.addColorStop(1, `rgba(0,0,0,${vignetteAmount / 100})`);
             ctx.fillStyle = vgGrad;
             ctx.fillRect(x, y, node.width, node.height);
+          }
+
+          // Color tint overlay
+          if ((node as any).colorTint && (node as any).colorTint.enabled && (node as any).colorTint.color) {
+            const tint = (node as any).colorTint;
+            const tintOp = typeof tint.opacity === 'number' ? tint.opacity : 0.5;
+            if (tintOp > 0) {
+              ctx.save();
+              ctx.globalAlpha = (node.opacity ?? 1) * tintOp;
+              const tintBlend = tint.blendMode || 'color';
+              if (tintBlend && tintBlend !== 'normal') {
+                ctx.globalCompositeOperation = tintBlend as GlobalCompositeOperation;
+              }
+              ctx.fillStyle = tint.color;
+              ctx.fillRect(x, y, node.width, node.height);
+              ctx.restore();
+            }
           }
 
           ctx.restore();

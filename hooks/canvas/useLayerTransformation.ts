@@ -214,19 +214,22 @@ export const useLayerTransformation = ({
         let newWidth = initialWidth;
         let newHeight = initialHeight;
 
+        const isAlt = e.altKey;
+        const deltaMult = isAlt ? 2 : 1;
+
         const handle = state.handle;
 
         if (handle.includes('e')) {
-          newWidth = initialWidth + rdx;
+          newWidth = initialWidth + rdx * deltaMult;
         }
         if (handle.includes('w')) {
-          newWidth = initialWidth - rdx;
+          newWidth = initialWidth - rdx * deltaMult;
         }
         if (handle.includes('s')) {
-          newHeight = initialHeight + rdy;
+          newHeight = initialHeight + rdy * deltaMult;
         }
         if (handle.includes('n')) {
-          newHeight = initialHeight - rdy;
+          newHeight = initialHeight - rdy * deltaMult;
         }
 
         // Constrain minimum size
@@ -265,52 +268,72 @@ export const useLayerTransformation = ({
           const S = initialWidth / (oldCrop.width || 1); // current render scale
           const newCrop = { ...oldCrop };
 
-          if (handle === 'e') {
-            newCrop.width = newWidth / S;
-          } else if (handle === 'w') {
-            const dw = initialWidth - newWidth;
-            newCrop.x = Math.max(0, oldCrop.x + dw / S);
-            newCrop.width = newWidth / S;
-          } else if (handle === 's') {
-            newCrop.height = newHeight / S;
-          } else if (handle === 'n') {
-            const dh = initialHeight - newHeight;
-            newCrop.y = Math.max(0, oldCrop.y + dh / S);
-            newCrop.height = newHeight / S;
+          if (isAlt) {
+            if (handle === 'e' || handle === 'w') {
+              const dw = newWidth - initialWidth;
+              newCrop.width = newWidth / S;
+              newCrop.x = Math.max(0, oldCrop.x - (dw / S) / 2);
+            } else if (handle === 's' || handle === 'n') {
+              const dh = newHeight - initialHeight;
+              newCrop.height = newHeight / S;
+              newCrop.y = Math.max(0, oldCrop.y - (dh / S) / 2);
+            }
+          } else {
+            if (handle === 'e') {
+              newCrop.width = newWidth / S;
+            } else if (handle === 'w') {
+              const dw = initialWidth - newWidth;
+              newCrop.x = Math.max(0, oldCrop.x + dw / S);
+              newCrop.width = newWidth / S;
+            } else if (handle === 's') {
+              newCrop.height = newHeight / S;
+            } else if (handle === 'n') {
+              const dh = initialHeight - newHeight;
+              newCrop.y = Math.max(0, oldCrop.y + dh / S);
+              newCrop.height = newHeight / S;
+            }
           }
           partial.crop = newCrop;
         }
 
-        // Keep the anchor edge/corner fixed. Rotation happens about the layer
-        // center, so the center must shift by half the size delta along the
-        // dragged local axes, rotated back into world space.
-        const dw = newWidth - initialWidth;
-        const dh = newHeight - initialHeight;
+        if (isAlt) {
+          // Alt/Option key symmetrical scaling from center: layer center remains stationary
+          const initialCenterX = initialX + initialWidth / 2;
+          const initialCenterY = initialY + initialHeight / 2;
+          partial.x = initialCenterX - newWidth / 2;
+          partial.y = initialCenterY - newHeight / 2;
+        } else {
+          // Keep the anchor edge/corner fixed. Rotation happens about the layer
+          // center, so the center must shift by half the size delta along the
+          // dragged local axes, rotated back into world space.
+          const dw = newWidth - initialWidth;
+          const dh = newHeight - initialHeight;
 
-        let shiftLocalX = 0;
-        let shiftLocalY = 0;
-        if (handle.includes('e')) {
-          shiftLocalX = dw / 2;
-        }
-        if (handle.includes('w')) {
-          shiftLocalX = -dw / 2;
-        }
-        if (handle.includes('s')) {
-          shiftLocalY = dh / 2;
-        }
-        if (handle.includes('n')) {
-          shiftLocalY = -dh / 2;
-        }
+          let shiftLocalX = 0;
+          let shiftLocalY = 0;
+          if (handle.includes('e')) {
+            shiftLocalX = dw / 2;
+          }
+          if (handle.includes('w')) {
+            shiftLocalX = -dw / 2;
+          }
+          if (handle.includes('s')) {
+            shiftLocalY = dh / 2;
+          }
+          if (handle.includes('n')) {
+            shiftLocalY = -dh / 2;
+          }
 
-        const trad = (state.initialRotation * Math.PI) / 180;
-        const shiftWorldX = shiftLocalX * Math.cos(trad) - shiftLocalY * Math.sin(trad);
-        const shiftWorldY = shiftLocalX * Math.sin(trad) + shiftLocalY * Math.cos(trad);
+          const trad = (state.initialRotation * Math.PI) / 180;
+          const shiftWorldX = shiftLocalX * Math.cos(trad) - shiftLocalY * Math.sin(trad);
+          const shiftWorldY = shiftLocalX * Math.sin(trad) + shiftLocalY * Math.cos(trad);
 
-        const centerX = initialX + initialWidth / 2 + shiftWorldX;
-        const centerY = initialY + initialHeight / 2 + shiftWorldY;
+          const centerX = initialX + initialWidth / 2 + shiftWorldX;
+          const centerY = initialY + initialHeight / 2 + shiftWorldY;
 
-        partial.x = centerX - newWidth / 2;
-        partial.y = centerY - newHeight / 2;
+          partial.x = centerX - newWidth / 2;
+          partial.y = centerY - newHeight / 2;
+        }
       } else if (state.type === 'rotate') {
         const layer = layersRef.current.find((l) => l.id === state.layerId);
         if (!layer) {

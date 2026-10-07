@@ -180,18 +180,35 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           ))}
         </div>
 
-        {/* Live Thinking Log — real events only, last 12 visible */}
-        <div className="bg-black/40 border border-white/5 rounded-2xl p-4 space-y-3 max-h-[200px] overflow-y-auto no-scrollbar shadow-inner">
-          <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest block mb-1">Logic Trace</span>
-          <div className="space-y-2">
-            {(thinkingLog || []).slice(-12).map((event: any) => (
-              <div key={event.id} className="flex gap-3 animate-in fade-in slide-in-from-left-2 duration-300">
-                <div className="w-1 bg-purple-500/30 rounded-full shrink-0" />
+        {/* Premium Logic Trace */}
+        <div className="relative rounded-2xl overflow-hidden bg-[#0A0A0A] border border-white/10 shadow-2xl group mt-4">
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 via-transparent to-purple-800/10 opacity-50" />
+          
+          <div className="px-4 py-2 border-b border-white/5 bg-black/60 flex items-center justify-between z-10 relative">
+            <span className="text-[9px] font-medium text-gray-400 flex items-center gap-1.5 uppercase tracking-widest">
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-400"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Neural Trace
+            </span>
+            <div className="flex gap-1.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500/50" />
+              <div className="w-1.5 h-1.5 rounded-full bg-yellow-500/50" />
+              <div className="w-1.5 h-1.5 rounded-full bg-green-500/50" />
+            </div>
+          </div>
+
+          <div className="p-4 space-y-2.5 max-h-[160px] overflow-y-auto custom-scrollbar relative z-10 font-mono text-[10px]">
+            {(thinkingLog || []).slice(-12).map((event: any, i: number, arr: any[]) => (
+              <div key={event.id} className="flex gap-3 animate-in fade-in slide-in-from-bottom-1 duration-300">
+                <span className="text-gray-600 shrink-0 select-none hidden sm:block">
+                  {new Date().toLocaleTimeString('en-US', { hour12: false, minute: '2-digit', second: '2-digit' })}
+                </span>
                 <div>
-                  <span className="text-[8px] font-black text-purple-400 uppercase tracking-tighter block mb-0.5">
-                    {event.agent}
+                  <span className={`uppercase tracking-tighter mr-2 ${i === arr.length - 1 ? 'text-brand-400 font-bold' : 'text-gray-500'}`}>
+                    [{event.agent}]
                   </span>
-                  <p className="text-[10px] text-gray-300 font-medium leading-relaxed">{event.message}</p>
+                  <span className={i === arr.length - 1 ? 'text-white' : 'text-gray-400'}>
+                    {event.message}
+                  </span>
                 </div>
               </div>
             ))}
@@ -380,27 +397,28 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {/* Clarification round — the agent asks before it guesses */}
         {agentStatus === 'clarifying' && <ClarificationCard />}
 
-        {/* Quick Surgical Refinement Chips (when layers are selected or canvas is active) */}
+        {/* Quick Surgical Refinement Chips */}
         {isRefining && (
-          <div className="bg-brand-500/10 border border-brand-500/20 rounded-xl p-3 space-y-2">
-            <span className="text-[9px] font-black text-brand-400 uppercase tracking-widest block">
-              Quick Layer Adjustments
-            </span>
-            <div className="flex flex-wrap gap-1.5">
+          <div className="bg-gradient-to-br from-brand-900/20 to-transparent border border-brand-500/20 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+            <div className="flex items-center gap-2 mb-3">
+              <AgentIcons.Wand className="w-4 h-4 text-brand-400" />
+              <span className="text-[10px] font-medium text-brand-300 uppercase tracking-widest">
+                Quick Adjustments
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2">
               {[
                 'Make headline 20% larger',
                 'Increase contrast & add scrim',
                 'Make colors more vibrant',
                 'Switch to clean dark mode',
-                'Add frosted glass card container',
+                'Add frosted glass container',
                 'Make it look like a die-cut sticker',
-                'Add a glowing drop shadow',
-                'Add a solid outline stroke',
               ].map((chip, idx) => (
                 <button
                   key={idx}
                   onClick={() => runAgenticRefine(chip, selectedLayerIds)}
-                  className="px-2 py-1 bg-white/5 hover:bg-brand-500/25 border border-white/10 rounded-lg text-[9px] font-bold text-gray-300 hover:text-white transition-colors"
+                  className="px-3 py-1.5 bg-white/5 hover:bg-brand-500/20 border border-white/5 hover:border-brand-500/40 rounded-full text-[10px] font-medium text-gray-300 hover:text-white transition-all transform hover:-translate-y-0.5"
                 >
                   {chip}
                 </button>
@@ -409,65 +427,89 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           </div>
         )}
 
-        {/* Chat History */}
+        {/* Chat History - Premium Feed Format */}
         {conversationHistory.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6 pt-2">
             {conversationHistory.map((msg) => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[85%] px-4 py-3 rounded-2xl text-[11px] leading-relaxed whitespace-pre-wrap shadow-sm ${
-                    msg.role === 'user'
-                      ? 'bg-brand-600 text-white rounded-br-sm'
-                      : 'bg-white/5 border border-white/5 text-gray-300 rounded-bl-sm'
-                  }`}
-                >
-                  {msg.content}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {isAnalyzing && (
-          <div className="flex justify-start">
-            <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-bl-sm flex items-center gap-1.5 shadow-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce" />
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:120ms]" />
-              <span className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:240ms]" />
-            </div>
-          </div>
-        )}
-
-        {/* Critique Suggestions */}
-        {currentCritique && currentCritique.suggestions.length > 0 && (
-          <div className="space-y-2 mt-4">
-            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Design Suggestions</h4>
-            {currentCritique.suggestions.slice(0, 4).map((s: any) => (
-              <div
-                key={s.id}
-                className="flex items-start gap-3 bg-white/5 border border-white/5 rounded-xl p-3 shadow-sm"
-              >
-                <AgentIcons.Sparkles className="w-3.5 h-3.5 text-brand-400 mt-0.5 shrink-0" />
-                <p className="flex-1 text-[11px] text-gray-300 leading-relaxed">{s.message || s.description}</p>
-                <div className="flex items-center gap-2 shrink-0">
-                  {s.autoFix && (
-                    <button
-                      onClick={() => applySuggestion(s.id)}
-                      className="px-2 py-1 bg-brand-600/20 text-brand-400 rounded hover:bg-brand-600 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all"
-                    >
-                      Fix
-                    </button>
+              <div key={msg.id} className="flex gap-4 items-start animate-in fade-in slide-in-from-bottom-2 duration-500">
+                {/* Avatar */}
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
+                  msg.role === 'user' 
+                    ? 'bg-gradient-to-br from-gray-700 to-gray-900 border border-white/10'
+                    : 'bg-gradient-to-br from-brand-600 to-brand-400 border border-brand-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
+                }`}>
+                  {msg.role === 'user' ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  ) : (
+                    <AgentIcons.Sparkles className="w-4 h-4 text-white" />
                   )}
-                  <button
-                    onClick={() => dismissSuggestion(s.id)}
-                    aria-label="Dismiss suggestion"
-                    className="p-1 rounded text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
-                  >
-                    <AgentIcons.X className="w-3.5 h-3.5" />
-                  </button>
+                </div>
+                
+                {/* Message Content */}
+                <div className="flex-1 min-w-0 mt-0.5">
+                  <div className="text-[10px] font-bold text-gray-400 mb-1 flex items-center gap-2 uppercase tracking-widest">
+                    {msg.role === 'user' ? 'You' : 'Agent'}
+                  </div>
+                  <div className="text-[12px] text-gray-200 leading-relaxed whitespace-pre-wrap">
+                    {msg.content}
+                  </div>
                 </div>
               </div>
             ))}
+            
+            {/* Analyzing/Loading State */}
+            {isAnalyzing && (
+              <div className="flex gap-4 items-start animate-in fade-in duration-300">
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-600/50 to-brand-400/50 border border-brand-500/20 flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                  <AgentIcons.Sparkles className="w-4 h-4 text-brand-300 animate-pulse" />
+                </div>
+                <div className="flex-1 mt-3">
+                  <div className="flex gap-1.5 items-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-400 animate-bounce" />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Premium Critique Suggestions */}
+        {currentCritique && currentCritique.suggestions.length > 0 && (
+          <div className="mt-6 border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
+            <div className="px-4 py-3 border-b border-white/5 bg-black/20 flex items-center gap-2">
+               <AgentIcons.Check className="w-4 h-4 text-emerald-400" />
+               <h4 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Intelligent Suggestions</h4>
+            </div>
+            <div className="p-2 space-y-1">
+              {currentCritique.suggestions.slice(0, 4).map((s: any) => (
+                <div
+                  key={s.id}
+                  className="group flex items-start gap-3 rounded-xl p-3 hover:bg-white/5 transition-all duration-300"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand-400 mt-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                  <p className="flex-1 text-[11px] text-gray-300 leading-relaxed font-medium">{s.message || s.description}</p>
+                  <div className="flex items-center gap-2 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
+                    {s.autoFix && (
+                      <button
+                        onClick={() => applySuggestion(s.id)}
+                        className="px-3 py-1.5 bg-brand-500 hover:bg-brand-400 text-white rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-[0_0_10px_rgba(168,85,247,0.3)] transition-all transform hover:scale-105"
+                      >
+                        Auto-Fix
+                      </button>
+                    )}
+                    <button
+                      onClick={() => dismissSuggestion(s.id)}
+                      aria-label="Dismiss suggestion"
+                      className="p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      <AgentIcons.X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

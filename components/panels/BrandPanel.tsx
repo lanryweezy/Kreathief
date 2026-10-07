@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { BrandKit } from '../../types';
 import { Icons, FONT_FAMILIES } from '../../constants';
 import * as photoService from '../../services/photoService';
+import { fetchBrandKitFromDomain, getLogoUrl } from '../../services/logoDevService';
 
 import { useStore } from '../../store/useStore';
 import { getErrorDetails } from '../../utils/errorMessages';
@@ -45,6 +46,11 @@ export const BrandPanel = () => {
       addToast: state.addToast,
     }))
   );
+
+  const [domainInput, setDomainInput] = useState('');
+  const [isFetchingDomain, setIsFetchingDomain] = useState(false);
+  const [showDomainImport, setShowDomainImport] = useState(false);
+  const [formDomainLogo, setFormDomainLogo] = useState('');
 
   const onAddLogoToCanvas = (url: string) => {
     addLayer({
@@ -157,6 +163,45 @@ export const BrandPanel = () => {
     }
   };
 
+  const handleFetchFromDomain = async () => {
+    if (!domainInput.trim()) {
+      addToast?.('Please enter a website or domain (e.g. stripe.com)', 'warning');
+      return;
+    }
+    setIsFetchingDomain(true);
+    try {
+      const data = await fetchBrandKitFromDomain(domainInput.trim());
+      const newKit: BrandKit = {
+        id: `brand_${Date.now()}`,
+        name: data.name,
+        colors: data.colors,
+        fonts: data.fonts,
+        logos: [data.logoUrl],
+        primaryLogo: data.logoUrl,
+      };
+      onAddBrandKit(newKit);
+      setActiveBrandKit(newKit.id);
+      addToast?.(`Imported brand kit for ${data.name} via Logo.dev!`, 'success');
+      setDomainInput('');
+      setShowDomainImport(false);
+    } catch (err) {
+      log.error('[BrandPanel] Failed to fetch brand from domain', err);
+      addToast?.('Failed to fetch brand from domain. Please check spelling.', 'error');
+    } finally {
+      setIsFetchingDomain(false);
+    }
+  };
+
+  const handleFetchLogoByDomain = () => {
+    if (!formDomainLogo.trim()) return;
+    const url = getLogoUrl(formDomainLogo.trim(), { size: 512, format: 'png' });
+    if (newLogos.length < 10) {
+      setNewLogos((prev) => [...prev, url]);
+      setFormDomainLogo('');
+      addToast?.('Logo fetched via Logo.dev!', 'success');
+    }
+  };
+
   const handleExportKit = (kit: BrandKit) => {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(kit));
     const downloadAnchorNode = document.createElement('a');
@@ -253,6 +298,15 @@ export const BrandPanel = () => {
             <Button
               variant="secondary"
               size="xs"
+              onClick={() => setShowDomainImport(!showDomainImport)}
+              title="Import from Website via Logo.dev"
+              className={showDomainImport ? 'bg-indigo-600/30 border-indigo-500/50 text-white' : ''}
+            >
+              <Icons.Globe className="w-3 h-3 text-indigo-400" /> Web Import
+            </Button>
+            <Button
+              variant="secondary"
+              size="xs"
               onClick={() => importInputRef.current?.click()}
               title="Import JSON Kit"
               aria-label="Import JSON Kit"
@@ -268,6 +322,47 @@ export const BrandPanel = () => {
         }
       />
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col">
+        {showDomainImport && (
+          <div className="bg-surface-dark-3 p-3.5 rounded-xl border border-indigo-500/30 mb-4 animate-fadeIn flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-white flex items-center gap-1.5">
+                <Icons.Globe className="w-3.5 h-3.5 text-indigo-400" />
+                1-Click Brand Import (Logo.dev)
+              </span>
+              <button
+                onClick={() => setShowDomainImport(false)}
+                className="text-gray-400 hover:text-white text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <p className="text-[10px] text-gray-400">
+              Enter any company or client website to automatically fetch their official logo and brand colors.
+            </p>
+            <div className="flex gap-2">
+              <Input
+                type="text"
+                placeholder="e.g. stripe.com, nike.com, airbnb.com"
+                value={domainInput}
+                onChange={(e) => setDomainInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleFetchFromDomain();
+                }}
+                className="text-xs flex-1"
+                autoFocus
+              />
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleFetchFromDomain}
+                disabled={isFetchingDomain}
+                className="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs cursor-pointer"
+              >
+                {isFetchingDomain ? 'Fetching...' : 'Import'}
+              </Button>
+            </div>
+          </div>
+        )}
         {isCreating && (
           <div
             data-testid="create-brand-kit-form"
@@ -328,6 +423,30 @@ export const BrandPanel = () => {
                       className="hidden"
                     />
                   </label>
+                )}
+                {newLogos.length < 10 && (
+                  <div className="flex items-center gap-2 mt-2 w-full">
+                    <input
+                      type="text"
+                      placeholder="Or fetch logo by website (e.g. apple.com)..."
+                      value={formDomainLogo}
+                      onChange={(e) => setFormDomainLogo(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleFetchLogoByDomain();
+                        }
+                      }}
+                      className="flex-1 bg-surface-dark-4 border border-gray-700 rounded-lg px-2.5 py-1 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand-600"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleFetchLogoByDomain}
+                      className="px-2.5 py-1 bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-300 border border-indigo-500/30 rounded-lg text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Fetch
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

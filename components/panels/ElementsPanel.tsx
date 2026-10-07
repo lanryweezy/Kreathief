@@ -9,6 +9,7 @@ import * as iconifyService from '../../services/iconifyService';
 import { AssetCacheService } from '../../services/AssetCacheService';
 import * as phosphorIconService from '../../services/phosphorIconService';
 import * as stickerService from '../../services/stickerService';
+import { searchBrandLogos } from '../../services/logoDevService';
 import DOMPurify from 'dompurify';
 import { SHAPE_LIBRARY } from '../../constants/shapeLibrary';
 import { ElementSkeleton } from '../Skeleton';
@@ -39,7 +40,7 @@ const saveRecentShape = (name: string) => {
 };
 
 type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
-type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons';
+type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons' | 'logos';
 
 interface ShapePreset {
   name: string;
@@ -54,7 +55,7 @@ interface RemoteAsset {
   name: string;
   thumbnailUrl: string;
   source: string;
-  assetType: 'shape' | '3d' | 'lottie' | 'svg' | 'gif' | 'icon';
+  assetType: 'shape' | '3d' | 'lottie' | 'svg' | 'gif' | 'icon' | 'logo';
   svgData?: string;
   width?: number;
   height?: number;
@@ -74,6 +75,7 @@ export const ElementsPanel = () => {
   const [trending3D, setTrending3D] = useState<RemoteAsset[]>([]);
   const [trendingStickers, setTrendingStickers] = useState<RemoteAsset[]>([]);
   const [trendingIllustrations, setTrendingIllustrations] = useState<RemoteAsset[]>([]);
+  const [trendingLogos, setTrendingLogos] = useState<RemoteAsset[]>([]);
 
   const [searchResults, setSearchResults] = useState<RemoteAsset[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -87,10 +89,11 @@ export const ElementsPanel = () => {
     let isMounted = true;
     const fetchTrendingCarousels = async () => {
       try {
-        const [scout3d, stickers, freepikRes] = await Promise.allSettled([
+        const [scout3d, stickers, freepikRes, logosRes] = await Promise.allSettled([
           iconScoutService.search('3d', '3d', 1),
           stickerService.getTrendingStickers(),
           freepikService.searchIcons('illustration', 8),
+          searchBrandLogos(''),
         ]);
 
         if (!isMounted) {
@@ -132,6 +135,21 @@ export const ElementsPanel = () => {
               thumbnailUrl: ic.thumbnailUrl || ic.image,
               source: 'freepik',
               assetType: 'svg',
+            }))
+          );
+        }
+
+        if (logosRes.status === 'fulfilled' && logosRes.value.length > 0) {
+          setTrendingLogos(
+            logosRes.value.slice(0, 16).map((b) => ({
+              id: `logo-${b.domain}`,
+              name: `${b.name} Logo`,
+              thumbnailUrl: b.logoUrl,
+              url: b.logoUrl,
+              source: 'logo.dev',
+              assetType: 'logo',
+              width: 200,
+              height: 200,
             }))
           );
         }
@@ -345,6 +363,23 @@ export const ElementsPanel = () => {
         );
       }
 
+      if (filterCategory === 'all' || filterCategory === 'logos') {
+        promises.push(
+          searchBrandLogos(q).then((brands) =>
+            brands.map((b) => ({
+              id: `logo-${b.domain}`,
+              name: `${b.name} Logo`,
+              thumbnailUrl: b.logoUrl,
+              url: b.logoUrl,
+              source: 'logo.dev',
+              assetType: 'logo' as const,
+              width: 200,
+              height: 200,
+            }))
+          )
+        );
+      }
+
       const settled = await Promise.allSettled(promises);
       settled.forEach((res) => {
         if (res.status === 'fulfilled' && Array.isArray(res.value)) {
@@ -458,6 +493,7 @@ export const ElementsPanel = () => {
 
   const filterPills: { id: FilterCategory; label: string; icon: any }[] = [
     { id: 'all', label: 'All', icon: Icons.Grid },
+    { id: 'logos', label: 'Brand Logos', icon: Icons.Globe },
     { id: 'shapes', label: 'Shapes & Frames', icon: Icons.Shapes },
     { id: 'stickers', label: 'Stickers', icon: Icons.Sticker },
     { id: '3d', label: '3D Assets', icon: Icons.Box },
@@ -466,6 +502,10 @@ export const ElementsPanel = () => {
   ];
 
   const handleAssetClick = (asset: RemoteAsset) => {
+    if (asset.assetType === 'logo') {
+      internalAddImageLayer(asset.url || asset.thumbnailUrl, asset.name, 200, 200);
+      return;
+    }
     if (asset.svgData) {
       const b64 = btoa(unescape(encodeURIComponent(DOMPurify.sanitize(asset.svgData))));
       internalAddImageLayer(`data:image/svg+xml;base64,${b64}`, asset.name);
@@ -481,6 +521,7 @@ export const ElementsPanel = () => {
       gif: 'bg-amber-500/80 text-white',
       svg: 'bg-blue-500/80 text-white',
       icon: 'bg-gray-700/80 text-gray-200',
+      logo: 'bg-indigo-600/90 text-white font-bold',
     };
     return (
       <span
@@ -740,6 +781,53 @@ export const ElementsPanel = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Lane: Brand Logos (Logo.dev) */}
+            <div className="flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                  <Icons.Globe className="w-3.5 h-3.5 text-indigo-400" />
+                  Brand Logos (Logo.dev)
+                </span>
+                <button
+                  onClick={() => handleFilterClick('logos')}
+                  className="text-[10px] font-bold text-indigo-400 hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  See all <Icons.ChevronRight className="w-3 h-3" />
+                </button>
+              </div>
+
+              {trendingLogos.length > 0 ? (
+                <div className="flex items-center gap-2.5 overflow-x-auto pb-2 custom-scrollbar">
+                  {trendingLogos.map((asset) => (
+                    <div
+                      key={asset.id}
+                      onClick={() => handleAssetClick(asset)}
+                      className="group relative w-20 h-20 shrink-0 bg-surface-dark-3/80 border border-gray-800 hover:border-indigo-500 rounded-xl overflow-hidden cursor-pointer flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05]"
+                      title={`${asset.name} — Click to add to canvas`}
+                    >
+                      {renderBadge('logo')}
+                      <div className="w-10 h-10 flex items-center justify-center p-1 bg-white/5 rounded-lg group-hover:bg-white/10 transition-colors">
+                        <AssetThumbnail
+                          src={asset.thumbnailUrl}
+                          alt={asset.name}
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <span className="text-[8px] font-bold text-gray-400 group-hover:text-white truncate max-w-full mt-1.5">
+                        {asset.name.replace(' Logo', '')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-2">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <ElementSkeleton key={i} />
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Lane 3: Organic Blobs */}

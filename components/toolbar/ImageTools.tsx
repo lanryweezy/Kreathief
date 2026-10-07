@@ -71,6 +71,8 @@ export const ImageTools = React.memo(
     const filtersButtonRef = useRef<HTMLButtonElement>(null);
     const adjustmentsButtonRef = useRef<HTMLButtonElement>(null);
     const [showAdjustments, setShowAdjustments] = React.useState(false);
+    const tintButtonRef = useRef<HTMLButtonElement>(null);
+    const [showTint, setShowTint] = React.useState(false);
     const resizeButtonRef = useRef<HTMLButtonElement>(null);
     const mockupButtonRef = useRef<HTMLButtonElement>(null);
     const [showMockupQuickSelect, setShowMockupQuickSelect] = React.useState(false);
@@ -92,12 +94,12 @@ export const ImageTools = React.memo(
           <IconButton
             onClick={handleRemoveBackground}
             loading={isRemovingBg}
-            title="Auto Cut Out (AI)"
+            title="Remove Background (AI)"
             className="px-3 py-1.5 rounded bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/20"
           >
             <div className="flex items-center gap-1.5">
               <Icons.Scissors className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Cut Out</span>
+              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Remove BG</span>
             </div>
             {!isPro && (
               <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
@@ -556,6 +558,194 @@ export const ImageTools = React.memo(
                     </div>
                   );
                 })}
+              </div>
+            </Dropdown>
+          </div>
+
+          {/* Color Tint / Photo Filter */}
+          <div className="relative">
+            <button
+              ref={tintButtonRef}
+              onClick={() => setShowTint(!showTint)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-bold border transition-all ${
+                layer.colorTint?.enabled && layer.colorTint.color
+                  ? 'bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-pink-500/40 text-pink-200 shadow-lg shadow-pink-900/20'
+                  : showTint
+                    ? 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30'
+                    : 'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30'
+              }`}
+              title="Photo Filter / Color Tint"
+            >
+              <Icons.Palette className="w-3.5 h-3.5 text-pink-400" />
+              <span>Tint</span>
+              {layer.colorTint?.enabled && layer.colorTint.color && (
+                <span
+                  className="w-2 h-2 rounded-full border border-white/40 ml-0.5"
+                  style={{ backgroundColor: layer.colorTint.color }}
+                />
+              )}
+            </button>
+            <Dropdown
+              anchorRef={tintButtonRef}
+              isOpen={showTint}
+              onClose={() => setShowTint(false)}
+              align="left"
+            >
+              <div className="w-72 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3.5 animate-fadeIn backdrop-blur-xl flex flex-col gap-3">
+                <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                  <div className="flex items-center gap-2">
+                    <Icons.Palette className="w-4 h-4 text-pink-400" />
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">Photo Filter / Tint</span>
+                  </div>
+                  {layer.colorTint?.enabled && (
+                    <button
+                      onClick={() => handleUpdateLayer({ colorTint: undefined })}
+                      className="text-[10px] text-red-400 hover:text-red-300 font-bold px-2 py-0.5 rounded hover:bg-red-500/10 transition-colors"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+
+                {/* Presets */}
+                <div>
+                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">
+                    Palette Presets
+                  </label>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[
+                      { name: 'Rose', color: '#EC4899', blendMode: 'color' },
+                      { name: 'Violet', color: '#8B5CF6', blendMode: 'color' },
+                      { name: 'Purple', color: '#A855F7', blendMode: 'overlay' },
+                      { name: 'Cyan', color: '#06B6D4', blendMode: 'color' },
+                      { name: 'Blue', color: '#3B82F6', blendMode: 'color' },
+                      { name: 'Teal', color: '#14B8A6', blendMode: 'color' },
+                      { name: 'Warm', color: '#F59E0B', blendMode: 'multiply' },
+                      { name: 'Noir', color: '#1F2937', blendMode: 'color' },
+                    ].map((p) => {
+                      const isActive =
+                        layer.colorTint?.enabled && layer.colorTint.color.toLowerCase() === p.color.toLowerCase();
+                      return (
+                        <button
+                          key={p.name}
+                          onClick={() => {
+                            handleUpdateLayer({
+                              colorTint: {
+                                enabled: true,
+                                color: p.color,
+                                opacity: layer.colorTint?.opacity ?? 0.5,
+                                blendMode: (layer.colorTint?.blendMode as any) || (p.blendMode as any),
+                              },
+                            });
+                          }}
+                          className={`flex flex-col items-center gap-1 p-1.5 rounded-lg border transition-all ${
+                            isActive
+                              ? 'border-pink-500 bg-pink-500/20'
+                              : 'border-white/5 hover:border-white/20 bg-black/20 hover:bg-black/40'
+                          }`}
+                        >
+                          <span
+                            className="w-5 h-5 rounded-full border border-white/20 shadow-inner"
+                            style={{ backgroundColor: p.color }}
+                          />
+                          <span className="text-[9px] text-gray-300 font-medium truncate w-full text-center">
+                            {p.name}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Color Picker */}
+                <div className="flex items-center justify-between gap-2 bg-black/20 p-2 rounded-lg border border-white/5">
+                  <span className="text-[10px] text-gray-300 font-bold uppercase tracking-wider">Custom Color</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={layer.colorTint?.color || '#EC4899'}
+                      onChange={(e) => {
+                        handleUpdateLayer({
+                          colorTint: {
+                            enabled: true,
+                            color: e.target.value,
+                            opacity: layer.colorTint?.opacity ?? 0.5,
+                            blendMode: layer.colorTint?.blendMode || 'color',
+                          },
+                        });
+                      }}
+                      className="w-6 h-6 rounded cursor-pointer bg-transparent border-0 p-0"
+                    />
+                    <span className="text-[10px] font-mono text-gray-400 uppercase">
+                      {layer.colorTint?.color || '#EC4899'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Blend Mode */}
+                <div>
+                  <div className="flex justify-between items-center mb-1.5">
+                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                      Blend Mode
+                    </label>
+                    <span className="text-[9px] font-mono text-pink-400 capitalize">
+                      {layer.colorTint?.blendMode || 'color'}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1">
+                    {(['color', 'multiply', 'overlay', 'screen', 'soft-light', 'hard-light'] as const).map((mode) => (
+                      <button
+                        key={mode}
+                        onClick={() => {
+                          handleUpdateLayer({
+                            colorTint: {
+                              enabled: true,
+                              color: layer.colorTint?.color || '#EC4899',
+                              opacity: layer.colorTint?.opacity ?? 0.5,
+                              blendMode: mode,
+                            },
+                          });
+                        }}
+                        className={`px-2 py-1 text-[9px] font-bold rounded border capitalize transition-all ${
+                          (layer.colorTint?.blendMode || 'color') === mode
+                            ? 'bg-pink-500/20 border-pink-500/60 text-white'
+                            : 'bg-black/20 border-white/5 text-gray-400 hover:text-white hover:border-white/10'
+                        }`}
+                      >
+                        {mode.replace('-', ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Opacity Slider */}
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
+                      Intensity / Opacity
+                    </label>
+                    <span className="text-[9px] font-mono text-pink-400 font-bold bg-pink-900/30 px-1.5 rounded">
+                      {Math.round((layer.colorTint?.opacity ?? 0.5) * 100)}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="100"
+                    value={Math.round((layer.colorTint?.opacity ?? 0.5) * 100)}
+                    onChange={(e) => {
+                      handleUpdateLayer({
+                        colorTint: {
+                          enabled: true,
+                          color: layer.colorTint?.color || '#EC4899',
+                          opacity: parseInt(e.target.value) / 100,
+                          blendMode: layer.colorTint?.blendMode || 'color',
+                        },
+                      });
+                    }}
+                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-pink-500 hover:accent-pink-400 transition-all"
+                  />
+                </div>
               </div>
             </Dropdown>
           </div>

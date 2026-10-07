@@ -28,8 +28,8 @@ export const aiActionRegistry = new Map<string, AiActionStrategy>();
 
 aiActionRegistry.set('remove-bg', {
   id: 'remove-bg',
-  label: 'AI Subject Cutout',
-  hint: 'Instantly remove background with AI',
+  label: 'Remove Background (AI)',
+  hint: 'Instantly remove image background with AI',
   icon: 'Wand',
   type: 'image',
   execute(layerId, layer, store) {

@@ -125,8 +125,8 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
           onClick={() => onApply(variant.id)}
         >
           {variant.artboards && variant.artboards.length > 1
-            ? `Apply Campaign (${variant.artboards.length} Boards)`
-            : 'Apply This Variant'}
+            ? `+ Add Campaign (${variant.artboards.length} Boards)`
+            : '+ Add to Canva'}
         </Button>
       </div>
     </div>

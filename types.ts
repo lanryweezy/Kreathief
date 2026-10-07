@@ -509,6 +509,13 @@ export interface InpaintNode {
   capturedCrop?: { x: number; y: number; width: number; height: number }; // Layer crop at capture time, so patches track content across later crop changes
 }
 
+export interface ColorTint {
+  enabled: boolean;
+  color: string;
+  opacity: number; // 0 to 1
+  blendMode: 'color' | 'multiply' | 'screen' | 'overlay' | 'soft-light' | 'hard-light' | 'darken' | 'lighten';
+}
+
 export interface ImageLayer extends LayerBase {
   type: 'image';
   src: string;
@@ -523,6 +530,7 @@ export interface ImageLayer extends LayerBase {
   maskType?: 'none' | 'lasso' | 'ai' | 'bitmap';
   altText?: string;
   inpaintNodes?: InpaintNode[];
+  colorTint?: ColorTint;
 }
 
 export interface AdjustmentLayer extends LayerBase {
