@@ -64,3 +64,7 @@
 ## 2026-10-02 - Screen Reader and Keyboard Accessibility for Pagination Dots
 **Learning:** When using visual dots for carousel or presentation slide navigation, relying only on a `title` attribute is insufficient for screen readers and keyboard users. They often lack focus states, making them invisible during keyboard navigation, and without `aria-label` and `aria-pressed` (or `aria-current`), users cannot tell which slide is active or what the buttons control.
 **Action:** Always add `focus-visible` styles for keyboard navigation, along with `aria-label` and `aria-pressed={boolean}` states on pagination dot buttons to ensure full accessibility.
+
+## 2026-10-07 - Contextual Focus Colors for Custom Tabs
+**Learning:** When applying `focus-visible` styles to custom tab navigation panels across different sections of the app (like `VectorEditingPanel` vs `MockupControls`), a one-size-fits-all focus ring color looks disconnected. The focus ring color must match the specific thematic or active color state of that panel (e.g., purple vs brand) to maintain visual cohesion during keyboard navigation.
+**Action:** Always inspect the active state classes (e.g., `text-purple-400` vs `text-brand-600`) of the specific tab component when adding `focus-visible` ring utilities, and match the ring color to ensure the accessibility overlay looks intentional.
