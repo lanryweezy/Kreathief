@@ -28,7 +28,7 @@ test('Audit 2026 Trends', async ({ page }) => {
     await page.goto('http://localhost:5173/');
     await page.waitForLoadState('networkidle');
     console.log('Testing 2026 trend: ' + trend.name);
-    await page.fill('textarea[placeholder*="Describe what you want to create"]', trend.prompt);
+    await page.locator('textarea').first().fill(trend.prompt);
     await page.click('button:has-text("Generate")');
     await page.waitForSelector('.design-artboard', { state: 'visible', timeout: 30000 });
     await page.waitForTimeout(5000);
