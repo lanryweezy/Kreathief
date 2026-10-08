@@ -14,7 +14,7 @@
  *
  * Pure module — no store, no DOM, safe for tests and the KDAB harness.
  */
-import { Layer, SemanticLayerRole } from '../types';
+import { Layer, TextLayer, SemanticLayerRole } from '../types';
 import { classifyLayerRole } from './smartResizeEngine';
 
 export type IntentImportance = number; // 0..1 — reading-order weight
@@ -95,20 +95,20 @@ export function buildDesignIntentGraph(
   const protectedRoles = new Set(options.protectedRoles || []);
   const maxFont = Math.max(
     1,
-    ...layers.filter((l) => l.type === 'text').map((l) => (l as any).fontSize || 0)
+    ...layers.filter((l) => l.type === 'text').map((l) => (l as TextLayer).fontSize || 0)
   );
 
   const nodes: DesignIntentNode[] = layers.map((layer) => {
     const role = classifyLayerRole(layer, layers, canvas.width, canvas.height);
     const preview =
       layer.type === 'text'
-        ? `: "${String((layer as any).text || '').replace(/\s+/g, ' ').slice(0, 40)}"`
+        ? `: "${String((layer as TextLayer).text || '').replace(/\s+/g, ' ').slice(0, 40)}"`
         : '';
     const importance =
       role === 'headline' && layer.type === 'text'
         ? 1
         : role === 'subheadline' && layer.type === 'text'
-          ? 0.5 + 0.2 * ((layer as any).fontSize || 0) / maxFont
+          ? 0.5 + 0.2 * ((layer as TextLayer).fontSize || 0) / maxFont
           : ROLE_IMPORTANCE[role];
 
     return {
@@ -118,7 +118,7 @@ export function buildDesignIntentGraph(
       importance,
       communicates: ROLE_COMMUNICATION[role],
       relationships: [],
-      protected_: protectedRoles.has(role) || Boolean((layer as any).locked),
+      protected_: protectedRoles.has(role) || Boolean(layer.locked),
     };
   });
 
@@ -244,12 +244,12 @@ export function deriveDesignConstraints(
     const layer = layerById.get(node.layerId);
     if (!layer) continue;
 
-    if (layer.type === 'text' && typeof (layer as any).text === 'string') {
+    if (layer.type === 'text' && typeof (layer as TextLayer).text === 'string') {
       constraints.push({
         id: `tf_${node.layerId}`,
         type: 'text_fidelity',
         targetId: node.layerId,
-        param: { text: (layer as any).text },
+        param: { text: (layer as TextLayer).text },
         origin: 'derived',
       });
     }
@@ -308,7 +308,7 @@ export function validateDesignConstraints(
     }
     switch (c.type) {
       case 'text_fidelity':
-        if (String((layer as any).text ?? '') !== String(c.param?.text ?? '')) {
+        if (String((layer as TextLayer).text ?? '') !== String(c.param?.text ?? '')) {
           violations.push({ constraintId: c.id, message: `Text fidelity broken on ${layer.name || c.targetId}` });
         }
         break;
@@ -324,8 +324,8 @@ export function validateDesignConstraints(
         break;
       case 'dominates': {
         const rival = c.rivalId ? layerById.get(c.rivalId) : undefined;
-        const fs = (layer as any).fontSize || 0;
-        const rfs = rival ? (rival as any).fontSize || 0 : 0;
+        const fs = (layer as TextLayer).fontSize || 0;
+        const rfs = rival ? (rival as TextLayer).fontSize || 0 : 0;
         if (rival && fs > 0 && rfs > 0 && fs < rfs) {
           violations.push({ constraintId: c.id, message: 'Headline no longer dominates its closest rival' });
         }
