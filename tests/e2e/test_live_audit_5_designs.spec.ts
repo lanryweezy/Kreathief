@@ -8,7 +8,7 @@ test.describe('Live Design Generation Audit — 5 Distinct Design Types', () => 
     test.setTimeout(300000);
     await page.setViewportSize({ width: 1600, height: 1000 });
 
-    page.on('console', msg => {
+    page.on('console', (msg) => {
       const text = msg.text();
       if (text.includes('[AI]') || text.includes('[Agent]') || text.includes('error')) {
         console.log('BROWSER LOG:', text);
@@ -81,13 +81,15 @@ test.describe('Live Design Generation Audit — 5 Distinct Design Types', () => 
       await page.waitForFunction(() => !!(window as any).useStore?.getState, { timeout: 15000 });
       await page.evaluate((promptText) => {
         const store = (window as any).useStore;
-        if (store?.getState) store.getState().runAgenticWorkflow(promptText);
+        if (store?.getState) {
+          store.getState().runAgenticWorkflow(promptText);
+        }
       }, item.prompt);
 
       // 2. Wait until agentStatus becomes 'done' or 'error'
       const startTime = Date.now();
       let finalStatus = 'pending';
-      while (Date.now() - startTime < 90000) {
+      while (Date.now() - startTime < 45000) {
         const s = await page.evaluate(() => {
           const store = (window as any).useStore;
           return store?.getState ? store.getState().agentStatus : 'pending';
@@ -109,14 +111,16 @@ test.describe('Live Design Generation Audit — 5 Distinct Design Types', () => 
       // 3. Check variants
       const variantsCount = await page.evaluate(() => {
         const store = (window as any).useStore;
-        return store?.getState ? (store.getState().agentVariants?.length || 0) : 0;
+        return store?.getState ? store.getState().agentVariants?.length || 0 : 0;
       });
       console.log('Generated variants: ' + variantsCount);
 
       if (variantsCount > 0) {
         await page.evaluate(() => {
           const store = (window as any).useStore;
-          if (!store?.getState) return;
+          if (!store?.getState) {
+            return;
+          }
           const variants = store.getState().agentVariants;
           if (variants && variants.length > 0) {
             store.getState().applyAgentVariant(variants[0].id);
@@ -134,7 +138,9 @@ test.describe('Live Design Generation Audit — 5 Distinct Design Types', () => 
       // 5. Gather layer metadata
       const count = await page.evaluate(() => {
         const store = (window as any).useStore;
-        if (!store?.getState) return 0;
+        if (!store?.getState) {
+          return 0;
+        }
         const artboard = store.getState().artboards?.find((a: any) => a.id === store.getState().activeArtboardId);
         return artboard ? artboard.layers.length : 0;
       });

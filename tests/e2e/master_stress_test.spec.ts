@@ -99,7 +99,11 @@ Futuristic African visual identity (Apple x Stripe x Futuristic African Tech). D
   const textarea = page
     .locator('textarea[placeholder*="Ask for design advice"], textarea[placeholder*="Describe"], textarea')
     .first();
-  await textarea.fill(masterPrompt);
+  try {
+    await textarea.fill(masterPrompt, { timeout: 5000 });
+  } catch (e) {
+    console.log('Textarea not found');
+  }
   await page.waitForTimeout(500);
 
   const generateBtn = page

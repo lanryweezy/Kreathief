@@ -20,12 +20,26 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
   const [suggestions, setSuggestions] = useState<SmartSuggestion[]>([]);
   const [snapPoints, setSnapPoints] = useState<SnapPoint[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout>();
-  const selectedLayers = useMemo(() => layers.filter((l) => selectedIds.includes(l.id)), [layers, selectedIds]);
+  const selectedLayers = useMemo(() => {
+    const set = new Set(selectedIds);
+    const result = [];
+    for (const layer of layers) {
+      if (set.has(layer.id)) {
+        result.push(layer);
+        if (result.length === set.size) {
+          break;
+        }
+      }
+    }
+    return result;
+  }, [layers, selectedIds]);
   const prevIdsRef = useRef<string>('');
 
   useEffect(() => {
     const idsKey = selectedIds.join(',');
-    if (idsKey === prevIdsRef.current) return;
+    if (idsKey === prevIdsRef.current) {
+      return;
+    }
     prevIdsRef.current = idsKey;
 
     if (!selectedLayers.length) {
@@ -63,10 +77,14 @@ export function useSmartInteraction(layers: Layer[], selectedIds: string[]) {
       );
     }
     setSuggestions(s);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     timeoutRef.current = setTimeout(() => setSuggestions([]), 5000);
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [selectedLayers, selectedIds]);
 

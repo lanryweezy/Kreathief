@@ -23,10 +23,21 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
     useShallow((state) => ({ snapToGrid: state.snapToGrid, snapToObjects: state.snapToObjects }))
   );
 
-  const selectedLayers = layers.filter((l) => selectedIds.includes(l.id));
-  const otherLayers = layers.filter((l) => !selectedIds.includes(l.id) && !l.locked && l.visible);
+  const selectedSet = new Set(selectedIds);
+  const selectedLayers: Layer[] = [];
+  const otherLayers: Layer[] = [];
 
-  if (selectedLayers.length === 0 || (!snapToGrid && !snapToObjects)) return null;
+  for (const layer of layers) {
+    if (selectedSet.has(layer.id)) {
+      selectedLayers.push(layer);
+    } else if (!layer.locked && layer.visible) {
+      otherLayers.push(layer);
+    }
+  }
+
+  if (selectedLayers.length === 0 || (!snapToGrid && !snapToObjects)) {
+    return null;
+  }
 
   const indicators: SnapIndicator[] = [];
   const threshold = 5 / zoom;
@@ -34,7 +45,10 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
   if (selectedLayers.length >= 1 && otherLayers.length >= 1) {
     // ⚡ Bolt Optimization: Use a single for-loop for bounds calculation to avoid redundant O(N) array allocations
     // and prevent Maximum call stack size exceeded errors from Math.min/max with spread operators on large arrays
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     let isValid = true;
     for (let i = 0; i < selectedLayers.length; i++) {
       const l = selectedLayers[i];
@@ -44,13 +58,23 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
         isValid = false;
         break;
       }
-      if (l.x < minX) minX = l.x;
-      if (l.y < minY) minY = l.y;
-      if (xw > maxX) maxX = xw;
-      if (yh > maxY) maxY = yh;
+      if (l.x < minX) {
+        minX = l.x;
+      }
+      if (l.y < minY) {
+        minY = l.y;
+      }
+      if (xw > maxX) {
+        maxX = xw;
+      }
+      if (yh > maxY) {
+        maxY = yh;
+      }
     }
 
-    if (!isValid) return null;
+    if (!isValid) {
+      return null;
+    }
 
     const bounds = {
       left: minX,
@@ -70,7 +94,7 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
         centerX: layer.x + layer.width / 2,
         centerY: layer.y + layer.height / 2,
       };
-      if (Math.abs(bounds.left - lb.left) < threshold)
+      if (Math.abs(bounds.left - lb.left) < threshold) {
         indicators.push({
           type: 'vertical',
           x1: lb.left,
@@ -79,7 +103,8 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: Math.max(bounds.bottom, lb.bottom),
           label: 'Align left',
         });
-      if (Math.abs(bounds.centerX - lb.centerX) < threshold)
+      }
+      if (Math.abs(bounds.centerX - lb.centerX) < threshold) {
         indicators.push({
           type: 'vertical',
           x1: lb.centerX,
@@ -88,7 +113,8 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: Math.max(bounds.bottom, lb.bottom),
           label: 'Align center',
         });
-      if (Math.abs(bounds.right - lb.right) < threshold)
+      }
+      if (Math.abs(bounds.right - lb.right) < threshold) {
         indicators.push({
           type: 'vertical',
           x1: lb.right,
@@ -97,7 +123,8 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: Math.max(bounds.bottom, lb.bottom),
           label: 'Align right',
         });
-      if (Math.abs(bounds.top - lb.top) < threshold)
+      }
+      if (Math.abs(bounds.top - lb.top) < threshold) {
         indicators.push({
           type: 'horizontal',
           x1: Math.min(bounds.left, lb.left),
@@ -106,7 +133,8 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: lb.top,
           label: 'Align top',
         });
-      if (Math.abs(bounds.centerY - lb.centerY) < threshold)
+      }
+      if (Math.abs(bounds.centerY - lb.centerY) < threshold) {
         indicators.push({
           type: 'horizontal',
           x1: Math.min(bounds.left, lb.left),
@@ -115,7 +143,8 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: lb.centerY,
           label: 'Align middle',
         });
-      if (Math.abs(bounds.bottom - lb.bottom) < threshold)
+      }
+      if (Math.abs(bounds.bottom - lb.bottom) < threshold) {
         indicators.push({
           type: 'horizontal',
           x1: Math.min(bounds.left, lb.left),
@@ -124,6 +153,7 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
           y2: lb.bottom,
           label: 'Align bottom',
         });
+      }
     });
   }
 
@@ -147,7 +177,9 @@ export const SmartSnap: React.FC<SmartSnapProps> = ({ layers, selectedIds, zoom 
     }
   }
 
-  if (indicators.length === 0) return null;
+  if (indicators.length === 0) {
+    return null;
+  }
 
   return (
     <svg className="absolute inset-0 pointer-events-none z-40" style={{ width: '100%', height: '100%' }}>

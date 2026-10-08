@@ -232,5 +232,15 @@
 
 ## 2026-10-06 - Optimize Array Filtering in Transformation Hooks
 
-**Learning:** When performing double-array traversals like `layersRef.current.filter(...includes...).map(...)` inside high-frequency transformation event handlers (`useLayerTransformation`), the O(N*M) complexity can cause measurable CPU spikes and memory bloat, particularly with large layer selections.
+**Learning:** When performing double-array traversals like `layersRef.current.filter(...includes...).map(...)` inside high-frequency transformation event handlers (`useLayerTransformation`), the O(N\*M) complexity can cause measurable CPU spikes and memory bloat, particularly with large layer selections.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, and implement an early exit (`if (results.length === set.size) break;`) to further reduce average-case traversal time.
+
+## 2024-05-18 - Avoid array overhead in frequent renders
+
+**Learning:** Chaining array methods (e.g. `flatMap`, `filter`, `map`) inside `useMemo` hooks or render bodies causes unnecessary intermediate array allocations, increasing garbage collection pressure and affecting frame rates, especially with large numbers of layers across multiple artboards. Using `.find()` on top of `.flatMap()` prevents early termination of the underlying artboard loop.
+**Action:** Replace `array.flatMap().filter()` or `array.flatMap().find()` with nested imperative `for` loops. This allows for early termination when searching (saving CPU cycles) and avoids the memory overhead of intermediate O(N) array constructions.
+
+## 2026-10-06 - Optimize Array Intersection with Set Lookups
+
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N). Add an early exit condition (`if (result.length === set.size) break;`) to further reduce average-case traversal time.
