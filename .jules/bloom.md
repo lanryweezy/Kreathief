@@ -115,3 +115,8 @@
 ## 2026-10-01 - Specific error messaging for Asset Upload failures
 **Learning:** The `AssetUploadModal` feature was displaying a generic "Failed to upload asset" or raw error message on failure, despite the codebase already having a `getErrorDetails` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback (differentiating file size, quota limits, and network errors).
 **Action:** Replaced the generic error fallback in the catch block of `AssetUploadModal` with dynamic messages and suggestions constructed using `getErrorDetails(err)`. This closed the quality gap in upload error reporting, providing actionable recovery steps for users.
+
+## 2026-10-07 - Typo-tolerant typography search
+
+**Learning:** The Typography Pairings panel relied on exact substring matching (`.toLowerCase().includes()`) for finding font pairings and styles. This created a brittle user experience where simple typos (e.g., "Cybrpunk" instead of "Cyberpunk") yielded zero results, frustrating users who know what they want but make minor spelling errors.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts` in `TypographyPairingsPanel.tsx`. This adds robust typo tolerance to style, heading, body, and mood searches without altering the component's interface or introducing new features.

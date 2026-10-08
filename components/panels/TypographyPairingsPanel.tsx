@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { getCategoriesWithPairings, TypographyPairing } from '../../services/typographyPairingEngine';
 import { loadFont } from '../../services/FontLoader';
 import { TextLayer, Layer } from '../../types';
+import { fuzzyMatch } from '../../utils/search';
 
 export const TypographyPairingsPanel: React.FC = () => {
   const { artboards, activeArtboardId, selectedLayerIds, updateLayer, harmonizeArtboardTypography, addToast, saveToHistory } =
@@ -50,13 +51,14 @@ export const TypographyPairingsPanel: React.FC = () => {
   const filteredPairings = useMemo(() => {
     return allPairings.filter((item) => {
       const matchCat = selectedCategory === 'All' || item.category === selectedCategory;
-      const q = searchQuery.toLowerCase();
+
+      // 🌸 Bloom: Replaced exact substring matching with fuzzy matching to tolerate typos in typography search
       const matchSearch =
-        !q ||
-        item.style.toLowerCase().includes(q) ||
-        item.pairing.heading.toLowerCase().includes(q) ||
-        item.pairing.body.toLowerCase().includes(q) ||
-        item.pairing.mood.toLowerCase().includes(q);
+        !searchQuery ||
+        fuzzyMatch(searchQuery, item.style) ||
+        fuzzyMatch(searchQuery, item.pairing.heading) ||
+        fuzzyMatch(searchQuery, item.pairing.body) ||
+        fuzzyMatch(searchQuery, item.pairing.mood);
       return matchCat && matchSearch;
     });
   }, [allPairings, selectedCategory, searchQuery]);

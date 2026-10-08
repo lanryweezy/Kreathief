@@ -106,6 +106,18 @@ describe('TypographyPairingsPanel Component', () => {
     expect(screen.getAllByText(/Orbitron/i).length).toBeGreaterThan(0);
   });
 
+  it('filters pairings based on search input query with typo tolerance', () => {
+    render(<TypographyPairingsPanel />);
+
+    const searchInput = screen.getByPlaceholderText(/search pairings, fonts, or aesthetics/i);
+
+    // Simulate typo "Cybrpunk" instead of "Cyberpunk"
+    fireEvent.change(searchInput, { target: { value: 'Cybrpunk' } });
+
+    expect(screen.getByText(/cyberpunk/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Orbitron/i).length).toBeGreaterThan(0);
+  });
+
   it('allows applying a specific pairing directly to the artboard', () => {
     render(<TypographyPairingsPanel />);
 
