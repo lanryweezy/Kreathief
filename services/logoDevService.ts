@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fuzzyMatch } from '../utils/search';
 
 export interface LogoDevBrand {
   id: string;
@@ -130,9 +131,9 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
   // 2. Curated brands match
   const curatedMatches = CURATED_BRANDS.filter(
     (b) =>
-      b.name.toLowerCase().includes(trimmed) ||
-      b.domain.toLowerCase().includes(trimmed) ||
-      b.category?.toLowerCase().includes(trimmed)
+      fuzzyMatch(trimmed, b.name) ||
+      fuzzyMatch(trimmed, b.domain) ||
+      (b.category && fuzzyMatch(trimmed, b.category))
   );
 
   curatedMatches.forEach((b) => {
