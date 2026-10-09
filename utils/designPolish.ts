@@ -1,4 +1,4 @@
-import { Layer, Gradient } from '../types';
+import { Layer, Gradient, TextLayer } from '../types';
 import { ArtboardDesignResult } from '../services/aiDesignDirector';
 import { hexToHSL, hslToHex } from './colorHarmony';
 import { applyAutoLayout } from './autoLayout';
@@ -70,23 +70,23 @@ export function enforceWcagContrast(layers: Layer[], background: string = '#090a
 }
 
 export function enforceTypographyHierarchy(layers: Layer[]): Layer[] {
-  const textLayers = layers.filter((l): l is Layer & { type: 'text' } => l.type === 'text');
+  const textLayers = layers.filter((l): l is TextLayer => l.type === 'text');
   if (textLayers.length === 0) return layers;
 
   const maxFontSizeLayer = textLayers.reduce((max, layer) => {
-    const maxFs = (max as any).fontSize || 0;
-    const layerFs = (layer as any).fontSize || 0;
+    const maxFs = (max as TextLayer).fontSize || 0;
+    const layerFs = (layer as TextLayer).fontSize || 0;
     return layerFs > maxFs ? layer : max;
   }, textLayers[0]);
-  const maxFs = (maxFontSizeLayer as any).fontSize || 16;
+  const maxFs = (maxFontSizeLayer as TextLayer).fontSize || 16;
 
   return layers.map(layer => {
     if (layer.id === maxFontSizeLayer.id) {
-      const fw = (layer as any).fontWeight;
+      const fw = (layer as TextLayer).fontWeight;
       const fwNum = fw ? parseInt(String(fw)) : 0;
       return { ...layer, fontWeight: fwNum >= 700 ? fw : '700' } as Layer;
     }
-    if (layer.type === 'text' && ((layer as any).fontSize || 0) >= maxFs && layer.id !== maxFontSizeLayer.id) {
+    if (layer.type === 'text' && ((layer as TextLayer).fontSize || 0) >= maxFs && layer.id !== maxFontSizeLayer.id) {
       return { ...layer, fontSize: Math.max(8, maxFs - 4) } as Layer;
     }
     return layer;
@@ -97,7 +97,7 @@ export function addMissingShadows(layers: Layer[]): Layer[] {
   return layers.map(layer => {
     const name = (layer.name || '').toLowerCase();
     if (['button', 'card', 'badge', 'pill'].some(kw => name.includes(kw))) {
-      if (!(layer as any).shadow) {
+      if (!layer.shadow) {
         return {
           ...layer,
           shadow: {
@@ -346,9 +346,9 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
 
     // 1. Snap coordinates to 4px grid & clamp opacity
     layers = layers.map(layer => {
-      const rawType = (layer as any).type;
-      const normalizedType = rawType === 'rect' ? 'rectangle' : rawType === 'ellipse' ? 'circle' : rawType;
-      const layerColor = (layer as any).color || (layer as any).fill || '#3b82f6';
+      const rawType = layer.type;
+      const normalizedType = rawType === ('rect' as any) ? 'rectangle' : rawType === ('ellipse' as any) ? 'circle' : rawType;
+      const layerColor = ('color' in layer ? layer.color : undefined) || ('fill' in layer ? layer.fill : undefined) || '#3b82f6';
 
       const patched: any = {
         ...layer,
@@ -362,15 +362,15 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
         opacity: layer.opacity !== undefined ? Math.max(0.01, Math.min(1, layer.opacity)) : 1,
       };
       // Snap corner radius if present
-      const cr = (layer as any).cornerRadius;
+      const cr = 'cornerRadius' in layer ? layer.cornerRadius : undefined;
       if (typeof cr === 'number') {
         patched.cornerRadius = snapCornerRadius(cr);
       } else if (cr && typeof cr === 'object') {
         patched.cornerRadius = {
-          tl: snapCornerRadius(cr.tl || 0),
-          tr: snapCornerRadius(cr.tr || 0),
-          br: snapCornerRadius(cr.br || 0),
-          bl: snapCornerRadius(cr.bl || 0),
+          tl: snapCornerRadius((cr as any).tl || 0),
+          tr: snapCornerRadius((cr as any).tr || 0),
+          br: snapCornerRadius((cr as any).br || 0),
+          bl: snapCornerRadius((cr as any).bl || 0),
         };
       }
       return patched as Layer;
@@ -398,7 +398,7 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
         y: snapToGrid(layer.y),
       };
       if (layer.type === 'text') {
-        const tl = layer as any;
+        const tl = layer as TextLayer;
         return {
           ...base,
           fontFamily: tl.fontFamily || 'Inter',
