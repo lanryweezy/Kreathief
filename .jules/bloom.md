@@ -120,3 +120,8 @@
 
 **Learning:** The Typography Pairings panel relied on exact substring matching (`.toLowerCase().includes()`) for finding font pairings and styles. This created a brittle user experience where simple typos (e.g., "Cybrpunk" instead of "Cyberpunk") yielded zero results, frustrating users who know what they want but make minor spelling errors.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts` in `TypographyPairingsPanel.tsx`. This adds robust typo tolerance to style, heading, body, and mood searches without altering the component's interface or introducing new features.
+
+## 2026-10-09 - Typo-tolerant Brand Logo Search
+
+**Learning:** The `searchBrandLogos` functionality in `services/logoDevService.ts` relied on exact substring matching (`.toLowerCase().includes()`) when filtering the curated list of popular brands. This brittle implementation meant that minor user typos when searching for a brand (e.g. typing "micosoft" instead of "microsoft") would yield zero local results, forcing an API request or returning nothing, degrading the user experience.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance to brand name, domain, and category searches without altering the function's external interface.
