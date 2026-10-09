@@ -1,5 +1,6 @@
 import { useStore } from '../store/useStore';
 import { ImageLayer } from '../types';
+import { useShallow } from 'zustand/react/shallow';
 import * as exportService from '../services/exportService';
 import { storageService } from '../services/storageService';
 import { generateLayerId } from '../utils/layers/layerUtils';
@@ -165,19 +166,38 @@ export const registerExportStrategy = (strategy: ExportStrategy) => {
 };
 
 export const useFileHandler = () => {
-  const uploads = useStore((state) => state.uploads) || [];
-  const history = useStore((state) => state.history) || [];
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
+  // ⚡ Bolt: Consolidating multiple useStore hooks into a single useShallow call
+  // Reduces store subscriptions from 10 to 1, minimizing CPU overhead during drag/nudge events
+  const {
+    uploads = [],
+    history = [],
+    artboards = [],
+    activeArtboardId,
+    canvasSize = { width: 1080, height: 1080, name: 'Square' },
+    canvasBackgroundColor = '#ffffff',
+    canvasFilters,
+    addLayers,
+    setCanvasFilters,
+    setIsExporting,
+    addToast
+  } = useStore(
+    useShallow((state) => ({
+      uploads: state.uploads,
+      history: state.history,
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      canvasSize: state.canvasSize,
+      canvasBackgroundColor: state.canvasBackgroundColor,
+      canvasFilters: state.canvasFilters,
+      addLayers: state.addLayers,
+      setCanvasFilters: state.setCanvasFilters,
+      setIsExporting: state.setIsExporting,
+      addToast: state.addToast,
+    }))
+  );
+
   const activeArtboard = artboards.find((a) => a.id === activeArtboardId) || artboards[0];
   const layers = activeArtboard ? activeArtboard.layers : [];
-  const canvasSize = useStore((state) => state.canvasSize) || { width: 1080, height: 1080, name: 'Square' };
-  const canvasBackgroundColor = useStore((state) => state.canvasBackgroundColor) || '#ffffff';
-  const canvasFilters = useStore((state) => state.canvasFilters);
-  const addLayers = useStore((state) => state.addLayers);
-  const setCanvasFilters = useStore((state) => state.setCanvasFilters);
-  const setIsExporting = useStore((state) => state.setIsExporting);
-  const addToast = useStore((state) => state.addToast);
 
   const activeImage = history.length > 0 ? history[history.length - 1] || null : null;
   const uploadedImage = uploads.length > 0 ? uploads[uploads.length - 1] || null : null;

@@ -244,3 +244,8 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass `for` loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N). Add an early exit condition (`if (result.length === set.size) break;`) to further reduce average-case traversal time.
+
+## 2026-10-09 - Optimize Zustand hooks in useFileHandler
+
+**Learning:** When components or hooks utilize multiple `useStore` extractions, it creates separate Zustand store subscriptions. In highly utilized hooks like `useFileHandler`, which interacts heavily with layer state, this increases unnecessary CPU overhead during rapid state updates, such as when uploading multiple files or interacting with canvas elements.
+**Action:** When extracting multiple state properties in Zustand-based hooks, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Ensure defaults are passed inside destructuring instead of `||` logical OR operator.
