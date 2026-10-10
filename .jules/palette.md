@@ -68,3 +68,7 @@
 ## 2026-10-07 - Contextual Focus Colors for Custom Tabs
 **Learning:** When applying `focus-visible` styles to custom tab navigation panels across different sections of the app (like `VectorEditingPanel` vs `MockupControls`), a one-size-fits-all focus ring color looks disconnected. The focus ring color must match the specific thematic or active color state of that panel (e.g., purple vs brand) to maintain visual cohesion during keyboard navigation.
 **Action:** Always inspect the active state classes (e.g., `text-purple-400` vs `text-brand-600`) of the specific tab component when adding `focus-visible` ring utilities, and match the ring color to ensure the accessibility overlay looks intentional.
+
+## 2026-10-10 - Screen Reader Accessibility for Export Format Buttons
+**Learning:** When using `<button>` elements to simulate a radio group or selector for things like export formats (e.g., PNG, JPG, WEBP), relying solely on visual styling (like active classes) leaves screen readers without context about which option is currently selected.
+**Action:** Always include an explicit `aria-pressed={boolean}` or `aria-selected={boolean}` attribute (along with appropriate roles if structured as a tablist/radiogroup) on format selection buttons to programmatically convey their active state to assistive technologies.

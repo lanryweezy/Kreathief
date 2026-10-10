@@ -21,6 +21,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
       <div className="grid grid-cols-4 gap-2">
         <button
           data-testid="export-png-btn"
+          aria-pressed={format === 'png' && !isPrintMode}
           onClick={() => {
             setFormat('png');
             setIsPrintMode(false);
@@ -35,6 +36,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-jpeg-btn"
+          aria-pressed={format === 'jpeg'}
           onClick={() => {
             setFormat('jpeg');
             setIsPrintMode(false);
@@ -49,6 +51,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-webp-btn"
+          aria-pressed={format === 'webp'}
           onClick={() => {
             setFormat('webp');
             setIsPrintMode(false);
@@ -63,6 +66,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-svg-btn"
+          aria-pressed={format === 'svg'}
           onClick={() => {
             setFormat('svg');
             setIsPrintMode(false);
@@ -77,6 +81,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-pdf-btn"
+          aria-pressed={format === 'pdf'}
           onClick={() => {
             setFormat('pdf');
             setIsPrintMode(true);
@@ -91,6 +96,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-psd-btn"
+          aria-pressed={format === 'psd'}
           onClick={() => {
             setFormat('psd');
             setIsPrintMode(false);
@@ -105,6 +111,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-mp4-btn"
+          aria-pressed={format === 'mp4'}
           onClick={() => {
             setFormat('mp4');
             setIsPrintMode(false);
