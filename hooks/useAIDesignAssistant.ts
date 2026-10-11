@@ -48,7 +48,21 @@ export function useAIDesignAssistant() {
     if (!ab) {
       return [];
     }
-    return ab.layers.filter((l) => selectedLayerIds.includes(l.id));
+
+    // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with an O(N) single-pass Set lookup.
+    // Includes an early exit to further reduce average-case traversal time.
+    const selectedSet = new Set(selectedLayerIds);
+    const result: Layer[] = [];
+
+    for (let i = 0; i < ab.layers.length; i++) {
+      const layer = ab.layers[i];
+      if (selectedSet.has(layer.id)) {
+        result.push(layer);
+        if (result.length === selectedSet.size) break;
+      }
+    }
+
+    return result;
   }, [artboards, activeArtboardId, selectedLayerIds]);
 
   const sendMessage = useCallback(
