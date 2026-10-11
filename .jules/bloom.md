@@ -105,14 +105,17 @@
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
 
 ## 2026-09-26 - Typo-tolerant Resource Search in Services
+
 **Learning:** The fallback resource search functionality in `services/fallbackPhotos.ts`, `services/stickerService.ts`, and `services/freepikService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific photos, stickers, icons, or vectors, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
 
 ## 2024-11-20 - Typo-tolerant Icon Search in Services
+
 **Learning:** The fallback icon search functionality in `services/lucideIconService.ts`, `services/phosphorIconService.ts`, and `services/materialIconService.ts` relied on strict substring matching (`.includes()`). This caused searches to fail on minor typos when users were trying to find specific icons, degrading the search experience.
 **Action:** Replaced exact substring matching with the existing `fuzzyMatch` utility from `utils/search.ts` to gracefully handle typos and significantly improve the search resilience without changing any external interface.
 
 ## 2026-10-01 - Specific error messaging for Asset Upload failures
+
 **Learning:** The `AssetUploadModal` feature was displaying a generic "Failed to upload asset" or raw error message on failure, despite the codebase already having a `getErrorDetails` utility in `utils/errorMessages.ts` specifically designed to provide actionable user feedback (differentiating file size, quota limits, and network errors).
 **Action:** Replaced the generic error fallback in the catch block of `AssetUploadModal` with dynamic messages and suggestions constructed using `getErrorDetails(err)`. This closed the quality gap in upload error reporting, providing actionable recovery steps for users.
 
@@ -125,3 +128,8 @@
 
 **Learning:** The `searchBrandLogos` functionality in `services/logoDevService.ts` relied on exact substring matching (`.toLowerCase().includes()`) when filtering the curated list of popular brands. This brittle implementation meant that minor user typos when searching for a brand (e.g. typing "micosoft" instead of "microsoft") would yield zero local results, forcing an API request or returning nothing, degrading the user experience.
 **Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance to brand name, domain, and category searches without altering the function's external interface.
+
+## $(date +%Y-%m-%d) - Replaced generic error messages with specific AI error formatters in Dashboard
+
+**Learning:** AI generation operations (`handleDesignGenerate` and `handleAIGenerate`) in `components/Dashboard.tsx` were using the generic `getErrorDetails` utility. The codebase contains a more specialized `getAIErrorMessage` utility which is designed to properly handle AI-specific errors (like quotas, API rate limits, etc.). The agent must ensure that features calling out to AI models return tailored error details to prevent generic failures.
+**Action:** Replaced `getErrorDetails` with `getAIErrorMessage` inside AI generation functions across the `Dashboard` component to ensure actionable error notifications.

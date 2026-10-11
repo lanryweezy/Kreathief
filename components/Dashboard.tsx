@@ -16,7 +16,7 @@ import { AspectRatio } from '../types';
 import { EmptyState } from './EmptyState';
 import { Button } from './Button';
 import { log } from '../utils/log';
-import { getErrorDetails } from '../utils/errorMessages';
+import { getErrorDetails, getAIErrorMessage } from '../utils/errorMessages';
 import { fuzzyMatch } from '../utils/search';
 import { NodeGraph } from './nodes/NodeGraph';
 import { importPdfAsArtboards } from '../utils/pdfImport';
@@ -25,7 +25,7 @@ import { TemplatePreview } from './TemplatePreview';
 import { StyleChip } from './panels/StylePicker';
 import type { DesignStyleEntry } from '../services/designStyleDatabase';
 
-const StylePicker = lazy(() => import('./panels/StylePicker').then(m => ({ default: m.StylePicker })));
+const StylePicker = lazy(() => import('./panels/StylePicker').then((m) => ({ default: m.StylePicker })));
 
 interface DashboardProps {
   user: User;
@@ -85,8 +85,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       prev.includes(projectId) ? prev.filter((id) => id !== projectId) : [...prev, projectId]
     );
   };
-  const [showFavoritesOnly, setShowFavoritesOnly] = useState(() => localStorage.getItem('kreathief_dashboard_favs') === 'true');
-  
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(
+    () => localStorage.getItem('kreathief_dashboard_favs') === 'true'
+  );
+
   useEffect(() => {
     localStorage.setItem('kreathief_dashboard_favs', showFavoritesOnly.toString());
   }, [showFavoritesOnly]);
@@ -136,35 +138,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     { label: 'Presentation', size: { width: 1920, height: 1080, name: 'Presentation' } },
   ];
 
-  const STYLE_SUGGESTIONS = [
-    'Art Deco',
-    'Minimalism',
-    'Brutalism',
-    'Y2K',
-    'Kawaii',
-    'Synthwave',
-  ];
+  const STYLE_SUGGESTIONS = ['Art Deco', 'Minimalism', 'Brutalism', 'Y2K', 'Kawaii', 'Synthwave'];
 
-  const handleReferenceUpload = useCallback(async (file: File) => {
-    if (!file.type.startsWith('image/')) {
-      addToast('Please upload an image file (PNG, JPEG, WebP, SVG)', 'error');
-      return;
-    }
-    if (file.size > 15 * 1024 * 1024) {
-      addToast('Image size exceeds 15MB limit', 'error');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
-      if (dataUrl) {
-        addToast('Analyzing visual reference & extracting design DNA...', 'info');
-        await setStyleReference(dataUrl, file.name);
-        addToast('Visual reference attached! AI will honor layout, style & palette.', 'success');
+  const handleReferenceUpload = useCallback(
+    async (file: File) => {
+      if (!file.type.startsWith('image/')) {
+        addToast('Please upload an image file (PNG, JPEG, WebP, SVG)', 'error');
+        return;
       }
-    };
-    reader.readAsDataURL(file);
-  }, [addToast, setStyleReference]);
+      if (file.size > 15 * 1024 * 1024) {
+        addToast('Image size exceeds 15MB limit', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string;
+        if (dataUrl) {
+          addToast('Analyzing visual reference & extracting design DNA...', 'info');
+          await setStyleReference(dataUrl, file.name);
+          addToast('Visual reference attached! AI will honor layout, style & palette.', 'success');
+        }
+      };
+      reader.readAsDataURL(file);
+    },
+    [addToast, setStyleReference]
+  );
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -216,7 +214,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     try {
       const title =
         aiPrompt.trim().length > 0
-          ? (aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim())
+          ? aiPrompt.trim().length > 40
+            ? aiPrompt.trim().slice(0, 40) + '...'
+            : aiPrompt.trim()
           : `Remix: ${styleReference?.name || 'Visual Reference'}`;
       const projectId = await createProject(title, format.size);
       const created = useStore.getState().projects.find((p) => p.id === projectId);
@@ -243,12 +243,23 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       onOpenProject(created);
     } catch (error) {
       log.error('[DashboardAI] Design generation failed', error);
-      const details = getErrorDetails(error);
-      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
+      // 🌸 Bloom: Closed quality gap where AI generation errors showed generic, blocking alerts
+      // Improvement: Replaced getErrorDetails with getAIErrorMessage for specific, actionable feedback
+      addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, selectedFormat, selectedStyle, styleReference, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+  }, [
+    aiPrompt,
+    selectedFormat,
+    selectedStyle,
+    styleReference,
+    isGenerating,
+    createProject,
+    loadProject,
+    addToast,
+    onOpenProject,
+  ]);
 
   const handleAIGenerate = useCallback(async () => {
     const effectivePrompt =
@@ -269,7 +280,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         format.size.width > format.size.height ? '16:9' : format.size.width === format.size.height ? '1:1' : '9:16';
 
       // Unified generation path shared with the editor's Image Gen panel
-      const { useBrandInPrompts, brandKits, activeBrandKitId, styleReference: currentRef, campaignGoal } = useStore.getState();
+      const {
+        useBrandInPrompts,
+        brandKits,
+        activeBrandKitId,
+        styleReference: currentRef,
+        campaignGoal,
+      } = useStore.getState();
       const fullPrompt = composeGenerationPrompt({
         prompt: `${selectedStyle ? `${selectedStyle.name} style. ` : ''}${effectivePrompt}. Professional, high quality, suitable for ${format.label}. Clean composition, good typography.`,
         brandKit: useBrandInPrompts ? brandKits?.find((bk) => bk.id === activeBrandKitId) : undefined,
@@ -324,7 +341,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
       const title =
         aiPrompt.trim().length > 0
-          ? (aiPrompt.trim().length > 40 ? aiPrompt.trim().slice(0, 40) + '...' : aiPrompt.trim())
+          ? aiPrompt.trim().length > 40
+            ? aiPrompt.trim().slice(0, 40) + '...'
+            : aiPrompt.trim()
           : `Remix: ${styleReference?.name || 'Visual Reference'}`;
       const initialState = {
         artboards: [
@@ -364,12 +383,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       }
     } catch (error) {
       log.error('[DashboardAI] Generation failed', error);
-      const details = getErrorDetails(error);
-      addToast(`Generation failed: ${details.message}. ${details.suggestion}`, 'error');
+      // 🌸 Bloom: Closed quality gap where AI generation errors showed generic, blocking alerts
+      // Improvement: Replaced getErrorDetails with getAIErrorMessage for specific, actionable feedback
+      addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGenerating(false);
     }
-  }, [aiPrompt, selectedFormat, selectedImageModel, selectedStyle, styleReference, isGenerating, createProject, loadProject, addToast, onOpenProject]);
+  }, [
+    aiPrompt,
+    selectedFormat,
+    selectedImageModel,
+    selectedStyle,
+    styleReference,
+    isGenerating,
+    createProject,
+    loadProject,
+    addToast,
+    onOpenProject,
+  ]);
 
   useEffect(() => {
     loadAllProjects().then(() => setIsLoading(false));
@@ -576,7 +607,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
           <div className="w-10 h-10 bg-surface-dark-1 border border-white/10 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg transition-all">
             <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
-          <span className="font-black text-2xl tracking-tighter uppercase group-hover:text-purple-300 transition-colors">Kreathief</span>
+          <span className="font-black text-2xl tracking-tighter uppercase group-hover:text-purple-300 transition-colors">
+            Kreathief
+          </span>
           <span className="hidden sm:inline-block text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-400 group-hover:text-white transition-all">
             Landing Page ↗
           </span>
@@ -624,7 +657,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               }
             }}
           >
-
             {/* Live AI Credit Counter Pill */}
             <button
               onClick={() => setShowPricingModal(true)}
@@ -789,7 +821,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   onDrop={handleDrop}
                 >
                   <div className="absolute -inset-1 bg-gradient-to-r from-brand-600/20 via-accent/20 to-brand-600/20 rounded-2xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-500" />
-                  
+
                   {/* Drag-and-Drop Active Overlay */}
                   {isDraggingFile && (
                     <div className="absolute inset-0 z-30 bg-brand-950/90 border-2 border-dashed border-brand-400 rounded-xl flex flex-col items-center justify-center gap-2 backdrop-blur-sm pointer-events-none animate-pulse">
@@ -807,7 +839,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file) handleReferenceUpload(file);
+                        if (file) {
+                          handleReferenceUpload(file);
+                        }
                         e.target.value = '';
                       }}
                       className="hidden"
@@ -846,7 +880,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                                     Extracting color palette, lighting & layout...
                                   </span>
                                 ) : (
-                                  (styleReference.extracted?.summary || styleReference.extracted?.aestheticSummary) ||
+                                  styleReference.extracted?.summary ||
+                                  styleReference.extracted?.aestheticSummary ||
                                   'AI will preserve layout, palette & aesthetic during generation'
                                 )}
                               </p>
@@ -897,7 +932,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                       placeholder={
                         styleReference
-                          ? "Remixing attached reference... Add custom instructions or click Generate directly..."
+                          ? 'Remixing attached reference... Add custom instructions or click Generate directly...'
                           : "Describe your vision, or click '+' / paste an image to Steal & Remix..."
                       }
                       rows={2}
@@ -944,7 +979,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             <>
                               <span
                                 className="w-3 h-3 rounded-full shrink-0"
-                                style={{ background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})` }}
+                                style={{
+                                  background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})`,
+                                }}
                               />
                               {selectedStyle.icon} {selectedStyle.name}
                             </>
@@ -974,7 +1011,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                               className="bg-transparent text-xs font-bold text-white focus:outline-none cursor-pointer"
                               title="Select which Brand Kit to apply to this generation"
                             >
-                              <option value="" className="bg-surface-dark-1">No Brand Kit</option>
+                              <option value="" className="bg-surface-dark-1">
+                                No Brand Kit
+                              </option>
                               {brandKits.map((kit) => (
                                 <option key={kit.id} value={kit.id} className="bg-surface-dark-1 text-white">
                                   {kit.name}
@@ -1043,11 +1082,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                       className="mt-3 rounded-2xl border border-white/10 overflow-hidden bg-surface-dark-1 shadow-2xl"
                     >
-                      <Suspense fallback={
-                        <div className="flex items-center justify-center h-full">
-                          <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
-                      }>
+                      <Suspense
+                        fallback={
+                          <div className="flex items-center justify-center h-full">
+                            <div className="w-6 h-6 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                          </div>
+                        }
+                      >
                         <StylePicker
                           onSelectStyle={(style) => {
                             setSelectedStyle(style);
@@ -1117,14 +1158,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                     >
                       <div className="aspect-[16/10] bg-surface-dark-3 relative overflow-hidden">
                         <div className="absolute top-3 left-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-       <button
-         onClick={(e) => toggleProjectSelection(e, project.id)}
-         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedProjectIds.includes(project.id) ? 'bg-brand-500 border-brand-500 opacity-100' : 'bg-black/50 border-white/30 hover:border-white'}`}
-       >
-         {selectedProjectIds.includes(project.id) && <Icons.Check className="w-3 h-3 text-white" />}
-       </button>
-     </div>
-     <div className="absolute top-3 right-3 z-10">
+                          <button
+                            onClick={(e) => toggleProjectSelection(e, project.id)}
+                            className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${selectedProjectIds.includes(project.id) ? 'bg-brand-500 border-brand-500 opacity-100' : 'bg-black/50 border-white/30 hover:border-white'}`}
+                          >
+                            {selectedProjectIds.includes(project.id) && <Icons.Check className="w-3 h-3 text-white" />}
+                          </button>
+                        </div>
+                        <div className="absolute top-3 right-3 z-10">
                           <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
                             {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
                           </span>
@@ -1141,17 +1182,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                             className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
                           >
                             {project.thumbnail ? (
-                                <img src={project.thumbnail} alt={project.name} className="w-full h-full object-cover object-center" />
-                              ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 text-white/20 border border-white/5">
-                                   <svg className="w-12 h-12 mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                   </svg>
-                                   <span className="text-[10px] font-bold uppercase tracking-widest text-center px-4 leading-tight">
-                                     {project.state.artboards?.[0]?.layers?.length || 0} Layers
-                                   </span>
-                                </div>
-                              )}
+                              <img
+                                src={project.thumbnail}
+                                alt={project.name}
+                                className="w-full h-full object-cover object-center"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 text-white/20 border border-white/5">
+                                <svg
+                                  className="w-12 h-12 mb-2 opacity-50"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={1}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-center px-4 leading-tight">
+                                  {project.state.artboards?.[0]?.layers?.length || 0} Layers
+                                </span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1351,9 +1406,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         </div>
       )}
 
-      {showPricingModal && (
-        <PricingModal onClose={() => setShowPricingModal(false)} />
-      )}
+      {showPricingModal && <PricingModal onClose={() => setShowPricingModal(false)} />}
 
       <ConfirmModal
         isOpen={deleteConfirm.isOpen}
