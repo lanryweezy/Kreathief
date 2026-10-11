@@ -90,7 +90,7 @@ export const MobileTransformController: React.FC = () => {
               <button
                 aria-label="Nudge up"
                 onClick={() => handleNudge(0, -1)}
-                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
+                className="w-11 h-11 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
               >
                 <Icons.ChevronUp className="w-5 h-5 text-white" />
               </button>
@@ -99,21 +99,21 @@ export const MobileTransformController: React.FC = () => {
               <button
                 aria-label="Nudge left"
                 onClick={() => handleNudge(-1, 0)}
-                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
+                className="w-11 h-11 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
               >
                 <Icons.ChevronLeft className="w-5 h-5 text-white" />
               </button>
               <button
                 aria-label="Nudge down"
                 onClick={() => handleNudge(0, 1)}
-                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
+                className="w-11 h-11 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
               >
                 <Icons.ChevronDown className="w-5 h-5 text-white" />
               </button>
               <button
                 aria-label="Nudge right"
                 onClick={() => handleNudge(1, 0)}
-                className="w-10 h-10 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
+                className="w-11 h-11 flex items-center justify-center bg-white/5 rounded-lg active:bg-purple-500 transition-colors"
               >
                 <Icons.ChevronRight className="w-5 h-5 text-white" />
               </button>
@@ -122,14 +122,14 @@ export const MobileTransformController: React.FC = () => {
               <button
                 aria-label="Nudge by 10 pixels"
                 onClick={() => handleNudge(0, -10)}
-                className="px-2 py-1 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
+                className="min-w-[44px] h-11 px-2 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
               >
                 x10
               </button>
               <button
                 aria-label="Nudge by 1 pixel"
                 onClick={() => handleNudge(0, 1)}
-                className="px-2 py-1 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
+                className="min-w-[44px] h-11 px-2 text-[8px] font-black bg-white/5 rounded text-gray-400 uppercase"
               >
                 x1
               </button>
