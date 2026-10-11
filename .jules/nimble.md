@@ -1,7 +1,7 @@
-## YYYY-MM-DD — [Type 8]: Safe Area and Device-Specific Failures
-**Issue:** The app layout uses `h-screen`, `min-h-screen`, and `100vh`, which fail on mobile browsers because they include browser chrome, causing content to be hidden under navigation bars on iOS Safari and Chrome Android.
-**Device/browser:** iOS Safari, Chrome Android
-**Root cause:** Use of `h-screen`, `min-h-screen` (which map to `100vh` in Tailwind by default without dynamic viewport units) and explicit `100vh` in component files.
-**Fix:** Replaced `h-screen` with `h-dvh`, `min-h-screen` with `min-h-dvh`, and `100vh` with `100dvh` globally across the app to dynamically account for mobile browser UI.
-**Desktop impact:** None, `100dvh` behaves identically to `100vh` on desktop browsers.
-**Watch for:** Make sure modals or fixed elements using viewport heights are also updated to `dvh` units.
+## 2024-10-11 — Type 2: Touch Target Failure: MobileTransformController D-Pad Buttons
+**Issue:** The directional d-pad buttons and nudge multiplier toggles (`x10`, `x1`) in the mobile layout for element transformation were explicitly sized to 40x40px or smaller, violating the minimum 44x44px touch target requirement.
+**Device/browser:** Simulated iPhone 11 (375x812), all mobile viewports.
+**Root cause:** Components in `MobileTransformController.tsx` used fixed sizes `w-10 h-10` and smaller default flex sizing for multipliers, which lacked the guaranteed 44x44px dimensions.
+**Fix:** Increased padding and min-width/height sizes. The primary d-pad buttons were bumped from `w-10 h-10` to `w-11 h-11` (44x44px) and multiplier buttons were given `min-w-[44px] h-11`.
+**Desktop impact:** Confirmed none, as `MobileTransformController` is strictly rendered on mobile breakpoints or environments flagged as mobile.
+**Watch for:** Other toolbar and transformation controls rendered conditionally inside panels that might have hard-coded touch targets beneath the 44px threshold.
