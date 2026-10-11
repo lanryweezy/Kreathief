@@ -1,10 +1,12 @@
+import { SchemaType } from '@google/generative-ai';
 import { multiJudgeEval } from './vectorQuality/metrics';
 import { Layer, LayerBase, Gradient, CornerRadius, AutoLayoutSettings, AspectRatio } from '../types';
 import { planSemanticDesign } from './aiSemanticPlanner';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
-import { v4 as uuidv4 } from 'uuid'; import { agentRegistry } from './agentRegistry';
+import { v4 as uuidv4 } from 'uuid';
+import { agentRegistry } from './agentRegistry';
 import { polishDesignOutput } from '../utils/designPolish';
 import { buildCompositionForArchetype } from './designCompositionEngine';
 import { classifyDesignMovement, buildCompositionByStyleId, GraphicDesignStyleId } from './graphicDesignStyles';
@@ -38,7 +40,6 @@ export interface DesignBlueprintLayer {
    */
   role?: 'background' | 'vector-accent' | 'hero-cutout' | 'typography' | 'cta';
   properties: {
-
     // Shape properties
     fill?: string;
     gradient?: Gradient;
@@ -96,7 +97,6 @@ export interface TwoStageDesignResult {
   generatedAssets: Map<string, string>; // layerId -> imageUrl
 }
 
-
 export interface MultiLayerDesignNode {
   type: 'shape' | 'text' | 'container';
   name: string;
@@ -149,7 +149,10 @@ export interface ArtboardDesignResult {
 /**
  * Curated Archetype Fallback Presets for offline or instant multi-layer designs
  */
-export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number, prompt: string) => ArtboardDesignResult> = {
+export const FALLBACK_ARCHETYPES: Record<
+  string,
+  (width: number, height: number, prompt: string) => ArtboardDesignResult
+> = {
   cyberpunk: (width, height, prompt) => {
     const bgGrad: Gradient = {
       type: 'linear',
@@ -2454,7 +2457,8 @@ export const FALLBACK_ARCHETYPES: Record<string, (width: number, height: number,
 
     return {
       title: 'High-Conversion E-Commerce Flash Sale',
-      description: 'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
+      description:
+        'Urgency-driven promotional flyer with countdown header, prominent discount badge, and high-contrast CTA.',
       width,
       height,
       backgroundColor: '#0b0f19',
@@ -2494,7 +2498,19 @@ const ARCHETYPE_KEYWORDS: Record<string, { primary: string[]; secondary: string[
   },
   food: {
     primary: ['food', 'restaurant', 'menu', 'recipe', 'cafe', 'bakery', 'chef', 'kitchen'],
-    secondary: ['eat', 'drink', 'cuisine', 'dining', 'brunch', 'organic', 'farm', 'gourmet', 'dessert', 'pizza', 'burger'],
+    secondary: [
+      'eat',
+      'drink',
+      'cuisine',
+      'dining',
+      'brunch',
+      'organic',
+      'farm',
+      'gourmet',
+      'dessert',
+      'pizza',
+      'burger',
+    ],
     negative: ['tech', 'software', 'coding'],
   },
   africanMarket: {
@@ -2547,9 +2563,21 @@ export function classifyDesignIntent(prompt: string): string {
   // also appear in the 65-style aesthetic database.
   const scores: ArchetypeScore[] = Object.entries(ARCHETYPE_KEYWORDS).map(([archetype, kw]) => {
     let score = 0;
-    kw.primary.forEach((k) => { if (pLower.includes(k)) score += 3; });
-    kw.secondary.forEach((k) => { if (pLower.includes(k)) score += 1; });
-    kw.negative.forEach((k) => { if (pLower.includes(k)) score -= 2; });
+    kw.primary.forEach((k) => {
+      if (pLower.includes(k)) {
+        score += 3;
+      }
+    });
+    kw.secondary.forEach((k) => {
+      if (pLower.includes(k)) {
+        score += 1;
+      }
+    });
+    kw.negative.forEach((k) => {
+      if (pLower.includes(k)) {
+        score -= 2;
+      }
+    });
     return { archetype, score };
   });
 
@@ -2594,24 +2622,24 @@ export function classifyDesignIntent(prompt: string): string {
  */
 export function getMatchedStyle(prompt: string): DesignStyleEntry | null {
   const styleId = classifyStyleFromPrompt(prompt);
-  return styleId ? getStyleById(styleId) ?? null : null;
+  return styleId ? (getStyleById(styleId) ?? null) : null;
 }
 
 // ─── Typography Pairing Rules ────────────────────────────────────────────────
 
 const TYPOGRAPHY_PAIRINGS: Record<string, { headline: string; body: string; accent: string }> = {
-  cyberpunk:     { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  editorial:     { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  saas:          { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  luxury:        { headline: 'Cinzel',           body: 'Cormorant Garamond', accent: 'Cinzel' },
-  food:          { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  africanMarket: { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
-  fitness:       { headline: 'Montserrat',       body: 'Inter',            accent: 'Space Grotesk' },
-  fashion:       { headline: 'DM Sans',          body: 'Inter',            accent: 'Bebas Neue' },
-  realEstate:    { headline: 'Playfair Display',  body: 'Inter',            accent: 'Inter' },
-  event:         { headline: 'Outfit',           body: 'Inter',            accent: 'Space Mono' },
-  education:     { headline: 'Sora',             body: 'Inter',            accent: 'Inter' },
-  ecommerce:     { headline: 'Outfit',           body: 'Inter',            accent: 'Inter' },
+  cyberpunk: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  editorial: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  saas: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  luxury: { headline: 'Cinzel', body: 'Cormorant Garamond', accent: 'Cinzel' },
+  food: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  africanMarket: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
+  fitness: { headline: 'Montserrat', body: 'Inter', accent: 'Space Grotesk' },
+  fashion: { headline: 'DM Sans', body: 'Inter', accent: 'Bebas Neue' },
+  realEstate: { headline: 'Playfair Display', body: 'Inter', accent: 'Inter' },
+  event: { headline: 'Outfit', body: 'Inter', accent: 'Space Mono' },
+  education: { headline: 'Sora', body: 'Inter', accent: 'Inter' },
+  ecommerce: { headline: 'Outfit', body: 'Inter', accent: 'Inter' },
 };
 
 export function getTypographyConstraint(archetype: string): string {
@@ -2663,7 +2691,7 @@ export const generateMultiLayerDesign = async (
 
   // Try calling AI structured output model
   try {
-    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister). 
+    const systemInstruction = `You are an elite Senior Art Director and Artboard Generator with 15 years at top agencies (Pentagram, Collins, Sagmeister).
 
 Your job: given a design prompt and canvas dimensions (${width}x${height}), generate a COMPLETE, HIGHLY POLISHED, PRODUCTION-READY EDITABLE MULTI-LAYER artboard in JSON.
 
@@ -2855,7 +2883,7 @@ A real designer builds designs as a depth sandwich of independent specialist lay
     MUST contain ZERO text, ZERO logos, ZERO readable content.
     Routed to: FLUX.1.1 Pro Ultra (photorealistic atmospheric backdrops).
 
-  Layer 1 — VECTOR ACCENTS (role: "vector-accent")  
+  Layer 1 — VECTOR ACCENTS (role: "vector-accent")
     Brand marks, geometric frames, abstract badges, stickers, dividers, SVG icons.
     These are PURE EDITABLE SVG PATHS — anchor points, strokes, fills are all live.
     Use type "generated-image" with role "vector-accent" for these.
@@ -2873,7 +2901,7 @@ A real designer builds designs as a depth sandwich of independent specialist lay
     ALL text is editable and rendered by the Kreathief canvas engine — NEVER bake text into images.
     Font pairing guide:
       - Bold headlines: "Bebas Neue", "Space Grotesk", "Syne" (weight 800-900)
-      - Modern body: "Inter", "DM Sans", "Outfit" (weight 400-500)  
+      - Modern body: "Inter", "DM Sans", "Outfit" (weight 400-500)
       - Elegant serif: "Playfair Display", "Cormorant Garamond"
       - Futuristic: "Orbitron", "Rajdhani"
     Font size guide:
@@ -2973,17 +3001,17 @@ export const generateDesignBlueprint = async (
   log.info('[DesignPlanner] Generating blueprint for prompt:', prompt);
 
   const systemInstruction = DESIGN_PLANNER_SYSTEM_INSTRUCTION;
-  
+
   const userMessage = `Create a design blueprint for this brief:
 
 "${prompt}"
 
 Canvas size: ${width}x${height}px
 ${
-    strategyContext
-      ? `\nART DIRECTION BRIEF — the Strategy Agent researched this. You MUST honor it:\n${strategyContext}\n`
-      : ''
-  }
+  strategyContext
+    ? `\nART DIRECTION BRIEF — the Strategy Agent researched this. You MUST honor it:\n${strategyContext}\n`
+    : ''
+}
 Generate a complete, production-ready design with:
 - Background (color or gradient)
 - At least one generated-image layer for any photos/people/products
@@ -3015,18 +3043,18 @@ Make it creative, professional, and visually striking!`;
     }
 
     const blueprint = safeParseJSON<DesignBlueprint | null>(rawText, null);
-    
+
     if (blueprint && blueprint.canvas && blueprint.layers) {
       // Ensure all layers have IDs
       blueprint.layers = blueprint.layers.map((layer, i) => ({
         ...layer,
         id: layer.id || `layer_${i + 1}`,
       }));
-      
+
       log.info(`[DesignPlanner] Blueprint generated with ${blueprint.layers.length} layers`);
       return blueprint;
     }
-    
+
     throw new Error('Invalid blueprint structure');
   } catch (err) {
     log.error('[DesignPlanner] Failed to generate blueprint:', err);
@@ -3054,32 +3082,27 @@ Make it creative, professional, and visually striking!`;
  * Default       → Default image model + optional Freepik bg removal
  * ══════════════════════════════════════════════════════════════════
  */
-const generateLayerAsset = async (
-  layer: DesignBlueprintLayer
-): Promise<string> => {
+const generateLayerAsset = async (layer: DesignBlueprintLayer): Promise<string> => {
   const props = layer.properties;
   const prompt = props.prompt || '';
   const width = props.width || 512;
   const height = props.height || 512;
   const aspectRatio =
-    width >= height * 1.15
-      ? AspectRatio.LANDSCAPE
-      : height >= width * 1.15
-        ? AspectRatio.PORTRAIT
-        : AspectRatio.SQUARE;
+    width >= height * 1.15 ? AspectRatio.LANDSCAPE : height >= width * 1.15 ? AspectRatio.PORTRAIT : AspectRatio.SQUARE;
 
   try {
     // ── Hero Cutout: Qwen-Image-2.1 native RGBA transparent PNG ──────────
     if (layer.role === 'hero-cutout') {
       log.info(`[AssetRouter] hero-cutout → Qwen-Image-2.1 (native RGBA)`, { name: layer.name });
-      const cutoutPrompt =
-        `${prompt} — isolated subject on transparent alpha background, no background, clean subject edges, no shadows cast on floor. This is ONE layer of an editable composition; contain absolutely NO text, letters, or watermarks.`;
+      const cutoutPrompt = `${prompt} — isolated subject on transparent alpha background, no background, clean subject edges, no shadows cast on floor. This is ONE layer of an editable composition; contain absolutely NO text, letters, or watermarks.`;
       try {
         const imageUrl = await generateImageWithModel(cutoutPrompt, {
           modelId: DEFAULT_CUTOUT_MODEL,
           aspectRatio,
         });
-        if (imageUrl) return imageUrl;
+        if (imageUrl) {
+          return imageUrl;
+        }
       } catch (e) {
         log.warn('[AssetRouter] Qwen-Image-2.1 cutout failed, trying Freepik bg removal fallback', e);
         // Safety-net fallback: generate with default model then remove background
@@ -3087,7 +3110,9 @@ const generateLayerAsset = async (
         if (fallbackUrl) {
           try {
             const transparent = await freepikRemoveBackground(fallbackUrl);
-            if (transparent) return transparent;
+            if (transparent) {
+              return transparent;
+            }
           } catch {}
           return fallbackUrl;
         }
@@ -3098,14 +3123,15 @@ const generateLayerAsset = async (
     // ── Vector Accent: Recraft V3 → native SVG paths ──────────────────────
     if (layer.role === 'vector-accent') {
       log.info(`[AssetRouter] vector-accent → Recraft V3 SVG`, { name: layer.name });
-      const vectorPrompt =
-        `${prompt} — flat minimalist vector style, clean geometric shapes, single-weight lines, no background, transparent background, suitable for SVG export.`;
+      const vectorPrompt = `${prompt} — flat minimalist vector style, clean geometric shapes, single-weight lines, no background, transparent background, suitable for SVG export.`;
       try {
         const svgUrl = await generateImageWithModel(vectorPrompt, {
           modelId: DEFAULT_VECTOR_ACCENT_MODEL,
           aspectRatio,
         });
-        if (svgUrl) return svgUrl;
+        if (svgUrl) {
+          return svgUrl;
+        }
       } catch (e) {
         log.warn('[AssetRouter] Recraft SVG failed, falling back to rasterToVector trace', e);
       }
@@ -3115,14 +3141,15 @@ const generateLayerAsset = async (
     // ── Atmospheric Background: FLUX.1.1 Pro Ultra ────────────────────────
     if (layer.role === 'background') {
       log.info(`[AssetRouter] background → FLUX.1.1 Pro Ultra`, { name: layer.name });
-      const bgPrompt =
-        `${prompt} — clean atmospheric background stage. MUST contain absolutely NO text, NO letters, NO words, NO logos, NO readable content of any kind. Pure environmental backdrop for a layered graphic design composition.`;
+      const bgPrompt = `${prompt} — clean atmospheric background stage. MUST contain absolutely NO text, NO letters, NO words, NO logos, NO readable content of any kind. Pure environmental backdrop for a layered graphic design composition.`;
       try {
         const imageUrl = await generateImageWithModel(bgPrompt, {
           modelId: DEFAULT_BACKGROUND_MODEL,
           aspectRatio,
         });
-        if (imageUrl) return imageUrl;
+        if (imageUrl) {
+          return imageUrl;
+        }
       } catch (e) {
         log.warn('[AssetRouter] FLUX background failed', e);
       }
@@ -3130,8 +3157,7 @@ const generateLayerAsset = async (
     }
 
     // ── Default path (legacy): any image layer without a specialist role ──
-    const assetPrompt =
-      `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
+    const assetPrompt = `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
     const imageUrl = await generateImageWithModel(assetPrompt, { aspectRatio });
 
     if (!imageUrl) {
@@ -3142,7 +3168,9 @@ const generateLayerAsset = async (
     if (props.removeBackground) {
       try {
         const transparentUrl = await freepikRemoveBackground(imageUrl);
-        if (transparentUrl) return transparentUrl;
+        if (transparentUrl) {
+          return transparentUrl;
+        }
       } catch (bgErr) {
         log.warn('[AssetRouter] Background removal failed, using original image:', bgErr);
       }
@@ -3175,10 +3203,7 @@ const generateImageAsset = async (
 /**
  * Convert a DesignBlueprintLayer to a Layer for the canvas
  */
-const convertBlueprintLayerToCanvasLayer = (
-  blueprintLayer: DesignBlueprintLayer,
-  imageUrl?: string
-): Layer => {
+const convertBlueprintLayerToCanvasLayer = (blueprintLayer: DesignBlueprintLayer, imageUrl?: string): Layer => {
   const props = blueprintLayer.properties;
   const layerId = blueprintLayer.id || `layer_${uuidv4().slice(0, 8)}`;
 
@@ -3241,7 +3266,11 @@ const convertBlueprintLayerToCanvasLayer = (
     case 'generated-image':
       // Vector accent layers that produced SVG output are injected as path layers
       // so the user gets live editable anchor points and strokes on the canvas.
-      if (blueprintLayer.role === 'vector-accent' && imageUrl && (imageUrl.startsWith('data:image/svg') || imageUrl.startsWith('<svg'))) {
+      if (
+        blueprintLayer.role === 'vector-accent' &&
+        imageUrl &&
+        (imageUrl.startsWith('data:image/svg') || imageUrl.startsWith('<svg'))
+      ) {
         return {
           ...baseLayer,
           type: 'path',
@@ -3300,12 +3329,10 @@ export const processDesignBlueprint = async (
   log.info(`[AssetGenerator] Processing blueprint with ${blueprint.layers.length} layers`);
 
   const generatedAssets = new Map<string, string>();
-  
+
   // Find all layers that need image generation
-  const imageLayers = blueprint.layers.filter(
-    (layer) => layer.type === 'generated-image' && layer.properties.prompt
-  );
-  
+  const imageLayers = blueprint.layers.filter((layer) => layer.type === 'generated-image' && layer.properties.prompt);
+
   log.info(`[AssetGenerator] Found ${imageLayers.length} layers requiring image generation`);
 
   // Generate images for each "generated-image" layer
@@ -3323,8 +3350,7 @@ export const processDesignBlueprint = async (
       // Every blueprint asset is ONE layer of an editable composition — real
       // typography arrives later as native text layers, so anything letter-
       // shaped baked into the raster becomes duplicate garbage (assetMode rule).
-      const assetPrompt =
-        `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
+      const assetPrompt = `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
       const imageUrl = await generateImageAsset(assetPrompt, removeBackground, width, height);
       if (imageUrl) {
         generatedAssets.set(layer.id, imageUrl);
@@ -3385,15 +3411,15 @@ export const generateDesignFromBrief = async (
 
   // Stage 2: Process generated asset layers
   const generatedAssets = new Map<string, string>();
-  
-  const imageLayers = solvedLayers.filter(l => l.aiProvenance?.source === 'generated');
+
+  const imageLayers = solvedLayers.filter((l) => l.aiProvenance?.source === 'generated');
   log.info(`[AssetGenerator] Found ${imageLayers.length} layers requiring image generation`);
 
   let processedCount = 0;
   for (const layer of imageLayers) {
     const role = layer.aiProvenance?.role || 'hero-cutout';
     const assetPrompt = layer.aiProvenance?.prompt || prompt;
-    
+
     // Backgrounds don't need background removal
     const removeBackground = role !== 'background';
 
@@ -3401,15 +3427,15 @@ export const generateDesignFromBrief = async (
 
     try {
       const finalPrompt = `${assetPrompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space.`;
-      
+
       // Use existing generateImageAsset logic
       const imageUrl = await generateImageAsset(finalPrompt, removeBackground, layer.width, layer.height);
-      
+
       if (imageUrl) {
         generatedAssets.set(layer.id, imageUrl);
         options.onAssetGenerated?.(layer.id, imageUrl);
         log.info('[AssetGenerator] Generated asset for layer:', layer.name);
-        
+
         // Convert to actual image layer
         layer.type = 'image';
         (layer as any).src = imageUrl;

@@ -153,3 +153,8 @@
 
 **Learning:** `safeParseJSON` returns the provided fallback when parsing fails. Using `JSON.parse` manually without a try/catch, or using a fallback value that bypasses subsequent existence checks, can silently crash the application or mask the failure of AI outputs to comply with expected formats.
 **Action:** When extracting data from LLMs where an empty response should be treated as a failure, use `safeParseJSON` with `'null'` as the fallback string and `null` as the fallback value (e.g., `safeParseJSON<T | null>(data.text || 'null', null)`). This ensures `safeParseJSON` parses the literal `null`, which then correctly triggers subsequent `if (!parsed)` checks and fails loudly.
+
+## 2026-10-11 - Enforce SchemaType for JSON configurations
+
+**Learning:** When using `@google/generative-ai`, the `responseSchema` property for JSON API generations must be explicitly constructed using the `SchemaType` enum from the library. Omitting `responseSchema` or using a loosely defined interface on complex nested configurations (such as arrays of deep objects in `aiDesignDirector.ts`) causes the LLM to hallucinate outputs, emit extra markdown code blocks, or unpredictably drop required fields which breaks downstream JSON parsers.
+**Action:** When a feature needs strict JSON generation output from `callBackendGeminiAPI` and is configured with `responseMimeType: 'application/json'`, always explicitly provide a `responseSchema` utilizing `SchemaType.OBJECT`, `SchemaType.ARRAY`, `SchemaType.STRING`, etc., meticulously defining all required properties and deep structures.
