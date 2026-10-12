@@ -19,13 +19,11 @@ export const TexturesPanel: React.FC = () => {
   const selectedLayer = activeArtboard?.layers.find((l) => selectedLayerIds.includes(l.id));
 
   const [target, setTarget] = useState<'artboard' | 'layer'>('artboard');
-  const [selectedTextureId, setSelectedTextureId] = useState<string | null>(
-    activeArtboard?.textureOverlay?.id || null
-  );
+  const [selectedTextureId, setSelectedTextureId] = useState<string | null>(activeArtboard?.textureOverlay?.id || null);
   const [opacity, setOpacity] = useState<number>(activeArtboard?.textureOverlay?.opacity ?? 0.35);
-  const [blendMode, setBlendMode] = useState<'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light' | 'normal'>(
-    activeArtboard?.textureOverlay?.blendMode ?? 'multiply'
-  );
+  const [blendMode, setBlendMode] = useState<
+    'overlay' | 'multiply' | 'screen' | 'soft-light' | 'hard-light' | 'normal'
+  >(activeArtboard?.textureOverlay?.blendMode ?? 'multiply');
   const [scale, setScale] = useState<number>(activeArtboard?.textureOverlay?.scale ?? 1);
   const [invert, setInvert] = useState<boolean>(activeArtboard?.textureOverlay?.invert ?? false);
 
@@ -115,16 +113,16 @@ export const TexturesPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-5">
         {/* Target Switcher */}
         <div className="space-y-1.5">
-          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">Apply Texture To</label>
+          <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">
+            Apply Texture To
+          </label>
           <div className="grid grid-cols-2 gap-1 bg-white/5 p-1 rounded-xl">
             <button
               type="button"
               data-testid="texture-target-artboard"
               onClick={() => setTarget('artboard')}
               className={`py-1.5 px-2 rounded-lg text-[10px] font-bold transition-all ${
-                target === 'artboard'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
+                target === 'artboard' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
               }`}
             >
               🖼️ Canvas Artboard
@@ -134,9 +132,7 @@ export const TexturesPanel: React.FC = () => {
               data-testid="texture-target-layer"
               onClick={() => setTarget('layer')}
               className={`py-1.5 px-2 rounded-lg text-[10px] font-bold transition-all ${
-                target === 'layer'
-                  ? 'bg-purple-600 text-white shadow-sm'
-                  : 'text-gray-400 hover:text-white'
+                target === 'layer' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
               }`}
             >
               🔤 Selected Layer
@@ -195,6 +191,7 @@ export const TexturesPanel: React.FC = () => {
               </div>
               <input
                 type="range"
+                aria-label="Texture Opacity"
                 min="0.05"
                 max="1"
                 step="0.05"
@@ -259,9 +256,7 @@ export const TexturesPanel: React.FC = () => {
                     </span>
                   </div>
 
-                  <p className="text-[8px] text-gray-400 mt-0.5 line-clamp-1 leading-tight">
-                    {texture.description}
-                  </p>
+                  <p className="text-[8px] text-gray-400 mt-0.5 line-clamp-1 leading-tight">{texture.description}</p>
                 </button>
               );
             })}
