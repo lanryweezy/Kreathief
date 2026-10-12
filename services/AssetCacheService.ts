@@ -58,22 +58,10 @@ export class AssetCacheService {
 
     log.info(`[AssetCacheService] Generating missing asset for: ${query}`);
 
-    let prompt = '';
-    if (type === 'icon') {
-      prompt = `A clean, flat vector icon of ${query}, minimal, single color, transparent background`;
-    } else if (type === 'illustration') {
-      prompt = `A high quality vector illustration of ${query}, flat design, corporate memphis style, transparent background`;
-    } else if (type === '3d') {
-      prompt = `A 3D isometric render of ${query}, soft lighting, clay style, transparent background`;
-    }
-
     try {
       // In a real implementation, this would call Fal.ai, download the result,
       // upload it to Supabase Storage, insert a row in the public_assets table,
       // and return the URL. For now, we simulate this pipeline.
-
-      // const falResult = await falService.generateImage({ prompt });
-      // const uploadedUrl = await supabaseStorage.upload(falResult.url);
 
       log.info(`[AssetCacheService] AI Generation triggered for ${query}`);
 
