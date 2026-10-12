@@ -71,13 +71,28 @@ export const ShareModal: React.FC<ShareModalProps> = ({ onClose, designTitle, on
     }
     const subject = `Check out my design "${designTitle}" on Kreathief`;
     const body = `Hey!\n\nI made a design called "${designTitle}" on Kreathief and wanted to share it with you:\n\n${inviteLink}`;
-    const mailtoUrl = `mailto:${encodeURIComponent(inviteEmail.trim())}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const trimmedEmail = inviteEmail.trim();
+    // Basic email validation regex to prevent injection
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      addToast('Please enter a valid email address', 'error');
+      return;
+    }
+
+    const mailtoUrl = `mailto:${encodeURIComponent(trimmedEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    // Validate protocol strictly to prevent javascript: execution
+    if (!mailtoUrl.toLowerCase().startsWith('mailto:')) {
+      addToast('Invalid email URL generated', 'error');
+      return;
+    }
+
     // mailto URLs have practical length limits (~2KB); compressed share links can exceed that.
     if (mailtoUrl.length <= 2000) {
       window.location.href = mailtoUrl;
       setInviteSent(true);
       setInviteEmail('');
-      addToast(`Opening your email app to invite ${inviteEmail.trim()}`, 'success');
+      addToast(`Opening your email app to invite ${trimmedEmail}`, 'success');
       setTimeout(() => setInviteSent(false), 3000);
     } else {
       // Link too long for mailto — fall back to copying the message
