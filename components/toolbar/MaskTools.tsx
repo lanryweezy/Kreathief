@@ -145,6 +145,7 @@ export const MaskTools = React.memo(
                         </div>
                         <input
                           type="range"
+                          aria-label="Image Scale"
                           min="0.1"
                           max="3"
                           step="0.1"
@@ -204,6 +205,7 @@ export const MaskTools = React.memo(
                         </div>
                         <input
                           type="range"
+                          aria-label="Background Scale"
                           min="0.1"
                           max="3"
                           step="0.1"
