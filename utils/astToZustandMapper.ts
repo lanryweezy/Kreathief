@@ -26,7 +26,7 @@ export function mapASTToLayers(graph: KreathiefSceneGraph, artboardWidth: number
       // Convert Node to React Store Layer
       const baseLayer = {
         id: node.id || uuidv4(),
-        name: node.name || `${node.type}_${Math.floor(Math.random()*1000)}`,
+        name: node.name || `${node.type}_${uuidv4().split('-')[0]}`,
         x,
         y,
         width: w,

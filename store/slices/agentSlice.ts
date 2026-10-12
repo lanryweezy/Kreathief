@@ -23,6 +23,7 @@ import {
   DesignBrief,
 } from '../../services/clarificationEngine';
 import { auditGeometry } from '../../utils/geometryJudge';
+import { createVariationSeed } from '../../services/creativeVariation';
 import { Layer, NavTab } from '../../types';
 import { v4 as uuidv4 } from 'uuid';
 import { placeDesignNonDestructively } from '../../utils/canvasPlacement';
@@ -335,7 +336,7 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
 
       const draftedVariants = await draftAgentVariants(composedIntent, canvasSize, strategy, {
         plan: userPlan,
-        variationSeed: Date.now() ^ Math.floor(Math.random() * 1000000),
+        variationSeed: createVariationSeed(),
         onProgress: (stage, message) => {
           if (stage === 'assets') {
             set({ agentStatus: 'rendering' });

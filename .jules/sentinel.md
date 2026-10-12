@@ -342,3 +342,8 @@
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate random IDs for worker jobs in `utils/exportWorkerBridge.ts`.
 **Learning:** `Math.random()` is not cryptographically secure and can be easily predicted. This is a recurring issue in the codebase where it is used to generate identifiers or tokens. While worker job IDs are lower risk than session tokens, any usage of predictable randomness for identifiers should be remediated as a defensive measure to prevent ID collisions.
 **Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
+
+## 2026-11-20 - [Replaced predictable node names and variation seeds with secure randomness]
+**Vulnerability:** Weak PRNG `Math.random()` was used to generate node names (which serve as IDs) in `utils/astToZustandMapper.ts` and a variation seed in `store/slices/agentSlice.ts`.
+**Learning:** Using `Math.random()` for generating unique identifiers or seeds is not cryptographically secure and can lead to predictable IDs, causing collisions or exposing application state. Even in less sensitive areas, `Math.random()` should be avoided to pass SAST checks.
+**Prevention:** Always use `crypto.randomUUID()` (or a secure helper like `createVariationSeed` that uses `crypto.getRandomValues`) to generate unique tokens or IDs.
