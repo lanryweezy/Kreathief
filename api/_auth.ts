@@ -3,8 +3,9 @@ import { jwtVerify } from 'jose';
 const jwtSecretRaw = process.env.SUPABASE_JWT_SECRET;
 if (!jwtSecretRaw) {
   console.error('[Auth] SUPABASE_JWT_SECRET is not set — all auth will fail');
+  throw new Error('SUPABASE_JWT_SECRET is required');
 }
-const SUPABASE_JWT_SECRET = new TextEncoder().encode(jwtSecretRaw || 'REQUIRES_SUPABASE_JWT_SECRET');
+const SUPABASE_JWT_SECRET = new TextEncoder().encode(jwtSecretRaw);
 
 interface AuthUser {
   id: string;
@@ -22,8 +23,7 @@ export async function requireAuth(request: Request | any): Promise<AuthUser> {
   }
 
   // Accept both native Request (edge fns) and VercelRequest (node fns, plain-object headers)
-  const headers: Headers =
-    request.headers instanceof Headers ? request.headers : new Headers(request.headers || {});
+  const headers: Headers = request.headers instanceof Headers ? request.headers : new Headers(request.headers || {});
 
   const authHeader = headers.get('Authorization');
   const cookieHeader = headers.get('Cookie');

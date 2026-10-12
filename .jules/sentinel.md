@@ -347,3 +347,7 @@
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate node names (which serve as IDs) in `utils/astToZustandMapper.ts` and a variation seed in `store/slices/agentSlice.ts`.
 **Learning:** Using `Math.random()` for generating unique identifiers or seeds is not cryptographically secure and can lead to predictable IDs, causing collisions or exposing application state. Even in less sensitive areas, `Math.random()` should be avoided to pass SAST checks.
 **Prevention:** Always use `crypto.randomUUID()` (or a secure helper like `createVariationSeed` that uses `crypto.getRandomValues`) to generate unique tokens or IDs.
+## 2026-10-12 - Fix Hardcoded JWT Secret Fallback
+**Vulnerability:** The application was falling back to a hardcoded string ('REQUIRES_SUPABASE_JWT_SECRET') if the `SUPABASE_JWT_SECRET` environment variable was missing.
+**Learning:** This occurs when developers try to make local development easier by providing defaults, but inadvertently expose production environments to critical cryptographic vulnerabilities if the environment variable fails to load.
+**Prevention:** Cryptographic secrets must never have hardcoded string fallbacks in code. The application should always fail securely (fail-fast, crash, or throw) when required secrets are absent.
