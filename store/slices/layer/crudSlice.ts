@@ -700,15 +700,17 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   toggleLockSelected: () => {
     get().saveToHistory?.();
     set((state: any) => {
+      // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with O(N) Set lookup
+      const selectedSet = new Set(state.selectedLayerIds);
       const newArtboards = state.artboards.map((a: Artboard) => {
         if (a.id !== state.activeArtboardId) return a;
         
         // Determine if we should lock or unlock based on the first selected layer's state
-        const firstSelected = a.layers.find(l => state.selectedLayerIds.includes(l.id));
+        const firstSelected = a.layers.find(l => selectedSet.has(l.id));
         const shouldLock = firstSelected ? !firstSelected.locked : true;
 
         const newLayers = a.layers.map(l => {
-          if (state.selectedLayerIds.includes(l.id)) {
+          if (selectedSet.has(l.id)) {
             return { ...l, locked: shouldLock };
           }
           return l;
@@ -722,14 +724,16 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   toggleVisibilitySelected: () => {
     get().saveToHistory?.();
     set((state: any) => {
+      // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with O(N) Set lookup
+      const selectedSet = new Set(state.selectedLayerIds);
       const newArtboards = state.artboards.map((a: Artboard) => {
         if (a.id !== state.activeArtboardId) return a;
         
-        const firstSelected = a.layers.find(l => state.selectedLayerIds.includes(l.id));
+        const firstSelected = a.layers.find(l => selectedSet.has(l.id));
         const shouldBeVisible = firstSelected ? !firstSelected.visible : true;
 
         const newLayers = a.layers.map(l => {
-          if (state.selectedLayerIds.includes(l.id)) {
+          if (selectedSet.has(l.id)) {
             return { ...l, visible: shouldBeVisible };
           }
           return l;
@@ -746,6 +750,8 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     if (selectedLayerIds.length === 0) {
       return;
     }
+    // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with O(N) Set lookup
+    const selectedSet = new Set(selectedLayerIds);
     set((state) => {
       const newLayerIds: string[] = [];
       const artboards = state.artboards.map((a: Artboard) => {
@@ -763,7 +769,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
           let ancestorInSelection = false;
           let ancestor = node.parent;
           while (ancestor) {
-            if (selectedLayerIds.includes(ancestor.id)) {
+            if (selectedSet.has(ancestor.id)) {
               ancestorInSelection = true;
               break;
             }

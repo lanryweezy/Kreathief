@@ -249,3 +249,7 @@
 
 **Learning:** When components or hooks utilize multiple `useStore` extractions, it creates separate Zustand store subscriptions. In highly utilized hooks like `useFileHandler`, which interacts heavily with layer state, this increases unnecessary CPU overhead during rapid state updates, such as when uploading multiple files or interacting with canvas elements.
 **Action:** When extracting multiple state properties in Zustand-based hooks, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Ensure defaults are passed inside destructuring instead of `||` logical OR operator.
+## 2026-10-12 - Optimize Array Selection Lookups in Zustand state loops
+
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.find(l => state.selectedLayerIds.includes(l.id))`) within Zustand store iterations (`a.layers.map()`), the resulting O(N*M) operation creates a performance bottleneck. This is especially problematic in the `crudSlice.ts` state mutations for locking, visibility, and duplication that run frequently.
+**Action:** Replace `array.find(item => ids.includes(item.id))` or `array.map(item => ids.includes(item.id))` inside state iterations with a single-pass loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N). Store the set definition outside the outer array mapping loop to prevent redundant set allocations.
