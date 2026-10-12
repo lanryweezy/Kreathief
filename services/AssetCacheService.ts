@@ -10,7 +10,7 @@ export class AssetCacheService {
   private static cache = new Map<string, any>();
 
   static set(key: string, value: any): void {
-    if (this.cache.has(key)) this.cache.delete(key);
+    if (this.cache.has(key)) {this.cache.delete(key);}
     this.cache.set(key, value);
     if (this.cache.size > this.MAX_CACHE_SIZE) {
       const oldest = this.cache.keys().next().value;
@@ -27,7 +27,7 @@ export class AssetCacheService {
   }
 
   static get(key: string): any | undefined {
-    if (!this.cache.has(key)) return undefined;
+    if (!this.cache.has(key)) {return undefined;}
     const value = this.cache.get(key);
     // Refresh recency
     this.cache.delete(key);
@@ -54,27 +54,11 @@ export class AssetCacheService {
   static async generateMissingAsset(query: string, type: 'icon' | 'illustration' | '3d'): Promise<any> {
     const cacheKey = `${type}:${query.toLowerCase().trim()}`;
     const cached = this.get(cacheKey);
-    if (cached) return cached;
+    if (cached) {return cached;}
 
     log.info(`[AssetCacheService] Generating missing asset for: ${query}`);
 
-    let prompt = '';
-    if (type === 'icon') {
-      prompt = `A clean, flat vector icon of ${query}, minimal, single color, transparent background`;
-    } else if (type === 'illustration') {
-      prompt = `A high quality vector illustration of ${query}, flat design, corporate memphis style, transparent background`;
-    } else if (type === '3d') {
-      prompt = `A 3D isometric render of ${query}, soft lighting, clay style, transparent background`;
-    }
-
     try {
-      // In a real implementation, this would call Fal.ai, download the result,
-      // upload it to Supabase Storage, insert a row in the public_assets table,
-      // and return the URL. For now, we simulate this pipeline.
-
-      // const falResult = await falService.generateImage({ prompt });
-      // const uploadedUrl = await supabaseStorage.upload(falResult.url);
-
       log.info(`[AssetCacheService] AI Generation triggered for ${query}`);
 
       // Simulate network delay
