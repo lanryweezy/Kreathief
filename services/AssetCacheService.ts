@@ -10,7 +10,9 @@ export class AssetCacheService {
   private static cache = new Map<string, any>();
 
   static set(key: string, value: any): void {
-    if (this.cache.has(key)) {this.cache.delete(key);}
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
     this.cache.set(key, value);
     if (this.cache.size > this.MAX_CACHE_SIZE) {
       const oldest = this.cache.keys().next().value;
@@ -27,7 +29,9 @@ export class AssetCacheService {
   }
 
   static get(key: string): any | undefined {
-    if (!this.cache.has(key)) {return undefined;}
+    if (!this.cache.has(key)) {
+      return undefined;
+    }
     const value = this.cache.get(key);
     // Refresh recency
     this.cache.delete(key);
@@ -54,7 +58,9 @@ export class AssetCacheService {
   static async generateMissingAsset(query: string, type: 'icon' | 'illustration' | '3d'): Promise<any> {
     const cacheKey = `${type}:${query.toLowerCase().trim()}`;
     const cached = this.get(cacheKey);
-    if (cached) {return cached;}
+    if (cached) {
+      return cached;
+    }
 
     log.info(`[AssetCacheService] Generating missing asset for: ${query}`);
 

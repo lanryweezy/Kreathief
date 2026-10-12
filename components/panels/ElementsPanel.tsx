@@ -39,7 +39,17 @@ const saveRecentShape = (name: string) => {
   localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
 };
 
-type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+type ShapeCategory =
+  | 'all'
+  | 'basic'
+  | 'frames'
+  | 'blobs'
+  | 'badges'
+  | 'geometric'
+  | 'decorative'
+  | 'ui'
+  | 'arrows'
+  | 'stars';
 type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons' | 'logos';
 
 interface ShapePreset {
@@ -595,21 +605,32 @@ export const ElementsPanel = () => {
             {/* Shape Sub-category Pills if Shapes is active */}
             {activeFilter === 'shapes' && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                {(['all', 'basic', 'frames', 'blobs', 'badges', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
-                  (cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/5 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  )
-                )}
+                {(
+                  [
+                    'all',
+                    'basic',
+                    'frames',
+                    'blobs',
+                    'badges',
+                    'geometric',
+                    'stars',
+                    'arrows',
+                    'decorative',
+                    'ui',
+                  ] as ShapeCategory[]
+                ).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-white/20 text-white border border-white/30'
+                        : 'bg-white/5 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             )}
 
@@ -619,6 +640,8 @@ export const ElementsPanel = () => {
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    id={`shape-btn-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    aria-label={item.name}
                     className="group aspect-square bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
                     title={item.name}
                   >
@@ -710,6 +733,8 @@ export const ElementsPanel = () => {
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    id={`shape-btn-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    aria-label={item.name}
                     className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-gray-800 hover:border-accent rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
                     title={item.name}
                   >
@@ -762,6 +787,8 @@ export const ElementsPanel = () => {
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    id={`shape-btn-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    aria-label={item.name}
                     className="group relative w-20 h-20 shrink-0 bg-surface-dark-3 border border-sky-500/20 hover:border-sky-400 rounded-xl flex flex-col items-center justify-center p-2 transition-all hover:scale-[1.05] cursor-pointer"
                     title={`${item.name} — Drop any photo to fill`}
                   >
@@ -853,6 +880,8 @@ export const ElementsPanel = () => {
                   <button
                     key={idx}
                     onClick={() => internalAddShape(item.type, { ...item.props, name: item.name }, item.name)}
+                    id={`shape-btn-${item.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}
+                    aria-label={item.name}
                     className="w-16 h-16 shrink-0 bg-surface-dark-3 border border-purple-500/20 hover:border-purple-400 rounded-xl flex flex-col items-center justify-center gap-1 transition-all hover:scale-[1.05] cursor-pointer"
                     title={item.name}
                   >

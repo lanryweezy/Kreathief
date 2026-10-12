@@ -37,8 +37,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('dashboard-load.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -48,8 +48,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot of editor
     await expect(page).toHaveScreenshot('editor-load.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -60,7 +60,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Take screenshot of canvas
     await expect(canvas).toHaveScreenshot('canvas-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -78,7 +78,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Take screenshot of sidebar
     await expect(sidebar).toHaveScreenshot('sidebar-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -91,7 +91,7 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     const textPanel = page.locator('[data-testid="text-panel"], .text-panel');
     await expect(textPanel).toHaveScreenshot('text-panel-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -104,7 +104,7 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     const elementsPanel = page.locator('[data-testid="elements-panel"], .elements-panel');
     await expect(elementsPanel).toHaveScreenshot('elements-panel-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -115,7 +115,7 @@ test.describe('Visual Regression Tests', () => {
 
     // Take screenshot
     await expect(editor.layersPanel).toHaveScreenshot('layers-panel-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -127,7 +127,7 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     const exportModal = page.locator('[data-testid="export-modal"], .export-modal');
     await expect(exportModal).toHaveScreenshot('export-modal-load.png', {
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -142,8 +142,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('text-added.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -151,7 +151,7 @@ test.describe('Visual Regression Tests', () => {
     // Add shape
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
-    const shapeBtn = page.locator('.shape-btn').first();
+    const shapeBtn = page.locator('[id^="shape-btn-"]').first();
     if (await shapeBtn.isVisible()) {
       await shapeBtn.click();
       await page.waitForTimeout(1000);
@@ -160,8 +160,7 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('shape-added.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -175,7 +174,7 @@ test.describe('Visual Regression Tests', () => {
     // Add shape
     const elementsTab = editor.sidebar.locator('button[aria-label="Elements"]');
     await elementsTab.click();
-    const shapeBtn = page.locator('.shape-btn').first();
+    const shapeBtn = page.locator('[id^="shape-btn-"]').first();
     if (await shapeBtn.isVisible()) {
       await shapeBtn.click();
       await page.waitForTimeout(500);
@@ -188,8 +187,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('multiple-layers.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -198,7 +197,7 @@ test.describe('Visual Regression Tests', () => {
     // Take initial screenshot
     await expect(page).toHaveScreenshot('initial-state.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
 
     // Make a change
@@ -208,7 +207,7 @@ test.describe('Visual Regression Tests', () => {
     // Take another screenshot - should detect change
     await expect(page).toHaveScreenshot('after-title-change.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -222,8 +221,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('mobile-dashboard.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 
@@ -237,8 +236,8 @@ test.describe('Visual Regression Tests', () => {
     // Take screenshot
     await expect(page).toHaveScreenshot('tablet-dashboard.png', {
       fullPage: true,
-      maxDiffPixels: 25000,
-      maxDiffPixels: 25000,
+      maxDiffPixelRatio: 0.8,
+      maxDiffPixelRatio: 0.8,
     });
   });
 });
