@@ -164,6 +164,29 @@ export interface CampaignCopy {
 }
 
 /**
+ * Extensibility Point: Campaign Format Strategy Registry
+ * Evidence of pressure: The `generateOmnichannelCampaign` function relied on a hard-coded switch statement
+ * with 4 cases ('feed_1_1', 'story_9_16', 'banner_16_9', 'poster_4_5') to build format-specific layers.
+ * Contract: Implementors must provide a `buildLayers` method that accepts the theme, copy, width, and height,
+ * and returns an array of Layers for that format.
+ */
+export interface CampaignFormatStrategy {
+  buildLayers(theme: CampaignArchetypeTheme, copy: CampaignCopy, width: number, height: number): Layer[];
+}
+
+export const campaignFormatStrategies = new Map<string, CampaignFormatStrategy>();
+
+export function registerCampaignFormatStrategy(id: string, strategy: CampaignFormatStrategy) {
+  campaignFormatStrategies.set(id, strategy);
+}
+
+// Register default strategies
+registerCampaignFormatStrategy('feed_1_1', { buildLayers: buildFeed1x1Layers });
+registerCampaignFormatStrategy('story_9_16', { buildLayers: buildStory9x16Layers });
+registerCampaignFormatStrategy('banner_16_9', { buildLayers: buildBanner16x9Layers });
+registerCampaignFormatStrategy('poster_4_5', { buildLayers: buildPoster4x5Layers });
+
+/**
  * Extracts punchy marketing copy structured for multi-format display
  */
 export function extractCampaignCopy(prompt: string, brandOverride?: string, ctaOverride?: string): CampaignCopy {
@@ -1138,19 +1161,12 @@ export async function generateOmnichannelCampaign(
   for (const fmt of formatsToGenerate) {
     let layers: Layer[] = [];
 
-    switch (fmt.id) {
-      case 'feed_1_1':
-        layers = buildFeed1x1Layers(theme, copy, fmt.width, fmt.height);
-        break;
-      case 'story_9_16':
-        layers = buildStory9x16Layers(theme, copy, fmt.width, fmt.height);
-        break;
-      case 'banner_16_9':
-        layers = buildBanner16x9Layers(theme, copy, fmt.width, fmt.height);
-        break;
-      case 'poster_4_5':
-        layers = buildPoster4x5Layers(theme, copy, fmt.width, fmt.height);
-        break;
+    const strategy = campaignFormatStrategies.get(fmt.id);
+    if (strategy) {
+      layers = strategy.buildLayers(theme, copy, fmt.width, fmt.height);
+    } else {
+      log.warn(`[CampaignGenerator] No strategy registered for format ${fmt.id}`);
+      layers = [];
     }
 
     const artboard: Artboard = {
