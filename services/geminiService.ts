@@ -281,6 +281,8 @@ export const removeBackground = async (base64Image: string): Promise<string> => 
 
 export const rewriteTextTone = async (text: string, instruction: string): Promise<string> => {
   try {
+    if (!text || !text.trim()) return text;
+
     const systemInstruction = `You are a world-class Brand Voice Copywriter for a design tool.
 Your job is to rewrite the user's text based on their instruction.
 If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
@@ -318,6 +320,8 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
 
 export const suggestTypographyForText = async (text: string): Promise<string> => {
   try {
+    if (!text || !text.trim()) return 'Inter';
+
     const systemInstruction = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
 
 Choose ONLY ONE from this curated list of premium Google Fonts:
@@ -353,6 +357,8 @@ export const generateText = async (
   instruction: string = 'Rewrite this to be more creative and catchy.'
 ): Promise<string> => {
   try {
+    if (!currentText || !currentText.trim()) return currentText;
+
     const systemInstruction = `You are a creative copywriter. ${instruction}\nMaintain the original language. Keep it concise. Return ONLY the rewritten text.`;
 
     const data = await callBackendGeminiAPI({
