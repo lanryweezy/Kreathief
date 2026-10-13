@@ -72,3 +72,7 @@
 ## 2026-10-10 - Screen Reader Accessibility for Export Format Buttons
 **Learning:** When using `<button>` elements to simulate a radio group or selector for things like export formats (e.g., PNG, JPG, WEBP), relying solely on visual styling (like active classes) leaves screen readers without context about which option is currently selected.
 **Action:** Always include an explicit `aria-pressed={boolean}` or `aria-selected={boolean}` attribute (along with appropriate roles if structured as a tablist/radiogroup) on format selection buttons to programmatically convey their active state to assistive technologies.
+
+## 2026-10-13 - Focus states on IconButtons
+**Learning:** Found that the `IconButton` component used throughout the `ToolbarShared` didn't have keyboard focus states, making the toolbar completely unnavigable for keyboard users.
+**Action:** Always add `focus-visible:outline-none focus-visible:ring-2` to custom icon-only interactive elements to ensure accessibility for keyboard navigation.
