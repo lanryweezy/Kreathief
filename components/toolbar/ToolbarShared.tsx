@@ -129,7 +129,7 @@ export const IconButton = React.memo(
           aria-label={ariaLabel || title}
           aria-pressed={active}
           aria-busy={loading}
-          className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn ${
+          className={`p-2 rounded-lg transition-all flex items-center justify-center relative group/btn focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-1 focus-visible:ring-offset-[#12121c] ${
             active ? 'bg-brand-600 text-white shadow-glow-brand scale-[0.98]' : 'text-gray-400 hover:bg-white/15 hover:text-white hover:shadow-md'
           } ${disabled || loading ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer active:scale-[0.96]'} ${className}`}
         >
