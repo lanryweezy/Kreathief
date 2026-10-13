@@ -253,3 +253,6 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.find(l => state.selectedLayerIds.includes(l.id))`) within Zustand store iterations (`a.layers.map()`), the resulting O(N*M) operation creates a performance bottleneck. This is especially problematic in the `crudSlice.ts` state mutations for locking, visibility, and duplication that run frequently.
 **Action:** Replace `array.find(item => ids.includes(item.id))` or `array.map(item => ids.includes(item.id))` inside state iterations with a single-pass loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N). Store the set definition outside the outer array mapping loop to prevent redundant set allocations.
+## 2026-10-12 - AI Design Assistant O(1) Map Lookups
+**Learning:** Found nested loops performing O(N*M) lookups (`Array.prototype.find`) when modifying or arranging selected layers in `useAIDesignAssistant`. This becomes a severe bottleneck with 1,000+ layers on the canvas.
+**Action:** When performing bulk updates against a central state array (like layers or nodes), always construct an O(1) `Map` lookup beforehand rather than using `.find()` inside a loop.

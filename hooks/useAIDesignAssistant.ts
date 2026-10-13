@@ -339,8 +339,10 @@ registerAIActionHandler('modify', {
   execute(action, store, ab, selectedIds) {
     if (action.changes && selectedIds.length > 0) {
       const updates: Record<string, any> = {};
+      // ⚡ Bolt: Create O(1) lookup map to avoid O(N*M) traversal
+      const layerMap = new Map(ab.layers.map((l: any) => [l.id, l]));
       for (const id of selectedIds) {
-        const layer = ab.layers.find((l: any) => l.id === id);
+        const layer = layerMap.get(id);
         if (!layer) continue;
         const changes: any = {};
         for (const [key, val] of Object.entries(action.changes)) {
@@ -350,8 +352,8 @@ registerAIActionHandler('modify', {
             changes[key] = (layer as any)[key] + parseInt(val);
           } else if (typeof val === 'string' && val.endsWith('%')) {
             const pct = parseInt(val) / 100;
-            changes.width = Math.round((layer.width || 100) * pct);
-            changes.height = Math.round((layer.height || 100) * pct);
+            changes.width = Math.round(((layer as any).width || 100) * pct);
+            changes.height = Math.round(((layer as any).height || 100) * pct);
           } else {
             changes[key] = val;
           }
@@ -402,12 +404,14 @@ registerAIActionHandler('arrange', {
   execute(action, store, ab, selectedIds) {
     if (action.changes?.alignment === 'center' && selectedIds.length > 0) {
       const updates: Record<string, any> = {};
+      // ⚡ Bolt: Create O(1) lookup map to avoid O(N*M) traversal
+      const layerMap = new Map(ab.layers.map((l: any) => [l.id, l]));
       for (const id of selectedIds) {
-        const layer = ab.layers.find((l: any) => l.id === id);
+        const layer = layerMap.get(id);
         if (layer) {
           updates[id] = {
-            x: (ab.width - (layer.width || 100)) / 2,
-            y: (ab.height - (layer.height || 100)) / 2,
+            x: (ab.width - ((layer as any).width || 100)) / 2,
+            y: (ab.height - ((layer as any).height || 100)) / 2,
           };
         }
       }
