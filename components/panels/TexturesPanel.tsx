@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { PanelHeader } from './PanelHeader';
 import { useStore } from '../../store/useStore';
 import {
@@ -9,14 +10,31 @@ import {
 import { TextLayer } from '../../types';
 
 export const TexturesPanel: React.FC = () => {
-  const artboards = useStore((state) => state.artboards);
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const updateArtboard = useStore((state) => state.updateArtboard);
-  const selectedLayerIds = useStore((state) => state.selectedLayerIds);
-  const updateLayer = useStore((state) => state.updateLayer);
+  // ⚡ Bolt Optimization: Consolidate multiple useStore hooks into a single useShallow call
+  // Reduces store subscriptions from 5 to 1, minimizing CPU overhead during state updates
+  const { artboards, activeArtboardId, updateArtboard, selectedLayerIds, updateLayer } = useStore(
+    useShallow((state) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      updateArtboard: state.updateArtboard,
+      selectedLayerIds: state.selectedLayerIds,
+      updateLayer: state.updateLayer,
+    }))
+  );
 
   const activeArtboard = artboards.find((a) => a.id === activeArtboardId) || artboards[0];
-  const selectedLayer = activeArtboard?.layers.find((l) => selectedLayerIds.includes(l.id));
+
+  // ⚡ Bolt Optimization: Replace O(N*M) array.find(includes) with O(N) Set lookup
+  const selectedLayer = useMemo(() => {
+    if (!activeArtboard || !selectedLayerIds || selectedLayerIds.length === 0) return undefined;
+    const selectedSet = new Set(selectedLayerIds);
+    for (let i = 0; i < activeArtboard.layers.length; i++) {
+      if (selectedSet.has(activeArtboard.layers[i].id)) {
+        return activeArtboard.layers[i];
+      }
+    }
+    return undefined;
+  }, [activeArtboard, selectedLayerIds]);
 
   const [target, setTarget] = useState<'artboard' | 'layer'>('artboard');
   const [selectedTextureId, setSelectedTextureId] = useState<string | null>(activeArtboard?.textureOverlay?.id || null);

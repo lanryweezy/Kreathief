@@ -256,3 +256,8 @@
 ## 2026-10-12 - AI Design Assistant O(1) Map Lookups
 **Learning:** Found nested loops performing O(N*M) lookups (`Array.prototype.find`) when modifying or arranging selected layers in `useAIDesignAssistant`. This becomes a severe bottleneck with 1,000+ layers on the canvas.
 **Action:** When performing bulk updates against a central state array (like layers or nodes), always construct an O(1) `Map` lookup beforehand rather than using `.find()` inside a loop.
+
+## 2026-10-14 - Optimize Zustand hooks in TexturesPanel
+
+**Learning:** When components or hooks utilize multiple `useStore` extractions alongside expensive array lookups (like `.find()` with `.includes()`), it creates separate Zustand store subscriptions and forces expensive O(N*M) operations on every store update. In highly utilized panels like `TexturesPanel`, this increases unnecessary CPU overhead during rapid state updates.
+**Action:** When extracting multiple state properties in Zustand-based components, consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Replace O(N*M) array `.find()` lookups with an imperative loop utilizing an O(1) `Set` lookup wrapped in a `useMemo` block.
