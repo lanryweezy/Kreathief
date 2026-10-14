@@ -133,3 +133,11 @@
 
 **Learning:** AI generation operations (`handleDesignGenerate` and `handleAIGenerate`) in `components/Dashboard.tsx` were using the generic `getErrorDetails` utility. The codebase contains a more specialized `getAIErrorMessage` utility which is designed to properly handle AI-specific errors (like quotas, API rate limits, etc.). The agent must ensure that features calling out to AI models return tailored error details to prevent generic failures.
 **Action:** Replaced `getErrorDetails` with `getAIErrorMessage` inside AI generation functions across the `Dashboard` component to ensure actionable error notifications.
+
+## 2024-11-20 - Typo-tolerant Negative Prompt Chips Search
+
+**Learning:** The Negative Prompt Chips feature in `MagicPanel` relied on exact substring matching (`.toLowerCase().includes()`) to activate selected chips. This made the active state evaluation brittle and intolerant to minor spelling errors, degrading the search-and-select experience.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts`. This closes the quality gap by adding robust typo tolerance when evaluating chip selection status without altering the component's interface or introducing new features.
+## 2026-10-13 - Fuzzy Matching Needs Word Tokenization for Strings
+**Learning:** When applying fuzzy matching to user inputs like negative prompts where the target consists of multiple words (e.g. "blurry, ugly, poor anatomy"), using direct fuzzy logic algorithms between short chips (e.g. "ugly") and long phrases causes massive false positives or breaks normal matching. We must tokenize the full phrase and apply token-to-token fuzzy matching to safely check for typos.
+**Action:** Always verify if a string match operates on tokens or full sentences. If matching against a long string, split by commas or words before running `fuzzyMatch`.

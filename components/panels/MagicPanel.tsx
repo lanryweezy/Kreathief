@@ -19,6 +19,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { analyticsService } from '../../services/analyticsService';
 import { log } from '../../utils/log';
 import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
+import { fuzzyMatch } from '../../utils/search';
 import { analyzeDesign, DesignAnalysis } from '../../ai/designEngine';
 import { v4 as uuidv4 } from 'uuid';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -334,8 +335,10 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
       .split(',')
       .map((s) => s.trim())
       .filter(Boolean);
-    if (current.includes(chip)) {
-      setNegativePrompt(current.filter((c) => c !== chip).join(', '));
+    // 🌸 Bloom: Match existing chips using fuzzy logic to handle typos
+    const existingIndex = current.findIndex((c) => fuzzyMatch(chip, c));
+    if (existingIndex >= 0) {
+      setNegativePrompt(current.filter((_, i) => i !== existingIndex).join(', '));
     } else {
       setNegativePrompt(current.length > 0 ? `${current.join(', ')}, ${chip}` : chip);
     }
@@ -540,7 +543,11 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
               />
               <div className="flex flex-wrap gap-1">
                 {NEGATIVE_PROMPT_CHIPS.map((chip) => {
-                  const active = negativePrompt.toLowerCase().includes(chip.toLowerCase());
+                  // 🌸 Bloom: Replaced exact substring matching with fuzzy token matching for typo tolerance
+                  const active = negativePrompt
+                    .split(',')
+                    .map((s) => s.trim())
+                    .some((phrase) => phrase && fuzzyMatch(chip, phrase));
                   return (
                     <button
                       key={chip}
