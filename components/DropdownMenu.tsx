@@ -36,7 +36,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, classN
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="true"
         aria-expanded={isOpen}
-        className={`px-3 py-1 rounded text-sm font-medium transition-colors ${isOpen ? 'bg-white/20 text-white' : 'hover:bg-white/10 text-white/90'}`}
+        className={`px-3 py-1 rounded text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dark-1 ${isOpen ? 'bg-white/20 text-white' : 'hover:bg-white/10 text-white/90'}`}
       >
         {label}
       </button>
@@ -59,7 +59,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ label, items, classN
                   }}
                   disabled={item.disabled}
                   role="menuitem"
-                  className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors text-left
+                  className={`w-full flex items-center justify-between px-4 py-2 text-sm transition-colors text-left focus-visible:outline-none focus-visible:bg-brand-600 focus-visible:text-white
                   ${
                     item.disabled
                       ? 'opacity-30 cursor-not-allowed text-gray-500'
