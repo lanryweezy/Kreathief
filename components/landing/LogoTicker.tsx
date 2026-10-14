@@ -1,6 +1,6 @@
 import React from 'react';
 import { SuperLabel } from './LandingUtils';
-import { COMPANY_LOGOS } from './CompanyLogos';
+import { COMPANY_LOGOS } from '../CompanyLogos';
 
 export const LogoTicker: React.FC = () => {
   const avatars = [
