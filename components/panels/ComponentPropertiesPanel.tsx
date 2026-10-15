@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { PanelHeader } from './PanelHeader';
@@ -11,7 +11,18 @@ export const ComponentPropertiesPanel: React.FC = () => {
   const markOverride = useStore((state: any) => state.markOverride);
   
   const activeArtboard = artboards.find(a => a.id === activeArtboardId);
-  const selectedLayer = activeArtboard?.layers.find(l => selectedLayerIds.includes(l.id));
+
+  // ⚡ Bolt: Replace O(N*M) array.find(includes) with O(N) Set lookup in useMemo
+  const selectedLayer = useMemo(() => {
+    if (!activeArtboard?.layers || selectedLayerIds.length === 0) return undefined;
+    const idSet = new Set(selectedLayerIds);
+    for (let i = 0; i < activeArtboard.layers.length; i++) {
+      if (idSet.has(activeArtboard.layers[i].id)) {
+        return activeArtboard.layers[i];
+      }
+    }
+    return undefined;
+  }, [activeArtboard?.layers, selectedLayerIds]);
   
   // Only show panel if a Component Instance is selected
   if (!selectedLayer || !selectedLayer.masterId) {
