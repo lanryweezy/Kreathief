@@ -76,7 +76,7 @@ test('verify final UI state', async ({ page }) => {
 
   // 3. Verify AI Assistant Location
   console.log('Verifying AI Assistant...');
-  await page.click('button[title="AI Assistant"]');
+  await page.click('button[aria-label="Open AI tools"]');
   const leftSidePanel = page.locator('aside.border-r');
   await expect(leftSidePanel.locator('h2:has-text("AI Assistant")')).toBeVisible();
 
