@@ -15,9 +15,7 @@ export class DashboardPage {
     this.projectsList = page.locator('.grid-cols-1, .grid-cols-2, .grid-cols-3, .grid-cols-4');
     this.searchInput = page.getByTestId('dashboard-search-input');
     this.userMenu = page
-      .locator(
-        '[title="Click to open account hub & menu"], header button[aria-label="Open account menu"], header img[alt="Profile"]'
-      )
+      .locator('[title="Click to open account hub & menu"], [title="Click to open Account Hub & Profile"]')
       .first();
     this.logoutButton = page.locator(
       '[data-testid="logout-btn"], button[role="menuitem"]:has-text("Sign Out"), button:has-text("Sign Out")'
@@ -51,9 +49,7 @@ export class DashboardPage {
       localStorage.removeItem('kreathief_qa_session');
     });
     const profileBtn = this.page
-      .locator(
-        '[title="Click to open account hub & menu"], header button[aria-label="Open account menu"], header img[alt="Profile"]'
-      )
+      .locator('[title="Click to open account hub & menu"], [title="Click to open Account Hub & Profile"]')
       .first();
     if (await profileBtn.isVisible()) {
       await profileBtn.click();
