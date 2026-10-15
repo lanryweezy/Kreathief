@@ -49,7 +49,7 @@ test.describe('Full Design Workflow', () => {
     await elementsTab.click();
 
     const shapeBtn = page
-      .locator('button[aria-label*="Rectangle"], button[aria-label*="Square"], [id^="shape-btn-rectangle"]')
+      .locator('button[title*="Rectangle"], button[title*="Square"], [id^="shape-btn-rectangle"]')
       .first();
     await expect(shapeBtn).toBeVisible({ timeout: 10000 });
     await shapeBtn.click();

@@ -344,11 +344,19 @@
 **Prevention:** Consistently utilize `crypto.randomUUID()` when a unique identifier is needed instead of rolling custom pseudo-random strings with `Math.random()`.
 
 ## 2026-11-20 - [Replaced predictable node names and variation seeds with secure randomness]
+
 **Vulnerability:** Weak PRNG `Math.random()` was used to generate node names (which serve as IDs) in `utils/astToZustandMapper.ts` and a variation seed in `store/slices/agentSlice.ts`.
 **Learning:** Using `Math.random()` for generating unique identifiers or seeds is not cryptographically secure and can lead to predictable IDs, causing collisions or exposing application state. Even in less sensitive areas, `Math.random()` should be avoided to pass SAST checks.
 **Prevention:** Always use `crypto.randomUUID()` (or a secure helper like `createVariationSeed` that uses `crypto.getRandomValues`) to generate unique tokens or IDs.
 
 ## 2024-05-24 - Cross-Site Scripting (XSS) via `window.location.href` assignment
+
 **Vulnerability:** In `ShareModal.tsx`, an attacker could supply an email containing a payload like `javascript:alert(1)` which bypassed URI encoding when passed to `window.location.href`, allowing for arbitrary JavaScript execution in the context of the vulnerable application.
 **Learning:** Directly assigning user-controlled input to sensitive sinks like `window.location.href` is inherently dangerous, even if encoded or wrapped with a prefix if validation logic doesn't strictly enforce safe protocols. A malicious input can use tricks (like bypassing expected prefixes or encoding payloads) to turn a "safe" URL into an execution vector.
 **Prevention:** Always strictly validate any URL string against expected secure protocols (like `http:`, `https:`, `mailto:`) before passing them to a location-altering sink. Do not rely solely on URI encoding, as some parts of a payload (like the protocol identifier itself) might not be sufficiently sanitized. Additionally, use robust regex validation for specific input formats (like emails) to further restrict acceptable inputs.
+
+## 2026-12-08 - [Removed Client-Side Exposure of Backend Secrets via Vite Config]
+
+**Vulnerability:** In `vite.config.ts`, the `define` property mapped `process.env.API_KEY` to `env.VITE_API_KEY`. This explicitly exposes server-side secrets into the client-side JavaScript bundle, allowing any user to extract the secrets by inspecting the source code.
+**Learning:** Hardcoding or dynamically injecting backend secrets directly into client-facing build configurations completely negates the security of environment variables. When `define` is used in Vite for variables like `API_KEY`, they are statically replaced in the compiled frontend code.
+**Prevention:** Never map sensitive server-side variables (such as API keys) to the global scope or client-facing bundles via `define` in `vite.config.ts`. Secure operations should run on backend functions, or edge functions handling the secure API key externally.

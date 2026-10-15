@@ -222,9 +222,6 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
-    define: {
-      'process.env.API_KEY': JSON.stringify(env.VITE_API_KEY || ''),
-    },
     optimizeDeps: {
       include: ['onnxruntime-web'],
       exclude: ['@imgly/background-removal'],
