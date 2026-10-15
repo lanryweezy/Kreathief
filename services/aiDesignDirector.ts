@@ -2800,7 +2800,8 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       rawText = resAny.choices[0].message.content;
     }
 
-    const parsed = safeParseJSON<any>(rawText, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to ensure error catching logic executes cleanly on empty responses.
+    const parsed = safeParseJSON<any>(rawText || 'null', null);
     if (parsed && Array.isArray(parsed.layers) && parsed.layers.length > 0) {
       const sanitizedLayers: Layer[] = parsed.layers.map((l: any, i: number) => {
         const id = `${l.type || 'layer'}_${uuidv4().slice(0, 8)}`;
@@ -3042,7 +3043,8 @@ Make it creative, professional, and visually striking!`;
       rawText = resAny.choices[0].message.content;
     }
 
-    const blueprint = safeParseJSON<DesignBlueprint | null>(rawText, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to ensure error catching logic executes cleanly on empty responses.
+    const blueprint = safeParseJSON<DesignBlueprint | null>(rawText || 'null', null);
 
     if (blueprint && blueprint.canvas && blueprint.layers) {
       // Ensure all layers have IDs

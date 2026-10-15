@@ -97,7 +97,8 @@ export async function planSemanticDesign(prompt: string, width: number, height: 
     else if (resAny?.candidates?.[0]?.content?.parts?.[0]?.text) rawText = resAny.candidates[0].content.parts[0].text;
     else if (resAny?.choices?.[0]?.message?.content) rawText = resAny.choices[0].message.content;
 
-    const blueprint = safeParseJSON<SemanticDesignBlueprint | null>(rawText, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to ensure error catching logic executes cleanly on empty responses.
+    const blueprint = safeParseJSON<SemanticDesignBlueprint | null>(rawText || 'null', null);
     if (!blueprint || !blueprint.root) {
       throw new Error('Failed to parse planner output');
     }
@@ -119,7 +120,8 @@ export async function planSemanticDesign(prompt: string, width: number, height: 
     else if (critAny?.candidates?.[0]?.content?.parts?.[0]?.text) criticRaw = critAny.candidates[0].content.parts[0].text;
     else if (critAny?.choices?.[0]?.message?.content) criticRaw = critAny.choices[0].message.content;
 
-    const critique = safeParseJSON<{ score: number, feedback: string, passed: boolean } | null>(criticRaw, null);
+    // 🤖 Astra: Passed 'null' fallback string to safeParseJSON to ensure error catching logic executes cleanly on empty responses.
+    const critique = safeParseJSON<{ score: number, feedback: string, passed: boolean } | null>(criticRaw || 'null', null);
     
     if (critique?.passed) {
       log.info(`[SemanticPlanner] Critic passed on attempt ${attempts} with score ${critique.score}`);
