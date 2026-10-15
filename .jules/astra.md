@@ -161,3 +161,7 @@
 ## 2026-10-12 - Prevent Empty Text Calls to LLMs
 **Learning:** Found several prompt generation functions (`generateText`, `rewriteTextTone`, `suggestTypographyForText`) in `services/geminiService.ts` that called LLMs even when the text input was empty. This wasted tokens, increased latency, and sometimes caused the LLM to hallucinate or throw errors due to lacking context.
 **Action:** Always add early validation returns (e.g., `if (!text || !text.trim()) return text;`) to functions wrapping LLM prompt templates before making API calls, especially when text is a primary conditioning input.
+
+## 2024-10-15 - Null fallback standard for safeParseJSON in new AI planner
+**Learning:** safeParseJSON returns the provided fallback when parsing fails. However, parsing an empty string "" throws a SyntaxError that can cause the error handler's substring logic to crash. The newly added planner functions in aiDesignDirector.ts and aiSemanticPlanner.ts missed this standard.
+**Action:** When extracting data from LLMs where an empty response should be treated as a failure, use safeParseJSON with 'null' as the fallback string and null as the fallback value (e.g., safeParseJSON<T | null>(rawText || 'null', null)).
