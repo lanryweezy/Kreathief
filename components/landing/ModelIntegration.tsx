@@ -45,9 +45,9 @@ export const ModelIntegration: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   return (
-    <section className="relative bg-[#08080d] w-full" style={{ height: `${models.length * 20 + 90}vh` }}>
+    <section className="relative bg-[#08080d] w-full" style={{ height: `${models.length * 20 + 90}dvh` }}>
       {/* Sticky Container */}
-      <div className="sticky top-0 h-screen w-full overflow-hidden">
+      <div className="sticky top-0 h-dvh w-full overflow-hidden">
         
         {/* Background Images with Crossfade */}
         {models.map((model, idx) => (
@@ -93,9 +93,9 @@ export const ModelIntegration: React.FC = () => {
 
       {/* Right Scrolling List */}
       <div className="absolute top-0 right-0 w-full md:w-1/2 h-full z-20 pointer-events-none">
-        <div className="max-w-md mx-auto pl-6 pr-6 md:pr-12 pointer-events-auto" style={{ paddingTop: '45vh', paddingBottom: '45vh' }}>
+        <div className="max-w-md mx-auto pl-6 pr-6 md:pr-12 pointer-events-auto" style={{ paddingTop: '45dvh', paddingBottom: '45dvh' }}>
           {models.map((model, idx) => (
-            <div key={model.name} style={{ height: '20vh' }} className="flex items-center">
+            <div key={model.name} style={{ height: '20dvh' }} className="flex items-center">
               <ModelItem name={model.name} tag={model.tag} index={idx} setActiveIndex={setActiveIndex} />
             </div>
           ))}

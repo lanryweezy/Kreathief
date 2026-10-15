@@ -8,7 +8,7 @@ export const ToolsDirectoryPage: React.FC = () => {
   const tools = Object.values(FEATURES_DATA);
 
   return (
-    <div className="min-h-screen bg-surface-dark-1 text-white selection:bg-brand-500 selection:text-white">
+    <div className="min-h-dvh bg-surface-dark-1 text-white selection:bg-brand-500 selection:text-white">
       <SEO
         title="Free AI Creative Tools & Utilities Directory | Kreathief"
         description="Explore Kreathief's suite of free AI design tools: Magic Object Eraser, Background Remover, 3D Mockup Generator, SVG Vectorizer, Smart Resize, and 60+ Style Presets."
