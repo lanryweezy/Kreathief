@@ -97,7 +97,7 @@ export const MobileLayerItem: React.FC<MobileLayerItemProps> = ({
           haptics.light();
           updateLayer(layer.id, { visible: layer.visible === false });
         }}
-        className="p-3 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
       >
         {layer.visible !== false ? (
           <Icons.Eye className="w-5 h-5 text-gray-400" />

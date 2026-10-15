@@ -141,7 +141,7 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: (id: string) => void }> = ({
               haptics.light();
               onRemove(toast.id);
             }}
-            className="p-2 rounded-lg hover:bg-white/10 active:scale-95 transition-all"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-white/10 active:scale-95 transition-all"
           >
             <Icons.X className="w-4 h-4 text-gray-400" />
           </button>

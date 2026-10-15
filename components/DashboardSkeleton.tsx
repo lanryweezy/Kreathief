@@ -3,7 +3,7 @@ import { Skeleton } from './Skeleton';
 
 export const DashboardSkeleton: React.FC = () => {
   return (
-    <div className="flex flex-col h-screen bg-surface-dark-0 overflow-hidden">
+    <div className="flex flex-col h-dvh bg-surface-dark-0 overflow-hidden">
       {/* Header Skeleton */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 shrink-0">
         <div className="flex items-center gap-4">

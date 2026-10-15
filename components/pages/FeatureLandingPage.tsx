@@ -23,7 +23,7 @@ export const FeatureLandingPage: React.FC = () => {
 
   if (!feature) {
     return (
-      <div className="min-h-screen bg-surface-dark-1 text-white flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-dvh bg-surface-dark-1 text-white flex flex-col items-center justify-center p-6 text-center">
         <h1 className="text-3xl font-extrabold mb-4">Creative Tool Not Found</h1>
         <p className="text-gray-400 mb-8 max-w-md">
           Explore our suite of agentic creative tools or head back to the editor.
@@ -62,7 +62,7 @@ export const FeatureLandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-surface-dark-1 text-white selection:bg-brand-500 selection:text-white">
+    <div className="min-h-dvh bg-surface-dark-1 text-white selection:bg-brand-500 selection:text-white">
       {/* Dynamic SEO Meta & Microdata */}
       <SEO
         title={feature.metaTitle}

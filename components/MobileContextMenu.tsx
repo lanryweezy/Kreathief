@@ -110,7 +110,7 @@ export const MobileContextMenu: React.FC<MobileContextMenuProps> = ({
                 <button
                   onClick={onClose}
                   aria-label="Close"
-                  className="p-2 hover:bg-white/10 rounded-xl transition-colors"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-white/10 rounded-xl transition-colors"
                 >
                   <Icons.X className="w-5 h-5 text-gray-400" />
                 </button>
