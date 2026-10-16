@@ -27,7 +27,17 @@ export const ComponentsPanel: React.FC = () => {
 
   // Find selected layer to offer "Create Component" action
   const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
-  const selectedLayer = activeArtboard?.layers.find((l) => selectedLayerIds.includes(l.id));
+
+  // ⚡ Bolt: Replaced O(N*M) nested array lookup with O(1) Set lookup inside useMemo
+  const selectedLayer = useMemo(() => {
+    if (!activeArtboard || selectedLayerIds.length === 0) return undefined;
+    const selectedIdsSet = new Set(selectedLayerIds);
+    for (const layer of activeArtboard.layers) {
+      if (selectedIdsSet.has(layer.id)) return layer;
+    }
+    return undefined;
+  }, [activeArtboard, selectedLayerIds]);
+
   const canCreateComponent = selectedLayer && !selectedLayer.componentId && !selectedLayer.masterId;
 
   const handleCreateComponent = () => {
