@@ -17,6 +17,7 @@ import {
 import { exportCampaignToZip, downloadFile } from '../../services/campaignExportService';
 import { CampaignArchetype, CampaignFormatId, Artboard } from '../../types';
 import { log } from '../../utils/log';
+import { getAIErrorMessage } from '../../utils/errorMessages';
 
 const SAMPLE_INSPIRATIONS = [
   {
@@ -48,7 +49,9 @@ const SAMPLE_INSPIRATIONS = [
 
 export const CampaignPanel: React.FC = () => {
   const artboards = useStore((state) => state.artboards) || [];
-  const setArtboards = useStore((state) => (state as any).setArtboards || ((boards: any) => useStore.setState({ artboards: boards })));
+  const setArtboards = useStore(
+    (state) => (state as any).setArtboards || ((boards: any) => useStore.setState({ artboards: boards }))
+  );
   const setActiveArtboardId = useStore((state) => state.setActiveArtboardId);
   const activeArtboardId = useStore((state) => state.activeArtboardId);
 
@@ -73,7 +76,7 @@ export const CampaignPanel: React.FC = () => {
   // Wire into the Universal Router: automatically pick up intent from the Dashboard/Assistant
   const activeTab = useStore((state) => state.activeTab);
   const globalIntent = useStore((state) => state.agentIntent);
-  
+
   useEffect(() => {
     if (activeTab === 'CAMPAIGN' && globalIntent && globalIntent !== prompt) {
       setPrompt(globalIntent);
@@ -87,7 +90,9 @@ export const CampaignPanel: React.FC = () => {
   }, []);
 
   const handleGenerate = useCallback(async () => {
-    if (!prompt.trim()) {return;}
+    if (!prompt.trim()) {
+      return;
+    }
     setIsGenerating(true);
 
     try {
@@ -107,13 +112,16 @@ export const CampaignPanel: React.FC = () => {
       }
     } catch (err) {
       log.error('[CampaignPanel] Generation failed', err);
+      useStore.getState().addToast?.(getAIErrorMessage(err), 'error');
     } finally {
       setIsGenerating(false);
     }
   }, [prompt, selectedArchetype, selectedFormats, brandName, ctaText, promoCode, setArtboards, setActiveArtboardId]);
 
   const handleExportZip = useCallback(async () => {
-    if (artboards.length === 0) {return;}
+    if (artboards.length === 0) {
+      return;
+    }
     setIsExporting(true);
 
     try {
@@ -132,6 +140,7 @@ export const CampaignPanel: React.FC = () => {
       downloadFile(zipBlob, filename);
     } catch (err) {
       log.error('[CampaignPanel] Export failed', err);
+      useStore.getState().addToast?.(getAIErrorMessage(err), 'error');
     } finally {
       setIsExporting(false);
     }
@@ -233,9 +242,18 @@ export const CampaignPanel: React.FC = () => {
 
                     {/* Color Swatches */}
                     <div className="flex items-center gap-1">
-                      <div className="w-3.5 h-3.5 rounded-full border border-black/40" style={{ backgroundColor: arch.primaryColor }} />
-                      <div className="w-3.5 h-3.5 rounded-full border border-black/40" style={{ backgroundColor: arch.secondaryColor }} />
-                      <div className="w-3.5 h-3.5 rounded-full border border-black/40" style={{ backgroundColor: arch.backgroundColor }} />
+                      <div
+                        className="w-3.5 h-3.5 rounded-full border border-black/40"
+                        style={{ backgroundColor: arch.primaryColor }}
+                      />
+                      <div
+                        className="w-3.5 h-3.5 rounded-full border border-black/40"
+                        style={{ backgroundColor: arch.secondaryColor }}
+                      />
+                      <div
+                        className="w-3.5 h-3.5 rounded-full border border-black/40"
+                        style={{ backgroundColor: arch.backgroundColor }}
+                      />
                     </div>
                   </button>
                 );
@@ -263,13 +281,13 @@ export const CampaignPanel: React.FC = () => {
                   >
                     <div>
                       <div className="text-[10px] font-bold truncate">{fmt.name}</div>
-                      <div className="text-[8px] font-mono text-gray-400">{fmt.width}×{fmt.height} ({fmt.aspectRatio})</div>
+                      <div className="text-[8px] font-mono text-gray-400">
+                        {fmt.width}×{fmt.height} ({fmt.aspectRatio})
+                      </div>
                     </div>
                     <div
                       className={`w-4 h-4 rounded flex items-center justify-center border text-[10px] ${
-                        isChecked
-                          ? 'bg-purple-600 border-purple-400 text-white'
-                          : 'border-white/20 bg-transparent'
+                        isChecked ? 'bg-purple-600 border-purple-400 text-white' : 'border-white/20 bg-transparent'
                       }`}
                     >
                       {isChecked ? '✓' : ''}
@@ -389,9 +407,7 @@ export const CampaignPanel: React.FC = () => {
                           {index + 1}
                         </div>
                         <div>
-                          <div className="text-[10px] font-bold text-white truncate max-w-[170px]">
-                            {board.name}
-                          </div>
+                          <div className="text-[10px] font-bold text-white truncate max-w-[170px]">{board.name}</div>
                           <div className="text-[8px] font-mono text-gray-500">
                             {board.width} × {board.height} • {board.layers?.length || 0} layers
                           </div>
