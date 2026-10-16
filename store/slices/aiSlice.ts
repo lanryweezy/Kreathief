@@ -27,7 +27,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { DEFAULT_CORNER_RADIUS } from '../../constants';
 import { performBooleanOnLayers } from '../../utils/booleanOperations';
 import { VectorUtils } from '../../utils/vectorUtils';
-import { getErrorDetails } from '../../utils/errorMessages';
+import { getErrorDetails, getAIErrorMessage } from '../../utils/errorMessages';
 import { generateImageWithModel, composeGenerationPrompt } from '../../services/imageGenService';
 import { DEFAULT_IMAGE_MODEL } from '../../config/imageModels';
 
@@ -632,7 +632,8 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
       get().addToast?.('Magic Rewrite applied!', 'success');
     } catch (error) {
       log.error('Failed to rewrite text', error);
-      get().addToast?.('Failed to rewrite text', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to rewrite text' with specific AI error formatter
+      get().addToast?.(getAIErrorMessage(error), 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -664,7 +665,8 @@ Return ONLY the exact font name. Nothing else.`;
       get().addToast?.(`Font updated to ${cleanFont}`, 'success');
     } catch (error) {
       log.error('Failed to suggest font', error);
-      get().addToast?.('Failed to pair font', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to pair font' with specific AI error formatter
+      get().addToast?.(getAIErrorMessage(error), 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -730,7 +732,8 @@ Return ONLY the exact font name. Nothing else.`;
       );
     } catch (err) {
       log.error('harmonizeArtboardTypography failed', err);
-      addToast?.('Failed to harmonize typography.', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to harmonize typography' with specific AI error formatter
+      addToast?.(getAIErrorMessage(err), 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -857,7 +860,8 @@ Return ONLY the exact font name. Nothing else.`;
       }
     } catch (error) {
       log.error('Extract photo colors failed', error);
-      addToast?.('Failed to extract colors from this image.', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to extract colors' with specific AI error formatter
+      addToast?.(getAIErrorMessage(error), 'error');
     }
   },
 
@@ -876,7 +880,8 @@ Return ONLY the exact font name. Nothing else.`;
       }
     } catch (error) {
       log.error('Failed to generate text texture', error);
-      addToast?.('Failed to generate texture.', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to generate texture' with specific AI error formatter
+      addToast?.(getAIErrorMessage(error), 'error');
     } finally {
       set({ isGenerating: false });
     }
@@ -950,7 +955,8 @@ Layers: ${JSON.stringify(layerSummaries)}`;
       }
     } catch (error) {
       log.error('Failed to auto-rename layers', error);
-      addToast?.('Failed to auto-rename layers.', 'error');
+      // 🌸 Bloom: Replaced generic 'Failed to auto-rename layers' with specific AI error formatter
+      addToast?.(getAIErrorMessage(error), 'error');
     } finally {
       set({ isGenerating: false });
     }

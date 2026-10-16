@@ -141,3 +141,8 @@
 ## 2026-10-13 - Fuzzy Matching Needs Word Tokenization for Strings
 **Learning:** When applying fuzzy matching to user inputs like negative prompts where the target consists of multiple words (e.g. "blurry, ugly, poor anatomy"), using direct fuzzy logic algorithms between short chips (e.g. "ugly") and long phrases causes massive false positives or breaks normal matching. We must tokenize the full phrase and apply token-to-token fuzzy matching to safely check for typos.
 **Action:** Always verify if a string match operates on tokens or full sentences. If matching against a long string, split by commas or words before running `fuzzyMatch`.
+
+## 2026-10-15 - Replaced generic error messages with specific AI error formatters in AI slice store
+
+**Learning:** AI generation operations in `store/slices/aiSlice.ts` were using the generic hardcoded error messages in toasts. The codebase contains a more specialized `getAIErrorMessage` utility which is designed to properly handle AI-specific errors (like quotas, API rate limits, etc.). The agent must ensure that features calling out to AI models return tailored error details to prevent generic failures.
+**Action:** Replaced hardcoded strings with `getAIErrorMessage` inside AI generation functions across the `aiSlice` to ensure actionable error notifications.
