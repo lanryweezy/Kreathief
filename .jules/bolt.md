@@ -261,3 +261,6 @@
 
 **Learning:** When components or hooks utilize multiple `useStore` extractions alongside expensive array lookups (like `.find()` with `.includes()`), it creates separate Zustand store subscriptions and forces expensive O(N*M) operations on every store update. In highly utilized panels like `TexturesPanel`, this increases unnecessary CPU overhead during rapid state updates.
 **Action:** When extracting multiple state properties in Zustand-based components, consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Replace O(N*M) array `.find()` lookups with an imperative loop utilizing an O(1) `Set` lookup wrapped in a `useMemo` block.
+## 2026-10-16 - O(N*M) lookups in React Render Cycles
+**Learning:** Replacing deeply nested array iterations (e.g. `.find().includes()`) with a `Set` lookup and caching it using `useMemo` in frequently updated components, such as `ComponentsPanel`, prevents major rendering slowdowns during selection changes.
+**Action:** Whenever cross-referencing a list against an array of IDs inside a functional component, instantly evaluate using a `Set` + `useMemo`.
