@@ -264,3 +264,6 @@
 ## 2026-10-16 - O(N*M) lookups in React Render Cycles
 **Learning:** Replacing deeply nested array iterations (e.g. `.find().includes()`) with a `Set` lookup and caching it using `useMemo` in frequently updated components, such as `ComponentsPanel`, prevents major rendering slowdowns during selection changes.
 **Action:** Whenever cross-referencing a list against an array of IDs inside a functional component, instantly evaluate using a `Set` + `useMemo`.
+## 2026-10-17 - Optimize Array Filter Lookups using Set
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass imperative loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
