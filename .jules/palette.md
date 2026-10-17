@@ -77,3 +77,7 @@
 **Learning:** Found that the `IconButton` component used throughout the `ToolbarShared` didn't have keyboard focus states, making the toolbar completely unnavigable for keyboard users.
 **Action:** Always add `focus-visible:outline-none focus-visible:ring-2` to custom icon-only interactive elements to ensure accessibility for keyboard navigation.
 \n## 2026-10-14 - Screen Reader and Keyboard Accessibility for Dropdown Menus\n**Learning:** When building custom dropdown menus (like `DropdownMenu.tsx`), relying solely on hover states and lacking explicit `focus-visible` styles on both the trigger button and the individual menu items renders the component effectively invisible and unusable for keyboard-only users.\n**Action:** Always add explicit `focus-visible` utility classes (e.g., `focus-visible:ring-2` for triggers, `focus-visible:bg-brand-600` for items) to interactive elements within custom dropdown components to ensure full keyboard navigation support.
+
+## 2026-10-17 - Screen Reader Accessibility for Export Format Buttons
+**Learning:** When export format buttons (e.g. PNG, JPG, MP4) contain only the format acronym as text, the context may not be immediately clear to screen reader users (e.g. it might just read 'PNG' instead of 'Export as PNG'). Adding an explicit `aria-label` provides the necessary context.
+**Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Export as PNG format"`) on format selection buttons to ensure visually impaired users understand the action associated with the option.
