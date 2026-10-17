@@ -21,6 +21,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
       <div className="grid grid-cols-4 gap-2">
         <button
           data-testid="export-png-btn"
+          aria-label="Export as PNG format"
           aria-pressed={format === 'png' && !isPrintMode}
           onClick={() => {
             setFormat('png');
@@ -36,6 +37,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-jpeg-btn"
+          aria-label="Export as JPG format"
           aria-pressed={format === 'jpeg'}
           onClick={() => {
             setFormat('jpeg');
@@ -51,6 +53,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-webp-btn"
+          aria-label="Export as WEBP format"
           aria-pressed={format === 'webp'}
           onClick={() => {
             setFormat('webp');
@@ -66,6 +69,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-svg-btn"
+          aria-label="Export as SVG format"
           aria-pressed={format === 'svg'}
           onClick={() => {
             setFormat('svg');
@@ -81,6 +85,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-pdf-btn"
+          aria-label="Export as PDF format"
           aria-pressed={format === 'pdf'}
           onClick={() => {
             setFormat('pdf');
@@ -96,6 +101,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-psd-btn"
+          aria-label="Export as PSD format"
           aria-pressed={format === 'psd'}
           onClick={() => {
             setFormat('psd');
@@ -111,6 +117,7 @@ export const ExportFormatSelector: React.FC<ExportFormatSelectorProps> = ({
         </button>
         <button
           data-testid="export-mp4-btn"
+          aria-label="Export as MP4 format"
           aria-pressed={format === 'mp4'}
           onClick={() => {
             setFormat('mp4');
