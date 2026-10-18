@@ -148,3 +148,7 @@
 
 **Learning:** AI generation operations in `store/slices/aiSlice.ts` were using the generic hardcoded error messages in toasts. The codebase contains a more specialized `getAIErrorMessage` utility which is designed to properly handle AI-specific errors (like quotas, API rate limits, etc.). The agent must ensure that features calling out to AI models return tailored error details to prevent generic failures.
 **Action:** Replaced hardcoded strings with `getAIErrorMessage` inside AI generation functions across the `aiSlice` to ensure actionable error notifications.
+## 2026-10-18 - Typo-tolerant Design Category Sector Search
+
+**Learning:** The `getCategoriesBySector` function in `config/designCategories.ts` relied on exact substring matching (`.toLowerCase().includes()`) for mapping sector queries to design categories. This brittle implementation meant that minor user typos when querying a sector (e.g. typing "healtcare" instead of "healthcare") would yield zero results, causing downstream generation to fallback to default themes.
+**Action:** Replaced exact `.includes()` matching with the existing `fuzzyMatch` utility from `utils/search.ts` to add robust typo tolerance to category sector filtering without altering the function's external interface.

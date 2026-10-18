@@ -12,6 +12,8 @@
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+import { fuzzyMatch } from '../utils/search';
+
 export type TrendName =
   | 'elemental-folk'
   | 'hyper-individualism'
@@ -1087,7 +1089,10 @@ export function getCategoryById(id: string): DesignCategory | undefined {
 }
 
 export function getCategoriesBySector(sector: string): DesignCategory[] {
-  return DESIGN_CATEGORIES.filter((c) => c.sector.toLowerCase().includes(sector.toLowerCase()));
+  // 🌸 Bloom: Replaced exact substring matching (c.sector.toLowerCase().includes(...)) with fuzzy matching
+  // 🌸 This closes the quality gap where minor typos when searching for a sector (e.g. "healtcare" instead of "healthcare")
+  // 🌸 would yield zero results, improving the resilience of category searches without changing the interface.
+  return DESIGN_CATEGORIES.filter((c) => fuzzyMatch(sector, c.sector));
 }
 
 export function getCategoriesByTrend(trend: TrendName): DesignCategory[] {
