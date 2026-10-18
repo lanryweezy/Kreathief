@@ -465,12 +465,23 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
     let result = mockups;
 
     if (showFavoritesOnly) {
-      result = result.filter((m) => favoriteMockups.includes(m.id));
+      // ⚡ Bolt Optimization: Replace O(N*M) .filter().includes() with O(N) Set lookup
+      const favSet = new Set(favoriteMockups);
+      result = result.filter((m) => favSet.has(m.id));
     }
 
     if (suggestedMockups.length > 0 && !showFavoritesOnly) {
-      const suggested = result.filter((m) => suggestedMockups.includes(m.id));
-      const others = result.filter((m) => !suggestedMockups.includes(m.id));
+      // ⚡ Bolt Optimization: Replace double O(N*M) array traversal with a single O(N) pass and O(1) Set lookup
+      const sugSet = new Set(suggestedMockups);
+      const suggested = [];
+      const others = [];
+      for (const m of result) {
+        if (sugSet.has(m.id)) {
+          suggested.push(m);
+        } else {
+          others.push(m);
+        }
+      }
       result = [...suggested, ...others];
     }
 
@@ -704,14 +715,14 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       // We bypass the external API and use our zero-latency WebGL/Canvas2D native warp map
       const activeMockupConfig = getMockupById(activeMockupId);
       let result = null;
-      
+
       if (activeMockupConfig && activeMockupConfig.perspectiveCorners) {
         log.info('[MockupPanel] Running local affine warp to corners:', activeMockupConfig.perspectiveCorners);
         result = await generateNativeMockup(
           activeMockupConfig.previewUrl || activeMockupConfig.bg,
           designUrl,
           activeMockupConfig.perspectiveCorners,
-          1200, 
+          1200,
           800,
           'multiply' // standard blend for tshirts/print
         );
