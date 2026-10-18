@@ -249,18 +249,28 @@
 
 **Learning:** When components or hooks utilize multiple `useStore` extractions, it creates separate Zustand store subscriptions. In highly utilized hooks like `useFileHandler`, which interacts heavily with layer state, this increases unnecessary CPU overhead during rapid state updates, such as when uploading multiple files or interacting with canvas elements.
 **Action:** When extracting multiple state properties in Zustand-based hooks, always consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Ensure defaults are passed inside destructuring instead of `||` logical OR operator.
+
 ## 2026-10-12 - Optimize Array Selection Lookups in Zustand state loops
 
-**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.find(l => state.selectedLayerIds.includes(l.id))`) within Zustand store iterations (`a.layers.map()`), the resulting O(N*M) operation creates a performance bottleneck. This is especially problematic in the `crudSlice.ts` state mutations for locking, visibility, and duplication that run frequently.
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.find(l => state.selectedLayerIds.includes(l.id))`) within Zustand store iterations (`a.layers.map()`), the resulting O(N\*M) operation creates a performance bottleneck. This is especially problematic in the `crudSlice.ts` state mutations for locking, visibility, and duplication that run frequently.
 **Action:** Replace `array.find(item => ids.includes(item.id))` or `array.map(item => ids.includes(item.id))` inside state iterations with a single-pass loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N). Store the set definition outside the outer array mapping loop to prevent redundant set allocations.
+
 ## 2026-10-12 - AI Design Assistant O(1) Map Lookups
-**Learning:** Found nested loops performing O(N*M) lookups (`Array.prototype.find`) when modifying or arranging selected layers in `useAIDesignAssistant`. This becomes a severe bottleneck with 1,000+ layers on the canvas.
+
+**Learning:** Found nested loops performing O(N\*M) lookups (`Array.prototype.find`) when modifying or arranging selected layers in `useAIDesignAssistant`. This becomes a severe bottleneck with 1,000+ layers on the canvas.
 **Action:** When performing bulk updates against a central state array (like layers or nodes), always construct an O(1) `Map` lookup beforehand rather than using `.find()` inside a loop.
 
 ## 2026-10-14 - Optimize Zustand hooks in TexturesPanel
 
 **Learning:** When components or hooks utilize multiple `useStore` extractions alongside expensive array lookups (like `.find()` with `.includes()`), it creates separate Zustand store subscriptions and forces expensive O(N*M) operations on every store update. In highly utilized panels like `TexturesPanel`, this increases unnecessary CPU overhead during rapid state updates.
 **Action:** When extracting multiple state properties in Zustand-based components, consolidate them into a single `useStore` call passing an explicit object selector wrapped in `useShallow` from `zustand/react/shallow`. Replace O(N*M) array `.find()` lookups with an imperative loop utilizing an O(1) `Set` lookup wrapped in a `useMemo` block.
-## 2026-10-16 - O(N*M) lookups in React Render Cycles
+
+## 2026-10-16 - O(N\*M) lookups in React Render Cycles
+
 **Learning:** Replacing deeply nested array iterations (e.g. `.find().includes()`) with a `Set` lookup and caching it using `useMemo` in frequently updated components, such as `ComponentsPanel`, prevents major rendering slowdowns during selection changes.
 **Action:** Whenever cross-referencing a list against an array of IDs inside a functional component, instantly evaluate using a `Set` + `useMemo`.
+
+## 2026-10-17 - Optimize Array Filter Lookups using Set
+
+**Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
+**Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass imperative loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).

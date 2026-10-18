@@ -470,7 +470,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
     try {
       const safeCustomFilename = filename.trim() || 'design';
       const activeArtboard = artboards.find((a) => a.id === activeArtboardId);
-      const selectedLayers = activeArtboard?.layers.filter((l) => selectedLayerIds.includes(l.id)) || [];
+
+      // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal (.filter().includes())
+      // with a single-pass Set lookup to prevent UI freezes on large selections
+      const idSetLayers = new Set(selectedLayerIds);
+      const selectedLayers = activeArtboard?.layers.filter((l) => idSetLayers.has(l.id)) || [];
+
       await onExport(
         format,
         quality,
@@ -533,7 +538,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
   };
 
   const handleBatchExport = async () => {
-    const selected = artboards.filter((ab) => selectedArtboardIds.includes(ab.id));
+    // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal (.filter().includes())
+    const idSetArtboards = new Set(selectedArtboardIds);
+    const selected = artboards.filter((ab) => idSetArtboards.has(ab.id));
+
     if (selected.length === 0) {
       addToast('Select at least one artboard to export', 'warning');
       return;
