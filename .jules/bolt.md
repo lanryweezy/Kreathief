@@ -264,3 +264,6 @@
 ## 2026-10-16 - O(N*M) lookups in React Render Cycles
 **Learning:** Replacing deeply nested array iterations (e.g. `.find().includes()`) with a `Set` lookup and caching it using `useMemo` in frequently updated components, such as `ComponentsPanel`, prevents major rendering slowdowns during selection changes.
 **Action:** Whenever cross-referencing a list against an array of IDs inside a functional component, instantly evaluate using a `Set` + `useMemo`.
+## 2026-10-17 - O(N*M) Double Filter Operations in React Render Cycles
+**Learning:** Chaining multiple `.filter()` operations that rely on `.includes()` against arrays inside a React `useMemo` block (e.g., in `MockupPanel`) causes severe O(N*M) algorithmic complexity. Additionally, performing double passes to partition an array (`const suggested = result.filter(...)` and `const others = result.filter(!...)`) creates redundant allocations and loops.
+**Action:** When partitioning or filtering arrays based on external ID lists inside a render cycle, instantiate a `Set` for O(1) lookups. Combine multiple filter passes into a single imperative loop to avoid redundant array traversals and allocations.
