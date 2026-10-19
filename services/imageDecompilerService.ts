@@ -10,6 +10,7 @@ import { callBackendGeminiAPI, cleanBase64 } from './geminiService';
 import { MODEL_FAST } from '../constants';
 import { safeParseJSON } from '../utils/errorHandling';
 import { log } from '../utils/log';
+import { SchemaType } from '@google/generative-ai';
 
 export interface DecompiledElement {
   id?: string;
@@ -115,6 +116,47 @@ Key rules:
       ],
       generationConfig: {
         responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            name: { type: SchemaType.STRING },
+            width: { type: SchemaType.NUMBER },
+            height: { type: SchemaType.NUMBER },
+            backgroundColor: { type: SchemaType.STRING },
+            palette: { type: SchemaType.ARRAY, items: { type: SchemaType.STRING } },
+            elements: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  id: { type: SchemaType.STRING },
+                  type: { type: SchemaType.STRING },
+                  name: { type: SchemaType.STRING },
+                  role: { type: SchemaType.STRING },
+                  text: { type: SchemaType.STRING },
+                  fontSize: { type: SchemaType.NUMBER },
+                  fontFamily: { type: SchemaType.STRING },
+                  fontWeight: { type: SchemaType.STRING },
+                  textAlign: { type: SchemaType.STRING },
+                  color: { type: SchemaType.STRING },
+                  fill: { type: SchemaType.STRING },
+                  cornerRadius: { type: SchemaType.NUMBER },
+                  shapeType: { type: SchemaType.STRING },
+                  zIndex: { type: SchemaType.NUMBER },
+                  boundsNormalized: {
+                    type: SchemaType.OBJECT,
+                    properties: {
+                      x: { type: SchemaType.NUMBER },
+                      y: { type: SchemaType.NUMBER },
+                      w: { type: SchemaType.NUMBER },
+                      h: { type: SchemaType.NUMBER },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
 

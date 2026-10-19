@@ -165,3 +165,7 @@
 ## 2024-10-15 - Null fallback standard for safeParseJSON in new AI planner
 **Learning:** safeParseJSON returns the provided fallback when parsing fails. However, parsing an empty string "" throws a SyntaxError that can cause the error handler's substring logic to crash. The newly added planner functions in aiDesignDirector.ts and aiSemanticPlanner.ts missed this standard.
 **Action:** When extracting data from LLMs where an empty response should be treated as a failure, use safeParseJSON with 'null' as the fallback string and null as the fallback value (e.g., safeParseJSON<T | null>(rawText || 'null', null)).
+
+## 2026-10-18 - Define responseSchema for AI generation tasks
+**Learning:** Relying solely on `responseMimeType: 'application/json'` for Gemini calls without explicitly defining a `responseSchema` causes unpredictable outputs, dropped fields, or Markdown formatting, which often leads to downstream parser crashes. This was found in `services/aiSemanticPlanner.ts` and `services/imageDecompilerService.ts`.
+**Action:** Always import `SchemaType` from `@google/generative-ai` and define a strict `responseSchema` within `generationConfig` matching the expected JSON structure when requesting structured data from the LLM.
