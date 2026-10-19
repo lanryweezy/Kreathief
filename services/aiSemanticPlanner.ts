@@ -4,6 +4,7 @@ import { safeParseJSON } from '../utils/errorHandling';
 import { SemanticDesignBlueprint, ASTNode, ContainerNode } from '../types/designAST';
 import { LayoutSolver } from '../layout/layoutSolver';
 import { Layer } from '../types';
+import { SchemaType } from '@google/generative-ai';
 
 const PLANNER_SYSTEM_PROMPT = `
 You are the Kreathief AI Design Planner (Art Director).
@@ -88,7 +89,46 @@ export async function planSemanticDesign(prompt: string, width: number, height: 
       modelName: 'gemini-2.5-flash',
       systemInstruction: PLANNER_SYSTEM_PROMPT,
       contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.7 },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.7,
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            canvas: {
+              type: SchemaType.OBJECT,
+              properties: {
+                width: { type: SchemaType.NUMBER },
+                height: { type: SchemaType.NUMBER },
+                backgroundColor: { type: SchemaType.STRING },
+              },
+            },
+            root: {
+              type: SchemaType.OBJECT,
+              properties: {
+                id: { type: SchemaType.STRING },
+                type: { type: SchemaType.STRING },
+                direction: { type: SchemaType.STRING },
+                padding: { type: SchemaType.NUMBER },
+                gap: { type: SchemaType.NUMBER },
+                alignItems: { type: SchemaType.STRING },
+                justifyContent: { type: SchemaType.STRING },
+                children: {
+                  type: SchemaType.ARRAY,
+                  items: { type: SchemaType.OBJECT },
+                },
+              },
+            },
+            metadata: {
+              type: SchemaType.OBJECT,
+              properties: {
+                theme: { type: SchemaType.STRING },
+                vibe: { type: SchemaType.STRING },
+              },
+            },
+          },
+        },
+      },
     });
     
     let rawText = '';
@@ -111,7 +151,18 @@ export async function planSemanticDesign(prompt: string, width: number, height: 
       modelName: 'gemini-2.5-flash',
       systemInstruction: CRITIC_SYSTEM_PROMPT,
       contents: [{ role: 'user', parts: [{ text: criticMessage }] }],
-      generationConfig: { responseMimeType: 'application/json', temperature: 0.2 },
+      generationConfig: {
+        responseMimeType: 'application/json',
+        temperature: 0.2,
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            score: { type: SchemaType.NUMBER },
+            feedback: { type: SchemaType.STRING },
+            passed: { type: SchemaType.BOOLEAN },
+          },
+        },
+      },
     });
     
     let criticRaw = '';
