@@ -102,7 +102,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
       {recentColors.length > 0 && (
         <div>
           <label className="text-sm font-semibold text-gray-400 mb-3 block">Recent Colors</label>
-          <div className="grid grid-cols-8 gap-2">
+          <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
             {recentColors.map((color, index) => (
               <motion.button
                 key={`${color}-${index}`}
@@ -111,7 +111,7 @@ export const MobileColorPicker: React.FC<MobileColorPickerProps> = ({
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleColorSelect(color)}
                 className={`
-                  aspect-square rounded-xl border-2 transition-all active:scale-95
+                  flex-shrink-0 w-12 h-12 rounded-xl border-2 transition-all active:scale-95
                   ${value === color ? 'border-white shadow-lg scale-110' : 'border-white/20'}
                 `}
                 style={{ backgroundColor: color }}
