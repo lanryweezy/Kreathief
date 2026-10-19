@@ -14,3 +14,10 @@
 **Desktop impact:** No desktop impact; `dvh` functions identically to `vh` on desktop and explicit sizing does not affect desktop layout.
 **Watch for:** Other `vh` usages or generic `p-2` on newly added components.
 ## 2026-10-18 — Type 2: Touch Target Failure on Toolbar IconButton\n**Issue:** Icon buttons in toolbars (using ToolbarShared.tsx) had touch targets smaller than 44x44px, making them hard to tap on mobile devices.\n**Device/browser:** Mobile (all devices/browsers)\n**Root cause:** Shared `IconButton` component had `p-2` padding with a 16px icon, yielding a total touch target of 32x32px, below the 44px minimum.\n**Fix:** Added `min-w-[44px] min-h-[44px]` to the `IconButton` class list, which symmetrically expands the touch target using flexbox centering without distorting the visual layout.\n**Desktop impact:** Buttons are slightly larger on desktop but remain visually balanced and centered.\n**Watch for:** Ensure this shared change doesn't inadvertently blow out specific dense UI layouts, though flex items should absorb the minimum size gracefully.
+## 2026-10-19 — Type 2: Touch Target Failure on Mobile Color Picker & Dialog
+**Issue:** The "Recent Colors" grid (`grid-cols-8`) on `MobileColorPicker` forced buttons to squish well below 44px on a 375px mobile screen. Additionally, the confirmation buttons in `MobileToolbar`'s "Clear All" dialog had insufficient vertical touch targets.
+**Device/browser:** Mobile viewports (<= 375px)
+**Root cause:** Hardcoded dense grid layouts without minimum width constraints for color items, and insufficient vertical padding (`py-2.5`) for text buttons without explicit minimum height constraints.
+**Fix:** Switched `MobileColorPicker`'s dense grid to a horizontally scrollable list (`flex overflow-x-auto`) with explicit 48x48px (`w-12 h-12`) targets. Added `min-h-[44px]` to `MobileToolbar`'s dialog buttons.
+**Desktop impact:** Confirmed none. Both components are strictly scoped to the mobile viewport.
+**Watch for:** Other dense grids (like preset color palettes) mapped directly from desktop configurations that lack responsive reflowing or horizontal scrolling on mobile.

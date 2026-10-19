@@ -182,7 +182,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowClearDialog(false)}
-                  className="flex-1 py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+                  className="flex-1 min-h-[44px] py-2.5 text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all"
                 >
                   Cancel
                 </button>
@@ -192,7 +192,7 @@ export const MobileToolbar: React.FC<MobileToolbarProps> = ({ onAddText, onAddSh
                     useStore.getState().setLayers([]);
                     setShowClearDialog(false);
                   }}
-                  className="flex-1 py-2.5 text-xs font-bold text-white bg-red-500 hover:bg-red-400 rounded-xl transition-all"
+                  className="flex-1 min-h-[44px] py-2.5 text-xs font-bold text-white bg-red-500 hover:bg-red-400 rounded-xl transition-all"
                 >
                   Clear All
                 </button>
