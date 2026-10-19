@@ -129,7 +129,14 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [suggestedMockups, setSuggestedMockups] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  const storeActiveTab = useStore((state) => state.activeTab); const globalIntent = useStore((state) => state.agentIntent); useEffect(() => { if (storeActiveTab === 'MOCKUP' && globalIntent && globalIntent !== searchQuery) { setSearchQuery(globalIntent); } }, [storeActiveTab, globalIntent]); const APP_STORE_PRESETS = {
+  const storeActiveTab = useStore((state) => state.activeTab);
+  const globalIntent = useStore((state) => state.agentIntent);
+  useEffect(() => {
+    if (storeActiveTab === 'MOCKUP' && globalIntent && globalIntent !== searchQuery) {
+      setSearchQuery(globalIntent);
+    }
+  }, [storeActiveTab, globalIntent]);
+  const APP_STORE_PRESETS = {
     'iOS Complete': ['iphone', 'ipad', 'macbook'],
     'Android Complete': ['android_phone', 'macbook'],
     'Merchandise Pack': ['tshirt', 'hoodie', 'mug', 'tote_bag'],
@@ -462,15 +469,28 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   }, [activeCategory, searchQuery]);
 
   const filteredMockups = useMemo(() => {
+    // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal (.filter().includes())
+    // with an O(N) single-pass loop utilizing O(1) Set lookups.
     let result = mockups;
 
     if (showFavoritesOnly) {
-      result = result.filter((m) => favoriteMockups.includes(m.id));
+      const favoriteSet = new Set(favoriteMockups);
+      result = result.filter((m) => favoriteSet.has(m.id));
     }
 
     if (suggestedMockups.length > 0 && !showFavoritesOnly) {
-      const suggested = result.filter((m) => suggestedMockups.includes(m.id));
-      const others = result.filter((m) => !suggestedMockups.includes(m.id));
+      const suggestedSet = new Set(suggestedMockups);
+      const suggested = [];
+      const others = [];
+
+      for (let i = 0; i < result.length; i++) {
+        const m = result[i];
+        if (suggestedSet.has(m.id)) {
+          suggested.push(m);
+        } else {
+          others.push(m);
+        }
+      }
       result = [...suggested, ...others];
     }
 
@@ -681,7 +701,16 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       active = false;
       clearTimeout(timer);
     };
-  }, [placement, previewImage, currentMockup, shadowIntensity, reflectionIntensity, lightingBrightness, lightingContrast, substrateColor]);
+  }, [
+    placement,
+    previewImage,
+    currentMockup,
+    shadowIntensity,
+    reflectionIntensity,
+    lightingBrightness,
+    lightingContrast,
+    substrateColor,
+  ]);
 
   const handleDownload = () => {
     if (generatedPreview) {
@@ -704,24 +733,24 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
       // We bypass the external API and use our zero-latency WebGL/Canvas2D native warp map
       const activeMockupConfig = getMockupById(activeMockupId);
       let result = null;
-      
+
       if (activeMockupConfig && activeMockupConfig.perspectiveCorners) {
         log.info('[MockupPanel] Running local affine warp to corners:', activeMockupConfig.perspectiveCorners);
         result = await generateNativeMockup(
           activeMockupConfig.previewUrl || activeMockupConfig.bg,
           designUrl,
           activeMockupConfig.perspectiveCorners,
-          1200, 
+          1200,
           800,
           'multiply' // standard blend for tshirts/print
         );
       } else {
-         // Fallback if no corners defined
-         result = await dynamicMockupsService.generateMockup({
-            mockupId: activeMockupId,
-            designUrl: designUrl,
-            placement: { top: placement.top, left: placement.left, width: placement.width, rotate: placement.rotate }
-         });
+        // Fallback if no corners defined
+        result = await dynamicMockupsService.generateMockup({
+          mockupId: activeMockupId,
+          designUrl: designUrl,
+          placement: { top: placement.top, left: placement.left, width: placement.width, rotate: placement.rotate },
+        });
       }
 
       if (result) {
@@ -773,7 +802,17 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             flipX: false,
             flipY: false,
             blendMode: 'normal',
-            filters: { brightness: 100, contrast: 100, saturation: 100, blur: 0, opacity: 1, grayscale: 0, sepia: 0, hueRotate: 0, vignette: 0 },
+            filters: {
+              brightness: 100,
+              contrast: 100,
+              saturation: 100,
+              blur: 0,
+              opacity: 1,
+              grayscale: 0,
+              sepia: 0,
+              hueRotate: 0,
+              vignette: 0,
+            },
           });
         });
         addToast(`📦 Social Pack added — ${result.slides.length} slides for ${result.mockupName}!`, 'success');

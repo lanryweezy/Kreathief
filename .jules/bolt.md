@@ -274,3 +274,7 @@
 
 **Learning:** When retrieving subsets of layers based on an array of selected IDs (e.g., `layers.filter(l => selectedIds.includes(l.id))`), the resulting O(N\*M) operation creates a performance bottleneck as both the total layer count and selection size grow. This is especially problematic in Zustand selectors or state derivations that run frequently.
 **Action:** Replace `array.filter(item => ids.includes(item.id))` with a single-pass imperative loop utilizing an O(1) `Set` lookup for the IDs, reducing the operation to O(N).
+
+## 2026-10-18 - Nested array lookups inside useMemo
+**Learning:** Found an instance in `components/panels/MockupPanel.tsx` where `.includes()` (O(M)) was used inside a double `.filter()` loop (O(N)), resulting in O(N*M) performance for dataset filtering. This scales poorly with large lists and forces high CPU/memory usage during re-renders.
+**Action:** When filtering complex data structures, especially within React hooks like `useMemo`, convert target arrays to `Set`s for O(1) lookups and combine multiple filtering passes into a single imperative loop.
