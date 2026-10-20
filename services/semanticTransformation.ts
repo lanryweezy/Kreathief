@@ -18,7 +18,7 @@
  * Everything here is deterministic and logged as human-readable rationale
  * ("why did the agent do that?" → changes[] — KT-055 causal reasoning).
  */
-import { Layer, SemanticLayerRole } from '../types';
+import { Layer, SemanticLayerRole, TextLayer, ShapeLayer, Artboard } from '../types';
 import { smartResizeArtboard } from './smartResizeEngine';
 import { buildDesignIntentGraph, findNodesByPhrase, DesignIntentGraph } from './designIntentGraph';
 
@@ -170,13 +170,12 @@ export function extractProtectedRoles(
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 
 function adjustFilters(layer: Layer, patch: Partial<{ saturation: number; brightness: number; contrast: number; sepia: number }>): void {
-  const anyLayer = layer as any;
   const base = {
     brightness: 100, contrast: 100, saturation: 100, grayscale: 0,
     blur: 0, sepia: 0, hueRotate: 0, vignette: 0, opacity: 1,
-    ...(anyLayer.filters || {}),
+    ...(layer.filters || {}),
   };
-  anyLayer.filters = {
+  layer.filters = {
     ...base,
     saturation: clamp((base.saturation ?? 100) + (patch.saturation || 0), 0, 200),
     brightness: clamp((base.brightness ?? 100) + (patch.brightness || 0), 0, 200),
@@ -192,7 +191,7 @@ function breathe(layers: Layer[], canvas: { width: number; height: number }, fac
   const cy = canvas.height / 2;
   for (const l of layers) {
     if (l.locked || skipRoles.has(roleById.get(l.id) as SemanticLayerRole)) continue;
-    if ((l as any).width >= canvas.width * 0.95 && (l as any).height >= canvas.height * 0.95) continue; // full bleed
+    if (l.width >= canvas.width * 0.95 && l.height >= canvas.height * 0.95) continue; // full bleed
     const nx = cx + (l.x + l.width / 2 - cx) * factor;
     const ny = cy + (l.y + l.height / 2 - cy) * factor;
     l.x = Math.round(nx - l.width / 2);
@@ -230,7 +229,7 @@ export function applyDesignCommand(
       width: size.width,
       height: size.height,
       layers,
-    } as any;
+    } as Artboard;
     const resized = smartResizeArtboard(pseudo, plan.relayoutTo.width, plan.relayoutTo.height, {
       preserveHierarchy: true,
     });
@@ -283,17 +282,17 @@ export function applyDesignCommand(
       // Luxury = air + restraint, never bigger shouting.
       breathe(layers, size, 0.94, skip, graph);
       for (const t of [...headlines, ...subheads]) {
-        const anyT = t as any;
-        if (typeof anyT.fontSize === 'number' && headlines.includes(t)) {
-          anyT.fontSize = Math.round(clamp(anyT.fontSize * 1.06, 8, 400));
+        const textT = t as TextLayer;
+        if (typeof textT.fontSize === 'number' && headlines.includes(t)) {
+          textT.fontSize = Math.round(clamp(textT.fontSize * 1.06, 8, 400));
         }
-        anyT.letterSpacing = clamp((anyT.letterSpacing || 0) + Math.max(0.5, anyT.fontSize * 0.015), 0, 20);
-        if (typeof anyT.lineHeight === 'number') {
-          anyT.lineHeight = clamp(anyT.lineHeight * 1.06, 0.9, 3);
+        textT.letterSpacing = clamp((textT.letterSpacing || 0) + Math.max(0.5, textT.fontSize * 0.015), 0, 20);
+        if (typeof textT.lineHeight === 'number') {
+          textT.lineHeight = clamp(textT.lineHeight * 1.06, 0.9, 3);
         }
       }
       for (const d of decorations) {
-        (d as any).opacity = Math.round(clamp(((d as any).opacity ?? 1) * 0.55, 0.05, 1) * 100) / 100;
+        d.opacity = Math.round(clamp((d.opacity ?? 1) * 0.55, 0.05, 1) * 100) / 100;
       }
       for (const m of media) adjustFilters(m, { saturation: -8, contrast: 4 });
       changes.push('Premium pass: +breathing space, wider tracking, tighter leading scale-up, decorative noise dimmed, imagery desaturated slightly.');
@@ -302,39 +301,39 @@ export function applyDesignCommand(
     case 'youthful': {
       for (const m of [...media, ...decorations]) adjustFilters(m, { saturation: 18, brightness: 4 });
       for (const d of decorations) {
-        const anyD = d as any;
-        if (Math.abs(anyD.rotation || 0) < 1) anyD.rotation = d.y > size.height / 2 ? 3 : -3;
+        if (Math.abs(d.rotation || 0) < 1) d.rotation = d.y > size.height / 2 ? 3 : -3;
       }
       for (const t of headlines) {
-        const anyT = t as any;
-        anyT.fontSize = Math.round(clamp(anyT.fontSize * 1.05, 8, 400));
+        const textT = t as TextLayer;
+        textT.fontSize = Math.round(clamp(textT.fontSize * 1.05, 8, 400));
       }
-      for (const b of badges) (b as any).opacity = 1;
+      for (const b of badges) b.opacity = 1;
       changes.push('Youthful pass: color lifted, headline scaled +5%, decorative elements given slight tilt for energy.');
       break;
     }
     case 'minimal': {
       breathe(layers, size, 0.9, skip, graph);
       for (const d of decorations) {
-        (d as any).opacity = Math.round(clamp(((d as any).opacity ?? 1) * 0.3, 0.03, 1) * 100) / 100;
+        d.opacity = Math.round(clamp((d.opacity ?? 1) * 0.3, 0.03, 1) * 100) / 100;
       }
       for (const b of [...badges, ...footers]) {
-        (b as any).opacity = Math.round(clamp(((b as any).opacity ?? 1) * 0.75, 0.05, 1) * 100) / 100;
+        b.opacity = Math.round(clamp((b.opacity ?? 1) * 0.75, 0.05, 1) * 100) / 100;
       }
       changes.push('Minimal pass: decoration reduced to whisper opacity, margins expanded, secondary info softened.');
       break;
     }
     case 'bold': {
       for (const t of headlines) {
-        const anyT = t as any;
-        anyT.fontSize = Math.round(clamp(anyT.fontSize * 1.14, 8, 400));
-        anyT.fontWeight = '900';
-        anyT.textTransform = 'uppercase';
+        const textT = t as TextLayer;
+        textT.fontSize = Math.round(clamp(textT.fontSize * 1.14, 8, 400));
+        textT.fontWeight = '900';
+        textT.textTransform = 'uppercase';
       }
       for (const c of ctas) {
-        const anyC = c as any;
-        if (anyC.type === 'text') anyC.fontWeight = '800';
-        anyC.opacity = 1;
+        if (c.type === 'text') {
+          (c as TextLayer).fontWeight = '800';
+        }
+        c.opacity = 1;
       }
       for (const m of media) adjustFilters(m, { contrast: 12, saturation: 6 });
       changes.push('Bold pass: headline dominant scale + weight 900, CTA reinforced, imagery contrast pushed.');
@@ -342,14 +341,15 @@ export function applyDesignCommand(
     }
     case 'professional': {
       for (const t of [...subheads, ...footers]) {
-        (t as any).textAlign = 'left';
-        if (typeof (t as any).lineHeight === 'number') {
-          (t as any).lineHeight = clamp((t as any).lineHeight, 1.1, 1.6);
+        const textT = t as TextLayer;
+        textT.textAlign = 'left';
+        if (typeof textT.lineHeight === 'number') {
+          textT.lineHeight = clamp(textT.lineHeight, 1.1, 1.6);
         }
       }
       for (const m of [...media, ...decorations]) adjustFilters(m, { saturation: -10 });
       for (const d of decorations) {
-        (d as any).opacity = Math.round(clamp(((d as any).opacity ?? 1) * 0.7, 0.05, 1) * 100) / 100;
+        d.opacity = Math.round(clamp((d.opacity ?? 1) * 0.7, 0.05, 1) * 100) / 100;
       }
       changes.push('Professional pass: body copy left-aligned with controlled leading, color drama dialed back.');
       break;
@@ -358,9 +358,11 @@ export function applyDesignCommand(
       for (const m of media) adjustFilters(m, { sepia: 8, brightness: 5, saturation: 6 });
       breathe(layers, size, 0.96, skip, graph);
       for (const d of decorations) {
-        const anyD = d as any;
-        if (Math.abs(anyD.cornerRadius ?? 0) === 0 && 'cornerRadius' in anyD) {
-          anyD.cornerRadius = Math.round(((anyD.width || 0) + (anyD.height || 0)) * 0.04);
+        if ('cornerRadius' in d) {
+          const shapeD = d as ShapeLayer;
+          if (Math.abs(shapeD.cornerRadius ?? 0) === 0) {
+            shapeD.cornerRadius = Math.round(((shapeD.width || 0) + (shapeD.height || 0)) * 0.04);
+          }
         }
       }
       changes.push('Warm pass: imagery softened toward warm tones, margins relaxed for an inviting feel.');
