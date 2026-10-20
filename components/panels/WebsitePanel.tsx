@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 const AnyIcons = Icons as any;
 import { Artboard } from '../../types';
@@ -37,16 +38,33 @@ const BREAKPOINTS = [
 ];
 
 export const WebsitePanel: React.FC = () => {
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const setActiveArtboardId = useStore((state) => state.setActiveArtboardId);
-  const updateArtboard = useStore((state) => state.updateArtboard);
-  const deleteArtboard = useStore((state) => state.deleteArtboard);
-  const siteSettings = useStore((state: any) => state.siteSettings) as SiteSettings;
-  const updateSiteSettings = useStore((state: any) => state.updateSiteSettings);
-  const addWebsitePage = useStore((state: any) => state.addWebsitePage);
-  const websiteMode = useStore((state: any) => state.websiteMode);
-  const setWebsiteMode = useStore((state: any) => state.setWebsiteMode);
+  // ⚡ Bolt Optimization: Consolidating multiple useStore hooks into a single useShallow call
+  // Expected impact: Reduces independent store subscriptions and prevents unnecessary re-renders in WebsitePanel
+  const {
+    artboards,
+    activeArtboardId,
+    setActiveArtboardId,
+    updateArtboard,
+    deleteArtboard,
+    siteSettings,
+    updateSiteSettings,
+    addWebsitePage,
+    websiteMode,
+    setWebsiteMode
+  } = useStore(
+    useShallow((state: any) => ({
+      artboards: state.artboards || [],
+      activeArtboardId: state.activeArtboardId,
+      setActiveArtboardId: state.setActiveArtboardId,
+      updateArtboard: state.updateArtboard,
+      deleteArtboard: state.deleteArtboard,
+      siteSettings: state.siteSettings as SiteSettings,
+      updateSiteSettings: state.updateSiteSettings,
+      addWebsitePage: state.addWebsitePage,
+      websiteMode: state.websiteMode,
+      setWebsiteMode: state.setWebsiteMode,
+    }))
+  );
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('pages');
   const [sectionSearch, setSectionSearch] = useState('');
