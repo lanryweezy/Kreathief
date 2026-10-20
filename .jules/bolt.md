@@ -278,3 +278,6 @@
 ## 2026-10-18 - Nested array lookups inside useMemo
 **Learning:** Found an instance in `components/panels/MockupPanel.tsx` where `.includes()` (O(M)) was used inside a double `.filter()` loop (O(N)), resulting in O(N*M) performance for dataset filtering. This scales poorly with large lists and forces high CPU/memory usage during re-renders.
 **Action:** When filtering complex data structures, especially within React hooks like `useMemo`, convert target arrays to `Set`s for O(1) lookups and combine multiple filtering passes into a single imperative loop.
+## 2026-10-20 - Optimize WebsitePanel Zustand subscriptions
+**Learning:** Components with many isolated `useStore` calls, like `WebsitePanel`, can trigger multiple independent subscriptions to the global store. During frequent state mutations elsewhere in the application, this incurs unnecessary CPU overhead to evaluate each subscription independently, even if none of the consumed state has changed.
+**Action:** When extracting multiple top-level properties from the Zustand store, consolidate the `useStore` calls into a single object-returning selector and wrap it in `useShallow` from `zustand/react/shallow`. This creates exactly one subscription that compares all dependencies together, reducing rendering and store evaluation overhead.
