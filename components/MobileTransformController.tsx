@@ -159,7 +159,7 @@ export const MobileTransformController: React.FC = () => {
             <button
               aria-label="Delete Layer"
               onClick={() => useStore.getState().deleteSelected()}
-              className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
+              className="w-full min-h-[44px] py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all"
             >
               Delete Layer
             </button>
