@@ -21,3 +21,10 @@
 **Fix:** Switched `MobileColorPicker`'s dense grid to a horizontally scrollable list (`flex overflow-x-auto`) with explicit 48x48px (`w-12 h-12`) targets. Added `min-h-[44px]` to `MobileToolbar`'s dialog buttons.
 **Desktop impact:** Confirmed none. Both components are strictly scoped to the mobile viewport.
 **Watch for:** Other dense grids (like preset color palettes) mapped directly from desktop configurations that lack responsive reflowing or horizontal scrolling on mobile.
+## 2026-10-21 — Type 2: Touch Target Failure on MobileTransformController Delete Button
+**Issue:** The 'Delete Layer' button in the `MobileTransformController` had a vertical touch target of less than 44px, making it difficult to tap on mobile viewports.
+**Device/browser:** Mobile (all devices/browsers)
+**Root cause:** The button had a text size of `text-[10px]` and vertical padding of `py-2` without an explicit minimum height constraint, yielding a touch target smaller than the required 44x44px.
+**Fix:** Added `min-h-[44px]` to the 'Delete Layer' button's class list to ensure it explicitly meets the 44px minimum vertical touch target requirement.
+**Desktop impact:** None, as `MobileTransformController` is strictly conditionally rendered on mobile viewports (via `md:hidden` and mobile device checks).
+**Watch for:** Other conditionally rendered quick action or confirmation buttons (like those inside floating panels or popovers) that might lack explicit 44px minimum touch target dimensions.
