@@ -111,3 +111,6 @@
 ## 2026-10-20 - Removed unnecessary `as any` casts in semanticTransformation.ts
 **Learning:** Base properties on `Layer` interface variants (e.g. `width`, `height`, `opacity`, `rotation`, `filters`) can be accessed directly without an `as any` cast. For properties specific to a certain variant (e.g. `fontSize` on `TextLayer`), it is better to cast to the explicit type (`as TextLayer`) to maintain type safety and remove global escapes.
 **Action:** Use explicit property access or specific type casts rather than global `as any` escapes.
+## 2026-10-22 - Duplicated color logic
+**Learning:** `rgbToHex` and `getLuminance` logic was duplicated across multiple color utilities (`utils/colorExtractor.ts`, `utils/color/paletteExtractor.ts`).
+**Action:** Always check `utils/colorUtils.ts` first before implementing standard color manipulations like hex conversions or luminance calculations.
