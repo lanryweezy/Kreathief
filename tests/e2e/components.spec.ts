@@ -47,7 +47,7 @@ test.describe('Component Functionality', () => {
 
   test('Text Panel adds text', async ({ page }) => {
     // Open Text Tab using data-testid
-    await page.getByRole('button', { name: 'Text' }).click();
+    await page.getByRole('button', { name: 'Text', exact: true }).click();
 
     // Wait for "Add a heading"
     await expect(page.getByText('Add a heading')).toBeVisible({ timeout: 10000 });
@@ -72,7 +72,7 @@ test.describe('Component Functionality', () => {
 
   test('Elements Panel adds shape', async ({ page }) => {
     // Open Elements Tab
-    await page.getByRole('button', { name: 'Components' }).click();
+    await page.getByRole('button', { name: 'Elements' }).click();
 
     // Ensure we are on Shapes tab
     const shapesTab = page.locator('button:has-text("Shapes")').first();
