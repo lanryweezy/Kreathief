@@ -86,15 +86,22 @@
 \n## 2026-08-25 - Safely Casting Subtype Properties on Union Types\n\n**Learning:** When removing `as any` casts for properties that only exist on specific subtypes of a union type (e.g., `color` or `fontFamily` on `Partial<Layer>`), it's important to cast the object to the specific partial subtype (e.g., `as Partial<TextLayer>`) rather than keeping `as any`. This maintains type safety while resolving 'Property does not exist on type' errors.\n**Action:** When resolving TypeScript property access errors on union types where a property only exists on one variant, use a precise subtype cast like `as Partial<TextLayer>` instead of `as any` to restore type safety without changing behavior.
 
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
+
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+
 ## 2024-05-24 - Extract duplicate browser API capability checks
+
 **Learning:** Repetitive `if ('api' in navigator)` checks for browser APIs (like `vibrate`) across multiple utility methods create unnecessary boilerplate and inconsistent error handling (some had try/catch, some didn't).
 **Action:** When creating utility wrappers for browser APIs with multiple methods, extract the capability check and safe execution (try/catch) into a single private helper function within the module.
+
 ## 2026-09-14 - Removed Unnecessary Type Casts for Layer Bounds
+
 **Learning:** Found multiple instances where the `width` and `height` properties of layer objects were accessed using a redundant type cast, e.g., `(layer as any).height`. Since all specific layer variants (TextLayer, ImageLayer, etc.) extend `LayerBase` defined in `types.ts`, they inherently possess these numeric properties.
 **Action:** When accessing base layer properties such as `width`, `height`, `x`, and `y`, avoid type casting `(layer as any)`. Simply access the properties directly via the layer reference since the `LayerBase` type correctly guarantees them.
+
 ## 2026-10-04 - Removed Unnecessary Type Casts in store/tools.ts
+
 **Learning:** Found multiple instances in `store/tools.ts` where layers and store state variables were unnecessarily cast to `any` (e.g., `nodes as any`, `state as any`, `(layer as any).flipX`). Using explicit typing or leveraging the already defined `Layer` subtypes (like casting to `Extract<Layer, { flipX: boolean }>`) allows TypeScript to correctly enforce property access without resorting to the global `any` escape hatch.
 **Action:** Always verify if a type cast `as any` is actually required. Many times, proper interface definitions exist and can be utilized natively or via TS utility types (like `Extract`) to retain type safety while solving compilation errors.
 
@@ -104,10 +111,18 @@
 **Action:** Always favor structural explicit interface casts (e.g. `as TextLayer`) over complex typescript utility workarounds (`Extract<Layer, ...>`) or the global `as any` escape hatch when working with union types after checking the discriminator (e.g. `layer.type`). Remove casts entirely if the accessed property resides on the base object interface.
 
 ## 2026-10-14 - Removed unused duplicate CompanyLogos component
+
 **Learning:** Found an unused duplicate component file `components/landing/CompanyLogos.tsx` that served the exact same purpose as `components/CompanyLogos.tsx`. This is a recurring pattern of structural debt where domain files are duplicated across subdirectories.
 **Action:** Always verify if a domain utility or component file is duplicated across directories (e.g. `components/` vs `components/landing/`). If found, consolidate usages to the root version and safely delete the redundant file to eliminate structural confusion.
+
 ## 2026-10-17 - Removed unused duplicate DashboardSkeleton component\n**Learning:** Found an unused duplicate component file `components/DashboardSkeleton.tsx` that served the exact same purpose as the `DashboardSkeleton` export inside `components/Skeleton.tsx`. This is a recurring pattern of structural debt where domain files are duplicated across subdirectories or single-file exports.\n**Action:** Always verify if a domain utility or component file is duplicated across directories or within utility modules (e.g. `components/DashboardSkeleton.tsx` vs `components/Skeleton.tsx`). If found, consolidate usages to the root version and safely delete the redundant file to eliminate structural confusion.\n
 
 ## 2026-10-20 - Removed unnecessary `as any` casts in semanticTransformation.ts
+
 **Learning:** Base properties on `Layer` interface variants (e.g. `width`, `height`, `opacity`, `rotation`, `filters`) can be accessed directly without an `as any` cast. For properties specific to a certain variant (e.g. `fontSize` on `TextLayer`), it is better to cast to the explicit type (`as TextLayer`) to maintain type safety and remove global escapes.
 **Action:** Use explicit property access or specific type casts rather than global `as any` escapes.
+
+## 2026-10-22 - Duplicated color logic
+
+**Learning:** `rgbToHex` and `getLuminance` logic was duplicated across multiple color utilities (`utils/colorExtractor.ts`, `utils/color/paletteExtractor.ts`).
+**Action:** Always check `utils/colorUtils.ts` first before implementing standard color manipulations like hex conversions or luminance calculations.

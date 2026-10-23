@@ -1,3 +1,4 @@
+import { rgbToHex } from './colorUtils';
 /**
  * Color Extraction Utility
  *
@@ -9,14 +10,6 @@ interface RGB {
   r: number;
   g: number;
   b: number;
-}
-
-/**
- * Convert RGB to hex string.
- */
-function rgbToHex(r: number, g: number, b: number): string {
-  const toHex = (c: number) => Math.round(c).toString(16).padStart(2, '0');
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 /**

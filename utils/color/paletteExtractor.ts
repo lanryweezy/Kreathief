@@ -4,6 +4,7 @@
  */
 
 import { Layer, Artboard } from '../../types';
+import { rgbToHex, getLuminance } from '../colorUtils';
 
 export interface ExtractedColor {
   hex: string;
@@ -19,14 +20,6 @@ export interface ExtractedPalette {
   dark: string;
   light: string;
   allColors: string[];
-}
-
-function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map((x) => Math.round(x).toString(16).padStart(2, '0')).join('');
-}
-
-function getLuminance(r: number, g: number, b: number): number {
-  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 }
 
 /**

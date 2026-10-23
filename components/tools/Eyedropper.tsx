@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Icons } from '../../constants';
+import { rgbToHex } from '../../utils/colorUtils';
 
 interface EyedropperProps {
   onColorPick: (color: string) => void;
@@ -92,16 +93,6 @@ export const Eyedropper: React.FC<EyedropperProps> = ({ onColorPick, onClose, is
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isActive, onColorPick, onClose, pickedColor]);
-
-  // Simple RGB to Hex helper
-  const rgbToHex = (r: number, g: number, b: number): string => {
-    const toHex = (n: number) => {
-      const hex = Math.max(0, Math.min(255, Math.round(n))).toString(16);
-      return hex.length === 1 ? '0' + hex : hex;
-    };
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  };
-
   if (!isActive) {
     return null;
   }
