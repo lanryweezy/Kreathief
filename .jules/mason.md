@@ -126,3 +126,7 @@
 
 **Learning:** `rgbToHex` and `getLuminance` logic was duplicated across multiple color utilities (`utils/colorExtractor.ts`, `utils/color/paletteExtractor.ts`).
 **Action:** Always check `utils/colorUtils.ts` first before implementing standard color manipulations like hex conversions or luminance calculations.
+
+## 2026-10-24 - Duplicate SlideThumbnail component
+**Learning:** Found a highly duplicated `SlideThumbnail` component in both `components/panels/CarouselPanel.tsx` and `components/panels/SlidesPanel.tsx` that implements complex canvas rendering logic for thumbnails.
+**Action:** Consolidate structural duplication by extracting identical private component logic to shared common component files like `components/common/SlideThumbnail.tsx` to keep a single source of truth.
