@@ -5,85 +5,13 @@ const AnyIcons = Icons as any;
 import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
+import { SlideThumbnail } from '../common/SlideThumbnail';
 const generateCarouselDesign = null as unknown as any;
 import JSZip from 'jszip';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
 
 // ─── Thumbnail renderer — canvas-based snapshot ───────────────────────────────
-
-const SlideThumbnail: React.FC<{ artboard: Artboard; isActive: boolean; format: 'square' | 'portrait' }> = ({
-  artboard,
-  isActive,
-  format,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) {
-      return;
-    }
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      return;
-    }
-
-    const W = canvas.width;
-    const H = canvas.height;
-    const scaleX = W / artboard.width;
-    const scaleY = H / artboard.height;
-
-    // Background
-    ctx.fillStyle = artboard.backgroundColor || '#1e293b';
-    ctx.fillRect(0, 0, W, H);
-
-    // Render each layer
-    artboard.layers.forEach((layer: any) => {
-      if (layer.visible === false) {
-        return;
-      }
-      ctx.globalAlpha = layer.opacity ?? 1;
-
-      const lx = (layer.x || 0) * scaleX;
-      const ly = (layer.y || 0) * scaleY;
-      const lw = (layer.width || 0) * scaleX;
-      const lh = (layer.height || 0) * scaleY;
-
-      if (layer.type === 'text') {
-        ctx.fillStyle = layer.color || '#ffffff';
-        const fontSize = Math.max(2, (layer.fontSize || 16) * Math.min(scaleX, scaleY));
-        ctx.font = `${layer.fontWeight || '400'} ${fontSize}px ${layer.fontFamily || 'sans-serif'}`;
-        ctx.textAlign = (layer.textAlign as CanvasTextAlign) || 'left';
-        ctx.fillText(layer.text || '', lx, ly + fontSize, lw);
-      } else if (['rectangle', 'circle', 'hexagon', 'diamond'].includes(layer.type)) {
-        ctx.fillStyle = layer.color || '#334155';
-        if (layer.type === 'circle') {
-          ctx.beginPath();
-          ctx.ellipse(lx + lw / 2, ly + lh / 2, lw / 2, lh / 2, 0, 0, Math.PI * 2);
-          ctx.fill();
-        } else {
-          ctx.beginPath();
-          ctx.roundRect(lx, ly, lw, lh, (layer.cornerRadius || 0) * Math.min(scaleX, scaleY));
-          ctx.fill();
-        }
-      }
-
-      ctx.globalAlpha = 1;
-    });
-  }, [artboard, artboard.layers.length]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      width={180}
-      height={format === 'portrait' ? 225 : 180}
-      className={`w-full rounded-lg border transition-all duration-200 ${
-        isActive ? 'border-brand-500/80 shadow-lg shadow-brand-500/10' : 'border-surface-dark-0'
-      }`}
-    />
-  );
-};
 
 // ─── Main CarouselPanel ───────────────────────────────────────────────────────
 
@@ -442,7 +370,7 @@ export const CarouselPanel: React.FC = () => {
                       {idx + 1}
                     </div>
 
-                    <SlideThumbnail artboard={slide} isActive={isActive} format={carouselFormat} />
+                    <SlideThumbnail artboard={slide} isActive={isActive} width={180} height={carouselFormat === 'portrait' ? 225 : 180} />
 
                     <div className="mt-2 flex items-center justify-between px-1">
                       <span className="text-xs font-medium text-white truncate pr-2">{slide.name}</span>
