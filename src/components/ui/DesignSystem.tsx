@@ -403,7 +403,7 @@ export const Modal: React.FC<ModalProps> = ({ open, onClose, title, children, si
             <h2 className="text-body font-semibold text-content-primary">{title}</h2>
             <button
               onClick={onClose}
-              className="p-1 text-content-muted hover:text-content-primary rounded-md hover:bg-surface-5 transition-colors"
+              className="p-1 text-content-muted hover:text-content-primary rounded-md hover:bg-surface-5 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
               aria-label="Close"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -516,7 +516,7 @@ export const ToastContainer: React.FC<{ toasts: ToastItem[]; onDismiss: (id: str
         <span className="flex-1">{t.message}</span>
         <button
           onClick={() => onDismiss(t.id)}
-          className="text-content-muted hover:text-content-primary"
+          className="text-content-muted hover:text-content-primary min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Dismiss"
         >
           ×
