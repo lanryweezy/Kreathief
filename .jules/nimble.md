@@ -28,3 +28,10 @@
 **Fix:** Added `min-h-[44px]` to the 'Delete Layer' button's class list to ensure it explicitly meets the 44px minimum vertical touch target requirement.
 **Desktop impact:** None, as `MobileTransformController` is strictly conditionally rendered on mobile viewports (via `md:hidden` and mobile device checks).
 **Watch for:** Other conditionally rendered quick action or confirmation buttons (like those inside floating panels or popovers) that might lack explicit 44px minimum touch target dimensions.
+## 2026-10-24 — Type 2: Touch Target Failure on Modal & Toast Close Buttons
+**Issue:** The close button in generic Modals and dismiss button in Toasts (`ToastContainer`) were significantly smaller than the minimum 44x44px touch target requirement, making it difficult to dismiss them reliably on mobile touchscreens without mistapping.
+**Device/browser:** Mobile (all devices/browsers)
+**Root cause:** The Modal close button relied on simple `p-1` padding surrounding a 14x14px SVG, yielding a total clickable area of only 22x22px. The Toast dismiss button lacked any explicit padding or minimum size.
+**Fix:** Added explicit minimum dimensions `min-w-[44px] min-h-[44px]` along with `flex items-center justify-center` to both the Modal close button and the Toast dismiss button in `DesignSystem.tsx`. This expands the invisible tappable area to 44x44px while keeping the icon itself visually centered and unchanged in size.
+**Desktop impact:** None. Since both the Modal header and the Toast container use responsive flexbox layouts that tolerate the slightly wider bounding box of the button, the desktop design remains visually identical and balanced.
+**Watch for:** Ensure that adding `flex items-center justify-center` alongside generic `p-1` padding does not inadvertently cause misalignment inside other deeply nested floating UI components that might expect rigid inline-block button behaviors.
