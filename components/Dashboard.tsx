@@ -694,6 +694,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               className="w-10 h-10 rounded-full border-2 border-white/10 group-hover:border-brand-500 focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/50 transition-colors overflow-hidden p-0.5 cursor-pointer relative"
               title="Click to open account hub & menu"
               aria-label="Open account menu"
+              aria-expanded={profileDropdownOpen}
+              aria-haspopup="true"
             >
               <img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Profile" />
             </button>
