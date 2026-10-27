@@ -81,3 +81,7 @@
 ## 2026-10-17 - Screen Reader Accessibility for Export Format Buttons
 **Learning:** When export format buttons (e.g. PNG, JPG, MP4) contain only the format acronym as text, the context may not be immediately clear to screen reader users (e.g. it might just read 'PNG' instead of 'Export as PNG'). Adding an explicit `aria-label` provides the necessary context.
 **Action:** Always include a context-specific `aria-label` attribute (e.g., `aria-label="Export as PNG format"`) on format selection buttons to ensure visually impaired users understand the action associated with the option.
+
+## 2026-10-27 - Screen Reader Accessibility for Custom Profile Menus
+**Learning:** When building custom profile dropdown menus (like the one in `Dashboard.tsx`), relying only on `aria-label` is insufficient for screen readers. Users need to know that the button controls a menu and whether it is currently open or closed.
+**Action:** Always include `aria-haspopup="true"` and a dynamic `aria-expanded={isOpen}` attribute on custom profile menu trigger buttons to ensure screen readers provide the correct context and state to visually impaired users.
