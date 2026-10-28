@@ -3,7 +3,10 @@ import type { StoreState } from '../../useStore';
 import { Layer, TextLayer, ShapeLayer, Artboard } from '../../../types';
 import { applyAutoLayout } from './utils';
 
+import { ComponentDefinition } from "./componentSlice";
+
 export interface LayerSlice {
+  componentDefinitions?: Map<string, ComponentDefinition>;
   artboards: Artboard[];
   activeArtboardId: string;
   selectedLayerIds: string[];
