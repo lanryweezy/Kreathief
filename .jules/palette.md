@@ -85,3 +85,7 @@
 ## 2026-10-27 - Screen Reader Accessibility for Custom Profile Menus
 **Learning:** When building custom profile dropdown menus (like the one in `Dashboard.tsx`), relying only on `aria-label` is insufficient for screen readers. Users need to know that the button controls a menu and whether it is currently open or closed.
 **Action:** Always include `aria-haspopup="true"` and a dynamic `aria-expanded={isOpen}` attribute on custom profile menu trigger buttons to ensure screen readers provide the correct context and state to visually impaired users.
+
+## 2024-10-28 - Screen Reader Accessibility for Presentation Controls
+**Learning:** Icon-only navigation buttons in presentation or slideshow modes (like next/previous, list/grid toggle, duplicate/delete/rename) often lack sufficient context for screen readers. Using only a `title` attribute is helpful for mouse users but does not reliably provide accessible names for assistive technologies. Additionally, view toggles need explicit `aria-pressed` states.
+**Action:** Always include a descriptive `aria-label` on icon-only presentation controls to explicitly define their action, and use `aria-pressed={boolean}` for stateful view toggle buttons.

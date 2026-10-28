@@ -1,0 +1,4 @@
+💡 What: Added missing `aria-label` and `aria-pressed` attributes to icon-only control buttons within the presentation/slideshow mode (`SlidesPanel.tsx`).
+🎯 Why: Without explicit labels, assistive technologies like screen readers fail to communicate the purpose of icon-only buttons (like "Next", "Previous", "Exit", "Duplicate", etc.) to visually impaired users.
+📸 Before/After: Before, buttons were only visually distinguishable by their icon. After, they have descriptive ARIA labels to ensure full semantic meaning. (No visual changes).
+♿ Accessibility: Ensures full WCAG compliance for presentation navigation controls for screen reader users by providing actionable button contexts and conveying active toggle states (e.g. List view vs Grid view).

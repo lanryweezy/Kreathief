@@ -158,6 +158,8 @@ export const SlidesPanel: React.FC = () => {
                 onClick={() => setView(view === 'grid' ? 'list' : 'grid')}
                 className="p-1.5 rounded-lg bg-surface-dark-0 hover:bg-surface-dark-1 text-gray-400 hover:text-white transition-colors"
                 title={view === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                aria-label={view === 'grid' ? 'Switch to list view' : 'Switch to grid view'}
+                aria-pressed={view === 'grid'}
               >
                 {view === 'grid' ? (
                   <Icons.LayoutGrid className="w-3.5 h-3.5" />
@@ -184,6 +186,7 @@ export const SlidesPanel: React.FC = () => {
               disabled={activeIndex === 0}
               className="p-1 rounded bg-surface-dark-0 hover:bg-surface-dark-1 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               title="Previous slide"
+              aria-label="Previous slide"
             >
               <Icons.ChevronLeft className="w-3.5 h-3.5" />
             </button>
@@ -198,6 +201,7 @@ export const SlidesPanel: React.FC = () => {
               disabled={activeIndex >= artboards.length - 1}
               className="p-1 rounded bg-surface-dark-0 hover:bg-surface-dark-1 text-gray-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed transition-all"
               title="Next slide"
+              aria-label="Next slide"
             >
               <Icons.ChevronRight className="w-3.5 h-3.5" />
             </button>
@@ -403,7 +407,8 @@ export const SlidesPanel: React.FC = () => {
                           duplicateArtboard(artboard.id);
                         }}
                         className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-brand-300 hover:bg-surface-dark-2 transition-colors shadow"
-                        title="Duplicate"
+                        title="Duplicate slide"
+                        aria-label="Duplicate slide"
                       >
                         <Icons.Copy className="w-3.5 h-3.5" />
                       </button>
@@ -413,7 +418,8 @@ export const SlidesPanel: React.FC = () => {
                           handleRename(artboard.id, artboard.name);
                         }}
                         className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-white transition-colors shadow"
-                        title="Rename"
+                        title="Rename slide"
+                        aria-label="Rename slide"
                       >
                         <Icons.Edit className="w-3.5 h-3.5" />
                       </button>
@@ -424,7 +430,8 @@ export const SlidesPanel: React.FC = () => {
                             deleteArtboard(artboard.id);
                           }}
                           className="p-1.5 rounded-lg bg-surface-dark-1/90 text-gray-300 hover:text-red-400 transition-colors shadow"
-                          title="Delete"
+                          title="Delete slide"
+                          aria-label="Delete slide"
                         >
                           <Icons.Trash className="w-3.5 h-3.5" />
                         </button>
@@ -529,7 +536,8 @@ export const SlidesPanel: React.FC = () => {
                           duplicateArtboard(artboard.id);
                         }}
                         className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-brand-300 transition-colors"
-                        title="Duplicate"
+                        title="Duplicate slide"
+                        aria-label="Duplicate slide"
                       >
                         <Icons.Copy className="w-3.5 h-3.5" />
                       </button>
@@ -539,7 +547,8 @@ export const SlidesPanel: React.FC = () => {
                           handleRename(artboard.id, artboard.name);
                         }}
                         className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-white transition-colors"
-                        title="Rename"
+                        title="Rename slide"
+                        aria-label="Rename slide"
                       >
                         <Icons.Edit className="w-3.5 h-3.5" />
                       </button>
@@ -550,7 +559,8 @@ export const SlidesPanel: React.FC = () => {
                             deleteArtboard(artboard.id);
                           }}
                           className="p-1 rounded hover:bg-surface-dark-2 text-gray-400 hover:text-red-400 transition-colors"
-                          title="Delete"
+                          title="Delete slide"
+                          aria-label="Delete slide"
                         >
                           <Icons.Trash className="w-3.5 h-3.5" />
                         </button>
@@ -802,6 +812,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
         <button
           onClick={onClose}
           className="flex items-center gap-2 px-3 py-1.5 rounded bg-surface-dark-1 hover:bg-red-500/20 hover:text-red-400 text-xs text-gray-300 transition-colors"
+          aria-label="End presentation"
         >
           <Icons.X className="w-4 h-4" />
           End Show
@@ -837,14 +848,16 @@ const PresenterView: React.FC<PresenterViewProps> = ({
             <button
               onClick={() => setCurrent((c) => Math.max(c - 1, 0))}
               className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 hover:bg-brand-500 flex items-center justify-center border border-white/10 transition-all backdrop-blur"
-              title="Previous (←)"
+              title="Previous slide (←)"
+              aria-label="Previous slide"
             >
               <Icons.ChevronLeft className="w-6 h-6 text-white" />
             </button>
             <button
               onClick={() => setCurrent((c) => Math.min(c + 1, artboards.length - 1))}
               className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/40 hover:bg-brand-500 flex items-center justify-center border border-white/10 transition-all backdrop-blur"
-              title="Next (→ or Space)"
+              title="Next slide (→ or Space)"
+              aria-label="Next slide"
             >
               <Icons.ChevronRight className="w-6 h-6 text-white" />
             </button>
@@ -952,6 +965,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
             onClick={() => setCurrent((c) => Math.max(c - 1, 0))}
             disabled={current === 0}
             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white disabled:opacity-30 transition-all"
+            aria-label="Previous slide"
           >
             <Icons.ChevronLeft className="w-4 h-4" />
           </button>
@@ -959,6 +973,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
             onClick={() => setCurrent((c) => Math.min(c + 1, artboards.length - 1))}
             disabled={current >= artboards.length - 1}
             className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white disabled:opacity-30 transition-all"
+            aria-label="Next slide"
           >
             <Icons.ChevronRight className="w-4 h-4" />
           </button>
@@ -969,6 +984,7 @@ const PresenterView: React.FC<PresenterViewProps> = ({
           onClick={onClose}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-semibold rounded-lg transition-colors"
           title="Exit presentation (Esc)"
+          aria-label="Exit presentation"
         >
           <Icons.X className="w-3.5 h-3.5" />
           Exit
