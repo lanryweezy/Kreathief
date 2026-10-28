@@ -55,14 +55,14 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const componentId = `comp_${uuidv4()}`;
     const layer = foundInfo.layer;
     const defaultVarId = `var_${uuidv4()}`;
-    const defs = new Map(((state as any).componentDefinitions as Map<string, ComponentDefinition>) || new Map());
+    const defs = new Map((state.componentDefinitions as Map<string, ComponentDefinition>) || new Map());
     defs.set(componentId, {
       id: componentId,
       name: layer.name || 'Component',
       variants: [{ id: defaultVarId, name: 'Default', properties: {} }],
       defaultVariantId: defaultVarId,
     });
-    set({ componentDefinitions: defs } as any);
+    set({ componentDefinitions: defs });
     set((s: any) => ({
       artboards: s.artboards.map((a: Artboard) =>
         a.id === foundInfo.artboard.id
@@ -81,13 +81,13 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     }
 
     const instance: Layer = {
-      ...(structuredClone(master) as any),
-      id: `${(master as any).type}_instance_${uuidv4()}`,
+      ...structuredClone(master),
+      id: `${master.type}_instance_${uuidv4()}`,
       masterId: componentId,
       componentId: undefined,
       overrides: [],
-      x: (master as any).x + 40,
-      y: (master as any).y + 40,
+      x: master.x + 40,
+      y: master.y + 40,
     };
     const activeArtboardId = state.activeArtboardId;
     set((s: any) => ({
@@ -117,7 +117,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
           const updated = { ...l };
           for (const prop of COMPONENT_SYNCABLE_PROPERTIES) {
             if (!overrides.includes(prop)) {
-              (updated as any)[prop] = (masterRef as any)[prop];
+              Object.assign(updated, { [prop]: (masterRef as any)[prop] });
             }
           }
           return updated;
@@ -148,7 +148,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     get().saveToHistory?.();
     const state = get();
     const foundInfo = findLayerById(state.artboards, id);
-    if (!foundInfo || !('masterId' in foundInfo.layer) || !(foundInfo.layer as any).masterId) {
+    if (!foundInfo || !foundInfo.layer.masterId) {
       get().updateLayer(id, partial);
       return;
     }
@@ -156,7 +156,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const tl = foundInfo.layer as Layer;
     const overrides = new Set<string>(tl.overrides || []);
     for (const key of Object.keys(partial)) {
-      if (COMPONENT_SYNCABLE_PROPERTIES.includes(key as any)) {
+      if (COMPONENT_SYNCABLE_PROPERTIES.includes(key as typeof COMPONENT_SYNCABLE_PROPERTIES[number])) {
         overrides.add(key);
       }
     }
@@ -249,7 +249,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const ci = foundInstance.layer;
     const nm = newMaster as Layer;
     const swapped: Layer = {
-      ...(structuredClone(nm) as any),
+      ...structuredClone(newMaster),
       id: ci.id,
       masterId: newMasterId,
       componentId: undefined,
@@ -282,12 +282,12 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
 
   getComponentDefinition: (componentId: string) => {
     const state = get();
-    return ((state as any).componentDefinitions as Map<string, ComponentDefinition>)?.get(componentId);
+    return (state.componentDefinitions as Map<string, ComponentDefinition>)?.get(componentId);
   },
 
   addVariant: (componentId: string, variantName: string, properties: Record<string, any>) => {
     const state = get();
-    const defs = new Map(((state as any).componentDefinitions as Map<string, ComponentDefinition>) || new Map());
+    const defs = new Map((state.componentDefinitions as Map<string, ComponentDefinition>) || new Map());
     const def = defs.get(componentId);
     if (!def) {
       return;
@@ -295,18 +295,18 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
     const variant: ComponentVariant = { id: `var_${uuidv4()}`, name: variantName, properties };
     def.variants.push(variant);
     defs.set(componentId, { ...def });
-    set({ componentDefinitions: defs } as any);
+    set({ componentDefinitions: defs });
   },
 
   applyVariant: (instanceId: string, variantId: string) => {
     const state = get();
     const foundInfo = findLayerById(state.artboards, instanceId);
-    if (!foundInfo || !('masterId' in foundInfo.layer) || !(foundInfo.layer as any).masterId) {
+    if (!foundInfo || !foundInfo.layer.masterId) {
       return;
     }
 
-    const def = ((state as any).componentDefinitions as Map<string, ComponentDefinition>)?.get(
-      (foundInfo.layer as any).masterId
+    const def = (state.componentDefinitions as Map<string, ComponentDefinition>)?.get(
+      foundInfo.layer.masterId
     );
     if (!def) {
       return;
@@ -316,7 +316,7 @@ export const createComponentSlice: StateCreator<StoreState, [], [], Partial<Laye
       return;
     }
 
-    const overrides = new Set<string>((foundInfo.layer as any).overrides || []);
+    const overrides = new Set<string>(foundInfo.layer.overrides || []);
     const partial: Record<string, any> = {};
     for (const [key, value] of Object.entries(variant.properties)) {
       overrides.add(key);
