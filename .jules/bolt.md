@@ -281,3 +281,8 @@
 ## 2026-10-20 - Optimize WebsitePanel Zustand subscriptions
 **Learning:** Components with many isolated `useStore` calls, like `WebsitePanel`, can trigger multiple independent subscriptions to the global store. During frequent state mutations elsewhere in the application, this incurs unnecessary CPU overhead to evaluate each subscription independently, even if none of the consumed state has changed.
 **Action:** When extracting multiple top-level properties from the Zustand store, consolidate the `useStore` calls into a single object-returning selector and wrap it in `useShallow` from `zustand/react/shallow`. This creates exactly one subscription that compares all dependencies together, reducing rendering and store evaluation overhead.
+
+## 2024-11-20 - Optimize Zustand subscriptions in CarouselPanel
+
+**Learning:** When components utilize numerous independent `useStore` extractions (like the 12 observed in `CarouselPanel`), it creates separate Zustand store subscriptions. During frequent state mutations elsewhere in the application, this incurs unnecessary CPU overhead to evaluate each subscription independently, even if none of the consumed state has changed.
+**Action:** When extracting multiple top-level properties from the Zustand store, consolidate the `useStore` calls into a single object-returning selector and wrap it in `useShallow` from `zustand/react/shallow`. Ensure defaults (like fallback arrays or values) are applied during destructuring rather than using logical OR (`||`) within the selector to preserve strict equality.
