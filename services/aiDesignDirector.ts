@@ -16,6 +16,67 @@ import { DEFAULT_CUTOUT_MODEL, DEFAULT_VECTOR_ACCENT_MODEL, DEFAULT_BACKGROUND_M
 import { vectorTracer } from './vectorTracer';
 import { removeBackground as freepikRemoveBackground } from './freepikService';
 
+
+const ARTBOARD_SCHEMA = {
+  type: SchemaType.OBJECT,
+  properties: {
+    title: { type: SchemaType.STRING },
+    description: { type: SchemaType.STRING },
+    backgroundColor: { type: SchemaType.STRING },
+    backgroundGradient: {
+      type: SchemaType.OBJECT,
+      properties: {
+        type: { type: SchemaType.STRING },
+        angle: { type: SchemaType.NUMBER },
+        colors: {
+          type: SchemaType.ARRAY,
+          items: {
+            type: SchemaType.OBJECT,
+            properties: { color: { type: SchemaType.STRING }, position: { type: SchemaType.NUMBER } },
+            required: ['color', 'position'],
+          },
+        },
+      },
+    },
+    layers: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          type: { type: SchemaType.STRING }, name: { type: SchemaType.STRING },
+          x: { type: SchemaType.NUMBER }, y: { type: SchemaType.NUMBER },
+          width: { type: SchemaType.NUMBER }, height: { type: SchemaType.NUMBER },
+          rotation: { type: SchemaType.NUMBER }, opacity: { type: SchemaType.NUMBER },
+          color: { type: SchemaType.STRING },
+          gradient: {
+            type: SchemaType.OBJECT,
+            properties: {
+              type: { type: SchemaType.STRING }, angle: { type: SchemaType.NUMBER },
+              colors: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: { color: { type: SchemaType.STRING }, position: { type: SchemaType.NUMBER } },
+                  required: ['color', 'position'],
+                },
+              },
+            },
+          },
+          cornerRadius: { type: SchemaType.OBJECT, properties: { tl: { type: SchemaType.NUMBER }, tr: { type: SchemaType.NUMBER }, br: { type: SchemaType.NUMBER }, bl: { type: SchemaType.NUMBER } } },
+          stroke: { type: SchemaType.OBJECT, properties: { color: { type: SchemaType.STRING }, width: { type: SchemaType.NUMBER } } },
+          shadow: { type: SchemaType.OBJECT, properties: { color: { type: SchemaType.STRING }, blur: { type: SchemaType.NUMBER }, offsetX: { type: SchemaType.NUMBER }, offsetY: { type: SchemaType.NUMBER } } },
+          blendMode: { type: SchemaType.STRING }, text: { type: SchemaType.STRING },
+          fontSize: { type: SchemaType.NUMBER }, fontWeight: { type: SchemaType.STRING },
+          fontFamily: { type: SchemaType.STRING }, textAlign: { type: SchemaType.STRING },
+          letterSpacing: { type: SchemaType.NUMBER }, lineHeight: { type: SchemaType.NUMBER },
+          textTransform: { type: SchemaType.STRING }, textShadow: { type: SchemaType.OBJECT, properties: { color: { type: SchemaType.STRING }, blur: { type: SchemaType.NUMBER }, offsetX: { type: SchemaType.NUMBER }, offsetY: { type: SchemaType.NUMBER } } },
+        },
+        required: ['type', 'name', 'x', 'y', 'width', 'height'],
+      },
+    },
+  },
+};
+
 /**
  * ============================================
  * NEW TWO-STAGE AI DESIGN WORKFLOW
@@ -2787,6 +2848,8 @@ Goal: Production-ready, highly polished multi-layer artboard with at least 10 di
       generationConfig: {
         responseMimeType: 'application/json',
         temperature: 0.75,
+        // 🤖 Astra: Added explicit responseSchema to enforce valid structural output and eliminate empty parsing crashes
+        responseSchema: ARTBOARD_SCHEMA,
       },
     });
 
