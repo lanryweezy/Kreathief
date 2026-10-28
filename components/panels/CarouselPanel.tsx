@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 const AnyIcons = Icons as any;
 import { Artboard } from '../../types';
@@ -16,23 +17,39 @@ import { getAIErrorMessage } from '../../utils/errorMessages';
 // ─── Main CarouselPanel ───────────────────────────────────────────────────────
 
 export const CarouselPanel: React.FC = () => {
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const setActiveArtboardId = useStore((state) => state.setActiveArtboardId);
-  const addArtboard = useStore((state) => state.addArtboard);
-  const deleteArtboard = useStore((state) => state.deleteArtboard);
-  const updateArtboard = useStore((state) => state.updateArtboard);
+  const {
+    artboards = [],
+    activeArtboardId,
+    setActiveArtboardId,
+    addArtboard,
+    deleteArtboard,
+    updateArtboard,
+    carouselFormat = 'portrait',
+    setCarouselFormat,
+    slideCount = 5,
+    setSlideCount,
+    isContinuousMode = false,
+    setIsContinuousMode,
+  } = useStore(
+    useShallow((state: any) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      setActiveArtboardId: state.setActiveArtboardId,
+      addArtboard: state.addArtboard,
+      deleteArtboard: state.deleteArtboard,
+      updateArtboard: state.updateArtboard,
+      carouselFormat: state.carouselFormat,
+      setCarouselFormat: state.setCarouselFormat,
+      slideCount: state.carouselSlideCount,
+      setSlideCount: state.setCarouselSlideCount,
+      isContinuousMode: state.carouselContinuousMode,
+      setIsContinuousMode: state.setCarouselContinuousMode,
+    }))
+  );
 
   // Filter for artboards that look like carousel slides (e.g. they have social tag or match size)
   // For simplicity, we assume in Carousel mode, all artboards are slides
   const carouselSlides = artboards;
-
-  const carouselFormat = useStore((s) => (s as any).carouselFormat) || 'portrait';
-  const setCarouselFormat = useStore((s) => (s as any).setCarouselFormat);
-  const slideCount = useStore((s) => (s as any).carouselSlideCount) || 5;
-  const setSlideCount = useStore((s) => (s as any).setCarouselSlideCount);
-  const isContinuousMode = useStore((s) => (s as any).carouselContinuousMode) || false;
-  const setIsContinuousMode = useStore((s) => (s as any).setCarouselContinuousMode);
 
   const [showAIModal, setShowAIModal] = useState(false);
   const [aiPromptText, setAIPromptText] = useState('');
