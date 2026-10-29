@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useStore } from '../../store/useStore';
+import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
@@ -34,17 +35,37 @@ const SLIDE_LAYOUTS = [
 // ─── Main SlidesPanel ────────────────────────────────────────────────────────
 
 export const SlidesPanel: React.FC = () => {
-  const artboards = useStore((state) => state.artboards) || [];
-  const activeArtboardId = useStore((state) => state.activeArtboardId);
-  const setActiveArtboardId = useStore((state) => state.setActiveArtboardId);
-  const addArtboard = useStore((state) => state.addArtboard);
-  const deleteArtboard = useStore((state) => state.deleteArtboard);
-  const duplicateArtboard = useStore((state: any) => state.duplicateArtboard);
-  const updateArtboard = useStore((state) => state.updateArtboard);
-  const view = useStore((s) => (s as any).presentationView) || 'grid';
-  const setView = useStore((s) => (s as any).setPresentationView);
-  const showPresenter = useStore((s) => (s as any).presentationShowPresenter) || false;
-  const setShowPresenter = useStore((s) => (s as any).setPresentationShowPresenter);
+  // 🏗️ Mason: Consolidated 11 isolated useStore calls into a single useShallow
+  // selector to reduce store evaluation overhead and unnecessary re-renders.
+  // Default values are applied during destructuring to preserve strict equality.
+  const {
+    artboards = [],
+    activeArtboardId,
+    setActiveArtboardId,
+    addArtboard,
+    deleteArtboard,
+    duplicateArtboard,
+    updateArtboard,
+    view = 'grid',
+    setView,
+    showPresenter = false,
+    setShowPresenter,
+  } = useStore(
+    useShallow((state: any) => ({
+      artboards: state.artboards,
+      activeArtboardId: state.activeArtboardId,
+      setActiveArtboardId: state.setActiveArtboardId,
+      addArtboard: state.addArtboard,
+      deleteArtboard: state.deleteArtboard,
+      duplicateArtboard: state.duplicateArtboard,
+      updateArtboard: state.updateArtboard,
+      view: state.presentationView,
+      setView: state.setPresentationView,
+      showPresenter: state.presentationShowPresenter,
+      setShowPresenter: state.setPresentationShowPresenter,
+    }))
+  );
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [expandedNotes, setExpandedNotes] = useState<string | null>(null);

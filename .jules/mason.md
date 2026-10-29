@@ -135,3 +135,6 @@
 
 **Learning:** Found multiple instances where `as any` was used to bypass TypeScript checks for properties like `masterId`, `overrides`, `x`, and `y` on objects typed as `Layer` or `state` accesses like `(state as any).componentDefinitions`. Simply typing `componentDefinitions` explicitly in `LayerSlice` and relying on existing `Layer` definitions natively removes the need for these type escapes while retaining type safety.
 **Action:** When removing `as any` casts from Zustand slice state accesses (e.g., `(state as any).componentDefinitions`), formally declare the missing property in the corresponding slice interface. Ensure the new property is marked as optional (`?:`) if it is not immediately included in the slice's initial state to prevent TS2741 compilation errors.
+## 2024-10-29 - Consolidate useStore hooks with useShallow
+**Learning:** In the Kreathief codebase, when a component has an excessive number of isolated `useStore` calls (e.g., 10+), they should be consolidated into a single object-returning selector wrapped in `useShallow`. Default values (like fallback arrays) must be applied during destructuring, not inside the selector, to preserve strict equality and avoid unnecessary re-renders.
+**Action:** When working on components with many `useStore` calls, apply `useShallow` with destructuring defaults to reduce store evaluation overhead.
