@@ -5,6 +5,7 @@ import { SpatialPin } from './spatialContextEngine';
 import { generateLayerId } from '../utils/layers/layerUtils';
 import { lintArtboardDesign } from './canvasDesignLinter';
 import { safeParseJSON } from '../utils/errorHandling';
+import { SchemaType } from '@google/generative-ai';
 
 export interface AgenticAction {
   action: 'UPDATE_LAYER' | 'DELETE_LAYER' | 'ADD_TEXT' | 'ADD_SHAPE' | 'GROUP_SELECTED' | 'ALIGN_LAYERS' | 'APPLY_LINT_FIX';
@@ -105,7 +106,27 @@ Format:
       const result = await callBackendGeminiAPI({
         systemInstruction: systemPrompt,
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-        generationConfig: { responseMimeType: 'application/json' },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: {
+            type: SchemaType.OBJECT,
+            properties: {
+              actions: {
+                type: SchemaType.ARRAY,
+                items: {
+                  type: SchemaType.OBJECT,
+                  properties: {
+                    action: { type: SchemaType.STRING },
+                    payload: { type: SchemaType.OBJECT },
+                  },
+                  required: ['action', 'payload'],
+                },
+              },
+              response: { type: SchemaType.STRING },
+            },
+            required: ['actions', 'response'],
+          },
+        },
       });
       const text =
         typeof result === 'string'
