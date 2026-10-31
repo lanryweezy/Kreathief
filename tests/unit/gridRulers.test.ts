@@ -147,18 +147,46 @@ describe('Grid & Rulers Engine', () => {
   });
 
   describe('Kreathief Brand Fonts Registration', () => {
-    it('contains all 4 Kreathief brand fonts in FONT_FAMILIES', () => {
-      expect(FONT_FAMILIES).toContain('Kreathief001');
-      expect(FONT_FAMILIES).toContain('Kreathief002');
-      expect(FONT_FAMILIES).toContain('Kreathief003');
-      expect(FONT_FAMILIES).toContain('Kreathief004');
+    it('contains all Kreathief brand fonts in FONT_FAMILIES', () => {
+      const brandFonts = [
+        'Kreathief001',
+        'Kreathief002',
+        'Kreathief003',
+        'Kreathief004',
+        'Kreathief005',
+        'Kreathief006',
+        'Kreathief007',
+        'Kreathief009',
+        'Kreathief010',
+        'Kreathief014',
+        'Kreathief015',
+        'Kreathief016',
+        'Kreathief017',
+        'Kreathief018',
+        'Kreathief019',
+      ];
+      brandFonts.forEach((font) => expect(FONT_FAMILIES).toContain(font));
     });
 
-    it('contains all 4 Kreathief brand fonts in AVAILABLE_FONTS', () => {
-      expect(AVAILABLE_FONTS).toContain('Kreathief001');
-      expect(AVAILABLE_FONTS).toContain('Kreathief002');
-      expect(AVAILABLE_FONTS).toContain('Kreathief003');
-      expect(AVAILABLE_FONTS).toContain('Kreathief004');
+    it('contains all Kreathief brand fonts in AVAILABLE_FONTS', () => {
+      const brandFonts = [
+        'Kreathief001',
+        'Kreathief002',
+        'Kreathief003',
+        'Kreathief004',
+        'Kreathief005',
+        'Kreathief006',
+        'Kreathief007',
+        'Kreathief009',
+        'Kreathief010',
+        'Kreathief014',
+        'Kreathief015',
+        'Kreathief016',
+        'Kreathief017',
+        'Kreathief018',
+        'Kreathief019',
+      ];
+      brandFonts.forEach((font) => expect(AVAILABLE_FONTS).toContain(font));
     });
   });
 });

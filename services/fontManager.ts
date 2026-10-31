@@ -35,14 +35,29 @@ class FontManagerService {
   public async loadFontsForLayers(layers: Layer[], timeoutMs = 3000): Promise<void> {
     const requiredFonts = new Set<string>();
 
+    const localFontsToLoad: string[] = [];
+
     layers.forEach((layer) => {
       if (layer.type === 'text') {
         const fontFamily = (layer as any).fontFamily;
-        if (fontFamily && !this.webSafeFonts.has(fontFamily) && !this.loadedFonts.has(fontFamily)) {
-          requiredFonts.add(fontFamily);
+        if (fontFamily && !this.loadedFonts.has(fontFamily)) {
+          if (fontFamily.startsWith('Kreathief')) {
+            localFontsToLoad.push(fontFamily);
+          } else if (!this.webSafeFonts.has(fontFamily)) {
+            requiredFonts.add(fontFamily);
+          }
         }
       }
     });
+
+    if (localFontsToLoad.length > 0 && typeof document !== 'undefined' && 'fonts' in document) {
+      await Promise.all(
+        localFontsToLoad.map((f) => {
+          this.loadedFonts.add(f);
+          return (document as any).fonts.load(`16px "${f}"`).catch(() => []);
+        })
+      );
+    }
 
     if (requiredFonts.size === 0) return;
 

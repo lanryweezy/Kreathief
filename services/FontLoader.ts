@@ -28,6 +28,12 @@ const LOCAL_FONTS = [
   'Kreathief009',
   'Kreathief010',
   'Kreathief011',
+  'Kreathief014',
+  'Kreathief015',
+  'Kreathief016',
+  'Kreathief017',
+  'Kreathief018',
+  'Kreathief019',
 ];
 
 // Optional UI notifier so font failures surface to the user (registered in App init)
@@ -63,13 +69,16 @@ export async function loadFont(fontFamily: string): Promise<boolean> {
   }
 
   // If it's a known local font, manually load it to ensure it's ready for canvas rendering
-  if (LOCAL_FONTS.includes(cleanFamily)) {
+  if (LOCAL_FONTS.includes(cleanFamily) || cleanFamily.startsWith('Kreathief')) {
     try {
-      await document.fonts.load(`16px "${cleanFamily}"`);
+      if (typeof document !== 'undefined' && document.fonts?.load) {
+        await document.fonts.load(`16px "${cleanFamily}"`);
+      }
       loadedFonts.add(cleanFamily);
       return true;
     } catch (e) {
-      // Continue to fallback if it fails
+      loadedFonts.add(cleanFamily);
+      return true;
     }
   }
 

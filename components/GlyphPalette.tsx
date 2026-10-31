@@ -78,7 +78,7 @@ export const GlyphPalette = ({ fontFamily, onSelect, onClose }: GlyphPaletteProp
 
         // Check if it's one of our core local fonts
         const localFonts = ['Inter', 'Space Grotesk', 'Outfit', 'Kreathief001', 'Kreathief002', 'Kreathief003'];
-        if (localFonts.includes(fontFamily)) {
+        if (localFonts.includes(fontFamily) || fontFamily.startsWith('Kreathief')) {
           // Try weight 400
           if (fontFamily.startsWith('Kreathief')) {
             fontUrl = `/fonts/${fontFamily}.ttf`;
