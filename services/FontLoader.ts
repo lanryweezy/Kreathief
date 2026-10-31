@@ -27,7 +27,7 @@ const LOCAL_FONTS = [
   'Kreathief007',
   'Kreathief009',
   'Kreathief010',
-  'Kreathief011',
+  // 'Kreathief011', // TTF file not yet available — re-enable once font file is added
   'Kreathief014',
   'Kreathief015',
   'Kreathief016',
