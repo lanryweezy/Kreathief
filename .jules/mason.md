@@ -138,3 +138,8 @@
 ## 2024-10-29 - Consolidate useStore hooks with useShallow
 **Learning:** In the Kreathief codebase, when a component has an excessive number of isolated `useStore` calls (e.g., 10+), they should be consolidated into a single object-returning selector wrapped in `useShallow`. Default values (like fallback arrays) must be applied during destructuring, not inside the selector, to preserve strict equality and avoid unnecessary re-renders.
 **Action:** When working on components with many `useStore` calls, apply `useShallow` with destructuring defaults to reduce store evaluation overhead.
+
+## 2024-11-03 - Removed Duplicated Type Guards
+
+**Learning:** Found duplicate implementations of `isTextLayer` and `isShapeLayer` in `ai/designEngine.ts`. The codebase already has well-defined domain primitives for this in `utils/layers/typeGuards.ts`. This demonstrates a tendency for domain logic to get duplicated in feature silos.
+**Action:** Always check for existing domain primitives in `utils/layers/` before duplicating layer type guard logic.
