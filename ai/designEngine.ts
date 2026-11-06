@@ -1,4 +1,5 @@
 import type { Artboard, Layer, TextLayer, ShapeLayer } from '../types';
+import { isTextLayer, isShapeLayer } from '../utils/layers/typeGuards'; // Consolidate duplicated layer type guards
 
 export interface DesignAnalysis {
   score: number;
@@ -26,33 +27,6 @@ const PLATFORM_SIZES: Record<Platform, { width: number; height: number }> = {
 
 function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
-}
-
-function isTextLayer(l: Layer): l is TextLayer {
-  return l.type === 'text';
-}
-
-function isShapeLayer(l: Layer): l is ShapeLayer {
-  return [
-    'rectangle',
-    'circle',
-    'triangle',
-    'star',
-    'hexagon',
-    'diamond',
-    'arrow',
-    'heart',
-    'speech_bubble',
-    'ribbon',
-    'shield',
-    'banner',
-    'pentagon',
-    'octagon',
-    'plus',
-    'star_4',
-    'star_8',
-    'path',
-  ].includes(l.type);
 }
 
 function hexToHsl(hex: string): { h: number; s: number; l: number } {
