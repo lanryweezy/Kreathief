@@ -3,7 +3,6 @@ import { motion, MotionConfig } from 'framer-motion';
 import { Hero } from './landing/Hero';
 import { LogoTicker } from './landing/LogoTicker';
 import { ModelIntegration } from './landing/ModelIntegration';
-import { AgentDemo } from './landing/AgentDemo';
 import { Features } from './landing/Features';
 import { ScrollShowcase } from './landing/ScrollShowcase';
 import { TemplateGallery } from './landing/TemplateGallery';
@@ -167,7 +166,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onGetStarted, onTryGue
         <Hero onGetStarted={onTryGuest || onGetStarted} />
         <LogoTicker />
         <ModelIntegration />
-        <AgentDemo onGetStarted={onTryGuest || onGetStarted} />
         <Features />
         <ScrollShowcase />
         <TemplateGallery onGetStarted={onTryGuest || onGetStarted} />
