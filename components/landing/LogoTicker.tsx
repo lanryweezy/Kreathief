@@ -58,7 +58,7 @@ export const LogoTicker: React.FC = () => {
         </div>
       </div>
 
-      {/* Infinite Scroll Real Company Logos (Nigeria, USA, UK) */}
+      {/* Infinite Scroll Real Company Logos */}
       <div className="relative flex overflow-x-hidden group py-4">
         {/* Edge Gradient Masks */}
         <div className="absolute inset-y-0 left-0 w-28 md:w-56 bg-gradient-to-r from-[#08080d] via-[#08080d]/80 to-transparent z-10 pointer-events-none" />
@@ -70,15 +70,12 @@ export const LogoTicker: React.FC = () => {
               {COMPANY_LOGOS.map((company, cIdx) => (
                 <div
                   key={`${loopIdx}-${cIdx}`}
-                  className="flex items-center gap-3 text-neutral-300/75 hover:text-white transition-all duration-300 cursor-default group/item shrink-0 select-none"
-                  title={`${company.name} (${company.country})`}
+                  className="flex items-center text-neutral-400 hover:text-white transition-all duration-300 cursor-default group/item shrink-0 select-none"
+                  title={company.name}
                 >
                   <div className="transition-transform duration-300 group-hover/item:scale-105">
                     {company.svg}
                   </div>
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-white/[0.05] border border-white/10 text-neutral-400 group-hover/item:text-white group-hover/item:border-white/25 transition-colors">
-                    {company.countryCode}
-                  </span>
                 </div>
               ))}
             </React.Fragment>

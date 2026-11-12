@@ -135,19 +135,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
       </div>
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full flex flex-col items-center">
-        {/* Subtle Category Pill */}
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 backdrop-blur-md mb-6 shadow-inner"
-        >
-          <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
-          <span className="text-[11px] font-mono tracking-widest text-neutral-300 uppercase font-semibold">
-            Next-Gen AI Creative Direction Engine
-          </span>
-        </motion.div>
-
         {/* Main Headline */}
         <div className="text-center w-full max-w-6xl mb-6 relative flex flex-col items-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[80px] font-black tracking-tighter leading-[0.95] text-white select-none text-balance">
@@ -194,36 +181,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           </a>
         </motion.div>
 
-        {/* Interactive Style Switcher Chips */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="flex flex-wrap items-center justify-center gap-2 mb-8 z-20 max-w-4xl px-4"
-        >
-          {HERO_SLIDES.map((slide, index) => {
-            const isActive = activeSlide === index;
-            return (
-              <button
-                key={slide.title}
-                onClick={() => setActiveSlide(index)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all duration-300 flex items-center gap-2 border ${
-                  isActive
-                    ? 'bg-white/15 border-purple-400/50 text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]'
-                    : 'bg-white/[0.03] border-white/5 text-neutral-400 hover:text-white hover:bg-white/[0.06]'
-                }`}
-              >
-                <span
-                  className={`w-1.5 h-1.5 rounded-full ${
-                    isActive ? 'bg-purple-400 shadow-[0_0_6px_#a855f7]' : 'bg-neutral-600'
-                  }`}
-                />
-                <span className="font-bold">{slide.title}</span>
-              </button>
-            );
-          })}
-        </motion.div>
-
         {/* 3D PRODUCT CANVAS PREVIEW */}
         <div
           ref={frameRef}
@@ -266,7 +223,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                 <div className="w-3 h-3 rounded-full bg-[#27c93f]/90 shadow-sm" />
                 <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-neutral-400 bg-white/[0.03] px-3 py-1 rounded-md border border-white/5 ml-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Kreathief Studio — {currentSlide.title.replace(/\s+/g, '_')}.art</span>
+                  <span>Kreathief Studio — Canvas_01.art</span>
                 </div>
               </div>
 
