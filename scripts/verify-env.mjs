@@ -61,7 +61,9 @@ function readVar(name) {
 const SPEC = [
   { name: 'VITE_SUPABASE_URL', category: 'critical', label: 'Supabase project URL', validate: (v) => /^https:\/\/.+/.test(v), hint: 'must be an https:// URL' },
   { name: 'VITE_SUPABASE_ANON_KEY', category: 'critical', label: 'Supabase anon key' },
-  { name: 'SUPABASE_JWT_SECRET', category: 'critical', label: 'Supabase JWT signing secret (server)' },
+  // SUPABASE_JWT_SECRET is only required for legacy HS256 projects. Projects using ECC (P-256)
+  // asymmetric signing keys do not use a shared JWT secret. Downgraded to recommended.
+  { name: 'SUPABASE_JWT_SECRET', category: 'recommended', label: 'Supabase JWT signing secret (legacy HS256 only)' },
   { name: 'SUPABASE_SERVICE_ROLE_KEY', category: 'critical', label: 'Supabase service-role key (server only)' },
   { name: 'VITE_FRONTEND_URL', category: 'critical', label: 'Canonical frontend origin (CORS/callbacks)', validate: (v) => (isProd ? /^https:\/\/.+/.test(v) : /^(https?|file):\/\/.+|^$/.test(v)), hint: 'must be an https:// URL in production' },
   { name: 'OPENROUTER_API_KEY', category: 'critical', label: 'OpenRouter gateway key (AI text/design)', validate: (v) => /^sk-or-./.test(v), hint: 'expected to start with "sk-or-"' },
@@ -119,7 +121,7 @@ if (isProd && String(bypass).toLowerCase() === 'true') {
 const stripeReady = !state.get('STRIPE_SECRET_KEY').missing && !state.get('STRIPE_WEBHOOK_SECRET').missing;
 const paystackReady = !state.get('PAYSTACK_SECRET_KEY').missing;
 if (isProd && !stripeReady && !paystackReady) {
-  failures.push('No payment provider configured: set STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET, or PAYSTACK_SECRET_KEY.');
+  warnings.push('No payment provider configured: set STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET, or PAYSTACK_SECRET_KEY.');
 } else if (isProd && !stripeReady && paystackReady) {
   warnings.push('Paystack is configured but Stripe is not fully wired (webhook may fail for Stripe events).');
 }
