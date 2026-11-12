@@ -156,15 +156,6 @@ export const ModelIntegration: React.FC = () => {
           {/* LEFT SIDE: Stays completely still */}
           <div className="lg:col-span-6 flex flex-col justify-center">
             <div className="bg-black/40 backdrop-blur-2xl border border-white/10 p-8 sm:p-12 rounded-3xl max-w-xl shadow-2xl">
-              
-              {/* Category Pill */}
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/[0.05] border border-white/10 mb-6">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[11px] font-mono tracking-widest text-neutral-300 uppercase font-semibold">
-                  Multi-Model Orchestration
-                </span>
-              </div>
-
               {/* Fixed Headline */}
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter leading-[0.98] text-white mb-6">
                 Use all AI<br />
@@ -184,9 +175,6 @@ export const ModelIntegration: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
                     Model Specialization
-                  </span>
-                  <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-bold">
-                    Fal.ai Engine
                   </span>
                 </div>
                 

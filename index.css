@@ -70,7 +70,7 @@ body {
   font-family: 'Outfit', 'Inter', sans-serif;
   background-color: var(--deep-space);
   color: #f5f5f7;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
   /* Mobile safe area support */
   padding-top: env(safe-area-inset-top);
@@ -80,7 +80,7 @@ body {
 }
 
 #root {
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 h1,
