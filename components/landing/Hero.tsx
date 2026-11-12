@@ -172,13 +172,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               <Icons.ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform duration-300" />
             </button>
           </MagneticButton>
-          <a
-            href="#live-demo"
-            className="px-6 py-4 rounded-full text-xs font-mono font-bold tracking-wider text-neutral-300 hover:text-white bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 transition-colors flex items-center gap-2"
-          >
-            <Icons.Sparkles className="w-3.5 h-3.5 text-purple-400" />
-            <span>Test-Drive Live Agent</span>
-          </a>
         </motion.div>
 
         {/* 3D PRODUCT CANVAS PREVIEW */}
