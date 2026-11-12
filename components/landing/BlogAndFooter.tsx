@@ -152,18 +152,6 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>All Systems Operational</span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-gray-400">
-              <span>•</span>
-              <span>100% In-Browser Privacy</span>
-              <span>•</span>
-              <span>Zero Artificial Watermarks</span>
-            </div>
-
             <div className="flex items-center gap-2 ml-auto lg:ml-4">
               {[
                 { Icon: Icons.Twitter, label: 'Twitter / X', href: 'https://twitter.com/kreathief' },
@@ -347,8 +335,6 @@ export const Footer: React.FC = () => {
             <Link to="/privacy" className="hover:text-white transition-colors">Privacy</Link>
             <Link to="/terms" className="hover:text-white transition-colors">Terms</Link>
             <Link to="/security" className="hover:text-white transition-colors">Security</Link>
-            <span className="text-gray-700">•</span>
-            <span>Crafted for modern visual creators</span>
           </div>
         </div>
       </div>

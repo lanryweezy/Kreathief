@@ -143,16 +143,6 @@ export const Pricing: React.FC<PricingProps> = ({ onPlanSelect }) => {
     <section id="pricing" className="py-36 relative bg-surface-dark-0">
       <div className="max-w-7xl mx-auto px-6">
         <div className="text-center mb-20">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-neutral-300 uppercase mb-6"
-          >
-            <span>✦</span>
-            <span>Transparent Creative Investment</span>
-          </motion.div>
-
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

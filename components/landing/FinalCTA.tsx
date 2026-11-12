@@ -25,16 +25,6 @@ export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono tracking-widest text-neutral-300 uppercase mb-8"
-        >
-          <span>✦</span>
-          <span>Zero Learning Curve • Instant Acceleration</span>
-        </motion.div>
-
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
