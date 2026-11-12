@@ -103,7 +103,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   const currentSlide = HERO_SLIDES[activeSlide];
 
   return (
-    <section className="relative pt-32 pb-24 md:pt-40 md:pb-32 overflow-hidden min-h-[115vh] flex flex-col items-center justify-start bg-[#08080d]">
+    <section className="relative pt-44 pb-24 md:pt-56 md:pb-32 overflow-hidden min-h-[115vh] flex flex-col items-center justify-start bg-[#08080d]">
       {/* Background Rotating Cinematic Imagery */}
       <div className="absolute top-0 inset-x-0 h-[85vh] pointer-events-none overflow-hidden select-none">
         <AnimatePresence mode="wait">
@@ -136,7 +136,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10 w-full flex flex-col items-center">
         {/* Main Headline */}
-        <div className="text-center w-full max-w-6xl mb-6 relative flex flex-col items-center">
+        <div className="text-center w-full max-w-6xl mb-8 relative flex flex-col items-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[80px] font-black tracking-tighter leading-[0.95] text-white select-none text-balance">
             Design at the <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-neutral-400">
@@ -144,17 +144,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             </span>
           </h1>
         </div>
-
-        {/* Subtitle & Value Proposition */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-lg sm:text-xl md:text-2xl text-neutral-300/90 max-w-3xl text-center mb-8 leading-relaxed font-normal text-balance"
-        >
-          The intelligent creative engine unifying <span className="text-white font-semibold">Generative AI</span>,{' '}
-          <span className="text-white font-semibold">Vector Artistry</span>, and <span className="text-white font-semibold">Spatial Mockups</span> into a zero-latency canvas.
-        </motion.p>
 
         {/* Action Controls */}
         <motion.div
