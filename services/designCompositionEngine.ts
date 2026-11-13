@@ -516,7 +516,7 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
     } as any,
 
     // 5. Dynamic Hero Headline
-    (() => {
+    ...(() => {
       const hlText = prompt.toUpperCase().slice(0, 32) || 'UNFORGETTABLE MOMENTS';
       const hlFontSize = Math.max(30, Math.round(width * 0.072));
       const hlWidth = isLandscape ? width * 0.44 : width * 0.84;

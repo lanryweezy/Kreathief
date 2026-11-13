@@ -342,13 +342,16 @@ export function polishDesignOutput(result: ArtboardDesignResult): ArtboardDesign
   let polishedResult = { ...result };
 
   if (polishedResult.layers) {
-    let layers = [...polishedResult.layers];
+    let layers = polishedResult.layers.flat().filter((l): l is Layer => Boolean(l && typeof l === 'object' && !Array.isArray(l)));
 
     // 1. Snap coordinates to 4px grid & clamp opacity
     layers = layers.map(layer => {
       const rawType = layer.type;
       const normalizedType = rawType === ('rect' as any) ? 'rectangle' : rawType === ('ellipse' as any) ? 'circle' : rawType;
-      const layerColor = ('color' in layer ? layer.color : undefined) || ('fill' in layer ? layer.fill : undefined) || '#3b82f6';
+      const layerColor =
+        (typeof (layer as any).color === 'string' ? (layer as any).color : undefined) ||
+        (typeof (layer as any).fill === 'string' ? (layer as any).fill : undefined) ||
+        '#3b82f6';
 
       const patched: any = {
         ...layer,

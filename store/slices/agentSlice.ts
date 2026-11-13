@@ -536,12 +536,12 @@ export const createAgentSlice: StateCreator<StoreState, [], [], AgentSlice> = (s
     const approved: DesignBrief = {
       ...next.brief,
       clarificationStatus: 'user_approved',
-      assumptions: next.brief.assumptions.map((a: any) => ({ ...a, userConfirmed: true })),
+      assumptions: (next.assumptions || next.brief?.assumptions || []).map((a: any) => ({ ...a, userConfirmed: true })),
     };
     set({ agentAnswers: answers, agentClarification: null, agentBrief: approved });
     get().addThinkingEvent(
       'Clarification',
-      `Proceeding on your-approved assumptions: ${approved.assumptions.map((a: any) => a.category.toLowerCase()).join(', ') || 'none needed'}.`
+      `Proceeding on your-approved assumptions: ${(approved.assumptions || []).map((a: any) => (a.category || 'design').toLowerCase()).join(', ') || 'none needed'}.`
     );
     await get().runAgenticWorkflow(briefToPrompt(state.agentIntent, approved));
   },

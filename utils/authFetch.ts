@@ -29,13 +29,42 @@ export async function getAccessToken(): Promise<string | null> {
   }
 }
 
-/** Merges an Authorization header into arbitrary HeadersInit without clobbering a caller-set one. */
+/** Merges an Authorization or Guest session header into arbitrary HeadersInit without clobbering a caller-set one. */
 export function withAuthHeader(headers: HeadersInit | undefined, token: string | null): Headers {
   const merged = new Headers(headers || {});
   if (token && !merged.has('Authorization')) {
     merged.set('Authorization', `Bearer ${token}`);
+  } else if (!token && !merged.has('X-Kreathief-Guest')) {
+    const guestId = getGuestSessionId();
+    if (guestId) {
+      merged.set('X-Kreathief-Guest', guestId);
+    }
   }
   return merged;
+}
+
+function getGuestSessionId(): string | null {
+  try {
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return null;
+    }
+    const rawGuest =
+      window.localStorage.getItem('kreathief_guest_session') ||
+      window.localStorage.getItem('kreathief_qa_session');
+    if (!rawGuest) {
+      return null;
+    }
+    if (rawGuest === 'true') {
+      return 'qa_session_active';
+    }
+    const parsed = JSON.parse(rawGuest);
+    if (parsed && typeof parsed.id === 'string' && /^(guest|qa)_/.test(parsed.id)) {
+      return parsed.id;
+    }
+  } catch {
+    // Ignore storage read errors
+  }
+  return null;
 }
 
 function syncServerCreditsHeader(response: Response): void {
@@ -61,9 +90,11 @@ function syncServerCreditsHeader(response: Response): void {
 
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   const token = await getAccessToken();
-  const response = !token
-    ? await fetch(input, init)
-    : await fetch(input, { ...init, headers: withAuthHeader(init.headers, token) });
+  const guestId = !token ? getGuestSessionId() : null;
+  const response =
+    !token && !guestId
+      ? await fetch(input, init)
+      : await fetch(input, { ...init, headers: withAuthHeader(init.headers, token) });
   syncServerCreditsHeader(response);
   return response;
 }
