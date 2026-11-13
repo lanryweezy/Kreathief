@@ -67,6 +67,46 @@ const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDa
   editorial: { primary: '#ffffff', accent: '#000000', bgDark: '#111111', bgLight: '#f4f4f5', textMuted: '#71717a' },
 };
 
+/** Derives dynamic, prompt-tailored harmonious palettes to avoid repetitive archetype colors. */
+function deriveContextualPalette(
+  prompt: string,
+  archetype: string,
+  brandKit?: import('../types').BrandKit | null
+): { primary: string; accent: string; bgDark: string; bgLight: string; textMuted: string } {
+  if (brandKit) {
+    const pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.editorial;
+    return {
+      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
+      accent: brandKit.colors[1] || pal.accent,
+      bgDark: brandKit.colors[0] || pal.bgDark,
+      bgLight: brandKit.colors[3] || pal.bgLight,
+      textMuted: brandKit.colors[1] || pal.textMuted,
+    };
+  }
+
+  const pLower = (prompt || '').toLowerCase();
+  if (pLower.includes('watch') || pLower.includes('horology') || pLower.includes('tourbillon') || pLower.includes('luxury') || pLower.includes('gold') || pLower.includes('fragrance') || pLower.includes('perfume')) {
+    return { primary: '#d4af37', accent: '#f5ecd7', bgDark: '#0a0805', bgLight: '#18140c', textMuted: '#a89878' };
+  }
+  if (pLower.includes('afrobeats') || pLower.includes('lagos') || pLower.includes('african') || pLower.includes('festival') || pLower.includes('concert')) {
+    return { primary: '#f59e0b', accent: '#10b981', bgDark: '#0c0714', bgLight: '#1b1228', textMuted: '#fbbf24' };
+  }
+  if (pLower.includes('coffee') || pLower.includes('cafe') || pLower.includes('bakery') || pLower.includes('roast') || pLower.includes('jollof') || pLower.includes('suya') || pLower.includes('grill')) {
+    return { primary: '#ea580c', accent: '#f59e0b', bgDark: '#140803', bgLight: '#261208', textMuted: '#d4956a' };
+  }
+  if (pLower.includes('crypto') || pLower.includes('fintech') || pLower.includes('bank') || pLower.includes('invest') || pLower.includes('analytics')) {
+    return { primary: '#38bdf8', accent: '#10b981', bgDark: '#070d18', bgLight: '#0f1c30', textMuted: '#94a3b8' };
+  }
+  if (pLower.includes('matcha') || pLower.includes('green') || pLower.includes('eco') || pLower.includes('nature') || pLower.includes('organic')) {
+    return { primary: '#10b981', accent: '#84cc16', bgDark: '#051b11', bgLight: '#0c2e1f', textMuted: '#6ee7b7' };
+  }
+  if (pLower.includes('cyber') || pLower.includes('neon') || pLower.includes('synthwave')) {
+    return { primary: '#00f0ff', accent: '#ff007f', bgDark: '#080811', bgLight: '#141424', textMuted: '#94a3b8' };
+  }
+
+  return ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.editorial;
+}
+
 /**
  * Composition Style 1: 50/50 Hero Split
  * Left or Top: Framed high-res hero photography with soft elevation
@@ -75,18 +115,11 @@ const ARCHETYPE_PALETTES: Record<string, { primary: string; accent: string; bgDa
 export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
   
-  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
+  let pal = deriveContextualPalette(prompt, archetype, brandKit);
   let fontHeading = 'Outfit';
   let fontBody = 'Inter';
 
   if (brandKit) {
-    pal = {
-      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
-      accent: brandKit.colors[1] || pal.accent,
-      bgDark: brandKit.colors[0] || pal.bgDark,
-      bgLight: brandKit.colors[3] || pal.bgLight,
-      textMuted: brandKit.colors[1] || pal.textMuted,
-    };
     if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
     if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
   }
@@ -388,18 +421,11 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
 export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
   
-  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.fitness;
+  let pal = deriveContextualPalette(prompt, archetype, brandKit);
   let fontHeading = 'Space Grotesk';
   let fontBody = 'Inter';
 
   if (brandKit) {
-    pal = {
-      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
-      accent: brandKit.colors[1] || pal.accent,
-      bgDark: brandKit.colors[0] || pal.bgDark,
-      bgLight: brandKit.colors[3] || pal.bgLight,
-      textMuted: brandKit.colors[1] || pal.textMuted,
-    };
     if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
     if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
   }
@@ -638,18 +664,11 @@ export function buildFullBleedAtmosphericComposition(opts: CompositionOptions): 
 export function buildGlassCardComposition(opts: CompositionOptions): ArtboardDesignResult {
   const { width, height, prompt, archetype, brandKit } = opts;
   
-  let pal = ARCHETYPE_PALETTES[archetype] || ARCHETYPE_PALETTES.saas;
+  let pal = deriveContextualPalette(prompt, archetype, brandKit);
   let fontHeading = 'Outfit';
   let fontBody = 'Inter';
 
   if (brandKit) {
-    pal = {
-      primary: brandKit.colors[2] || brandKit.colors[0] || pal.primary,
-      accent: brandKit.colors[1] || pal.accent,
-      bgDark: brandKit.colors[0] || pal.bgDark,
-      bgLight: brandKit.colors[3] || pal.bgLight,
-      textMuted: brandKit.colors[1] || pal.textMuted,
-    };
     if (brandKit.fonts.length > 0) fontHeading = brandKit.fonts[0];
     if (brandKit.fonts.length > 1) fontBody = brandKit.fonts[1];
   }

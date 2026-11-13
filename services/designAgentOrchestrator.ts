@@ -167,8 +167,6 @@ function substituteStockAssets(blueprint: DesignBlueprint, intent: string): void
     const photo = resolveHeroPhoto(archetype, layer.properties.prompt || intent);
     layer.properties.imageUrl = photo.url;
     layer.name = `${layer.name} — ${photo.alt}`;
-    delete layer.properties.prompt;
-    delete layer.properties.removeBackground;
   }
 }
 
@@ -475,7 +473,8 @@ export async function draftAgentVariants(
     const sanitized = sanitizeBlueprint(rawBlueprint, canvasSize);
 
     if (sanitized) {
-      const allowGeneration = options.plan !== 'free';
+      // Allow specialist model generation for all users (metered by server-side credits)
+      const allowGeneration = true;
       if (!allowGeneration) {
         substituteStockAssets(sanitized, intent);
       }

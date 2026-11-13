@@ -15,6 +15,7 @@ import { generateImageWithModel } from './imageGenService';
 import { DEFAULT_CUTOUT_MODEL, DEFAULT_VECTOR_ACCENT_MODEL, DEFAULT_BACKGROUND_MODEL } from '../config/imageModels';
 import { vectorTracer } from './vectorTracer';
 import { removeBackground as freepikRemoveBackground } from './freepikService';
+import { resolveHeroPhoto } from './visualAssetDirector';
 
 
 const ARTBOARD_SCHEMA = {
@@ -3406,6 +3407,10 @@ const convertBlueprintLayerToCanvasLayer = (blueprintLayer: DesignBlueprintLayer
       // so SVG output is carried as an image layer: it always renders, scales losslessly, and
       // stays swappable. (Per-node path editing needs viewBox-aware extraction - future work.)
       let resolvedSrc = imageUrl || props.imageUrl || '';
+      if (!resolvedSrc && (props.prompt || blueprintLayer.name)) {
+        const fallback = resolveHeroPhoto('editorial', props.prompt || blueprintLayer.name);
+        resolvedSrc = fallback.url;
+      }
       if (resolvedSrc.trim().startsWith('<svg')) {
         resolvedSrc = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(resolvedSrc)))}`;
       }
