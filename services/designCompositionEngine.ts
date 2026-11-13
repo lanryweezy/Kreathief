@@ -202,7 +202,7 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       visible: true,
     } as any,
 
-    // 5. Hero Content Stack (Auto Layout Group)
+    // 5. Hero Content Stack (Auto Layout Group with explicit baseline coordinates)
     ...(() => {
       const hlText = prompt.toUpperCase().slice(0, 32) || 'ELEVATE YOUR STANDARD';
       const hlFontSize = Math.max(28, Math.round(width * 0.062));
@@ -213,6 +213,12 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       
       const stackGroupId = `group_stack_${uuidv4().slice(0, 8)}`;
       const btnGroupId = `group_btn_${uuidv4().slice(0, 8)}`;
+      const pillGroupId = `pill_${uuidv4().slice(0, 8)}`;
+
+      const pillY = isLandscape ? height * 0.14 : height * 0.52;
+      const hlY = pillY + 44;
+      const subY = hlY + 74;
+      const btnY = subY + 54;
       
       return [
         {
@@ -220,9 +226,9 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           type: 'group',
           name: 'Hero Text Stack',
           x: width * 0.08,
-          y: isLandscape ? height * 0.14 : height * 0.54,
-          width: hlWidth, // It will hug height automatically
-          height: 200, 
+          y: pillY,
+          width: hlWidth,
+          height: btnY + 50 - pillY, 
           rotation: 0,
           opacity: 1,
           color: 'transparent',
@@ -238,12 +244,12 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           }
         } as any,
         {
-          id: `pill_${uuidv4().slice(0, 8)}`,
+          id: pillGroupId,
           type: 'group',
           name: 'Category Pill',
           groupId: stackGroupId,
           x: width * 0.08,
-          y: isLandscape ? height * 0.14 : height * 0.54,
+          y: pillY,
           width: 150,
           height: 32,
           rotation: 0,
@@ -266,10 +272,10 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           id: `pill_text_${uuidv4().slice(0, 8)}`,
           type: 'text',
           name: 'Category Pill Text',
-          groupId: `pill_${uuidv4().slice(0, 8)}`, // Will be fixed below by matching ID
+          groupId: pillGroupId,
           text: `★ ${archetype.toUpperCase()} SPOTLIGHT`,
-          x: 0,
-          y: 0,
+          x: width * 0.08,
+          y: pillY + 6,
           width: 150,
           height: 20,
           fontSize: Math.max(11, Math.round(width * 0.02)),
@@ -291,7 +297,7 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           groupId: stackGroupId,
           text: hlText,
           x: width * 0.08,
-          y: 0,
+          y: hlY,
           width: hlWidth,
           height: 60,
           fontSize: hlFontSize,
@@ -317,7 +323,7 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           groupId: stackGroupId,
           text: subText,
           x: width * 0.08,
-          y: 0,
+          y: subY,
           width: hlWidth,
           height: 40,
           fontSize: subFontSize,
@@ -340,7 +346,7 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           name: 'CTA Button',
           groupId: stackGroupId,
           x: width * 0.08,
-          y: 0,
+          y: btnY,
           width: 200,
           height: 50,
           rotation: 0,
@@ -366,8 +372,8 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
           groupId: btnGroupId,
           text: 'DISCOVER MORE →',
           x: width * 0.08,
-          y: 0,
-          width: 150,
+          y: btnY + 15,
+          width: 200,
           height: 20,
           fontSize: Math.max(13, Math.round(width * 0.024)),
           fontWeight: '800',

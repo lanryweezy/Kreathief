@@ -12,6 +12,7 @@ import { createCollaborationSlice, CollaborationSlice } from './slices/collabora
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
 import { createIntentSlice, IntentSlice } from './slices/intentSlice';
 import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
+import { v4 as uuidv4 } from 'uuid';
 import type { NavTab } from '../types';
 
 // Merged type for the full store state
@@ -106,7 +107,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       editingPathId: null,
 
       // Project Slice
-      projectId: `proj_${Date.now()}`,
+      projectId: uuidv4(),
       projectTitle: 'Untitled Design',
       isSaving: false,
       syncStatus: 'synced',

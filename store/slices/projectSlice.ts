@@ -167,7 +167,7 @@ function sanitizeArtboardLayers(artboards: any[]): any[] {
 
 export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> = (set, get) => ({
   projects: [],
-  projectId: `proj_${Date.now()}`,
+  projectId: uuidv4(),
   projectTitle: 'Untitled Design',
   isSaving: false,
   syncStatus: 'synced',

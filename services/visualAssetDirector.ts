@@ -643,11 +643,22 @@ export function resolveHeroPhoto(archetype: string, promptText?: string): Visual
 
 /**
  * Ranked, de-duplicated hero photo candidates relevant to an archetype/prompt.
- * Keyword-matched photos come first (by score), then the archetype pool.
- * Used by the creative variation engine so repeated generations rotate imagery.
+ * Prioritizes bespoke prompt-derived generative assets so variations remain 100% on-brief.
  */
 export function listHeroPhotoCandidates(archetype: string, promptText?: string): VisualHeroAsset[] {
-  const pLower = (promptText || '').toLowerCase();
+  const pTrim = (promptText || '').trim();
+
+  // If a descriptive prompt is supplied, synthesize distinct bespoke variations
+  // so layout variation rotation never swaps out on-brief imagery for stock photos.
+  if (pTrim.length >= 3) {
+    return [
+      generateBespokeHeroAsset(pTrim, archetype),
+      generateBespokeHeroAsset(`${pTrim} — architectural perspective`, archetype),
+      generateBespokeHeroAsset(`${pTrim} — minimalist macro detail`, archetype),
+    ];
+  }
+
+  const pLower = pTrim.toLowerCase();
   const normalizedArch = ARCHETYPE_ALIASES[archetype] || archetype;
   const scored = Object.values(ARCHETYPE_HERO_PHOTOS)
     .flat()
