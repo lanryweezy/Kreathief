@@ -38,10 +38,32 @@ export function withAuthHeader(headers: HeadersInit | undefined, token: string |
   return merged;
 }
 
+function syncServerCreditsHeader(response: Response): void {
+  try {
+    if (!response?.headers || typeof response.headers.get !== 'function') {
+      return;
+    }
+    const raw = response.headers.get('X-Credits-Remaining');
+    if (raw === null) {
+      return;
+    }
+    const remaining = parseInt(raw, 10);
+    if (!Number.isFinite(remaining) || remaining < 0) {
+      return;
+    }
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem('kreathief_credits', String(remaining));
+    }
+  } catch {
+    // Non-fatal: header sync is best-effort
+  }
+}
+
 export async function authFetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
   const token = await getAccessToken();
-  if (!token) {
-    return fetch(input, init);
-  }
-  return fetch(input, { ...init, headers: withAuthHeader(init.headers, token) });
+  const response = !token
+    ? await fetch(input, init)
+    : await fetch(input, { ...init, headers: withAuthHeader(init.headers, token) });
+  syncServerCreditsHeader(response);
+  return response;
 }

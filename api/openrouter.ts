@@ -1,6 +1,7 @@
 import { log } from '../utils/log';
 import { noStoreHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
+import { checkAndDeductCredits } from './_credits';
 
 export const config = {
   runtime: 'edge',
@@ -43,8 +44,9 @@ export default async function handler(req: Request) {
     });
   }
 
+  let authUser: { id: string; email?: string; role?: string };
   try {
-    await requireAuth(req);
+    authUser = await requireAuth(req);
   } catch (error) {
     if (error instanceof Response) {return error;}
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
@@ -61,9 +63,10 @@ export default async function handler(req: Request) {
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
+  const rateLimitKey = authUser?.id || clientIp;
 
   // Rate limiting
-  const state = rateLimitMap.get(clientIp);
+  const state = rateLimitMap.get(rateLimitKey);
   if (state && now < state.resetTime && state.count >= MAX_REQUESTS_PER_WINDOW) {
     return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again later.' }), {
       status: 429,
@@ -72,9 +75,28 @@ export default async function handler(req: Request) {
   }
 
   if (!state || now > state.resetTime) {
-    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   } else {
     state.count++;
+  }
+
+  const creditCheck = await checkAndDeductCredits(authUser?.id, 1);
+  if (!creditCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: 'Insufficient AI generation credits. Please upgrade your plan or purchase a credit pack.',
+        remaining: creditCheck.remaining ?? 0,
+      }),
+      {
+        status: 402,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          'X-Credits-Remaining': String(creditCheck.remaining ?? 0),
+          ...noStoreHeaders(),
+        },
+      }
+    );
   }
 
   try {
@@ -148,6 +170,7 @@ export default async function handler(req: Request) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': origin,
+        ...(creditCheck.remaining !== null ? { 'X-Credits-Remaining': String(creditCheck.remaining) } : {}),
         ...noStoreHeaders(),
       },
     });

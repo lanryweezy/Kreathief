@@ -116,7 +116,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's original image generation — fast, versatile",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.GoogleLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   {
@@ -131,7 +131,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's new SOTA — fast generation + editing",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.GoogleLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   {
@@ -146,7 +146,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Google's best — realism, typography, high fidelity",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.GoogleLogo,
     capabilities: REFERENCE_CAPABLE,
   },
 
@@ -160,7 +160,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "ByteDance's fast image gen — stylized, creative",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.ByteDanceLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -174,7 +174,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "ByteDance's SOTA — stylized, transform, high quality",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.ByteDanceLogo,
     capabilities: { ...REFERENCE_CAPABLE, rasterToVector: true },
   },
   {
@@ -216,7 +216,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Best typography in AI images — posters, logos, text-heavy designs',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.GoogleLogo,
+    icon: CompanyLogos.IdeogramLogo,
     capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
   {
@@ -228,7 +228,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Latest Ideogram — crisp visuals, accurate text, full creative control',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.GoogleLogo,
+    icon: CompanyLogos.IdeogramLogo,
     capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
 
@@ -242,7 +242,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Fastest FLUX model — great for quick drafts',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.GoogleLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: TEXT_ONLY,
   },
   
@@ -255,7 +255,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "OpenAI's highly-refined iteration — superb typography and layout",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.ByteDanceLogo,
+    icon: CompanyLogos.OpenAILogo,
     capabilities: TEXT_ONLY,
   },{
     id: 'gpt-image-2',
@@ -266,7 +266,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "OpenAI's latest — detailed images, fine typography",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.ByteDanceLogo,
+    icon: CompanyLogos.OpenAILogo,
     capabilities: TEXT_ONLY,
   },
 
@@ -285,7 +285,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Top-tier text-to-image — photorealistic, detailed',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: REFERENCE_CAPABLE,
   },
   
@@ -298,7 +298,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'SOTA 4K Image Generation - peerless photorealism and typography',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -310,7 +310,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Blazing fast SOTA model for 2026',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.IdeogramLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -322,7 +322,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Generates pure, editable SVG vector paths natively',
     supportsAspectRatio: true,
     outputType: 'svg',
-    icon: CompanyLogos.IdeogramLogo,
+    icon: CompanyLogos.RecraftLogo,
     capabilities: VECTOR_ONLY,
   },
   {
@@ -334,7 +334,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Extremely fast, highly aesthetic hyper-realism',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.IdeogramLogo,
+    icon: CompanyLogos.LumaLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -346,7 +346,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Highest quality FLUX — commercial grade',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -358,7 +358,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Latest FLUX — enhanced realism, crisp text, native editing',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.FluxLogo,
     capabilities: TEXT_ONLY,
   },
   {
@@ -370,7 +370,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Versatile, huge community, great for stylized art',
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.StabilityLogo,
     capabilities: { ...TEXT_ONLY, inpainting: true },
   },
   {
@@ -382,7 +382,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: "Design-grade output — brand systems, production workflows",
     supportsAspectRatio: true,
     outputType: 'image',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.RecraftLogo,
     capabilities: { ...TEXT_ONLY, rasterToVector: true },
   },
 
@@ -396,7 +396,7 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     description: 'Generates editable SVG vectors — logos, icons, illustrations',
     supportsAspectRatio: false,
     outputType: 'svg',
-    icon: CompanyLogos.AlibabaLogo,
+    icon: CompanyLogos.RecraftLogo,
     capabilities: VECTOR_ONLY,
   },
 ];

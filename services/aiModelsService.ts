@@ -209,4 +209,87 @@ export const aiModelsService = {
     );
     return data.image?.url || data.images?.[0]?.url || data.url || data.output?.url || data.output_url;
   },
+
+  /**
+   * Async Fal Queue video generation (Kling, Luma, MiniMax, Wan).
+   * Submits a job via /api/fal (mode='queue_submit'), polls until COMPLETED, and returns the video URL.
+   */
+  async generateVideoFromQueue(
+    queueModel: string,
+    body: { prompt: string; aspect_ratio?: string; duration?: string; negative_prompt?: string; image_url?: string },
+    onStatus?: (status: string) => void
+  ): Promise<string> {
+    const submitRes = await authFetch('/api/fal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'queue_submit', queueModel, body }),
+    });
+
+    if (!submitRes.ok) {
+      const detail = await submitRes.text().catch(() => '');
+      throw new Error(`Video job submission failed (${submitRes.status}): ${detail.slice(0, 200)}`);
+    }
+
+    const submitData: any = await submitRes.json();
+    // If the model returned a synchronous video URL directly, return it immediately.
+    if (submitData?.video?.url) {
+      return submitData.video.url;
+    }
+
+    const requestId: string | undefined = submitData?.request_id;
+    if (!requestId) {
+      throw new Error('Fal queue did not return a request_id');
+    }
+
+    onStatus?.('Queued on GPU cluster...');
+
+    const maxPolls = 45; // 45 * 3s = 135s max
+    for (let i = 0; i < maxPolls; i++) {
+      await new Promise((r) => setTimeout(r, 3000));
+
+      const statusRes = await authFetch('/api/fal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: 'queue_status', queueModel, requestId }),
+      });
+
+      if (!statusRes.ok) {
+        continue;
+      }
+
+      const statusData: any = await statusRes.json().catch(() => ({}));
+      const status = statusData?.status || 'IN_PROGRESS';
+
+      if (status === 'IN_QUEUE') {
+        onStatus?.('Waiting in queue...');
+      } else if (status === 'IN_PROGRESS') {
+        onStatus?.('Synthesizing video frames...');
+      } else if (status === 'COMPLETED') {
+        onStatus?.('Finalizing video stream...');
+        const resultRes = await authFetch('/api/fal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'queue_result', queueModel, requestId }),
+        });
+
+        if (!resultRes.ok) {
+          throw new Error(`Failed to retrieve completed video (${resultRes.status})`);
+        }
+        const resultData: any = await resultRes.json();
+        const videoUrl =
+          resultData?.video?.url ||
+          resultData?.output?.url ||
+          resultData?.videos?.[0]?.url ||
+          resultData?.url;
+        if (!videoUrl) {
+          throw new Error('Completed job did not include a video URL');
+        }
+        return videoUrl;
+      } else if (status === 'FAILED' || status === 'CANCELED') {
+        throw new Error(`Video generation ${status.toLowerCase()}`);
+      }
+    }
+
+    throw new Error('Video generation timed out while waiting for queue completion');
+  },
 };

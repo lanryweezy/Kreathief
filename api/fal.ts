@@ -1,6 +1,7 @@
 import { log } from '../utils/log';
 import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
+import { checkAndDeductCredits } from './_credits';
 
 export const config = {
   runtime: 'edge',
@@ -42,8 +43,9 @@ export default async function handler(req: Request) {
     });
   }
 
+  let authUser: { id: string; email?: string; role?: string };
   try {
-    await requireAuth(req);
+    authUser = await requireAuth(req);
   } catch (error) {
     if (error instanceof Response) return error;
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
@@ -64,11 +66,12 @@ export default async function handler(req: Request) {
   }
 
   const clientIp = req.headers.get('x-forwarded-for') || 'unknown';
-  const rateLimitState = rateLimitMap.get(clientIp);
+  const rateLimitKey = authUser?.id || clientIp;
+  const rateLimitState = rateLimitMap.get(rateLimitKey);
 
   if (rateLimitState) {
     if (now > rateLimitState.resetTime) {
-      rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+      rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
     } else {
       if (rateLimitState.count >= MAX_REQUESTS_PER_WINDOW) {
         return new Response(JSON.stringify({ error: 'Too many requests' }), {
@@ -82,7 +85,7 @@ export default async function handler(req: Request) {
       rateLimitState.count++;
     }
   } else {
-    rateLimitMap.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    rateLimitMap.set(rateLimitKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
   }
 
   let payload: any = {};
@@ -98,7 +101,7 @@ export default async function handler(req: Request) {
     });
   }
 
-  const { endpoint, body } = payload;
+  const { endpoint, body, mode, queueModel, requestId } = payload;
   const apiKey = process.env.FAL_KEY;
 
   if (!apiKey) {
@@ -107,6 +110,98 @@ export default async function handler(req: Request) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': origin,
+      },
+    });
+  }
+
+  // Async Queue API for long-running video generation jobs (Kling, Luma, MiniMax, Wan)
+  const allowedQueueModels = [
+    'fal-ai/kling-video/v2/master/text-to-video',
+    'fal-ai/kling-video/v1.6/standard/text-to-video',
+    'fal-ai/luma-dream-machine',
+    'fal-ai/minimax/video-01',
+    'fal-ai/wan-t2v',
+  ];
+
+  if (mode === 'queue_submit' || mode === 'queue_status' || mode === 'queue_result') {
+    if (!queueModel || !allowedQueueModels.includes(queueModel)) {
+      return new Response(JSON.stringify({ error: 'Queue model not allowed' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+      });
+    }
+
+    if (mode === 'queue_submit') {
+      const creditCheck = await checkAndDeductCredits(authUser?.id, 5);
+      if (!creditCheck.allowed) {
+        return new Response(
+          JSON.stringify({
+            error: 'Insufficient AI credits for video generation (5 credits required).',
+            remaining: creditCheck.remaining ?? 0,
+          }),
+          {
+            status: 402,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': origin,
+              'X-Credits-Remaining': String(creditCheck.remaining ?? 0),
+              ...noStoreHeaders(),
+            },
+          }
+        );
+      }
+
+      const safeQueueBody: Record<string, unknown> = {};
+      if (body && typeof body === 'object') {
+        for (const key of ['prompt', 'negative_prompt', 'aspect_ratio', 'duration', 'image_url']) {
+          if (key in body) safeQueueBody[key] = body[key];
+        }
+      }
+
+      const submitRes = await fetch(`https://queue.fal.run/${queueModel}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(safeQueueBody),
+      });
+
+      const submitData = await submitRes.json().catch(() => ({}));
+      return new Response(JSON.stringify(submitData), {
+        status: submitRes.ok ? 200 : submitRes.status,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          ...(creditCheck.remaining !== null ? { 'X-Credits-Remaining': String(creditCheck.remaining) } : {}),
+          ...noStoreHeaders(),
+        },
+      });
+    }
+
+    if (typeof requestId !== 'string' || !/^[a-zA-Z0-9_-]{8,80}$/.test(requestId)) {
+      return new Response(JSON.stringify({ error: 'Invalid requestId' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': origin },
+      });
+    }
+
+    const queueUrl =
+      mode === 'queue_status'
+        ? `https://queue.fal.run/${queueModel}/requests/${requestId}/status`
+        : `https://queue.fal.run/${queueModel}/requests/${requestId}`;
+
+    const pollRes = await fetch(queueUrl, {
+      method: 'GET',
+      headers: { Authorization: `Key ${apiKey}`, Accept: 'application/json' },
+    });
+    const pollData = await pollRes.json().catch(() => ({}));
+    return new Response(JSON.stringify(pollData), {
+      status: pollRes.ok ? 200 : pollRes.status,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': origin,
+        ...noStoreHeaders(),
       },
     });
   }
@@ -164,6 +259,25 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
+  }
+
+  const creditCheck = await checkAndDeductCredits(authUser?.id, 1);
+  if (!creditCheck.allowed) {
+    return new Response(
+      JSON.stringify({
+        error: 'Insufficient AI generation credits. Please upgrade your plan or purchase a credit pack.',
+        remaining: creditCheck.remaining ?? 0,
+      }),
+      {
+        status: 402,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          'X-Credits-Remaining': String(creditCheck.remaining ?? 0),
+          ...noStoreHeaders(),
+        },
+      }
+    );
   }
 
   try {
@@ -260,6 +374,7 @@ export default async function handler(req: Request) {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': origin,
+        ...(creditCheck.remaining !== null ? { 'X-Credits-Remaining': String(creditCheck.remaining) } : {}),
         ...noStoreHeaders(),
       },
     });

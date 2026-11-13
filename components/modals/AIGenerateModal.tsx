@@ -45,7 +45,8 @@ export const AIGenerateModal: React.FC<AIGenerateModalProps> = ({ isOpen, onClos
       loadPreset(preset.id);
       await executeGraph();
 
-      const outputs = Object.values(nodeOutputs);
+      const freshOutputs = useNodeGraph.getState().nodeOutputs;
+      const outputs = Object.values(freshOutputs);
       const lastOutput = outputs[outputs.length - 1];
       const generated: { image?: string; text?: string; layers?: any[] } = {};
 

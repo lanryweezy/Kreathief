@@ -17,7 +17,7 @@ export const AI_MODELS: AIModel[] = [
     category: 'fast',
     maxTokens: 8192,
     supportsImages: true,
-    icon: '⚡',
+    icon: 'FAST',
   },
   {
     id: 'openai/gpt-4o-mini',
@@ -26,7 +26,7 @@ export const AI_MODELS: AIModel[] = [
     category: 'fast',
     maxTokens: 16384,
     supportsImages: true,
-    icon: '⚡',
+    icon: 'FAST',
   },
   {
     id: 'meta-llama/llama-4-scout',
@@ -35,7 +35,7 @@ export const AI_MODELS: AIModel[] = [
     category: 'fast',
     maxTokens: 16384,
     supportsImages: true,
-    icon: '⚡',
+    icon: 'FAST',
   },
 
   // Quality models — balanced speed and quality
@@ -46,16 +46,16 @@ export const AI_MODELS: AIModel[] = [
     category: 'quality',
     maxTokens: 16384,
     supportsImages: true,
-    icon: '🎯',
+    icon: 'PRO',
   },
   {
-    id: 'google/gemini-2.5-flash',
-    name: 'Gemini 2.5 Flash',
+    id: 'google/gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
     provider: 'Google',
     category: 'quality',
     maxTokens: 65536,
     supportsImages: true,
-    icon: '🎯',
+    icon: 'PRO',
   },
   {
     id: 'anthropic/claude-sonnet-4',
@@ -64,7 +64,7 @@ export const AI_MODELS: AIModel[] = [
     category: 'quality',
     maxTokens: 16384,
     supportsImages: true,
-    icon: '🎯',
+    icon: 'PRO',
   },
 
   // Creative models — best for design tasks
@@ -75,16 +75,16 @@ export const AI_MODELS: AIModel[] = [
     category: 'creative',
     maxTokens: 100000,
     supportsImages: true,
-    icon: '✨',
+    icon: 'MAX',
   },
   {
     id: 'google/gemini-2.5-pro-preview',
-    name: 'Gemini 2.5 Pro',
+    name: 'Gemini 2.5 Pro Preview',
     provider: 'Google',
     category: 'creative',
     maxTokens: 65536,
     supportsImages: true,
-    icon: '✨',
+    icon: 'MAX',
   },
   {
     id: 'anthropic/claude-opus-4',
@@ -93,7 +93,7 @@ export const AI_MODELS: AIModel[] = [
     category: 'creative',
     maxTokens: 32000,
     supportsImages: true,
-    icon: '✨',
+    icon: 'MAX',
   },
 ];
 

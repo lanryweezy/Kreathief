@@ -3,6 +3,7 @@ import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { PanelHeader } from './PanelHeader';
+import { aiModelsService } from '../../services/aiModelsService';
 
 const CAMERA_MOTIONS = [
   { id: 'pan-right', label: 'Pan Right', icon: <Icons.ArrowRight className="w-3 h-3" /> },
@@ -24,6 +25,8 @@ export const VideoAgentPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'cinematic' | 'avatar'>('cinematic');
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string>('Synthesizing Magic Video...');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [videoResult, setVideoResult] = useState<string | null>(null);
   const [activeMotion, setActiveMotion] = useState<string>('pan-right');
   const [activeModel, setActiveModel] = useState<string>('jev-auto');
@@ -38,13 +41,55 @@ export const VideoAgentPanel: React.FC = () => {
     }
   }, [currentStoreTab, globalIntent]);
 
-  const handleGenerate = () => {
+  const resolveQueueModel = (modelId: string): string => {
+    switch (modelId) {
+      case 'luma-dream':
+        return 'fal-ai/luma-dream-machine';
+      case 'kling-v3':
+        return 'fal-ai/kling-video/v2/master/text-to-video';
+      case 'runway-gen3':
+        return 'fal-ai/minimax/video-01';
+      case 'jev-auto':
+      default:
+        return 'fal-ai/kling-video/v1.6/standard/text-to-video';
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!prompt.trim() || isGenerating) return;
+    const deductCredit = (useStore.getState() as any).deductCredit;
+    if (typeof deductCredit === 'function' && !deductCredit(5)) {
+      return;
+    }
+
     setIsGenerating(true);
+    setErrorMessage(null);
     setVideoResult(null);
-    setTimeout(() => {
+    setStatusMessage('Submitting to Fal video queue...');
+
+    const motionLabel = CAMERA_MOTIONS.find((m) => m.id === activeMotion)?.label || activeMotion;
+    const fullPrompt =
+      activeTab === 'cinematic'
+        ? `${prompt.trim()}. Camera motion: ${motionLabel}, cinematic lighting, high detail.`
+        : `UGC presenter speaking directly to camera: ${prompt.trim()}`;
+
+    try {
+      const videoUrl = await aiModelsService.generateVideoFromQueue(
+        resolveQueueModel(activeModel),
+        {
+          prompt: fullPrompt,
+          aspect_ratio: '16:9',
+          duration: '5',
+        },
+        (status) => setStatusMessage(status)
+      );
+      setVideoResult(videoUrl);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Video generation failed. Please try again.');
+      (useStore.getState() as any).addToast?.(err?.message || 'Video generation failed', 'error');
+    } finally {
       setIsGenerating(false);
-      setVideoResult('https://cdn.pixabay.com/video/2021/08/04/83864-584742461_tiny.mp4');
-    }, 4500);
+    }
   };
 
   return (
@@ -221,7 +266,7 @@ export const VideoAgentPanel: React.FC = () => {
             {isGenerating ? (
               <span className="flex items-center gap-2">
                 <Icons.RefreshCw className="w-4 h-4 animate-spin text-white" />
-                Synthesizing Magic Video...
+                {statusMessage}
               </span>
             ) : (
               <>
@@ -230,6 +275,11 @@ export const VideoAgentPanel: React.FC = () => {
               </>
             )}
           </Button>
+          {errorMessage && (
+            <p className="mt-2 text-[11px] text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+              {errorMessage}
+            </p>
+          )}
         </div>
 
         {/* Result Area */}
@@ -249,7 +299,14 @@ export const VideoAgentPanel: React.FC = () => {
                 <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" title="Add to Canvas" aria-label="Add to Canvas">
                   <Icons.Plus className="w-3.5 h-3.5" />
                 </Button>
-                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" title="Download Video" aria-label="Download Video">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md"
+                  title="Download Video"
+                  aria-label="Download Video"
+                  onClick={() => window.open(videoResult, '_blank', 'noopener,noreferrer')}
+                >
                   <Icons.Download className="w-3.5 h-3.5" />
                 </Button>
               </div>
