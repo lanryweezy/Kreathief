@@ -13,8 +13,7 @@ import { PanelHeader } from './PanelHeader';
 import { SearchInput } from '../SearchInput';
 import { getAIErrorMessage, getErrorDetails } from '../../utils/errorMessages';
 import { fuzzyMatch } from '../../utils/search';
-
-const generateWebsiteDesign = null as unknown as any;
+import { generateWebsiteDesign } from '../../services/geminiService';
 
 type ActiveTab = 'pages' | 'sections' | 'settings' | 'seo';
 

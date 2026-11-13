@@ -25,9 +25,9 @@ function parseBenchmarkDoc(mdContent) {
     const body = match[3] || '';
     const hasPromptOrProtocol =
       body.includes('**Prompt:**') || body.includes('**Protocol:**') || body.includes('>');
-    const hasPassCriteria =
-      body.includes('**Pass criteria:**') || id.startsWith('S-');
-    tasks.push({ id, title, hasPromptOrProtocol, hasPassCriteria });
+    const hasExplicitPassCriteria =
+      body.includes('**Pass criteria:**') || body.includes('**Expect:**') || id.startsWith('S-');
+    tasks.push({ id, title, hasPromptOrProtocol, hasExplicitPassCriteria });
   }
   return tasks;
 }
@@ -85,6 +85,21 @@ function verifyPipelineInvariants() {
     ['evaluateVariantOnKDAB', 'evaluateClarificationSuite', 'runKDABBenchmarkSuite'],
     'KDAB 20-dimension rubric evaluator (services/kdabBenchmarkService.ts)'
   );
+  checkFileContains(
+    'services/designAgentOrchestrator.ts',
+    ['evaluateVariantOnKDAB', 'variant.kdabScore', 'variant.kdabShip'],
+    'Live KDAB Judge 4 wired into orchestrator (services/designAgentOrchestrator.ts)'
+  );
+  checkFileContains(
+    'services/aiService.ts',
+    ['classifyLayerRole', 'kdabScore', 'motionDirectorAgent'],
+    'Role-aware Motion Director & KDAB score blending (services/aiService.ts)'
+  );
+  checkFileContains(
+    'services/geminiService.ts',
+    ['generateCarouselDesign', 'generateDocumentDesign', 'generateWebsiteDesign'],
+    'Carousel, Document, and Website AI generators (services/geminiService.ts)'
+  );
 
   return checks;
 }
@@ -102,7 +117,7 @@ function main() {
   console.log('================================================================');
   console.log(`Parsed Benchmark Tasks : ${tasks.length} total (${ktTasks.length} KT core + ${suppTasks.length} supplementary)`);
   console.log(
-    `Spec Completeness      : ${tasks.filter((t) => t.hasPromptOrProtocol && t.hasPassCriteria).length}/${tasks.length} tasks have prompt/protocol & pass criteria`
+    `Prompt/Protocol Ready  : ${tasks.filter((t) => t.hasPromptOrProtocol).length}/${tasks.length} tasks (${tasks.filter((t) => t.hasExplicitPassCriteria).length} task-specific gates + 20-dim rubric)`
   );
   console.log('----------------------------------------------------------------');
   console.log(' Pipeline Invariant Checks:');

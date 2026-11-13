@@ -4,7 +4,7 @@ import { Icons } from '../../constants';
 import { Artboard, Layer, ShapeType } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
-const generateDocumentDesign = null as unknown as any;
+import { generateDocumentDesign } from '../../services/geminiService';
 import { jsPDF } from 'jspdf';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';

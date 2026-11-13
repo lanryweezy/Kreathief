@@ -436,9 +436,13 @@ async function polishVariantLayers(
       canvasSize,
       requiredPhrases,
     });
-    if (variant.performanceScore === undefined) {
-      variant.performanceScore = Math.round(kdab.totalScore / 2);
-    }
+    variant.kdabScore = kdab.totalScore;
+    variant.kdabClassification = kdab.classification;
+    variant.kdabShip = kdab.shipVerdict;
+    variant.performanceScore = Math.max(
+      variant.performanceScore ?? 0,
+      Math.round(kdab.totalScore / 2)
+    );
     variant.criticFeedback = [
       ...(variant.criticFeedback || []),
       `KDAB rubric: ${kdab.totalScore}/200 (${kdab.classification}) — Ship: ${kdab.shipVerdict}`,

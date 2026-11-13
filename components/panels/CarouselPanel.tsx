@@ -7,7 +7,8 @@ import { Artboard } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
 import { SlideThumbnail } from '../common/SlideThumbnail';
-const generateCarouselDesign = null as unknown as any;
+import { generateCarouselDesign } from '../../services/geminiService';
+import { resolveHeroPhoto } from '../../services/visualAssetDirector';
 import JSZip from 'jszip';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
@@ -156,10 +157,9 @@ export const CarouselPanel: React.FC = () => {
 
           const offsetX = isContinuousMode ? idx * W : 0;
 
-          // Auto-Image sourcing via loremflickr
+          // Curated high-resolution hero photography via Visual Asset Director
           if (slide.imageSearchQuery) {
-            const tags = encodeURIComponent(slide.imageSearchQuery.replace(/\s+/g, ','));
-            const imgUrl = `https://loremflickr.com/${W}/${H}/${tags}?random=${idx}`;
+            const heroAsset = resolveHeroPhoto('editorial', slide.imageSearchQuery);
             state.addLayer({
               id: `img_${Date.now()}_${idx}`,
               type: 'image',
@@ -168,7 +168,7 @@ export const CarouselPanel: React.FC = () => {
               y: 0,
               width: W,
               height: H,
-              src: imgUrl,
+              src: heroAsset.url,
               rotation: 0,
               opacity: 0.5,
               locked: true,

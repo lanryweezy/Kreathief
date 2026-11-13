@@ -51,7 +51,27 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
           </Button>
         </div>
 
-        {/* Performance Badge */}
+        {/* Performance & KDAB Badges */}
+        {variant.kdabScore !== undefined && (
+          <div className="absolute top-3 left-3 px-2.5 py-1 bg-black/80 backdrop-blur-md rounded-full border border-purple-400/30 flex items-center gap-1.5">
+            <span className="text-[9px] font-black text-purple-300 uppercase tracking-wider">
+              KDAB {variant.kdabScore}/200
+            </span>
+            {variant.kdabShip && (
+              <span
+                className={`text-[8px] font-black px-1.5 py-0.5 rounded-full ${
+                  variant.kdabShip === 'YES'
+                    ? 'bg-emerald-500/20 text-emerald-300'
+                    : variant.kdabShip === 'MAYBE'
+                      ? 'bg-amber-500/20 text-amber-300'
+                      : 'bg-red-500/20 text-red-300'
+                }`}
+              >
+                SHIP: {variant.kdabShip}
+              </span>
+            )}
+          </div>
+        )}
         {variant.performanceScore !== undefined && (
           <div className="absolute top-3 right-3 px-3 py-1 bg-black/80 backdrop-blur-md rounded-full border border-white/10 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
@@ -126,7 +146,7 @@ export const VariantCard: React.FC<VariantCardProps> = ({ variant, onApply }) =>
         >
           {variant.artboards && variant.artboards.length > 1
             ? `+ Add Campaign (${variant.artboards.length} Boards)`
-            : '+ Add to Canva'}
+            : '+ Add to Canvas'}
         </Button>
       </div>
     </div>

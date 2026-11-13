@@ -1390,3 +1390,357 @@ Use concrete visual language, not vague adjectives. Palette must be real hex cod
     throw error;
   }
 };
+
+export interface GeneratedCarouselDesign {
+  theme: {
+    primaryColor: string;
+    secondaryColor: string;
+    fontFamily: string;
+  };
+  slides: Array<{
+    title: string;
+    body: string;
+    cta?: string;
+    imageSearchQuery?: string;
+  }>;
+}
+
+export const generateCarouselDesign = async (
+  prompt: string,
+  slideCount: number = 5
+): Promise<GeneratedCarouselDesign> => {
+  const count = Math.max(2, Math.min(10, slideCount || 5));
+  const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
+  try {
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      systemInstruction: `You are a Senior Social Media Creative Director. Design a ${count}-slide social carousel for the given topic.
+Slide 1 must be a bold hook/cover slide. Middle slides deliver clear, concise insights (1 idea per slide, body max 22 words). The final slide has a strong conversion CTA.
+Return ONLY valid JSON matching the schema.`,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            theme: {
+              type: SchemaType.OBJECT,
+              properties: {
+                primaryColor: { type: SchemaType.STRING },
+                secondaryColor: { type: SchemaType.STRING },
+                fontFamily: { type: SchemaType.STRING },
+              },
+              required: ['primaryColor', 'secondaryColor', 'fontFamily'],
+            },
+            slides: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  title: { type: SchemaType.STRING },
+                  body: { type: SchemaType.STRING },
+                  cta: { type: SchemaType.STRING },
+                  imageSearchQuery: { type: SchemaType.STRING },
+                },
+                required: ['title', 'body'],
+              },
+            },
+          },
+          required: ['theme', 'slides'],
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Topic: "${sanitizedPrompt}" (${count} slides)` }] }],
+    });
+
+    const parsed = safeParseJSON<GeneratedCarouselDesign | null>(data.text || 'null', null);
+    if (parsed && Array.isArray(parsed.slides) && parsed.slides.length > 0 && parsed.theme) {
+      return parsed;
+    }
+  } catch (error) {
+    log.warn('[GeminiService] generateCarouselDesign fallback used', error);
+  }
+
+  const headline = sanitizedPrompt.slice(0, 48) || 'Strategic Growth Playbook';
+  const slides = Array.from({ length: count }, (_, idx) => {
+    if (idx === 0) {
+      return {
+        title: headline.toUpperCase(),
+        body: 'Swipe through the essential principles engineered for measurable creative impact.',
+        imageSearchQuery: sanitizedPrompt,
+      };
+    }
+    if (idx === count - 1) {
+      return {
+        title: 'READY TO EXECUTE?',
+        body: 'Apply these frameworks to your next campaign and benchmark every iteration.',
+        cta: 'Save & Share This Guide',
+      };
+    }
+    return {
+      title: `0${idx}. Core Principle`,
+      body: `Focus on high-contrast visual hierarchy, disciplined spacing, and a single unmistakable focal point for ${sanitizedPrompt.slice(0, 32)}.`,
+    };
+  });
+
+  return {
+    theme: {
+      primaryColor: '#0F172A',
+      secondaryColor: '#6366F1',
+      fontFamily: 'Space Grotesk',
+    },
+    slides,
+  };
+};
+
+export interface GeneratedDocumentDesign {
+  theme: {
+    primaryColor: string;
+    secondaryColor: string;
+    fontFamily: string;
+  };
+  sections: Array<{
+    title: string;
+    type: 'header' | 'table' | 'list';
+    items: Array<{
+      label?: string;
+      value: string;
+      subValue?: string;
+    }>;
+  }>;
+}
+
+export const generateDocumentDesign = async (
+  prompt: string,
+  docType: string = 'Resume'
+): Promise<GeneratedDocumentDesign> => {
+  const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
+  try {
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      systemInstruction: `You are an Executive Editorial & Document Designer. Generate a structured ${docType} document based on the user's description.
+Include a "header" section first (items[0].value = Name/Title, items[1].value = Subtitle/Contact), followed by 3-4 structured sections ("list" or "table").
+Return ONLY valid JSON matching the schema.`,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            theme: {
+              type: SchemaType.OBJECT,
+              properties: {
+                primaryColor: { type: SchemaType.STRING },
+                secondaryColor: { type: SchemaType.STRING },
+                fontFamily: { type: SchemaType.STRING },
+              },
+              required: ['primaryColor', 'secondaryColor', 'fontFamily'],
+            },
+            sections: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  title: { type: SchemaType.STRING },
+                  type: { type: SchemaType.STRING, enum: ['header', 'table', 'list'] },
+                  items: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                      type: SchemaType.OBJECT,
+                      properties: {
+                        label: { type: SchemaType.STRING },
+                        value: { type: SchemaType.STRING },
+                        subValue: { type: SchemaType.STRING },
+                      },
+                      required: ['value'],
+                    },
+                  },
+                },
+                required: ['title', 'type', 'items'],
+              },
+            },
+          },
+          required: ['theme', 'sections'],
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Document Type: ${docType}\nBrief: "${sanitizedPrompt}"` }] }],
+    });
+
+    const parsed = safeParseJSON<GeneratedDocumentDesign | null>(data.text || 'null', null);
+    if (parsed && Array.isArray(parsed.sections) && parsed.sections.length > 0 && parsed.theme) {
+      return parsed;
+    }
+  } catch (error) {
+    log.warn('[GeminiService] generateDocumentDesign fallback used', error);
+  }
+
+  const isInvoice = docType.toLowerCase().includes('invoice');
+  return {
+    theme: {
+      primaryColor: '#1E293B',
+      secondaryColor: '#475569',
+      fontFamily: 'Inter',
+    },
+    sections: [
+      {
+        title: docType,
+        type: 'header',
+        items: [
+          { value: sanitizedPrompt.slice(0, 42) || `${docType} Document` },
+          { value: 'Prepared via Kreathief Studio  |  hello@kreathief.com' },
+        ],
+      },
+      isInvoice
+        ? {
+            title: 'Line Items',
+            type: 'table',
+            items: [
+              { label: 'Creative Direction & Strategy', value: '$1,500.00' },
+              { label: 'Multi-Format Brand Production', value: '$2,000.00' },
+              { label: 'Design System Delivery', value: '$1,000.00' },
+            ],
+          }
+        : {
+            title: 'Executive Summary',
+            type: 'list',
+            items: [
+              {
+                label: 'Overview',
+                value: sanitizedPrompt || 'Comprehensive strategic overview and deliverables.',
+                subValue: '2026',
+              },
+              {
+                label: 'Key Objective',
+                value: 'Deliver measurable visual clarity, high-contrast hierarchy, and brand consistency.',
+                subValue: 'Priority',
+              },
+            ],
+          },
+    ],
+  };
+};
+
+export interface GeneratedWebsiteDesign {
+  siteSettings: {
+    name: string;
+    primaryColor: string;
+    fontFamily: string;
+  };
+  pages: Array<{
+    name: string;
+    slug: string;
+    isHomePage: boolean;
+    seoKeywords: string;
+    metaDescription: string;
+    sections: Array<{
+      type: string;
+      title: string;
+      content: string;
+    }>;
+  }>;
+}
+
+export const generateWebsiteDesign = async (prompt: string): Promise<GeneratedWebsiteDesign> => {
+  const sanitizedPrompt = prompt.trim().substring(0, 1000);
+
+  try {
+    const data = await callBackendGeminiAPI({
+      modelName: MODEL_FAST,
+      systemInstruction: `You are a Principal Web Design Director. Design a conversion-focused website architecture from the user's brief.
+Allowed section "type" values: "nav-sticky", "hero-fullscreen", "hero-split", "features-grid", "stats-bar", "testimonials-cards", "pricing-3col", "cta-banner", "footer-multi".
+Return ONLY valid JSON matching the schema.`,
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: {
+          type: SchemaType.OBJECT,
+          properties: {
+            siteSettings: {
+              type: SchemaType.OBJECT,
+              properties: {
+                name: { type: SchemaType.STRING },
+                primaryColor: { type: SchemaType.STRING },
+                fontFamily: { type: SchemaType.STRING },
+              },
+              required: ['name', 'primaryColor', 'fontFamily'],
+            },
+            pages: {
+              type: SchemaType.ARRAY,
+              items: {
+                type: SchemaType.OBJECT,
+                properties: {
+                  name: { type: SchemaType.STRING },
+                  slug: { type: SchemaType.STRING },
+                  isHomePage: { type: SchemaType.BOOLEAN },
+                  seoKeywords: { type: SchemaType.STRING },
+                  metaDescription: { type: SchemaType.STRING },
+                  sections: {
+                    type: SchemaType.ARRAY,
+                    items: {
+                      type: SchemaType.OBJECT,
+                      properties: {
+                        type: { type: SchemaType.STRING },
+                        title: { type: SchemaType.STRING },
+                        content: { type: SchemaType.STRING },
+                      },
+                      required: ['type', 'title', 'content'],
+                    },
+                  },
+                },
+                required: ['name', 'slug', 'isHomePage', 'seoKeywords', 'metaDescription', 'sections'],
+              },
+            },
+          },
+          required: ['siteSettings', 'pages'],
+        },
+      },
+      contents: [{ role: 'user', parts: [{ text: `Website Brief: "${sanitizedPrompt}"` }] }],
+    });
+
+    const parsed = safeParseJSON<GeneratedWebsiteDesign | null>(data.text || 'null', null);
+    if (parsed && Array.isArray(parsed.pages) && parsed.pages.length > 0 && parsed.siteSettings) {
+      return parsed;
+    }
+  } catch (error) {
+    log.warn('[GeminiService] generateWebsiteDesign fallback used', error);
+  }
+
+  const brandTitle = sanitizedPrompt.slice(0, 32) || 'Kreathief Studio';
+  return {
+    siteSettings: {
+      name: brandTitle,
+      primaryColor: '#6366F1',
+      fontFamily: 'Space Grotesk',
+    },
+    pages: [
+      {
+        name: 'Home',
+        slug: '/',
+        isHomePage: true,
+        seoKeywords: 'design, creative studio, digital product, brand',
+        metaDescription: `${brandTitle} — designed for clarity and high conversion.`,
+        sections: [
+          { type: 'nav-sticky', title: brandTitle, content: 'Features  |  Pricing  |  About  |  Get Started' },
+          {
+            type: 'hero-fullscreen',
+            title: brandTitle.toUpperCase(),
+            content: sanitizedPrompt || 'Precision-engineered creative experiences built for modern teams.',
+          },
+          {
+            type: 'features-grid',
+            title: 'Built for Speed and Craft',
+            content: 'Unified layout intelligence, brand memory, and instant multi-format production.',
+          },
+          {
+            type: 'cta-banner',
+            title: 'Launch Your Next Campaign Today',
+            content: 'Start creating studio-grade assets in minutes.',
+          },
+          {
+            type: 'footer-multi',
+            title: brandTitle,
+            content: 'Copyright 2026. All rights reserved.',
+          },
+        ],
+      },
+    ],
+  };
+};

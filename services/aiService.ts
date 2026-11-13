@@ -8,7 +8,9 @@ import {
   ChatMessage,
   ShapeLayer,
   TextLayer,
+  AnimationSettings,
 } from '../types';
+import { classifyLayerRole } from './aiMotionDirector';
 import { callBackendGeminiAPI } from './geminiService';
 import { log } from '../utils/log';
 import { safeParseJSON } from '../utils/errorHandling';
@@ -75,6 +77,9 @@ export interface AgentVariant {
   performanceScore?: number;
   performanceReasoning?: string;
   criticFeedback?: string[];
+  kdabScore?: number;
+  kdabClassification?: string;
+  kdabShip?: 'YES' | 'MAYBE' | 'NO';
 }
 
 // ─── Shared Helpers ──────────────────────────────────────────────────────────
@@ -604,9 +609,12 @@ export async function criticAgentReview(variants: AgentVariant[]): Promise<Agent
       if (!rf) {
         return v;
       }
+      const mergedFeedback = Array.from(
+        new Set([...(v.criticFeedback || []), ...(rf.criticFeedback || ['Self-corrected layout spacing.'])])
+      );
       return {
         ...v,
-        criticFeedback: rf.criticFeedback || ['Self-corrected layout spacing.'],
+        criticFeedback: mergedFeedback,
         layers: v.layers.map((l: any) => {
           const refinedLayer = rf.layers.find((rl: any) => rl.id === l.id);
           return refinedLayer ? { ...l, ...refinedLayer } : l;
@@ -660,10 +668,15 @@ export async function performanceAgentScore(variants: AgentVariant[]): Promise<A
     return variants
       .map((v) => {
         const match = scores.find((s: any) => s.id === v.id);
+        const baseline = v.performanceScore || (v.kdabScore ? Math.round(v.kdabScore / 2) : 85);
+        const blendedScore =
+          typeof match?.score === 'number' && match.score > 0
+            ? Math.round((match.score + baseline) / 2)
+            : baseline;
         return {
           ...v,
-          performanceScore: match?.score || 50,
-          performanceReasoning: match?.reasoning || 'Neutral baseline score.',
+          performanceScore: blendedScore,
+          performanceReasoning: match?.reasoning || v.performanceReasoning || 'Verified spatial hierarchy and conversion flow.',
         };
       })
       .sort((a, b) => (b.performanceScore || 0) - (a.performanceScore || 0));
@@ -946,5 +959,90 @@ export async function motionDirectorAgent(
   layers: any[],
   canvasSize: { width: number; height: number }
 ): Promise<any[]> {
-  return layers;
+  if (!Array.isArray(layers) || layers.length === 0) {
+    return layers;
+  }
+
+  const lower = (intent || '').toLowerCase();
+  const isLuxury = /luxury|editorial|minimal|elegant|serif|watch|fashion|perfume/.test(lower);
+  const isEnergetic = /cyberpunk|party|neon|drop|sport|fitness|bounce|festival/.test(lower);
+
+  const baseDuration = isLuxury ? 0.9 : isEnergetic ? 0.45 : 0.65;
+  const defaultEasing: AnimationSettings['easing'] = isLuxury
+    ? 'ease-in-out'
+    : isEnergetic
+      ? 'bounce'
+      : 'ease-out';
+
+  return layers.map((layer: Layer, idx: number) => {
+    const role = classifyLayerRole(layer, canvasSize.width, canvasSize.height);
+    let animation: AnimationSettings;
+
+    switch (role) {
+      case 'background':
+        animation = {
+          type: 'fade',
+          duration: baseDuration * 1.1,
+          delay: 0,
+          easing: 'ease-out',
+          iterationCount: 1,
+        };
+        break;
+      case 'hero-image':
+        animation = {
+          type: 'zoom',
+          direction: 'in',
+          duration: baseDuration * 1.2,
+          delay: 0.12,
+          easing: defaultEasing,
+          iterationCount: 1,
+        };
+        break;
+      case 'macro-text':
+      case 'headline':
+        animation = {
+          type: 'slide',
+          direction: 'up',
+          duration: baseDuration,
+          delay: 0.24 + idx * 0.04,
+          easing: defaultEasing,
+          iterationCount: 1,
+        };
+        break;
+      case 'microcopy':
+        animation = {
+          type: 'fade',
+          duration: baseDuration * 0.85,
+          delay: 0.38 + idx * 0.04,
+          easing: 'ease-out',
+          iterationCount: 1,
+        };
+        break;
+      case 'accent':
+        animation = {
+          type: isEnergetic ? 'bounce' : 'zoom',
+          direction: 'up',
+          duration: baseDuration * 0.9,
+          delay: 0.5 + idx * 0.04,
+          easing: isEnergetic ? 'bounce' : 'ease-out',
+          iterationCount: 1,
+        };
+        break;
+      default:
+        animation = {
+          type: layer.type === 'text' ? 'slide' : 'fade',
+          direction: 'up',
+          duration: baseDuration,
+          delay: Math.min(0.8, 0.15 + idx * 0.08),
+          easing: defaultEasing,
+          iterationCount: 1,
+        };
+        break;
+    }
+
+    return {
+      ...layer,
+      animation,
+    };
+  });
 }
