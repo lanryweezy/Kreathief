@@ -3337,23 +3337,6 @@ const generateLayerAsset = async (layer: DesignBlueprintLayer): Promise<string> 
   }
 };
 
-/** @deprecated Use generateLayerAsset which dispatches by role. */
-const generateImageAsset = async (
-  prompt: string,
-  removeBackground: boolean,
-  width: number,
-  height: number
-): Promise<string> => {
-  const dummyLayer: DesignBlueprintLayer = {
-    id: 'legacy',
-    type: 'generated-image',
-    name: 'Legacy asset',
-    zIndex: 1,
-    properties: { prompt, removeBackground, width, height },
-  };
-  return generateLayerAsset(dummyLayer);
-};
-
 /**
  * Convert a DesignBlueprintLayer to a Layer for the canvas
  */
@@ -3417,31 +3400,25 @@ const convertBlueprintLayerToCanvasLayer = (blueprintLayer: DesignBlueprintLayer
         textTransform: props.textTransform || 'none',
       };
 
-    case 'generated-image':
-      // Vector accent layers that produced SVG output are injected as path layers
-      // so the user gets live editable anchor points and strokes on the canvas.
-      if (
-        blueprintLayer.role === 'vector-accent' &&
-        imageUrl &&
-        (imageUrl.startsWith('data:image/svg') || imageUrl.startsWith('<svg'))
-      ) {
-        return {
-          ...baseLayer,
-          type: 'path',
-          pathData: imageUrl,
-          color: props.color || '#ffffff',
-          cornerRadius: 0,
-        };
+    case 'generated-image': {
+      // Vector accent layers return a whole SVG document (data URL or raw markup), not a path
+      // 'd' string. Feeding that into a `path` layer's pathData produced an unrenderable layer,
+      // so SVG output is carried as an image layer: it always renders, scales losslessly, and
+      // stays swappable. (Per-node path editing needs viewBox-aware extraction - future work.)
+      let resolvedSrc = imageUrl || props.imageUrl || '';
+      if (resolvedSrc.trim().startsWith('<svg')) {
+        resolvedSrc = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(resolvedSrc)))}`;
       }
       return {
         ...baseLayer,
         type: 'image',
-        src: imageUrl || props.imageUrl || '',
+        src: resolvedSrc,
         flipX: false,
         flipY: false,
         naturalWidth: props.width || 200,
         naturalHeight: props.height || 200,
       };
+    }
 
     case 'svg-icon':
       return {
@@ -3501,11 +3478,14 @@ export const processDesignBlueprint = async (
     options.onProgress?.(processedCount + 1, imageLayers.length, layer.name);
 
     try {
-      // Every blueprint asset is ONE layer of an editable composition — real
-      // typography arrives later as native text layers, so anything letter-
-      // shaped baked into the raster becomes duplicate garbage (assetMode rule).
-      const assetPrompt = `${prompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space where headlines and labels will be placed.`;
-      const imageUrl = await generateImageAsset(assetPrompt, removeBackground, width, height);
+      // Dispatch by layer.role (hero-cutout / vector-accent / background / default). The router
+      // appends the no-text / negative-space constraints itself, so the raw prompt goes in.
+      // Every blueprint asset is ONE layer of an editable composition - real typography arrives
+      // later as native text layers, so letter-shaped pixels would be duplicate garbage.
+      const imageUrl = await generateLayerAsset({
+        ...layer,
+        properties: { ...props, prompt, removeBackground, width, height },
+      });
       if (imageUrl) {
         generatedAssets.set(layer.id, imageUrl);
         options.onAssetGenerated?.(layer.id, imageUrl);
@@ -3580,10 +3560,19 @@ export const generateDesignFromBrief = async (
     options.onProgress?.(processedCount + 1, imageLayers.length, layer.name || 'Asset');
 
     try {
-      const finalPrompt = `${assetPrompt}. This image is one layer of an editable design: contain no text, letters, numbers, words or watermarks; keep deliberate clean negative space.`;
-
-      // Use existing generateImageAsset logic
-      const imageUrl = await generateImageAsset(finalPrompt, removeBackground, layer.width, layer.height);
+      // Route through the specialist router so the planner's role actually selects the model.
+      const knownRoles = ['background', 'vector-accent', 'hero-cutout', 'typography', 'cta'] as const;
+      const routedRole = (knownRoles as readonly string[]).includes(role)
+        ? (role as DesignBlueprintLayer['role'])
+        : undefined;
+      const imageUrl = await generateLayerAsset({
+        id: layer.id,
+        type: 'generated-image',
+        name: layer.name || 'Asset',
+        zIndex: 1,
+        role: routedRole,
+        properties: { prompt: assetPrompt, removeBackground, width: layer.width, height: layer.height },
+      });
 
       if (imageUrl) {
         generatedAssets.set(layer.id, imageUrl);

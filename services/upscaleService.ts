@@ -11,6 +11,7 @@
  */
 
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 // Minimum effective DPI for print. Below this, we upscale.
 const PRINT_DPI_THRESHOLD = 200;
@@ -74,7 +75,7 @@ async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<s
     const startUrl = new URL('/api/replicate', origin);
     startUrl.searchParams.append('action', 'start');
 
-    const startRes = await fetch(startUrl.toString(), {
+    const startRes = await authFetch(startUrl.toString(), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -106,7 +107,7 @@ async function upscaleViaReplicate(dataUrl: string, scale: 2 | 4 = 4): Promise<s
       pollUrl.searchParams.append('action', 'poll');
       pollUrl.searchParams.append('id', predictionId);
 
-      const pollRes = await fetch(pollUrl.toString(), {
+      const pollRes = await authFetch(pollUrl.toString(), {
         headers: { Accept: 'application/json' },
       });
 

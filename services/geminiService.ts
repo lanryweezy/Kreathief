@@ -11,6 +11,33 @@ import { aiModelsService } from './aiModelsService';
 import { DEFAULT_EDIT_MODEL, getImageModel } from '../config/imageModels';
 import { log } from '../utils/log';
 import { safeParseJSON, retryWithBackoff } from '../utils/errorHandling';
+import { authFetch } from '../utils/authFetch';
+
+/**
+ * Converts a Gemini-style responseSchema (SchemaType enum values such as 'OBJECT') into standard
+ * JSON Schema (lowercase types). Pure and recursive; unknown shapes pass through unchanged.
+ */
+export const geminiSchemaToJsonSchema = (schema: any): any => {
+  if (Array.isArray(schema)) {
+    return schema.map(geminiSchemaToJsonSchema);
+  }
+  if (!schema || typeof schema !== 'object') {
+    return schema;
+  }
+  const out: Record<string, any> = {};
+  for (const [key, value] of Object.entries(schema)) {
+    if (key === 'type' && typeof value === 'string') {
+      out[key] = value.toLowerCase();
+    } else if (key === 'properties' && value && typeof value === 'object') {
+      out[key] = Object.fromEntries(
+        Object.entries(value as Record<string, any>).map(([k, v]) => [k, geminiSchemaToJsonSchema(v)])
+      );
+    } else {
+      out[key] = geminiSchemaToJsonSchema(value);
+    }
+  }
+  return out;
+};
 
 // Helper to call backend serverless endpoint — routed through OpenRouter
 export const callBackendGeminiAPI = async (payload: any) => {
@@ -94,6 +121,22 @@ export const callBackendGeminiAPI = async (payload: any) => {
   const max_tokens = payload.generationConfig?.maxOutputTokens ?? 8192;
   const isJSON = payload.generationConfig?.responseMimeType === 'application/json';
 
+  // Gemini's responseSchema has no OpenRouter equivalent that every routed model honors, so the
+  // contract is delivered as an explicit instruction instead. Without it the model only sees
+  // "json_object" and invents its own shape, which the blueprint/critic parsers then reject.
+  if (isJSON && payload.generationConfig?.responseSchema) {
+    const schemaText = JSON.stringify(geminiSchemaToJsonSchema(payload.generationConfig.responseSchema));
+    const directive = `\n\nOUTPUT CONTRACT: respond with ONLY a single valid JSON object (no markdown fences, no commentary) that conforms to this JSON Schema. Include every required field:\n${schemaText}`;
+    const sysIdx = messages.findIndex((m) => m.role === 'system');
+    if (sysIdx >= 0 && typeof messages[sysIdx].content === 'string') {
+      messages[sysIdx].content += directive;
+    } else {
+      messages.unshift({ role: 'system', content: directive.trim() });
+    }
+  }
+  const temperature =
+    typeof payload.generationConfig?.temperature === 'number' ? payload.generationConfig.temperature : undefined;
+
   const isTest = typeof process !== 'undefined' && process.env?.NODE_ENV === 'test';
   const timeoutMs = isTest ? 100 : 60000;
   const retries = isTest ? 1 : 3;
@@ -106,11 +149,14 @@ export const callBackendGeminiAPI = async (payload: any) => {
 
       try {
         const reqBody: any = { model, messages, max_tokens };
+        if (temperature !== undefined) {
+          reqBody.temperature = temperature;
+        }
         if (isJSON) {
           reqBody.response_format = { type: 'json_object' };
         }
 
-        const response = await fetch(endpoint, {
+        const response = await authFetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(reqBody),

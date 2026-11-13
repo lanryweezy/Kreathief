@@ -79,7 +79,7 @@ export default async function handler(req: Request) {
 
   try {
     const body = await req.json();
-    const { model, messages, max_tokens = 4096 } = body;
+    const { model, messages, max_tokens = 4096, temperature } = body;
 
     if (!model || !messages) {
       return new Response(JSON.stringify({ error: 'Missing required fields: model, messages' }), {
@@ -127,6 +127,7 @@ export default async function handler(req: Request) {
         model,
         messages,
         max_tokens,
+        ...(typeof temperature === 'number' && temperature >= 0 && temperature <= 2 && { temperature }),
         ...(body.response_format && { response_format: body.response_format }),
       }),
     });

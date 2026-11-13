@@ -1,5 +1,6 @@
 import { logger } from './logger';
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 export interface DynamicMockupRequest {
   mockupId: string;
@@ -15,7 +16,7 @@ export interface DynamicMockupRequest {
 export const dynamicMockupsService = {
   async generateMockup(params: DynamicMockupRequest) {
     try {
-      const response = await fetch('/api/dynamic-mockups?action=generate', {
+      const response = await authFetch('/api/dynamic-mockups?action=generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +44,7 @@ export const dynamicMockupsService = {
 
   async listMockups() {
     try {
-      const response = await fetch('/api/dynamic-mockups?action=list');
+      const response = await authFetch('/api/dynamic-mockups?action=list');
       const data = await response.json();
       return data.templates || [];
     } catch (error) {

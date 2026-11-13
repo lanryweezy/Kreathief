@@ -6,6 +6,7 @@
 import { retryWithBackoff } from '../utils/errorHandling';
 import { log } from '../utils/log';
 import { getImageModel } from '../config/imageModels';
+import { authFetch } from '../utils/authFetch';
 
 interface FalResponse {
   images?: { url: string }[];
@@ -53,7 +54,7 @@ const callFalAPI = async (endpoint: string, body: any, errorMessage: string) => 
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
       try {
-        const response = await fetch('/api/fal', {
+        const response = await authFetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ endpoint, body }),

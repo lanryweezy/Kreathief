@@ -396,7 +396,11 @@ export async function generateImageWithModel(prompt: string, options: GenerateIm
       const imageUrl = await aiModelsService.generateImageFromEndpoint(
         model.falEndpoint,
         prompt,
-        buildSizePayload(model, aspectRatio, 'generate')
+        {
+          ...buildSizePayload(model, aspectRatio, 'generate'),
+          // Models with a native alpha channel only emit RGBA when asked for PNG.
+          ...(model.capabilities.nativeTransparency ? { output_format: 'png' } : {}),
+        }
       );
       if (imageUrl) {
         return imageUrl;

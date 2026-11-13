@@ -192,6 +192,22 @@ export const IMAGE_GEN_MODELS: ImageGenModel[] = [
     capabilities: REFERENCE_CAPABLE,
   },
   {
+    // Registered so DEFAULT_CUTOUT_MODEL resolves. Without this entry getImageModel() returned
+    // undefined and the hero-cutout route silently fell through to the generic Freepik path.
+    id: 'qwen-image-2-1',
+    name: 'Qwen-Image 2.1',
+    provider: 'Alibaba',
+    category: 'chinese',
+    falEndpoint: 'https://fal.run/fal-ai/qwen-image-2-1',
+    editEndpoint: 'https://fal.run/fal-ai/qwen-image-2-1/edit',
+    imageInputField: 'image_url',
+    description: 'Native RGBA transparent cutouts, strong text rendering and editing',
+    supportsAspectRatio: true,
+    outputType: 'image',
+    icon: CompanyLogos.AlibabaLogo,
+    capabilities: { ...REFERENCE_CAPABLE, nativeTransparency: true },
+  },
+  {
     id: 'ideogram-v3',
     name: 'Ideogram V3',
     provider: 'Ideogram',

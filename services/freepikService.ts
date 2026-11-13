@@ -1,5 +1,6 @@
 import { fuzzyMatch } from "../utils/search";
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 // Helper to create object URLs for generated assets. These URLs get stored in
 // layer state indefinitely, so they must NOT be auto-revoked on a timer — a
@@ -64,7 +65,7 @@ async function freepikFetch(endpoint: string, options: RequestInit = {}) {
   }
 
   try {
-    const response = await fetch(url.toString(), {
+    const response = await authFetch(url.toString(), {
       ...options,
       headers: {
         ...options.headers,
@@ -356,7 +357,7 @@ async function pollTask(taskId: string, basePath: string, maxAttempts = 30, inte
 
     let status: any;
     try {
-      status = await fetch(url.toString()).then((res) => res.json());
+      status = await authFetch(url.toString()).then((res) => res.json());
     } catch (fetchErr) {
       log.error('[FreepikService] Poll fetch failed', fetchErr, { taskId });
       continue;
@@ -528,7 +529,7 @@ export async function downloadResource(
   url.searchParams.set('resourceId', String(resourceId));
   url.searchParams.set('format', format);
 
-  const data = await fetch(url.toString()).then((res) => res.json());
+  const data = await authFetch(url.toString()).then((res) => res.json());
 
   if (!data?.data?.url) {
     return null;
