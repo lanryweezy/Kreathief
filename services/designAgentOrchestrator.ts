@@ -44,6 +44,7 @@ import {
   planDesignCommand,
 } from './semanticTransformation';
 import { AgentVariant, creativeAgentDraft } from './aiService';
+import { evaluateVariantOnKDAB } from './kdabBenchmarkService';
 
 export type DraftProgressStage = 'planning' | 'assets' | 'critique' | 'fallback';
 
@@ -419,6 +420,32 @@ async function polishVariantLayers(
   }
 
   enforceTextFidelity(variant, intent);
+
+  // Final KDAB 20-dimension rubric audit (Judge 4): records a deterministic
+  // 200-point agency benchmark score and "Would a Senior Designer Ship This?" verdict.
+  try {
+    const requiredPhrases = (intent.match(/["']([^"']{3,80})["']/g) || [])
+      .map((s) => s.replace(/["']/g, '').trim())
+      .filter((s) => s.length > 2)
+      .slice(0, 3);
+    const kdab = evaluateVariantOnKDAB(variant, {
+      id: 'LIVE',
+      category: 'Live Brief',
+      title: variant.themeIdea || 'Live Design',
+      prompt: intent,
+      canvasSize,
+      requiredPhrases,
+    });
+    if (variant.performanceScore === undefined) {
+      variant.performanceScore = Math.round(kdab.totalScore / 2);
+    }
+    variant.criticFeedback = [
+      ...(variant.criticFeedback || []),
+      `KDAB rubric: ${kdab.totalScore}/200 (${kdab.classification}) — Ship: ${kdab.shipVerdict}`,
+    ];
+  } catch (err) {
+    log.warn('[AgentOrchestrator] KDAB rubric evaluation skipped', String(err));
+  }
 }
 
 /**

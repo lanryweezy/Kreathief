@@ -1,5 +1,6 @@
 import { fuzzyMatch } from '../utils/search';
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 export interface MaterialIconResult {
   name: string;
@@ -70,7 +71,7 @@ async function fetchIcons(query: string): Promise<MaterialIconResult[]> {
   try {
     const url = new URL('/api/materialIcons', window.location.origin);
     url.searchParams.set('q', query);
-    const res = await fetch(url.toString(), {
+    const res = await authFetch(url.toString(), {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(3000),
     });

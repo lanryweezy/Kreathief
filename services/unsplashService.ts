@@ -1,5 +1,6 @@
 import { log } from '../utils/log';
 import { getFallbackPhotos } from './fallbackPhotos';
+import { authFetch } from '../utils/authFetch';
 
 export interface UnsplashPhoto {
   id: string;
@@ -18,7 +19,7 @@ export const searchPhotos = async (query: string, page: number = 1): Promise<Uns
     url.searchParams.append('action', 'search');
     url.searchParams.append('query', query);
     url.searchParams.append('page', page.toString());
-    const response = await fetch(url.toString(), {
+    const response = await authFetch(url.toString(), {
       headers: {
         Accept: 'application/json',
       },

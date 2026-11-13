@@ -296,7 +296,23 @@ export const VideoAgentPanel: React.FC = () => {
             <div className="rounded-xl overflow-hidden border border-white/10 bg-black aspect-video relative group shadow-2xl">
               <video src={videoResult} autoPlay loop muted controls className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <Button size="icon" variant="secondary" className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md" title="Add to Canvas" aria-label="Add to Canvas">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  className="bg-black/60 text-white hover:bg-brand-500 border-none backdrop-blur-md"
+                  title="Add to Canvas"
+                  aria-label="Add to Canvas"
+                  onClick={() => {
+                    const state = useStore.getState() as any;
+                    state.addShapeLayer?.('rectangle', {
+                      name: `Video Frame — ${prompt.slice(0, 24) || 'AI Video'}`,
+                      width: 640,
+                      height: 360,
+                      color: '#0f172a',
+                    });
+                    state.addToast?.('Video frame added to canvas; use Download for the full MP4 stream.', 'success');
+                  }}
+                >
                   <Icons.Plus className="w-3.5 h-3.5" />
                 </Button>
                 <Button

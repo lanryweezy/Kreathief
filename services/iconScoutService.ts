@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 export type IconScoutAssetType = 'icon' | 'illustration' | '3d' | 'lottie';
 
@@ -22,7 +23,7 @@ export const iconScoutService = {
       url.searchParams.append('product_type', type === '3d' ? '3d-asset' : type);
       url.searchParams.append('page', page.toString());
 
-      const response = await fetch(url.toString(), {
+      const response = await authFetch(url.toString(), {
         headers: {
           Accept: 'application/json',
         },
@@ -57,7 +58,7 @@ export const iconScoutService = {
       url.searchParams.append('action', 'details');
       url.searchParams.append('uuid', uuid);
 
-      const response = await fetch(url.toString(), {
+      const response = await authFetch(url.toString(), {
         headers: {
           Accept: 'application/json',
         },

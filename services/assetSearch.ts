@@ -3,6 +3,7 @@ import * as unsplashService from './unsplashService';
 import * as freepikService from './freepikService';
 import { iconScoutService } from './iconScoutService';
 import { getFallbackPhotos } from './fallbackPhotos';
+import { authFetch } from '../utils/authFetch';
 
 
 export interface NormalizedAsset {
@@ -102,7 +103,7 @@ registerSearchProvider({
   id: 'pexels',
   search: async (query) => {
     try {
-      const res = await fetch(`/api/pexels?action=search&query=${encodeURIComponent(query)}`);
+      const res = await authFetch(`/api/pexels?action=search&query=${encodeURIComponent(query)}`);
       if (!res.ok) {
         if (res.status === 429) log.warn('Pexels rate limited, falling back');
         else log.warn(`Pexels API error: ${res.status}`);
@@ -133,7 +134,7 @@ registerSearchProvider({
   id: 'pixabay',
   search: async (query) => {
     try {
-      const res = await fetch(`/api/pixabay?action=search&query=${encodeURIComponent(query)}`);
+      const res = await authFetch(`/api/pixabay?action=search&query=${encodeURIComponent(query)}`);
       if (!res.ok) {
         if (res.status === 429) log.warn('Pixabay rate limited, falling back');
         else log.warn(`Pixabay API error: ${res.status}`);

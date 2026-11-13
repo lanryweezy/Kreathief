@@ -1,5 +1,6 @@
 import { fuzzyMatch } from '../utils/search';
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 export interface LucideIconResult {
   name: string;
@@ -275,7 +276,7 @@ async function fetchIcons(query: string): Promise<LucideIconResult[]> {
   try {
     const url = new URL('/api/lucideIcons', window.location.origin);
     url.searchParams.set('q', query);
-    const res = await fetch(url.toString(), {
+    const res = await authFetch(url.toString(), {
       headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(3000),
     });

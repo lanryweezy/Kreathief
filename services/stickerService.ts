@@ -1,5 +1,6 @@
 import { fuzzyMatch } from "../utils/search";
 import { log } from '../utils/log';
+import { authFetch } from '../utils/authFetch';
 
 export interface StickerAsset {
   id: string;
@@ -655,7 +656,7 @@ export const searchStickers = async (query: string, pos?: string): Promise<Stick
       url.searchParams.set('pos', pos);
     }
 
-    const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    const response = await authFetch(url.toString(), { headers: { Accept: 'application/json' } });
     if (!response.ok) {
       return getCuratedStickers(query);
     }
@@ -702,7 +703,7 @@ export const getTrendingStickers = async (pos?: string): Promise<StickerAsset[]>
       url.searchParams.set('pos', pos);
     }
 
-    const response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    const response = await authFetch(url.toString(), { headers: { Accept: 'application/json' } });
     if (!response.ok) {
       return getCuratedStickers();
     }
