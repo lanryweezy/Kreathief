@@ -376,7 +376,7 @@ export function evaluateVariantOnKDAB(
   let shipVerdict: ShipVerdict = 'NO';
   if (totalScore >= 172 && geometry.score >= 85 && !hasSevereGeometryDefect && phraseRatio === 1) {
     shipVerdict = 'YES';
-  } else if (totalScore >= 145 && geometry.score >= 70) {
+  } else if (totalScore >= 145 && geometry.score >= 70 && phraseRatio === 1) {
     shipVerdict = 'MAYBE';
   }
 

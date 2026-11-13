@@ -297,7 +297,9 @@ export function assessDesignRequest(
   // Soft targeting requirement: audience (important, never blocking, never on existing design)
   const hasAudience =
     context.hasExistingDesign ||
-    /\b(young|professional|developer|student|parent|audience)\b/i.test(lower) ||
+    Boolean(context.hasBrandKit) ||
+    Boolean(brief.headline) ||
+    /\b(young|professional|developer|student|parent|audience|banking|card|consumer|business|client|customer)\b/i.test(lower) ||
     Boolean(answers['audience']);
 
   if (!hasAudience && questions.length < 3) {

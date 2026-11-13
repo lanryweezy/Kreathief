@@ -18,8 +18,9 @@ export function useLamaWorker() {
       } else if (type === 'READY') {
         // useStore.getState().addToast?.('LaMa Inpainting model ready', 'success');
       } else if (type === 'ERROR') {
-        useStore.getState().addToast?.(`LaMa Error: ${error}`, 'error');
+        console.warn('[useLamaWorker] Background inpainting engine notice:', error);
         if (resolveRef.current) {
+          useStore.getState().addToast?.(`LaMa Inpainting failed: ${error}`, 'error');
           resolveRef.current(null);
           resolveRef.current = null;
         }

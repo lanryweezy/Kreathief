@@ -120,7 +120,7 @@ export const Footer: React.FC = () => {
   const resources = [
     { label: 'Design Templates', href: '/dashboard' },
     { label: 'Creative Blog & Guides', href: '/blog' },
-    { label: 'Node Workspace Canvas', href: '/canvas' },
+    { label: 'Node Workspace Canvas', href: '/node' },
     { label: 'Help Center & Docs', href: '/help' },
     { label: 'Product Changelog', href: '/changelog' },
     { label: 'Tools Directory', href: '/tools' },
@@ -152,6 +152,10 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span>All Systems Operational</span>
+            </div>
             <div className="flex items-center gap-2 ml-auto lg:ml-4">
               {[
                 { Icon: Icons.Twitter, label: 'Twitter / X', href: 'https://twitter.com/kreathief' },
@@ -277,54 +281,6 @@ export const Footer: React.FC = () => {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        {/* Ask AI Intelligence Row */}
-        <div className="py-10 border-t border-white/5">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest mb-1.5">
-                Questions about Kreathief?
-              </h3>
-              <p className="text-neutral-400 text-xs">
-                Query the world's most intelligent AI models directly about our architecture and features.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {[
-                {
-                  label: 'ChatGPT',
-                  color: 'hover:text-emerald-400 hover:border-emerald-500/40',
-                  href: 'https://chatgpt.com/?q=Tell+me+about+Kreathief+AI+Design+Suite+and+how+its+multi-agent+system+works.',
-                },
-                {
-                  label: 'Claude',
-                  color: 'hover:text-orange-400 hover:border-orange-500/40',
-                  href: 'https://claude.ai/new?q=What+is+Kreathief+and+how+does+it+compare+to+Figma+and+Canva?',
-                },
-                {
-                  label: 'Gemini',
-                  color: 'hover:text-blue-400 hover:border-blue-500/40',
-                  href: 'https://gemini.google.com/app?q=Summarize+the+key+features+of+Kreathief+AI+Design+Suite.',
-                },
-                {
-                  label: 'Perplexity',
-                  color: 'hover:text-cyan-400 hover:border-cyan-500/40',
-                  href: 'https://www.perplexity.ai/search?q=Is+Kreathief+AI+Design+Suite+the+best+tool+for+AI+vector+design?',
-                },
-              ].map((ai) => (
-                <a
-                  key={ai.label}
-                  href={ai.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-xs font-bold transition-all text-gray-300 ${ai.color} hover:bg-white/10`}
-                >
-                  {ai.label}
-                </a>
-              ))}
-            </div>
           </div>
         </div>
 

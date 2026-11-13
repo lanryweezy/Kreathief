@@ -1,8 +1,11 @@
 // @ts-ignore - Onnxruntime Web module import
 import * as ort from 'onnxruntime-web';
 
-// Specify wasm paths if needed
+// Specify wasm paths
 ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.21.0/dist/';
+// Force single-threaded WASM to avoid SharedArrayBuffer and cross-origin .mjs dynamic imports in Web Workers
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.proxy = false;
 
 let session: ort.InferenceSession | null = null;
 let isReady = false;
@@ -16,9 +19,12 @@ async function initSession() {
   }
 
   try {
-    postMessage({ type: 'STATUS', status: 'Downloading LaMa Inpainting model (200MB)... This only happens once.' });
+    postMessage({ type: 'STATUS', status: 'Initializing on-device AI inpainting engine...' });
 
-    // Create session with wasm backend (webgpu requires same-origin .mjs in workers)
+    // Ensure single-threaded WASM execution provider
+    ort.env.wasm.numThreads = 1;
+    ort.env.wasm.proxy = false;
+
     session = await ort.InferenceSession.create(MODEL_URL, {
       executionProviders: ['wasm'],
     });
@@ -26,7 +32,8 @@ async function initSession() {
     isReady = true;
     postMessage({ type: 'READY' });
   } catch (error: any) {
-    postMessage({ type: 'ERROR', error: error.message });
+    console.warn('[lamaWorker] Local ONNX WASM session init deferred:', error?.message);
+    postMessage({ type: 'ERROR', error: error?.message || 'WASM runtime initialization failed' });
   }
 }
 
