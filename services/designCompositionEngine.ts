@@ -112,15 +112,15 @@ export function buildHeroSplitComposition(opts: CompositionOptions): ArtboardDes
       rotation: 0,
     } as any,
 
-    // 2. Ambient background glow
+    // 2. Ambient background glow (kept inside canvas bounds for clean geometry)
     {
       id: `glow_${uuidv4().slice(0, 8)}`,
       type: 'circle',
-      name: 'Ambient Glow',
-      x: isLandscape ? width * 0.75 : width * 0.5,
-      y: isLandscape ? height * 0.5 : height * 0.75,
-      width: Math.min(width, height) * 0.8,
-      height: Math.min(width, height) * 0.8,
+      name: 'Background Ambient Glow',
+      x: isLandscape ? width * 0.45 : width * 0.25,
+      y: isLandscape ? height * 0.2 : height * 0.35,
+      width: Math.min(width, height) * 0.5,
+      height: Math.min(width, height) * 0.5,
       color: pal.accent,
       fill: pal.accent,
       opacity: 0.15,

@@ -721,37 +721,34 @@ export function generateProceduralDrafts(
     };
   }
 
-  // Curate 2 diverse alternative archetypes tailored to the primary selection
+  // Curate compatible alternative archetypes tailored to the primary selection
   const alternativeMap: Record<string, string[]> = {
-    saas: ['cyberpunk', 'editorial'],
-    cyberpunk: ['event', 'saas'],
-    editorial: ['fashion', 'luxury'],
-    luxury: ['editorial', 'fashion'],
-    food: ['africanMarket', 'editorial'],
-    africanMarket: ['food', 'event'],
-    fitness: ['ecommerce', 'event'],
-    fashion: ['luxury', 'editorial'],
-    realEstate: ['luxury', 'editorial'],
-    event: ['cyberpunk', 'fitness'],
-    education: ['saas', 'editorial'],
-    ecommerce: ['saas', 'fitness'],
+    saas: ['editorial', 'ecommerce', 'education'],
+    cyberpunk: ['event', 'fashion', 'saas'],
+    editorial: ['fashion', 'luxury', 'realEstate'],
+    luxury: ['editorial', 'fashion', 'realEstate'],
+    food: ['africanMarket', 'editorial', 'ecommerce'],
+    africanMarket: ['food', 'event', 'fashion'],
+    fitness: ['ecommerce', 'event', 'fashion'],
+    fashion: ['luxury', 'editorial', 'africanMarket'],
+    realEstate: ['luxury', 'editorial', 'saas'],
+    event: ['cyberpunk', 'africanMarket', 'fitness'],
+    education: ['saas', 'editorial', 'ecommerce'],
+    ecommerce: ['saas', 'fashion', 'luxury'],
   };
 
   const pool = ['editorial', 'saas', 'cyberpunk', 'luxury', 'event', 'fitness', 'fashion', 'ecommerce'];
   const rng = variationSeed !== undefined ? mulberry32(variationSeed) : null;
 
   let selectedArchetypes: string[];
+  const neighbours = (alternativeMap[primaryArchetype] || ['editorial', 'saas', 'fashion']).filter(
+    (a) => a !== primaryArchetype
+  );
   if (rng) {
-    // Seeded exploration: keep the primary archetype, then draw two alternatives
-    // from the curated neighbours plus the wider pool so reruns differ.
-    const neighbours = alternativeMap[primaryArchetype] || ['editorial', 'saas'];
-    const candidates = [...new Set([...neighbours, ...seededShuffle(pool, rng)])].filter((a) => a !== primaryArchetype);
-    selectedArchetypes = [primaryArchetype, ...seededShuffle(candidates.slice(0, 4), rng).slice(0, 2)];
+    // Seeded exploration within domain-compatible neighbours so variants stay on-brief.
+    selectedArchetypes = [primaryArchetype, ...seededShuffle(neighbours, rng).slice(0, 2)];
   } else {
-    selectedArchetypes = [
-      primaryArchetype,
-      ...(alternativeMap[primaryArchetype] || ['editorial', 'saas']),
-    ].slice(0, 3);
+    selectedArchetypes = [primaryArchetype, ...neighbours].slice(0, 3);
   }
 
   // Guarantee 3 unique archetypes

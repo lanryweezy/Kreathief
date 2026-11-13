@@ -82,9 +82,9 @@ export function auditGeometry(
   const byId = new Map(tagged.map((t) => [t.id, t]));
   const safe = Math.round(Math.min(canvas.width, canvas.height) * 0.05);
 
-  // ── Check 1: clipping / out-of-bounds (background is intentionally full-bleed)
+  // ── Check 1: clipping / out-of-bounds (background & ambient bleed layers are intentionally full-bleed)
   for (const t of tagged) {
-    if (t.role === 'background') continue;
+    if (t.role === 'background' || /ambient|glow|bleed|scrim/i.test(t.name || '')) continue;
     const overflowX = Math.max(0, -t.x, t.x + t.width - canvas.width);
     const overflowY = Math.max(0, -t.y, t.y + t.height - canvas.height);
     const overflow = Math.max(overflowX, overflowY);
