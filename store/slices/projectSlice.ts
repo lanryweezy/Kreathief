@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { createNebulaDemoDesign } from './project/demoDesign';
 import { log } from '../../utils/log';
 import { config } from '../../config';
+import { mergeDefaultBrandKits } from '../../config/defaultBrandKits';
 import type { StoreState } from '../useStore';
 
 export interface ProjectSlice {
@@ -426,7 +427,7 @@ export const createProjectSlice: StateCreator<StoreState, [], [], ProjectSlice> 
         hueRotate: 0,
       },
       canvasSize: project.state.canvasSize,
-      brandKits: project.state.brandKits || [],
+      brandKits: mergeDefaultBrandKits(project.state.brandKits),
       selectedLayerIds: [],
       showGrid: project.state?.showGrid || false,
       showRulers: project.state?.showRulers || false,

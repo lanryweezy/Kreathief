@@ -350,3 +350,10 @@ export const DEFAULT_BRAND_KITS: BrandKit[] = SEED_BRAND_ENTRIES.map((entry) => 
     isDefault: true,
   };
 });
+
+export function mergeDefaultBrandKits(userKits?: BrandKit[]): BrandKit[] {
+  const existing = Array.isArray(userKits) ? userKits : [];
+  const existingIds = new Set(existing.map((k) => k.id));
+  const defaultsToAdd = DEFAULT_BRAND_KITS.filter((k) => !existingIds.has(k.id));
+  return [...existing, ...defaultsToAdd];
+}

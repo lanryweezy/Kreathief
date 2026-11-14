@@ -13,6 +13,7 @@ import {
 
 import { logger } from './logger';
 import { log } from '../utils/log';
+import { mergeDefaultBrandKits } from '../config/defaultBrandKits';
 import type { Project, HistoryState } from '../types';
 import { db as supabase } from '../lib/supabase/client';
 import { authService } from './authService';
@@ -312,6 +313,13 @@ class StorageService {
       throw new Error(`Project not found: ${projectId}`);
     }
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(project.id)) {
+      log.warn('[Storage] Skipping Supabase sync for non-UUID legacy project ID', { id: project.id });
+      this.pendingChanges.delete(project.id);
+      return;
+    }
+
     const state = toDbProjectState(project.state);
 
     const { error } = await supabase.from('projects').upsert(
@@ -607,7 +615,8 @@ class StorageService {
       throw new Error(errorMsg);
     }
 
-    if (this.isOnline && userId) {
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (this.isOnline && userId && UUID_RE.test(project.id)) {
       try {
         const { error } = await supabase.from('projects').upsert(
           {
@@ -953,7 +962,7 @@ class StorageService {
           hueRotate: 0,
         },
         canvasSize: dbProject.canvas_size || { width: 1080, height: 1080, name: 'Square (IG Post)' },
-        brandKits: dbProject.state?.brandKits || [],
+        brandKits: mergeDefaultBrandKits(dbProject.state?.brandKits),
         showGrid: dbProject.state?.showGrid || false,
         showRulers: dbProject.state?.showRulers || false,
       },
