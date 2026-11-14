@@ -7,6 +7,74 @@ export interface AutoLayoutPadding {
   left: number;
 }
 
+/**
+ * Estimates wrapped height (and optional width) for a TextLayer.
+ * Used by both Auto-Layout reflow and store text updates so siblings shift down
+ * automatically when copy wraps across more lines.
+ */
+export function estimateWrappedTextDimensions(
+  text: string,
+  fontSize: number = 16,
+  lineHeight: number = 1.25,
+  boxWidth?: number
+): { width: number; height: number; lineCount: number } {
+  const safeFont = Math.max(8, fontSize || 16);
+  const safeLH = Math.max(0.8, lineHeight || 1.25);
+  const rawLines = (text || '').split('\n');
+  const maxRawLen = Math.max(...rawLines.map((l) => l.length), 1);
+  const estimatedSingleLineWidth = Math.round(maxRawLen * safeFont * 0.56);
+
+  const effectiveWidth = boxWidth && boxWidth > 0 ? boxWidth : estimatedSingleLineWidth;
+  const charsPerLine = Math.max(1, Math.floor(effectiveWidth / (safeFont * 0.56)));
+
+  let totalLines = 0;
+  for (const rawLine of rawLines) {
+    if (rawLine.length === 0) {
+      totalLines += 1;
+      continue;
+    }
+    const words = rawLine.split(/\s+/);
+    let currentLen = 0;
+    let wrappedForLine = 1;
+    for (const word of words) {
+      if (currentLen === 0) {
+        currentLen = word.length;
+      } else if (currentLen + 1 + word.length <= charsPerLine) {
+        currentLen += 1 + word.length;
+      } else {
+        wrappedForLine += 1;
+        currentLen = word.length;
+      }
+      if (word.length > charsPerLine) {
+        wrappedForLine += Math.floor((word.length - 1) / charsPerLine);
+        currentLen = word.length % charsPerLine || charsPerLine;
+      }
+    }
+    totalLines += wrappedForLine;
+  }
+
+  return {
+    width: effectiveWidth,
+    height: Math.max(Math.round(safeFont * safeLH), Math.round(totalLines * safeFont * safeLH)),
+    lineCount: Math.max(1, totalLines),
+  };
+}
+
+function measureAutoLayoutChild(c: Layer): { cw: number; ch: number } {
+  if (c.type === 'text') {
+    const tl = c as TextLayer;
+    const dims = estimateWrappedTextDimensions(tl.text || '', tl.fontSize || 16, tl.lineHeight || 1.25, tl.width);
+    return {
+      cw: tl.width && tl.width > 0 ? tl.width : dims.width,
+      ch: dims.height,
+    };
+  }
+  return {
+    cw: c.width || 100,
+    ch: c.height || 50,
+  };
+}
+
 export function normalizePadding(
   padding: number | { top: number; right: number; bottom: number; left: number } | undefined
 ): AutoLayoutPadding {
@@ -117,7 +185,7 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
     const children = childrenMap.get(layerId) || [];
     children.forEach((c) => computeSize(c.id));
 
-    if (layer.type === 'group' && layer.autoLayout) {
+    if ((layer.type === 'group' || layer.isGroup || (layer as any).autoLayout) && layer.autoLayout) {
       const layout = layer.autoLayout;
       const pad = normalizePadding(layout.padding);
       const spacing = layout.spacing || 0;
@@ -131,12 +199,10 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
       let maxCrossSize = 0;
 
       children.forEach((c) => {
-        const cw =
-          c.width ||
-          (c.type === 'text'
-            ? (c as TextLayer).fontSize * 0.6 * ((c as TextLayer).text?.length || 1)
-            : 100);
-        const ch = c.height || (c.type === 'text' ? (c as TextLayer).fontSize * 1.2 : 100);
+        const { cw, ch } = measureAutoLayoutChild(c);
+        if (c.type === 'text' && c.height !== ch) {
+          c.height = ch;
+        }
         totalAxisSize += isRow ? cw : ch;
         maxCrossSize = Math.max(maxCrossSize, isRow ? ch : cw);
       });
@@ -167,7 +233,7 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
     const layer = layerMap.get(layerId);
     if (!layer) return;
 
-    if (layer.type === 'group' && layer.autoLayout) {
+    if ((layer.type === 'group' || layer.isGroup || (layer as any).autoLayout) && layer.autoLayout) {
       const layout = layer.autoLayout;
       const pad = normalizePadding(layout.padding);
       const spacing = layout.spacing || 0;
@@ -179,15 +245,13 @@ export function applyAutoLayout(layers: Layer[]): Layer[] {
 
       let totalAxisSize = 0;
       children.forEach((c) => {
-        const cw = c.width || 100;
-        const ch = c.height || 100;
+        const { cw, ch } = measureAutoLayoutChild(c);
         totalAxisSize += isRow ? cw : ch;
       });
       totalAxisSize += spacing * Math.max(0, children.length - 1);
 
       children.forEach((c) => {
-        let cw = c.width || 100;
-        let ch = c.height || 100;
+        let { cw, ch } = measureAutoLayoutChild(c);
 
         const childSizing = c.autoLayout?.sizing;
         if (childSizing) {

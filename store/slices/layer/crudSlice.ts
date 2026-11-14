@@ -7,7 +7,8 @@ import { StateCreator } from 'zustand';
 import type { StoreState } from '../../useStore';
 import { v4 as uuidv4 } from 'uuid';
 import * as geminiService from '../../../services/geminiService';
-import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer } from '../../../types';
+import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer, AutoLayoutSettings } from '../../../types';
+import { smartResizeArtboard } from '../../../services/smartResizeEngine';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS, findLayerById, applyAutoLayout } from './utils';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
@@ -182,15 +183,18 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     let nextX = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
 
     const newArtboards: Artboard[] = targets.map((f) => {
+      const adapted = smartResizeArtboard(currentArtboard, f.width, f.height, {
+        preserveHierarchy: true,
+        reflowMultiColumn: true,
+      });
       const artboard: Artboard = {
+        ...adapted,
         id: uuidv4(),
         name: f.name,
         x: nextX,
         y: 0,
         width: f.width,
         height: f.height,
-        layers: resizeLayersForSize(currentArtboard, f.width, f.height),
-        backgroundColor: currentArtboard.backgroundColor,
       };
       nextX += f.width + 100;
       return artboard;
@@ -202,6 +206,72 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       selectedLayerIds: [],
     }));
   },
+
+  recomposeCampaignPack: () => {
+    const state = get();
+    const currentArtboard = state.artboards.find((a: Artboard) => a.id === state.activeArtboardId);
+    if (!currentArtboard) {
+      return;
+    }
+
+    const packFormats = [
+      { width: 1080, height: 1080, name: 'Feed Post (1:1)' },
+      { width: 1080, height: 1920, name: 'Story / Reel (9:16)' },
+      { width: 1200, height: 630, name: 'Web Banner (16:9)' },
+    ];
+
+    const targets = packFormats.filter(
+      (f) => f.width !== currentArtboard.width || f.height !== currentArtboard.height
+    );
+    if (targets.length === 0) {
+      return;
+    }
+
+    get().saveToHistory?.();
+    analyticsService.track('magic_resize', { campaign_pack: true, format_count: targets.length });
+
+    const lastArtboard = state.artboards[state.artboards.length - 1];
+    let nextX = lastArtboard ? lastArtboard.x + lastArtboard.width + 100 : 0;
+
+    const newArtboards: Artboard[] = targets.map((f) => {
+      const adapted = smartResizeArtboard(currentArtboard, f.width, f.height, {
+        preserveHierarchy: true,
+        reflowMultiColumn: true,
+      });
+      const artboard: Artboard = {
+        ...adapted,
+        id: uuidv4(),
+        name: f.name,
+        x: nextX,
+        y: 0,
+        width: f.width,
+        height: f.height,
+      };
+      nextX += f.width + 100;
+      return artboard;
+    });
+
+    set((s) => ({
+      artboards: [...s.artboards, ...newArtboards],
+      activeArtboardId: newArtboards[0].id,
+      selectedLayerIds: [],
+    }));
+    state.addToast?.(`Campaign pack recomposed into ${newArtboards.length} coordinated formats!`, 'success');
+  },
+
+  setLayerAutoLayout: (id: string, autoLayout: AutoLayoutSettings | undefined) =>
+    set((state) => ({
+      artboards: state.artboards.map((a: Artboard) => {
+        if (a.id !== state.activeArtboardId) return a;
+        const updatedLayers = a.layers.map((l: Layer) =>
+          l.id === id ? { ...l, autoLayout } : l
+        );
+        return {
+          ...a,
+          layers: applyAutoLayout(updatedLayers as Layer[]),
+        };
+      }),
+    })),
 
   deleteArtboard: (id) => {
     if (get().artboards.length <= 1) {
@@ -532,8 +602,33 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
                 delete (sanitizedPartial as Partial<TextLayer>).text;
               }
 
+              // Dynamic text dimension estimation for auto-flow
+              let autoWidth = l.width;
+              let autoHeight = l.height;
+              if (l.type === 'text') {
+                const nextText = (sanitizedPartial as Partial<TextLayer>).text ?? (l as TextLayer).text ?? '';
+                const nextFontSize = (sanitizedPartial as Partial<TextLayer>).fontSize ?? (l as TextLayer).fontSize ?? 16;
+                const nextLineHeight = (sanitizedPartial as Partial<TextLayer>).lineHeight ?? (l as TextLayer).lineHeight ?? 1.25;
+                if (sanitizedPartial.width === undefined) {
+                  const lines = nextText.split('\n');
+                  const maxLineLen = Math.max(...lines.map((ln) => ln.length), 1);
+                  autoWidth = Math.max(l.width || 0, Math.round(maxLineLen * nextFontSize * 0.58));
+                }
+                if (sanitizedPartial.height === undefined) {
+                  const lines = nextText.split('\n');
+                  autoHeight = Math.max(l.height || 0, Math.round(lines.length * nextFontSize * nextLineHeight));
+                }
+              }
+
               const overrides = l.masterId ? [...(l.overrides || []), ...Object.keys(sanitizedPartial)] : l.overrides;
-              return { ...l, ...sanitizedPartial, overrides, dirty: true };
+              return {
+                ...l,
+                ...sanitizedPartial,
+                width: sanitizedPartial.width !== undefined ? sanitizedPartial.width : autoWidth,
+                height: sanitizedPartial.height !== undefined ? sanitizedPartial.height : autoHeight,
+                overrides,
+                dirty: true,
+              };
             }
             if (masterComponentId && l.masterId === masterComponentId) {
               const overrides = l.overrides || [];

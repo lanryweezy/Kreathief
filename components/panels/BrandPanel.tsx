@@ -86,7 +86,7 @@ export const BrandPanel = () => {
   };
   const [isCreating, setIsCreating] = useState(false);
   const [newKitName, setNewKitName] = useState('');
-  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7D2AE8']);
+  const [newColors, setNewColors] = useState<string[]>(['#000000', '#ffffff', '#7c3aed']);
   const [newFonts, setNewFonts] = useState<string[]>(['Space Grotesk', 'Inter']);
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -113,7 +113,7 @@ export const BrandPanel = () => {
 
   const resetForm = () => {
     setNewKitName('');
-    setNewColors(['#000000', '#ffffff', '#7D2AE8']);
+    setNewColors(['#000000', '#ffffff', '#7c3aed']);
     setNewFonts(['Space Grotesk', 'Inter']);
     setNewLogos([]);
   };
@@ -163,18 +163,28 @@ export const BrandPanel = () => {
     }
   };
 
-  const handleFetchFromDomain = async () => {
-    if (!domainInput.trim()) {
+  const handleFetchFromDomain = async (domainOverride?: string) => {
+    const targetDomain = (domainOverride ?? domainInput).trim();
+    if (!targetDomain) {
       addToast?.('Please enter a website or domain (e.g. stripe.com)', 'warning');
       return;
     }
     setIsFetchingDomain(true);
     try {
-      const data = await fetchBrandKitFromDomain(domainInput.trim());
+      const data = await fetchBrandKitFromDomain(targetDomain);
+      let palette = data.colors;
+      try {
+        const extracted = await photoService.extractPalette(data.logoUrl, 4);
+        if (extracted && extracted.length >= 2) {
+          palette = Array.from(new Set([...extracted, ...data.colors])).slice(0, 5);
+        }
+      } catch {
+        // Fallback to curated colors if CORS blocks pixel extraction
+      }
       const newKit: BrandKit = {
         id: `brand_${Date.now()}`,
         name: data.name,
-        colors: data.colors,
+        colors: palette,
         fonts: data.fonts,
         logos: [data.logoUrl],
         primaryLogo: data.logoUrl,
@@ -354,12 +364,25 @@ export const BrandPanel = () => {
               <Button
                 variant="primary"
                 size="sm"
-                onClick={handleFetchFromDomain}
+                onClick={() => handleFetchFromDomain()}
                 disabled={isFetchingDomain}
                 className="shrink-0 bg-indigo-600 hover:bg-indigo-500 text-white text-xs cursor-pointer"
               >
                 {isFetchingDomain ? 'Fetching...' : 'Import'}
               </Button>
+            </div>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {['stripe.com', 'nike.com', 'apple.com', 'spotify.com', 'figma.com'].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  disabled={isFetchingDomain}
+                  onClick={() => handleFetchFromDomain(d)}
+                  className="px-2 py-0.5 rounded-md bg-white/5 hover:bg-indigo-600/30 border border-white/10 hover:border-indigo-400/50 text-[10px] font-medium text-gray-300 hover:text-white transition-colors"
+                >
+                  {d}
+                </button>
+              ))}
             </div>
           </div>
         )}

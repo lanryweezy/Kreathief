@@ -201,6 +201,34 @@ const ArtboardItem = React.memo(
       useStore.getState().addArtboard();
     }, []);
 
+    // Viewport virtualization: skip deep DOM layer evaluation for off-screen inactive artboards
+    const isOffscreen = React.useMemo(() => {
+      if (isExporting || !viewportBounds || activeArtboardId === artboard.id || artboard.layers.length <= 5) {
+        return false;
+      }
+      const buffer = 200;
+      const abRight = artboard.x + artboard.width;
+      const abBottom = artboard.y + artboard.height;
+      const vpRight = viewportBounds.x + viewportBounds.width;
+      const vpBottom = viewportBounds.y + viewportBounds.height;
+      return (
+        abRight < viewportBounds.x - buffer ||
+        artboard.x > vpRight + buffer ||
+        abBottom < viewportBounds.y - buffer ||
+        artboard.y > vpBottom + buffer
+      );
+    }, [
+      isExporting,
+      viewportBounds,
+      activeArtboardId,
+      artboard.id,
+      artboard.x,
+      artboard.y,
+      artboard.width,
+      artboard.height,
+      artboard.layers.length,
+    ]);
+
     return (
       <div
         key={artboard.id}
@@ -274,7 +302,19 @@ const ArtboardItem = React.memo(
             />
           )}
 
-          <CanvasLayerRenderer
+          {isOffscreen ? (
+            <div
+              data-testid={`virtualized-artboard-${artboard.id}`}
+              className="absolute inset-0 flex flex-col items-center justify-center bg-black/5 pointer-events-none select-none"
+            >
+              {!cachedUrl && (
+                <span className="text-xs font-bold text-gray-500/70 uppercase tracking-widest">
+                  {artboard.layers.length} layers (offscreen)
+                </span>
+              )}
+            </div>
+          ) : (
+            <CanvasLayerRenderer
             layers={artboard.layers}
             effectiveLayers={effectiveLayers}
             selectedLayerId={selectedLayerId}
@@ -307,6 +347,7 @@ const ArtboardItem = React.memo(
                 : null
             }
           />
+          )}
 
           {/* Global Texture/Grain Overlay */}
           {(canvasFilters.overlayTexture || (canvasFilters as any).overlayTexture) && (

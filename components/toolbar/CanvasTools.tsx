@@ -171,6 +171,17 @@ export const CanvasTools = React.memo(({ documentColors }: CanvasToolsProps) => 
             <div className="h-px bg-white/5 my-1" />
             <button
               onClick={() => {
+                useStore.getState().recomposeCampaignPack?.();
+                setShowResizeMenu(false);
+              }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-indigo-300 hover:bg-indigo-600/15 rounded-lg transition-colors text-left"
+              title="Recompose current artboard into 1:1 Feed, 9:16 Story, and 16:9 Banner"
+            >
+              <Icons.Sparkles className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+              <span>Campaign Pack (1:1 + 9:16 + 16:9)</span>
+            </button>
+            <button
+              onClick={() => {
                 useStore.getState().magicResizeAll(RESIZE_FORMATS);
                 setShowResizeMenu(false);
               }}

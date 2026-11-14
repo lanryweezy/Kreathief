@@ -17,7 +17,6 @@ export function useLamaWorker() {
         if (type === 'ERROR') {
           console.warn('[useLamaWorker] Background inpainting engine notice:', error);
           if (resolveRef.current) {
-            useStore.getState().addToast?.(`Inpainting failed: ${error}`, 'error');
             resolveRef.current(null);
             resolveRef.current = null;
           }
@@ -83,7 +82,7 @@ export function useLamaWorker() {
         ctx.drawImage(maskCanvas, 0, 0, 512, 512);
         const maskData = ctx.getImageData(0, 0, 512, 512);
 
-        workerRef.current.postMessage({
+        worker.postMessage({
           type: 'INPAINT',
           data: { imageData, maskData },
         });
