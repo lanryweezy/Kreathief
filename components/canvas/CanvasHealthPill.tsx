@@ -206,31 +206,42 @@ export const CanvasHealthPill: React.FC = () => {
 
       {/* Pill Trigger */}
       <div className="flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2 duration-300">
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          aria-label="Toggle Design Health Inspector"
-          aria-expanded={isExpanded}
-          title="Click to inspect findings and apply 1-click fixes"
-          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border backdrop-blur-md cursor-pointer transition-all hover:scale-[1.02] shadow-2xl ${
+        <div
+          className={`flex items-center rounded-xl border backdrop-blur-md transition-all shadow-2xl overflow-hidden ${
             isHealthy
               ? 'bg-surface-dark-3/90 border-white/10 hover:border-emerald-500/30 text-gray-300 hover:text-white'
               : 'bg-surface-dark-3/95 border-amber-500/40 text-amber-200 shadow-amber-500/10'
           }`}
         >
-          <div className="flex items-center gap-1.5">
-            {isHealthy ? (
-              <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow-emerald" />
-            ) : (
-              <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-            )}
-            <span className="text-[11px] font-black tracking-wide">
-              {isHealthy ? `HEALTH ${score}%` : `HEALTH ${score}% (${issues.length})`}
-            </span>
-          </div>
-          <Icons.ChevronDown
-            className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
-          />
-        </button>
+          <button
+            onClick={handleOpenAccessibility}
+            aria-label="Open Accessibility & Design Linter"
+            title="Open Accessibility & Design Linter"
+            className="flex items-center gap-2 pl-3 pr-2 py-1.5 cursor-pointer hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-1.5">
+              {isHealthy ? (
+                <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-glow-emerald" />
+              ) : (
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              )}
+              <span className="text-[11px] font-black tracking-wide">
+                {isHealthy ? `HEALTH ${score}%` : `HEALTH ${score}% (${issues.length})`}
+              </span>
+            </div>
+          </button>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            aria-label="Toggle Design Health Inspector"
+            aria-expanded={isExpanded}
+            title="Inspect findings and apply 1-click fixes"
+            className="px-2 py-1.5 border-l border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
+          >
+            <Icons.ChevronDown
+              className={`w-3 h-3 text-gray-400 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
+            />
+          </button>
+        </div>
 
         {!isHealthy && fixableIssues.length > 0 && !isExpanded && (
           <button

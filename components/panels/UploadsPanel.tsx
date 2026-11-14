@@ -16,22 +16,24 @@ export const UploadsPanel: React.FC<UploadsPanelProps> = () => {
   const addLayer = useStore((state) => state.addLayer);
   const onAddLayers = useStore((state) => state.addLayers);
   const canvasSize = useStore((state) => state.canvasSize);
-  const uploads = useStore((state) => state.uploads);
+  const uploads = useStore((state) => state.uploads) || [];
   const { handleFileUploads } = useFileHandler();
   const deleteUpload = useStore((state) => state.deleteUpload);
 
   const onAddImageLayer = (src: string) => {
     // Cascade placement so repeated adds don't stack pixel-perfect on top of each other
     const state = useStore.getState();
-    const artboard = state.artboards.find((a) => a.id === state.activeArtboardId) || state.artboards[0];
-    const cascade = ((artboard?.layers.length || 0) % 8) * 24;
+    const artboard = state.artboards?.find((a) => a.id === state.activeArtboardId) || state.artboards?.[0];
+    const cascade = ((artboard?.layers?.length || 0) % 8) * 24;
+    const cw = canvasSize?.width || 1080;
+    const ch = canvasSize?.height || 1080;
     addLayer({
       id: generateLayerId('image'),
       type: 'image',
       name: 'Image Layer',
       src,
-      x: canvasSize.width / 2 - 150 + cascade,
-      y: canvasSize.height / 2 - 150 + cascade,
+      x: cw / 2 - 150 + cascade,
+      y: ch / 2 - 150 + cascade,
       width: 300,
       height: 300,
       rotation: 0,

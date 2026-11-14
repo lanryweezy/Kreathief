@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AssetsPanel } from './AssetsPanel';
 import { UploadsPanel } from './UploadsPanel';
 import { PanelHeader } from './PanelHeader';
+import { PanelErrorBoundary } from './PanelErrorBoundary';
 
 type Tab = 'all' | 'unsplash' | 'pexels' | 'freepik' | 'iconscout' | 'uploads';
 
@@ -22,24 +23,13 @@ export const MediaPanel: React.FC = () => {
       <PanelHeader tabs={tabs} activeTabId={activeTab} onTabChange={(id) => setActiveTab(id as Tab)} />
 
       <div className="flex-1 overflow-y-auto overflow-x-hidden relative">
-        <div className={activeTab === 'all' ? 'block h-full' : 'hidden'}>
-          <AssetsPanel provider="all" />
-        </div>
-        <div className={activeTab === 'unsplash' ? 'block h-full' : 'hidden'}>
-          <AssetsPanel provider="unsplash" />
-        </div>
-        <div className={activeTab === 'pexels' ? 'block h-full' : 'hidden'}>
-          <AssetsPanel provider="pexels" />
-        </div>
-        <div className={activeTab === 'freepik' ? 'block h-full' : 'hidden'}>
-          <AssetsPanel provider="freepik" />
-        </div>
-        <div className={activeTab === 'iconscout' ? 'block h-full' : 'hidden'}>
-          <AssetsPanel provider="iconscout" />
-        </div>
-        <div className={activeTab === 'uploads' ? 'block h-full' : 'hidden'}>
-          <UploadsPanel />
-        </div>
+        <PanelErrorBoundary panelName="Media">
+          {activeTab === 'uploads' ? (
+            <UploadsPanel />
+          ) : (
+            <AssetsPanel key={activeTab} provider={activeTab} />
+          )}
+        </PanelErrorBoundary>
       </div>
     </div>
   );

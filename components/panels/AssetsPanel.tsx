@@ -31,13 +31,15 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
   const canvasSize = useStore((state) => state.canvasSize);
 
   const onAddImageLayer = (src: string, type: string = 'image') => {
+    const cw = canvasSize?.width || 1080;
+    const ch = canvasSize?.height || 1080;
     addLayer({
       id: generateLayerId(type),
       type: type as any,
       name: type === 'lottie' ? 'Animation' : 'Asset',
       src,
-      x: canvasSize.width / 2 - 150,
-      y: canvasSize.height / 2 - 150,
+      x: cw / 2 - 150,
+      y: ch / 2 - 150,
       width: 300,
       height: 300,
       rotation: 0,
@@ -86,26 +88,29 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
     setIsLoading(true);
     setHasSearched(true);
     try {
-      const results = await searchAllProviders(q, activeSource);
-      
-      const combined: PhotoItem[] = results.map(p => ({
-        id: p.id,
-        url: p.url,
-        thumbnail: p.thumbnail,
-        alt: p.alt,
-        author: p.author,
-        authorLink: p.authorUrl,
-        source: p.provider
-      }));
+      const results = (await searchAllProviders(q, activeSource)) || [];
+
+      const combined: PhotoItem[] = results
+        .filter((p) => p && (p.url || p.thumbnail))
+        .map((p, idx) => ({
+          id: p.id || `asset-${activeSource}-${idx}`,
+          url: p.url || p.thumbnail,
+          thumbnail: p.thumbnail || p.url,
+          alt: p.alt || 'Stock photo',
+          author: p.author || 'Creator',
+          authorLink: p.authorUrl,
+          source: p.provider || activeSource || 'stock',
+        }));
 
       let finalPhotos = combined;
       if (activeSource === 'all' && combined.length > 0) {
         const groups: Record<string, PhotoItem[]> = {};
         combined.forEach((p) => {
-          if (!groups[p.source]) {
-            groups[p.source] = [];
+          const src = p.source || 'stock';
+          if (!groups[src]) {
+            groups[src] = [];
           }
-          groups[p.source].push(p);
+          groups[src].push(p);
         });
         // ⚡ Bolt Optimization: Replace O(N) chained map + spread Math.max(...Object.values(groups).map((g) => g.length))
         // with a single loop to avoid multiple intermediate array allocations and prevent call-stack overflows.
@@ -214,7 +219,7 @@ export const AssetsPanel: React.FC<AssetsPanelProps> = ({ provider }) => {
                       <span
                         className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${sourceColors[photo.source] || 'bg-gray-500/30 text-gray-300'}`}
                       >
-                        {sourceLabels[photo.source] || photo.source.slice(0, 2).toUpperCase()}
+                        {sourceLabels[photo.source] || (photo.source ? photo.source.slice(0, 2).toUpperCase() : 'ST')}
                       </span>
                     </div>
                   </div>
