@@ -215,26 +215,33 @@ export async function runVisualCritiqueLoop(
       const intentBlock = options.intentContext
         ? `\n\nDESIGN INTENT GRAPH (judge against this — protected nodes must stay untouched):\n${options.intentContext.slice(0, 3500)}`
         : '';
-      const response = await callBackendGeminiAPI({
-        modelName: 'gemini-2.5-flash',
-        systemInstruction: CRITIC_SYSTEM_INSTRUCTION,
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: CRITIC_RESPONSE_SCHEMA,
-          temperature: 0.2,
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              {
-                text: `BRIEF: ${options.brief.slice(0, 800)}\nCANVAS: ${options.canvasWidth}x${options.canvasHeight}${intentBlock}\n\nLAYER TREE (patch only these ids):\n${describeLayerTree(layers).slice(0, 6000)}\n\nThe image attached is the rendered design. Critique it and return your JSON.`,
-              },
-              { inlineData: { mimeType: 'image/jpeg', data: base64 } },
-            ],
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Visual critic pass timed out (2500ms plateau)')), 2500)
+      );
+
+      const response = await Promise.race([
+        callBackendGeminiAPI({
+          modelName: 'gemini-2.5-flash',
+          systemInstruction: CRITIC_SYSTEM_INSTRUCTION,
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: CRITIC_RESPONSE_SCHEMA,
+            temperature: 0.2,
           },
-        ],
-      });
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: `BRIEF: ${options.brief.slice(0, 800)}\nCANVAS: ${options.canvasWidth}x${options.canvasHeight}${intentBlock}\n\nLAYER TREE (patch only these ids):\n${describeLayerTree(layers).slice(0, 6000)}\n\nThe image attached is the rendered design. Critique it and return your JSON.`,
+                },
+                { inlineData: { mimeType: 'image/jpeg', data: base64 } },
+              ],
+            },
+          ],
+        }),
+        timeoutPromise,
+      ]);
 
       const raw = await (response as any)?.text;
       const parsed = safeParseJSON<any | null>(raw || 'null', null);

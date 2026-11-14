@@ -3471,22 +3471,18 @@ export const processDesignBlueprint = async (
 
   log.info(`[AssetGenerator] Found ${imageLayers.length} layers requiring image generation`);
 
-  // Generate images for each "generated-image" layer
-  let processedCount = 0;
-  for (const layer of imageLayers) {
+  // Asynchronous Progressive Asset Hydration: execute image generation concurrently
+  const assetJobs = imageLayers.map(async (layer, idx) => {
     const props = layer.properties;
     const prompt = props.prompt || '';
     const removeBackground = props.removeBackground ?? true;
     const width = props.width || 512;
     const height = props.height || 512;
 
-    options.onProgress?.(processedCount + 1, imageLayers.length, layer.name);
+    options.onProgress?.(idx + 1, imageLayers.length, layer.name);
 
     try {
-      // Dispatch by layer.role (hero-cutout / vector-accent / background / default). The router
-      // appends the no-text / negative-space constraints itself, so the raw prompt goes in.
-      // Every blueprint asset is ONE layer of an editable composition - real typography arrives
-      // later as native text layers, so letter-shaped pixels would be duplicate garbage.
+      // Dispatch by layer.role (hero-cutout / vector-accent / background / default).
       const imageUrl = await generateLayerAsset({
         ...layer,
         properties: { ...props, prompt, removeBackground, width, height },
@@ -3494,14 +3490,23 @@ export const processDesignBlueprint = async (
       if (imageUrl) {
         generatedAssets.set(layer.id, imageUrl);
         options.onAssetGenerated?.(layer.id, imageUrl);
-        log.info('[AssetGenerator] Generated asset for layer:', layer.name);
+        log.info('[AssetGenerator] Progressive asset hydrated for layer:', layer.name);
+
+        // Progressively stream updated asset directly into the canvas store
+        if (typeof window !== 'undefined') {
+          try {
+            const { useStore } = await import('../store/useStore');
+            useStore.getState().updateLayer(layer.id, { src: imageUrl });
+          } catch (_e) {}
+        }
       }
     } catch (err) {
       log.warn(`[AssetGenerator] Failed to generate asset for layer: ${layer.name}`, { error: String(err) });
     }
+  });
 
-    processedCount++;
-  }
+  // Concurrently settle all asset jobs (parallel instead of sequential)
+  await Promise.allSettled(assetJobs);
 
   // Convert blueprint layers to canvas layers
   const canvasLayers: Layer[] = blueprint.layers

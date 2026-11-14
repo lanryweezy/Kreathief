@@ -5,60 +5,63 @@ export function useLamaWorker() {
   const workerRef = useRef<Worker | null>(null);
   const resolveRef = useRef<((value: string | null) => void) | null>(null);
 
-  useEffect(() => {
-    // Instantiate worker
-    workerRef.current = new Worker(new URL('../../workers/lamaWorker.ts', import.meta.url), { type: 'module' });
-    workerRef.current.postMessage({ type: 'INIT' });
+  // Lazy worker initialization: only instantiate and download WASM when actively invoked
+  const getOrCreateWorker = useCallback(() => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(new URL('../../workers/lamaWorker.ts', import.meta.url), { type: 'module' });
+      workerRef.current.postMessage({ type: 'INIT' });
 
-    workerRef.current.onmessage = (e) => {
-      const { type, data, status, error } = e.data;
+      workerRef.current.onmessage = (e) => {
+        const { type, data, error } = e.data;
 
-      if (type === 'STATUS') {
-        // useStore.getState().addToast?.(status, 'info');
-      } else if (type === 'READY') {
-        // useStore.getState().addToast?.('LaMa Inpainting model ready', 'success');
-      } else if (type === 'ERROR') {
-        console.warn('[useLamaWorker] Background inpainting engine notice:', error);
-        if (resolveRef.current) {
-          useStore.getState().addToast?.(`LaMa Inpainting failed: ${error}`, 'error');
-          resolveRef.current(null);
-          resolveRef.current = null;
-        }
-      } else if (type === 'INPAINT_RESULT') {
-        // Output is ImageData of 512x512
-        const resultImageData = data as ImageData;
-
-        // Convert ImageData to Data URL
-        const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.putImageData(resultImageData, 0, 0);
-          const dataUrl = canvas.toDataURL('image/png');
-
+        if (type === 'ERROR') {
+          console.warn('[useLamaWorker] Background inpainting engine notice:', error);
           if (resolveRef.current) {
-            resolveRef.current(dataUrl);
-            resolveRef.current = null;
-          }
-        } else {
-          if (resolveRef.current) {
+            useStore.getState().addToast?.(`Inpainting failed: ${error}`, 'error');
             resolveRef.current(null);
             resolveRef.current = null;
           }
-        }
-      }
-    };
+        } else if (type === 'INPAINT_RESULT') {
+          // Output is ImageData of 512x512
+          const resultImageData = data as ImageData;
 
+          // Convert ImageData to Data URL
+          const canvas = document.createElement('canvas');
+          canvas.width = 512;
+          canvas.height = 512;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.putImageData(resultImageData, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+
+            if (resolveRef.current) {
+              resolveRef.current(dataUrl);
+              resolveRef.current = null;
+            }
+          } else {
+            if (resolveRef.current) {
+              resolveRef.current(null);
+              resolveRef.current = null;
+            }
+          }
+        }
+      };
+    }
+    return workerRef.current;
+  }, []);
+
+  useEffect(() => {
     return () => {
       workerRef.current?.terminate();
+      workerRef.current = null;
     };
   }, []);
 
   const inpaint = useCallback(
     (imageCanvas: HTMLCanvasElement, maskCanvas: HTMLCanvasElement): Promise<string | null> => {
       return new Promise((resolve) => {
-        if (!workerRef.current) {
+        const worker = getOrCreateWorker();
+        if (!worker) {
           resolve(null);
           return;
         }

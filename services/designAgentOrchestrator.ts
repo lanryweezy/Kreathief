@@ -515,12 +515,12 @@ async function polishAll(
 ): Promise<void> {
   const paid = options.plan !== 'free';
   options.onProgress?.('critique', 'Visual critic is reviewing every render before delivery...');
-  // Sequenced, not parallel: each pass is a vision call; keep latency honest
-  // and the thinking log readable. Free tier: only the blueprint gets a pass.
-  for (const variant of variants) {
-    const passes = variant.source === 'blueprint' ? (paid ? 2 : 1) : paid ? 1 : 0;
+  // Parallel execution across variants bounded by 2.5s plateau timeout per pass
+  const polishJobs = variants.map(async (variant) => {
+    const passes = variant.source === 'blueprint' ? (paid ? 2 : 1) : 1;
     await polishVariantLayers(variant, intent, canvasSize, passes, options.strategy);
-  }
+  });
+  await Promise.allSettled(polishJobs);
 }
 
 /**

@@ -63,10 +63,6 @@ export const Header: React.FC<HeaderProps> = ({
   const setShowShareModal = s.setShowShareModal;
   const setProjectTitle = s.setProjectTitle;
 
-  // ⚡ Bolt Optimization: Use useShallow with an explicit selector object to combine
-  // what used to be 8 separate `useStore` subscriptions into a single one. This groups
-  // state evaluation and prevents the Header from re-rendering heavily due to
-  // fragmented subscriptions.
   const showPricingModal = useStore((state) => (state as any).showPricingModal);
   const setShowPricingModal = useStore((state) => (state as any).setShowPricingModal);
   const credits = useStore((state) => (state as any).credits ?? 50);
@@ -132,9 +128,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative">
-      <div className="flex items-center gap-4 relative z-30">
-        <div className="flex items-center gap-2 mr-2">
+    <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-4 md:px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative gap-2">
+      <div className="flex items-center gap-3 md:gap-4 shrink-0 z-30">
+        <div className="flex items-center gap-2 mr-1">
           <div className="w-8 h-8 bg-surface-dark-1 border border-white/10 rounded-lg flex items-center justify-center shadow-lg">
             <img src="/logo.svg" alt="Kreathief" className="w-5 h-5 object-contain" />
           </div>
@@ -184,11 +180,11 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Center Section: Project Title & Save Status */}
-      <div className="absolute inset-0 pointer-events-none flex items-center justify-center mx-24 md:mx-64">
-        <div className="pointer-events-auto flex items-center gap-2">
+      {/* Center Section: Project Title & Save Status (Flex-contained, no absolute collision) */}
+      <div className="min-w-0 flex-1 flex items-center justify-center px-2 overflow-hidden z-20">
+        <div className="flex items-center gap-2 min-w-0 max-w-full">
           {/* Project Title */}
-          <div className="flex items-center max-w-[200px] md:max-w-[240px] shrink-0">
+          <div className="flex items-center min-w-0 max-w-[140px] sm:max-w-[220px] md:max-w-[280px]">
             {isEditingTitle ? (
               <input
                 data-testid="project-title-input"
@@ -210,13 +206,13 @@ export const Header: React.FC<HeaderProps> = ({
                   }
                 }}
                 autoFocus
-                className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-0.5 outline-none w-[500px] rounded shadow-lg text-center"
+                className="bg-surface-dark-3 border-b-2 border-brand-500 text-white text-sm font-bold px-2 py-0.5 outline-none w-full max-w-[240px] rounded shadow-lg text-center truncate"
               />
             ) : (
               <button
                 data-testid="project-title-display"
                 onClick={() => setIsEditingTitle(true)}
-                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-[500px] text-center"
+                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-full text-center"
                 title="Click to rename"
               >
                 {String(projectTitle || 'Untitled')}
@@ -236,8 +232,18 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4 relative z-30">
-
+      <div className="flex items-center justify-end gap-2 md:gap-4 shrink-0 z-30">
+        {/* Zoom Level Selector */}
+        <button
+          ref={zoomButtonRef}
+          onClick={() => setShowZoomMenu(!showZoomMenu)}
+          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-mono font-bold text-gray-300 hover:text-white transition-colors"
+          title="Canvas Zoom Level"
+          aria-label="Canvas zoom level"
+        >
+          <span>{Math.round(zoom * 100)}%</span>
+          <Icons.ChevronDown className="w-3 h-3 text-gray-500" />
+        </button>
 
         {/* AI Button — unified entry point for all AI features */}
         <Button
