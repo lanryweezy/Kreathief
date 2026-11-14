@@ -8,7 +8,6 @@ import { CreateProjectModal } from './modals/CreateProjectModal';
 import { PricingModal } from './PricingModal';
 import { useStore } from '../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
-import CommunityTemplates from './CommunityTemplates';
 import { DEFAULT_IMAGE_MODEL, IMAGE_GEN_MODELS } from '../config/imageModels';
 import { generateImageWithModel, composeGenerationPrompt } from '../services/imageGenService';
 import { ModelPicker } from './ModelPicker';
@@ -75,7 +74,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     }))
   );
 
-  const [sidebarTab, setSidebarTab] = useState<'projects' | 'templates' | 'community'>('projects');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
 
@@ -129,13 +127,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
   const aiInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const FORMAT_OPTIONS: { label: string; size: CanvasSize }[] = [
-    { label: 'Instagram Post', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
-    { label: 'Story / Reel', size: { width: 1080, height: 1920, name: 'Story / Reel' } },
-    { label: 'YouTube Thumbnail', size: { width: 1280, height: 720, name: 'YouTube Thumbnail' } },
-    { label: 'Facebook Post', size: { width: 1200, height: 630, name: 'Facebook Post' } },
-    { label: 'Logo', size: { width: 1080, height: 1080, name: 'Logo' } },
-    { label: 'Presentation', size: { width: 1920, height: 1080, name: 'Presentation' } },
+  const FORMAT_OPTIONS: { label: string; ratio: string; size: CanvasSize }[] = [
+    { label: 'Instagram Post', ratio: '1:1', size: { width: 1080, height: 1080, name: 'Instagram Post' } },
+    { label: 'Story / Reel', ratio: '9:16', size: { width: 1080, height: 1920, name: 'Story / Reel' } },
+    { label: 'YouTube Thumbnail', ratio: '16:9', size: { width: 1280, height: 720, name: 'YouTube Thumbnail' } },
+    { label: 'Facebook Post', ratio: '1.91:1', size: { width: 1200, height: 630, name: 'Facebook Post' } },
+    { label: 'Logo', ratio: '1:1', size: { width: 1080, height: 1080, name: 'Logo' } },
+    { label: 'Presentation', ratio: '16:9', size: { width: 1920, height: 1080, name: 'Presentation' } },
   ];
 
   const STYLE_SUGGESTIONS = ['Art Deco', 'Minimalism', 'Brutalism', 'Y2K', 'Kawaii', 'Synthwave'];
@@ -243,8 +241,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
       onOpenProject(created);
     } catch (error) {
       log.error('[DashboardAI] Design generation failed', error);
-      // 🌸 Bloom: Closed quality gap where AI generation errors showed generic, blocking alerts
-      // Improvement: Replaced getErrorDetails with getAIErrorMessage for specific, actionable feedback
       addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGenerating(false);
@@ -603,15 +599,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
     <div className="min-h-dvh bg-surface-dark-0 text-white flex flex-col relative z-0">
       {/* Header */}
       <header className="h-20 bg-surface-dark-1/80 border-b border-white/5 flex items-center justify-between px-8 sticky top-0 z-30 backdrop-blur-2xl">
-        <a href="/" className="flex items-center gap-4 group cursor-pointer" title="Go to Landing Page">
+        <a href="/" className="flex items-center gap-4 group cursor-pointer" title="Kreathief Studio">
           <div className="w-10 h-10 bg-surface-dark-1 border border-white/10 group-hover:border-purple-500/50 rounded-xl flex items-center justify-center shadow-lg transition-all">
             <img src="/logo.svg" alt="Kreathief" className="w-7 h-7 object-contain" />
           </div>
           <span className="font-black text-2xl tracking-tighter uppercase group-hover:text-purple-300 transition-colors">
             Kreathief
-          </span>
-          <span className="hidden sm:inline-block text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-neutral-400 group-hover:text-white transition-all">
-            Landing Page ↗
           </span>
         </a>
 
@@ -828,7 +821,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   {isDraggingFile && (
                     <div className="absolute inset-0 z-30 bg-brand-950/90 border-2 border-dashed border-brand-400 rounded-xl flex flex-col items-center justify-center gap-2 backdrop-blur-sm pointer-events-none animate-pulse">
                       <Icons.Upload className="w-8 h-8 text-brand-400" />
-                      <span className="text-sm font-bold text-white">Drop your image here to Steal & Remix</span>
+                      <span className="text-sm font-bold text-white">Drop a reference image to extract its style &amp; remix</span>
                       <span className="text-xs text-brand-300">Extracts layout, palette, and style automatically</span>
                     </div>
                   )}
@@ -935,7 +928,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                       placeholder={
                         styleReference
                           ? 'Remixing attached reference... Add custom instructions or click Generate directly...'
-                          : "Describe your vision, or click '+' / paste an image to Steal & Remix..."
+                          : "Describe your vision, or click '+ Reference' / paste an image to remix..."
                       }
                       rows={2}
                       className="w-full bg-transparent text-white text-base placeholder:text-muted/50 resize-none focus:outline-none font-medium leading-relaxed"
@@ -944,31 +937,47 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
 
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {/* + Add Visual Reference Button */}
+                        {/* + Add Visual Reference Button (Only + Sign) */}
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          title="Upload image or screenshot to extract layout, palette, and style (or paste with Ctrl+V / drag & drop)"
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                          title={
+                            styleReference
+                              ? 'Change attached visual reference image'
+                              : 'Upload image to extract layout, palette, and style (or paste / drop)'
+                          }
+                          aria-label="Add visual reference"
+                          className={`flex items-center justify-center w-8 h-8 rounded-lg text-xs font-bold transition-all shrink-0 ${
                             styleReference
                               ? 'border border-brand-500/50 bg-brand-500/20 text-brand-200 shadow-sm'
                               : 'bg-brand-600/20 text-brand-300 hover:bg-brand-600/30 border border-brand-500/30 hover:border-brand-500/50 hover:text-white'
                           }`}
                         >
-                          <Icons.Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                          <span>{styleReference ? 'Change Reference' : 'Reference'}</span>
+                          <Icons.Plus className="w-4 h-4 stroke-[2.5]" />
                         </button>
 
-                        {FORMAT_OPTIONS.map((format, idx) => (
-                          <button
-                            key={format.label}
-                            onClick={() => setSelectedFormat(idx)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${selectedFormat === idx ? 'bg-brand-600 text-white shadow-lg shadow-brand-600/20' : 'bg-white/5 text-muted hover:bg-white/10 hover:text-white'}`}
+                        {/* Format / Aspect Ratio Dropdown */}
+                        <div className="relative flex items-center bg-white/5 border border-white/10 hover:border-white/20 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white transition-all cursor-pointer">
+                          <span className="font-mono text-xs text-brand-300 font-bold mr-1 select-none">
+                            {FORMAT_OPTIONS[selectedFormat]?.ratio || '1:1'}
+                          </span>
+                          <Icons.ChevronDown className="w-3 h-3 text-muted shrink-0 ml-0.5 pointer-events-none" />
+                          <select
+                            value={selectedFormat}
+                            onChange={(e) => setSelectedFormat(Number(e.target.value))}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                            title={`Format: ${FORMAT_OPTIONS[selectedFormat]?.label} (${FORMAT_OPTIONS[selectedFormat]?.ratio})`}
+                            aria-label="Select canvas aspect ratio"
                           >
-                            {format.label}
-                          </button>
-                        ))}
-                        {/* Style Picker Button */}
+                            {FORMAT_OPTIONS.map((format, idx) => (
+                              <option key={format.label} value={idx} className="bg-surface-dark-1 text-white">
+                                {format.ratio} — {format.label} ({format.size.width}×{format.size.height})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Style Picker Button with Dropdown Arrow */}
                         <button
                           onClick={() => setShowStylePicker(!showStylePicker)}
                           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
@@ -979,18 +988,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         >
                           {selectedStyle ? (
                             <>
-                              <span
-                                className="w-3 h-3 rounded-full shrink-0"
-                                style={{
-                                  background: `linear-gradient(135deg, ${selectedStyle.palette.primary}, ${selectedStyle.palette.accent})`,
-                                }}
-                              />
-                              {selectedStyle.icon} {selectedStyle.name}
+                              <span className="flex items-center -space-x-1 shrink-0">
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full border border-black/40"
+                                  style={{ backgroundColor: selectedStyle.palette.background }}
+                                />
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full border border-black/40"
+                                  style={{ backgroundColor: selectedStyle.palette.primary }}
+                                />
+                                <span
+                                  className="w-2.5 h-2.5 rounded-full border border-black/40"
+                                  style={{ backgroundColor: selectedStyle.palette.accent }}
+                                />
+                              </span>
+                              <span>{selectedStyle.name}</span>
+                              <Icons.ChevronDown className="w-3 h-3 text-muted ml-0.5" />
                             </>
                           ) : (
                             <>
                               <Icons.Palette className="w-3 h-3" />
-                              Style
+                              <span>Style</span>
+                              <Icons.ChevronDown className="w-3 h-3 text-muted ml-0.5" />
                             </>
                           )}
                         </button>
@@ -1240,9 +1259,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         </div>
                         <div className="relative group/menu ml-2">
                           <button
+                            type="button"
+                            aria-label="Project options"
                             onClick={(e) => {
                               e.stopPropagation();
-                              // Toggle might be handled by focus/hover, no-op here
+                              (e.currentTarget as HTMLButtonElement).focus();
                             }}
                             className="p-1 rounded bg-transparent hover:bg-white/10 text-gray-400 hover:text-white"
                           >
@@ -1289,8 +1310,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
               <div className="flex items-center justify-between mb-5">
                 <span
                   data-testid="nav-templates"
-                  className="text-xs font-black text-muted uppercase tracking-[0.2em]"
-                  onClick={() => setSidebarTab('templates')}
+                  className="text-xs font-bold text-muted uppercase tracking-[0.2em]"
                 >
                   Templates
                 </span>
@@ -1400,9 +1420,69 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
         <div className="fixed inset-0 z-[100] bg-surface-dark-2">
           <NodeGraph
             onClose={() => setShowNodeGraph(false)}
-            onExportToCanvas={(result) => {
-              // NodeGraph export logic could be hooked up here
+            onExportToCanvas={async (result) => {
               setShowNodeGraph(false);
+              const imageUrl = result?.image?.src || result?.image;
+              if (!imageUrl || typeof imageUrl !== 'string') {
+                return;
+              }
+              const size = { width: 1080, height: 1080, name: 'Node Graph Render' };
+              const imageLayer = {
+                id: `node_img_${Date.now()}`,
+                type: 'image' as const,
+                name: 'Node Graph Output',
+                src: imageUrl,
+                x: 0,
+                y: 0,
+                width: size.width,
+                height: size.height,
+                rotation: 0,
+                opacity: 1,
+                locked: false,
+                visible: true,
+                flipX: false,
+                flipY: false,
+                filters: {
+                  brightness: 100,
+                  contrast: 100,
+                  saturation: 100,
+                  grayscale: 0,
+                  sepia: 0,
+                  blur: 0,
+                  hueRotate: 0,
+                  vignette: 0,
+                  opacity: 1,
+                },
+                blendMode: 'normal' as const,
+                skewX: 0,
+                skewY: 0,
+                perspective: 0,
+                rotateX: 0,
+                rotateY: 0,
+              };
+              const initialState: any = {
+                artboards: [
+                  {
+                    id: 'default',
+                    name: 'Artboard 1',
+                    x: 0,
+                    y: 0,
+                    width: size.width,
+                    height: size.height,
+                    layers: [imageLayer],
+                  },
+                ],
+                activeArtboardId: 'default',
+                canvasBackgroundColor: '#ffffff',
+                canvasSize: size,
+              };
+              const newProjectId = await createProject('Node Graph Output', size, initialState);
+              const s = useStore.getState();
+              const created = s.projects.find((p) => p.id === newProjectId);
+              if (created) {
+                loadProject(created.id);
+                onOpenProject(created);
+              }
             }}
           />
         </div>
