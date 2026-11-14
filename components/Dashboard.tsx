@@ -821,7 +821,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                   {isDraggingFile && (
                     <div className="absolute inset-0 z-30 bg-brand-950/90 border-2 border-dashed border-brand-400 rounded-xl flex flex-col items-center justify-center gap-2 backdrop-blur-sm pointer-events-none animate-pulse">
                       <Icons.Upload className="w-8 h-8 text-brand-400" />
-                      <span className="text-sm font-bold text-white">Drop a reference image to extract its style &amp; remix</span>
+                      <span className="text-sm font-bold text-white">
+                        Drop a reference image to extract its style &amp; remix
+                      </span>
                       <span className="text-xs text-brand-300">Extracts layout, palette, and style automatically</span>
                     </div>
                   )}
@@ -1188,47 +1190,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
                         </div>
                         <div className="absolute top-3 right-3 z-10">
                           <span className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider text-white">
-                            {project.state.canvasSize?.width}×{project.state.canvasSize?.height}
+                            {project.state?.artboards?.[0]?.width || project.state.canvasSize?.width}×
+                            {project.state?.artboards?.[0]?.height || project.state.canvasSize?.height}
                           </span>
                         </div>
                         <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-                          <div
-                            style={{
-                              width: `${project.state.canvasSize?.width || 1080}px`,
-                              height: `${project.state.canvasSize?.height || 1080}px`,
-                              transform: `scale(${Math.min(280 / (project.state.canvasSize?.width || 1080), 180 / (project.state.canvasSize?.height || 1080))})`,
-                              transformOrigin: 'center',
-                              backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
-                            }}
-                            className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
-                          >
-                            {project.thumbnail ? (
+                          {project.state?.artboards?.length ? (
+                            <TemplatePreview template={project} containerWidth={280} containerHeight={180} />
+                          ) : project.thumbnail ? (
+                            <div
+                              style={{
+                                width: `${project.state.canvasSize?.width || 1080}px`,
+                                height: `${project.state.canvasSize?.height || 1080}px`,
+                                transform: `scale(${Math.min(280 / (project.state.canvasSize?.width || 1080), 180 / (project.state.canvasSize?.height || 1080))})`,
+                                transformOrigin: 'center',
+                                backgroundColor: project.state.canvasBackgroundColor || '#ffffff',
+                              }}
+                              className="shadow-xl rounded border border-white/5 overflow-hidden relative shrink-0"
+                            >
                               <img
                                 src={project.thumbnail}
                                 alt={project.name}
                                 className="w-full h-full object-cover object-center"
                               />
-                            ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 text-white/20 border border-white/5">
-                                <svg
-                                  className="w-12 h-12 mb-2 opacity-50"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={1}
-                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-center px-4 leading-tight">
-                                  {project.state.artboards?.[0]?.layers?.length || 0} Layers
-                                </span>
-                              </div>
-                            )}
-                          </div>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center bg-black/20 text-white/20 border border-white/5 rounded">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-center px-4 leading-tight">
+                                Empty Canvas
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="p-4 flex items-start justify-between">
@@ -1308,10 +1300,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ user, onOpenProject, onCre
             {/* Templates */}
             <div className="mb-10">
               <div className="flex items-center justify-between mb-5">
-                <span
-                  data-testid="nav-templates"
-                  className="text-xs font-bold text-muted uppercase tracking-[0.2em]"
-                >
+                <span data-testid="nav-templates" className="text-xs font-bold text-muted uppercase tracking-[0.2em]">
                   Templates
                 </span>
                 <div className="flex items-center gap-2">

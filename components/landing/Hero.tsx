@@ -23,7 +23,8 @@ const HERO_SLIDES: HeroSlide[] = [
     image: '/images/hero_slide_1.webp',
     tag: 'FASHION & EDITORIAL',
     title: 'Cybernetic Avant-Garde',
-    prompt: 'avant-garde fashion portrait, chrome liquid jewelry, hyper-detailed chiaroscuro, high-gloss studio lighting, 8k resolution',
+    prompt:
+      'avant-garde fashion portrait, chrome liquid jewelry, hyper-detailed chiaroscuro, high-gloss studio lighting, 8k resolution',
     palette: ['#0A0A0F', '#8B5CF6', '#EC4899', '#E0E7FF'],
     vectorNodes: 184,
   },
@@ -31,7 +32,8 @@ const HERO_SLIDES: HeroSlide[] = [
     image: '/images/hero_slide_6.webp',
     tag: 'CINEMATOGRAPHY',
     title: 'Kinetic Pyrotechnics',
-    prompt: 'kinetic dynamic motion blur, high-velocity sparks, neon ember trails, cinematic anamorphic widescreen bokeh',
+    prompt:
+      'kinetic dynamic motion blur, high-velocity sparks, neon ember trails, cinematic anamorphic widescreen bokeh',
     palette: ['#07070B', '#F59E0B', '#EF4444', '#FDE68A'],
     vectorNodes: 242,
   },
@@ -39,7 +41,8 @@ const HERO_SLIDES: HeroSlide[] = [
     image: '/images/hero_ai_cinematic.webp',
     tag: 'CREATIVE DIRECTION',
     title: 'Chiaroscuro Arena Synthesis',
-    prompt: 'cinematic gladiatorial arena, dramatic baroque lighting, sculptural silhouette, gold Leaf embroidery, architectural tension',
+    prompt:
+      'cinematic gladiatorial arena, dramatic baroque lighting, sculptural silhouette, gold Leaf embroidery, architectural tension',
     palette: ['#09090E', '#6366F1', '#A855F7', '#C7D2FE'],
     vectorNodes: 156,
   },
@@ -47,7 +50,8 @@ const HERO_SLIDES: HeroSlide[] = [
     image: '/images/hero_slide_3.webp',
     tag: 'SPATIAL SURREALISM',
     title: 'Open Field Narrative Architecture',
-    prompt: 'surrealist brutalist monolith in open misty grassland, atmospheric fog, photorealistic natural materials, dawn ambient glow',
+    prompt:
+      'surrealist brutalist monolith in open misty grassland, atmospheric fog, photorealistic natural materials, dawn ambient glow',
     palette: ['#060609', '#10B981', '#06B6D4', '#A7F3D0'],
     vectorNodes: 198,
   },
@@ -68,7 +72,9 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
   const springY = useSpring(mouseY, { stiffness: 120, damping: 20 });
 
   const handleFrameMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!frameRef.current) return;
+    if (!frameRef.current) {
+      return;
+    }
     const rect = frameRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5;
     const y = (e.clientY - rect.top) / rect.height - 0.5;
@@ -121,7 +127,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               alt={currentSlide.title}
               width="1920"
               height="1080"
-              fetchPriority={activeSlide === 0 ? 'high' : 'auto'}
               decoding={activeSlide === 0 ? 'sync' : 'async'}
               className="w-full h-full object-cover object-top filter contrast-105"
             />
@@ -139,8 +144,12 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
         <div className="text-center w-full max-w-6xl mb-8 relative flex flex-col items-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-[80px] font-black tracking-tighter leading-[0.95] text-white select-none text-balance">
             Design at the <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-neutral-200 to-neutral-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-neutral-200 drop-shadow-[0_4px_24px_rgba(0,0,0,0.75)]">
               speed of thought.
+            </span>
+            <span className="sr-only">
+              {' '}
+              — AI Creative Studio for Vector Graphics, Brand Campaigns, and Print Design
             </span>
           </h1>
         </div>
@@ -176,10 +185,10 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
               activeMode === 'diffusion'
                 ? 'bg-purple-600/15'
                 : activeMode === 'vector'
-                ? 'bg-emerald-600/15'
-                : activeMode === 'spatial'
-                ? 'bg-cyan-600/15'
-                : 'bg-pink-600/15'
+                  ? 'bg-emerald-600/15'
+                  : activeMode === 'spatial'
+                    ? 'bg-cyan-600/15'
+                    : 'bg-pink-600/15'
             }`}
           />
           <div className="absolute top-1/3 -left-20 w-72 h-72 bg-amber-600/5 blur-[100px] rounded-full pointer-events-none" />
@@ -197,19 +206,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             transition={{ duration: 1.2, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
             className="w-full rounded-[24px] sm:rounded-[32px] border border-white/15 bg-[#0e0e16]/95 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.85)] overflow-hidden relative group"
           >
-            {/* Window Title Bar */}
-            <div className="min-h-11 bg-white/[0.04] border-b border-white/10 flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[#ff5f56]/90 shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-[#ffbd2e]/90 shadow-sm" />
-                <div className="w-3 h-3 rounded-full bg-[#27c93f]/90 shadow-sm" />
-                <div className="hidden sm:flex items-center gap-2 text-[11px] font-mono text-neutral-400 bg-white/[0.03] px-3 py-1 rounded-md border border-white/5 ml-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>Kreathief Studio</span>
-                </div>
-              </div>
-            </div>
-
             {/* Real Kreathief Studio Screenshot */}
             <div className="relative overflow-hidden w-full bg-[#0c0c10]">
               <img
@@ -217,7 +213,6 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                 alt="Kreathief Studio interface showing live canvas, templates, and design tools"
                 width="2880"
                 height="1800"
-                fetchPriority="high"
                 decoding="async"
                 className="w-full h-auto block select-none pointer-events-none"
               />

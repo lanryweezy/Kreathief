@@ -88,7 +88,7 @@ export const FAQSection: React.FC = () => {
                 aria-controls={`faq-answer-${idx}`}
                 className="w-full flex items-center justify-between p-6 text-left"
               >
-                <span className="text-lg font-bold text-white tracking-tight">{faq.question}</span>
+                <h3 className="text-lg font-bold text-white tracking-tight">{faq.question}</h3>
                 <div
                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-transform duration-300 ${openIndex === idx ? 'bg-purple-500 rotate-180' : 'bg-white/5'}`}
                 >
@@ -110,6 +110,62 @@ export const FAQSection: React.FC = () => {
               </AnimatePresence>
             </motion.div>
           ))}
+        </div>
+
+        <div className="mt-14 p-6 rounded-2xl bg-white/[0.02] border border-white/5 text-sm text-gray-400 leading-relaxed space-y-3">
+          <h3 className="text-base font-bold text-white tracking-tight">
+            Built on Open Web &amp; Accessibility Standards
+          </h3>
+          <p>
+            Kreathief runs natively in modern browsers so teams can design, iterate, and export without heavy desktop
+            installs. Explore specialized workflows in our{' '}
+            <a href="/tools" className="text-purple-400 hover:text-purple-300 underline">
+              creative tools directory
+            </a>
+            , chain multi-step pipelines in the{' '}
+            <a href="/node" className="text-purple-400 hover:text-purple-300 underline">
+              Kreathief Node Engine
+            </a>
+            , compare{' '}
+            <a href="#pricing" className="text-purple-400 hover:text-purple-300 underline">
+              Free and Pro plans
+            </a>
+            , or read product updates on the{' '}
+            <a href="/blog" className="text-purple-400 hover:text-purple-300 underline">
+              Kreathief Blog
+            </a>
+            .
+          </p>
+          <p>
+            Every artboard is audited in real time against{' '}
+            <a
+              href="https://www.w3.org/WAI/standards-guidelines/wcag/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-white underline"
+            >
+              W3C WCAG accessibility guidelines
+            </a>
+            , rendered using standard{' '}
+            <a
+              href="https://www.w3.org/Graphics/SVG/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-white underline"
+            >
+              W3C Scalable Vector Graphics (SVG)
+            </a>
+            , and exported via the{' '}
+            <a
+              href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-300 hover:text-white underline"
+            >
+              HTML5 Canvas API
+            </a>{' '}
+            for pixel-accurate PNG, WebP, SVG, and print-ready PDF output.
+          </p>
         </div>
       </div>
     </section>

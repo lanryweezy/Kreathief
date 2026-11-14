@@ -117,7 +117,10 @@ const fallbackExportStrategy: ExportStrategy = {
       }
       throw new Error('DOM-based export returned an empty blob');
     } catch (e) {
-      log.warn('[ExportStrategy] DOM-based font export failed or was unavailable, falling back to SVG rasterization:', e);
+      log.warn(
+        '[ExportStrategy] DOM-based font export failed or was unavailable, falling back to SVG rasterization:',
+        e
+      );
       // Secondary fallback: draw SVG to Canvas for headless or fallback rasterization
       const layersToExport = ctx.scaledLayers;
       const svgString = await exportService.exportToSVG(ctx.exportWidth, ctx.exportHeight, fillBg, layersToExport);
@@ -126,7 +129,9 @@ const fallbackExportStrategy: ExportStrategy = {
       canvas.width = ctx.exportWidth;
       canvas.height = ctx.exportHeight;
       const canvasCtx = canvas.getContext('2d');
-      if (!canvasCtx) throw new Error('Could not get 2D canvas context');
+      if (!canvasCtx) {
+        throw new Error('Could not get 2D canvas context');
+      }
 
       if (mimeType === 'jpeg' && !includeBg) {
         canvasCtx.fillStyle = '#ffffff';
@@ -148,8 +153,11 @@ const fallbackExportStrategy: ExportStrategy = {
       const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(
           (b) => {
-            if (b) resolve(b);
-            else reject(new Error('Canvas toBlob conversion failed'));
+            if (b) {
+              resolve(b);
+            } else {
+              reject(new Error('Canvas toBlob conversion failed'));
+            }
           },
           `image/${mimeType}`,
           ctx.quality || 0.95
@@ -179,7 +187,7 @@ export const useFileHandler = () => {
     addLayers,
     setCanvasFilters,
     setIsExporting,
-    addToast
+    addToast,
   } = useStore(
     useShallow((state) => ({
       uploads: state.uploads,
@@ -306,9 +314,11 @@ export const useFileHandler = () => {
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
     const blob = await exportService.exportDesignToImage(layers as any, {
-      width: canvasSize.width,
-      height: canvasSize.height,
-      backgroundColor: canvasBackgroundColor,
+      width: activeArtboard?.width || canvasSize.width,
+      height: activeArtboard?.height || canvasSize.height,
+      backgroundColor: activeArtboard?.backgroundColor || canvasBackgroundColor,
+      textureOverlay: activeArtboard?.textureOverlay,
+      filters: canvasFilters,
       background: true,
       artboardId: activeArtboard?.id,
       baseWidth: activeArtboard?.width || canvasSize.width,
@@ -336,9 +346,11 @@ export const useFileHandler = () => {
     const backgroundImageUrl = activeImage?.url || uploadedImage || null;
 
     return await exportService.exportDesignToImage(layers as any, {
-      width: canvasSize.width,
-      height: canvasSize.height,
-      backgroundColor: canvasBackgroundColor,
+      width: activeArtboard?.width || canvasSize.width,
+      height: activeArtboard?.height || canvasSize.height,
+      backgroundColor: activeArtboard?.backgroundColor || canvasBackgroundColor,
+      textureOverlay: activeArtboard?.textureOverlay,
+      filters: canvasFilters,
       background: true,
       artboardId: activeArtboard?.id,
       baseWidth: activeArtboard?.width || canvasSize.width,

@@ -18,6 +18,7 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
   const [templates, setTemplates] = useState<CommunityTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'likes' | 'downloads' | 'newest'>('likes');
+  const [pendingTemplate, setPendingTemplate] = useState<CommunityTemplate | null>(null);
   const handleApplyTemplate = useStore((state) => state.handleApplyTemplate);
   const addToast = useStore((state) => state.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -51,13 +52,8 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
     loadTemplates();
   }, [loadTemplates]);
 
-  const onRemix = async (template: CommunityTemplate) => {
-    // Applying a template replaces the current design — confirm first
-    const hasWork = useStore.getState().artboards.some((a: any) => a.layers.length > 0);
-    if (hasWork && !window.confirm('Applying this template will replace your current design. Continue?')) {
-      return;
-    }
-
+  const applyConfirmedTemplate = (template: CommunityTemplate) => {
+    setPendingTemplate(null);
     // Record the download
     communityService.recordDownload(template.id);
 
@@ -79,6 +75,15 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
     };
     handleApplyTemplate(templateWithState);
     onClose();
+  };
+
+  const onRemix = async (template: CommunityTemplate) => {
+    const hasWork = useStore.getState().artboards.some((a: any) => a.layers.length > 0);
+    if (hasWork) {
+      setPendingTemplate(template);
+      return;
+    }
+    applyConfirmedTemplate(template);
   };
 
   const onLike = async (template: CommunityTemplate) => {
@@ -174,6 +179,29 @@ export const CommunityModal: React.FC<CommunityModalProps> = ({ onClose }) => {
 
           {/* Grid Area */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar scrollbar-hide">
+            {pendingTemplate && (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-xs text-amber-200">
+                <span>
+                  Applying <strong>{pendingTemplate.name}</strong> will replace your current canvas design.
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPendingTemplate(null)}
+                    className="px-3 py-1.5 rounded-lg border border-white/10 text-gray-300 hover:bg-white/5 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyConfirmedTemplate(pendingTemplate)}
+                    className="px-3 py-1.5 rounded-lg bg-brand-600 text-white font-semibold hover:bg-brand-500 transition-colors"
+                  >
+                    Replace Design
+                  </button>
+                </div>
+              </div>
+            )}
             {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {[...Array(6)].map((_, i) => (

@@ -4,19 +4,24 @@ import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 import { ModalWrapper } from './ModalWrapper';
 import { profileService } from '../../services/profileService';
+import { PLANS } from '../../config/plans';
 
 type ProfileTab = 'general' | 'preferences' | 'subscription';
 
 export const ProfileModal: React.FC = () => {
-  const { showProfileModal, setShowProfileModal, user, setUser, addToast } = useStore(
-    useShallow((state) => ({
-      showProfileModal: state.showProfileModal,
-      setShowProfileModal: state.setShowProfileModal,
-      user: state.user,
-      setUser: state.setUser,
-      addToast: state.addToast,
-    }))
-  );
+  const { showProfileModal, setShowProfileModal, setShowPricingModal, user, setUser, addToast, credits, projects } =
+    useStore(
+      useShallow((state) => ({
+        showProfileModal: state.showProfileModal,
+        setShowProfileModal: state.setShowProfileModal,
+        setShowPricingModal: (state as any).setShowPricingModal,
+        user: state.user,
+        setUser: state.setUser,
+        addToast: state.addToast,
+        credits: (state as any).credits ?? PLANS.free.monthlyCredits,
+        projects: state.projects || [],
+      }))
+    );
 
   const [activeTab, setActiveTab] = useState<ProfileTab>('general');
 
@@ -34,28 +39,40 @@ export const ProfileModal: React.FC = () => {
   // Preferences State
   const [autoSaveInterval, setAutoSaveInterval] = useState<number>(5);
   const [defaultFormat, setDefaultFormat] = useState<string>('png');
+  const [snapToObjects, setSnapToObjects] = useState<boolean>(true);
+  const [highDpiRendering, setHighDpiRendering] = useState<boolean>(true);
 
   // Initialize form when modal opens or user changes
   useEffect(() => {
     if (user && showProfileModal) {
       setName(user.name || '');
       setEmail(user.email || '');
-      setRole(user.role || 'Senior Creative Director');
-      setBio(user.bio || 'Passionate visual creator & digital designer building immersive AI experiences.');
-      setWebsite(user.website || 'https://kreathief.app');
-      setLocation(user.location || 'San Francisco, CA');
-      setTwitter(user.socials?.twitter || '@creator_ai');
-      setGithub(user.socials?.github || 'creator-dev');
-      setLinkedin(user.socials?.linkedin || 'in/creator-profile');
+      setRole(user.role || '');
+      setBio(user.bio || '');
+      setWebsite(user.website || '');
+      setLocation(user.location || '');
+      setTwitter(user.socials?.twitter || '');
+      setGithub(user.socials?.github || '');
+      setLinkedin(user.socials?.linkedin || '');
 
       setAutoSaveInterval(user.preferences?.autoSaveInterval ?? 5);
       setDefaultFormat(user.preferences?.defaultFormat || 'png');
+      setSnapToObjects((user.preferences as any)?.snapToObjects ?? true);
+      setHighDpiRendering((user.preferences as any)?.highDpiRendering ?? true);
     }
   }, [user, showProfileModal]);
 
   if (!showProfileModal || !user) {
     return null;
   }
+
+  const activePlanKey = user.plan === 'pro' ? 'pro' : user.plan === 'team' ? 'team' : 'free';
+  const activePlanConfig = PLANS[activePlanKey];
+  const maxCredits = activePlanConfig.monthlyCredits;
+  const currentCredits = Math.min(credits, maxCredits);
+  const creditPercent = Math.min(100, Math.round((currentCredits / maxCredits) * 100));
+  const usedStorageGb = Number(Math.max(0.05, projects.length * 0.08).toFixed(2));
+  const storagePercent = Math.min(100, Math.round((usedStorageGb / activePlanConfig.storageGb) * 100));
 
   const handleSave = async () => {
     const updatedUser = {
@@ -75,11 +92,13 @@ export const ProfileModal: React.FC = () => {
         theme: user.preferences?.theme || 'dark',
         autoSaveInterval,
         defaultFormat,
-      },
+        snapToObjects,
+        highDpiRendering,
+      } as any,
       apiKeys: user.apiKeys,
     };
     setUser(updatedUser);
-    
+
     // Sync to Supabase Profile backend if user has an ID (i.e. logged in)
     if (user.id && user.id !== 'local-guest') {
       try {
@@ -88,7 +107,7 @@ export const ProfileModal: React.FC = () => {
           bio,
           website,
           location,
-          avatar_url: user.avatar
+          avatar_url: user.avatar,
         });
       } catch (e) {
         console.warn('Failed to sync profile to cloud', e);
@@ -406,45 +425,59 @@ export const ProfileModal: React.FC = () => {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-3">
-                  <div className="flex items-center justify-between">
+                  <label className="flex items-center justify-between cursor-pointer">
                     <div>
                       <div className="text-xs font-bold text-white">Snap to Objects & Guides</div>
                       <div className="text-[11px] text-white/50">
                         Automatically align layers when dragging on canvas
                       </div>
                     </div>
-                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-brand-600 rounded" />
-                  </div>
-                  <div className="border-t border-white/[0.05] pt-3 flex items-center justify-between">
+                    <input
+                      type="checkbox"
+                      checked={snapToObjects}
+                      onChange={(e) => setSnapToObjects(e.target.checked)}
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                    />
+                  </label>
+                  <label className="border-t border-white/[0.05] pt-3 flex items-center justify-between cursor-pointer">
                     <div>
                       <div className="text-xs font-bold text-white">High-DPI Canvas Rendering</div>
                       <div className="text-[11px] text-white/50">
                         Render vectors at 2x resolution on Retina displays
                       </div>
                     </div>
-                    <input type="checkbox" defaultChecked className="w-4 h-4 accent-brand-600 rounded" />
-                  </div>
+                    <input
+                      type="checkbox"
+                      checked={highDpiRendering}
+                      onChange={(e) => setHighDpiRendering(e.target.checked)}
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                    />
+                  </label>
                 </div>
               </div>
             )}
 
-            {/* Tab 5: Plan & Storage */}
+            {/* Tab 3: Plan & Storage */}
             {activeTab === 'subscription' && (
               <div className="space-y-6 animate-in fade-in duration-200">
                 <div className="p-6 rounded-3xl bg-gradient-to-r from-brand-900/40 via-[#1a1428] to-surface-dark-1 border border-brand-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                   <div>
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-[10px] font-black text-brand-300 uppercase tracking-wider mb-2">
-                      <Icons.Star className="w-3 h-3" /> {user.plan || 'Free'} Tier
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-brand-500/20 border border-brand-500/40 text-[10px] font-bold text-brand-300 uppercase tracking-wider mb-2">
+                      <Icons.Star className="w-3 h-3" /> {activePlanConfig.name} Tier
                     </div>
-                    <h3 className="text-xl font-black text-white">Kreathief Creative Suite</h3>
+                    <h3 className="text-xl font-bold text-white">Kreathief Creative Suite</h3>
                     <p className="text-xs text-white/60 mt-1">
-                      You are currently on the <span className="text-white font-bold">{user.plan || 'Free'} Plan</span>{' '}
-                      with access to vector design tools, AI assistants, and community sharing.
+                      You are currently on the{' '}
+                      <span className="text-white font-semibold">{activePlanConfig.name} Plan</span> with access to
+                      vector design tools, AI assistants, and cloud project storage.
                     </p>
                   </div>
                   <button
-                    onClick={() => addToast('Opening upgrading modal...', 'info')}
-                    className="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white text-xs font-black tracking-wide shadow-lg shadow-brand-600/30 transition-all shrink-0"
+                    onClick={() => {
+                      setShowProfileModal(false);
+                      setShowPricingModal?.(true);
+                    }}
+                    className="px-5 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white text-xs font-bold tracking-wide shadow-lg shadow-brand-600/30 transition-all shrink-0"
                   >
                     Upgrade Plan
                   </button>
@@ -454,10 +487,15 @@ export const ProfileModal: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex justify-between items-center text-xs font-bold mb-2">
                       <span className="text-white">Monthly AI Generation Credits</span>
-                      <span className="text-brand-400">420 / 500 Credits</span>
+                      <span className="text-brand-400">
+                        {currentCredits} / {maxCredits} Credits
+                      </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="w-[84%] h-full bg-gradient-to-r from-brand-500 to-purple-400 rounded-full" />
+                      <div
+                        className="h-full bg-gradient-to-r from-brand-500 to-purple-400 rounded-full transition-all"
+                        style={{ width: `${creditPercent}%` }}
+                      />
                     </div>
                     <div className="text-[11px] text-white/40 mt-2">
                       Credits reset automatically on the 1st of every month.
@@ -466,11 +504,18 @@ export const ProfileModal: React.FC = () => {
 
                   <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
                     <div className="flex justify-between items-center text-xs font-bold mb-2">
-                      <span className="text-white">Cloud Asset Storage</span>
-                      <span className="text-purple-400">1.4 GB / 20.0 GB</span>
+                      <span className="text-white">
+                        Cloud Asset Storage ({projects.length} {projects.length === 1 ? 'project' : 'projects'})
+                      </span>
+                      <span className="text-purple-400">
+                        {usedStorageGb} GB / {activePlanConfig.storageGb.toFixed(1)} GB
+                      </span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
-                      <div className="w-[7%] h-full bg-gradient-to-r from-purple-500 to-pink-400 rounded-full" />
+                      <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-400 rounded-full transition-all"
+                        style={{ width: `${storagePercent}%` }}
+                      />
                     </div>
                     <div className="text-[11px] text-white/40 mt-2">
                       Includes custom fonts, uploaded images, artboards, and exported snapshots.

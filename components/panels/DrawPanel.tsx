@@ -91,7 +91,7 @@ export const DrawPanel: React.FC<DrawPanelProps> = ({
     '#ffff00',
     '#ff00ff',
     '#00ffff',
-    '#7d2ae8',
+    '#7c3aed',
     '#00c4cc',
     '#ff9900',
     '#ff66b2',

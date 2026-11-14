@@ -10,8 +10,6 @@ import { User, Project } from './types';
 import { performanceService } from './services/performanceService';
 import { log } from './utils/log';
 
-import { WelcomeModal } from './components/modals/WelcomeModal';
-import { GuidedTour, TourStep } from './components/modals/GuidedTour';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { parseShareLink } from './utils/shareUtils';
 
@@ -93,9 +91,9 @@ const AuthCallback = React.lazy(() =>
 import { EditorSkeleton } from './components/EditorSkeleton';
 
 const LoadingFallback = () => (
-  <div className="flex h-dvh w-full items-center justify-center bg-[#1f1f1f] flex-col gap-4">
-    <div className="w-8 h-8 rounded-full border-4 border-[#7d2ae8] border-t-transparent animate-spin"></div>
-    <div className="text-gray-400 font-medium animate-pulse">Loading Kreathief...</div>
+  <div className="flex h-dvh w-full items-center justify-center bg-surface-dark-0 flex-col gap-3">
+    <div className="w-7 h-7 rounded-full border-2 border-brand-500 border-t-transparent animate-spin"></div>
+    <div className="text-xs text-gray-400 font-medium tracking-wide">Loading workspace...</div>
   </div>
 );
 
@@ -109,9 +107,6 @@ const App: React.FC = () => {
   const [currentProject, setCurrentProject] = useState<Project | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [, setDeferredInstallPrompt] = useState<unknown>(null);
-
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [activeTour, setActiveTour] = useState<'dashboard' | 'editor' | null>(null);
 
   useEffect(() => {
     const initApp = async () => {
@@ -147,11 +142,6 @@ const App: React.FC = () => {
         const savedUser = await authService.getSession();
         if (savedUser) {
           setUser(savedUser);
-        }
-
-        const seenOnboarding = localStorage.getItem('kreathief_onboarding_seen');
-        if (!seenOnboarding) {
-          setShowWelcome(true);
         }
 
         // Restore unsaved session mirror if landing on /editor
@@ -291,71 +281,6 @@ const App: React.FC = () => {
     setCurrentProject(undefined);
   };
 
-  const handleStartTour = () => {
-    setShowWelcome(false);
-    localStorage.setItem('kreathief_onboarding_seen', 'true');
-    setActiveTour(location.pathname === '/editor' ? 'editor' : 'dashboard');
-  };
-
-  /* const handleInstallApp = async () => {
-    if (!deferredInstallPrompt) {
-      return;
-    }
-    deferredInstallPrompt.prompt();
-    const { outcome } = await deferredInstallPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredInstallPrompt(null);
-    }
-  }; */
-
-  const dashboardTourSteps: TourStep[] = [
-    {
-      target: '#create-btn',
-      title: 'Start Fresh',
-      content: 'Click here to start a blank canvas and let your creativity flow.',
-      position: 'bottom',
-    },
-    {
-      target: '#templates-grid',
-      title: 'Quick Start',
-      content: 'Or pick a template to get professional results in seconds.',
-      position: 'top',
-    },
-  ];
-
-  const editorTourSteps: TourStep[] = [
-    {
-      target: '#header-title',
-      title: 'Your Workspace',
-      content: 'Give your masterpiece a name here.',
-      position: 'bottom',
-    },
-    {
-      target: '#sidebar',
-      title: 'Creative Tools',
-      content: 'Access AI Magic, Text, Shapes, and Uploads from this sidebar.',
-      position: 'right',
-    },
-    {
-      target: '#canvas-container',
-      title: 'The Canvas',
-      content: 'This is where you create. Drag and drop elements, or use the brush to draw.',
-      position: 'right',
-    },
-    {
-      target: '#layers-panel-toggle',
-      title: 'Layers & Organization',
-      content: 'Manage your layers here. Lock, hide, or reorder elements.',
-      position: 'left',
-    },
-    {
-      target: '#export-btn',
-      title: 'Export',
-      content: 'Ready to share? Export your design in high quality PNG, JPG, or WEBP.',
-      position: 'bottom',
-    },
-  ];
-
   const defaultProject = useMemo(() => {
     if (location.pathname !== '/editor' || useStore.getState().projectId) {
       return undefined;
@@ -430,6 +355,22 @@ const App: React.FC = () => {
                   onLogout={handleLogout}
                   user={user}
                 />
+              ) : (
+                <Navigate to="/auth" />
+              )
+            }
+          />
+          <Route
+            path="/studio"
+            element={
+              user ? (
+                <Suspense fallback={<EditorSkeleton />}>
+                  <Editor
+                    initialProject={currentProject || defaultProject}
+                    onBack={handleBackToDashboard}
+                    user={user}
+                  />
+                </Suspense>
               ) : (
                 <Navigate to="/auth" />
               )
@@ -556,33 +497,10 @@ const App: React.FC = () => {
               </Suspense>
             }
           />
+          <Route path="/pricing" element={<Navigate to="/#pricing" replace />} />
+          <Route path="/canvas" element={<Navigate to="/node" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-
-        {location.pathname === '/dashboard' && user && showWelcome && (
-          <WelcomeModal
-            isOpen={showWelcome}
-            onClose={() => {
-              setShowWelcome(false);
-              localStorage.setItem('kreathief_onboarding_seen', 'true');
-            }}
-            onStartTour={handleStartTour}
-          />
-        )}
-        {location.pathname === '/dashboard' && user && activeTour === 'dashboard' && (
-          <GuidedTour
-            steps={dashboardTourSteps}
-            onComplete={() => setActiveTour(null)}
-            onSkip={() => setActiveTour(null)}
-          />
-        )}
-        {location.pathname === '/editor' && user && activeTour === 'editor' && (
-          <GuidedTour
-            steps={editorTourSteps}
-            onComplete={() => setActiveTour(null)}
-            onSkip={() => setActiveTour(null)}
-          />
-        )}
       </Suspense>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
       <OnboardingTour />

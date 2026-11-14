@@ -355,17 +355,19 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
         svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${w}" height="${h}"><text x="${textX}" y="${fontSize}" font-family="${fontFamily}" font-size="${fontSize}" font-weight="${fontWeight}" fill="${fill}" text-anchor="${textAnchor}">${shape.text || ''}</text></svg>`;
       } else if (shape.type === 'group' || shape.isGroup) {
         const childLayers = layers.filter((l: any) => l.groupId === shape.id);
-        const childSvgElements = childLayers.map((c: any) => {
-          const relX = (c.x || 0) - (shape.x || 0);
-          const relY = (c.y || 0) - (shape.y || 0);
-          if (c.type === 'text') {
-            return `<text x="${relX}" y="${relY + (c.fontSize || 16)}" font-family="${c.fontFamily || 'Inter'}" font-size="${c.fontSize || 16}" fill="${c.color || '#fff'}">${c.text || ''}</text>`;
-          }
-          if (c.pathData) {
-            return `<path transform="translate(${relX}, ${relY})" d="${c.pathData}" fill="${c.color || '#7d2ae8'}"/>`;
-          }
-          return `<rect x="${relX}" y="${relY}" width="${c.width || 50}" height="${c.height || 50}" fill="${c.color || '#7d2ae8'}" rx="${c.cornerRadius || 0}"/>`;
-        }).join('\n  ');
+        const childSvgElements = childLayers
+          .map((c: any) => {
+            const relX = (c.x || 0) - (shape.x || 0);
+            const relY = (c.y || 0) - (shape.y || 0);
+            if (c.type === 'text') {
+              return `<text x="${relX}" y="${relY + (c.fontSize || 16)}" font-family="${c.fontFamily || 'Inter'}" font-size="${c.fontSize || 16}" fill="${c.color || '#fff'}">${c.text || ''}</text>`;
+            }
+            if (c.pathData) {
+              return `<path transform="translate(${relX}, ${relY})" d="${c.pathData}" fill="${c.color || '#7d2ae8'}"/>`;
+            }
+            return `<rect x="${relX}" y="${relY}" width="${c.width || 50}" height="${c.height || 50}" fill="${c.color || '#7d2ae8'}" rx="${c.cornerRadius || 0}"/>`;
+          })
+          .join('\n  ');
         svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${w}" height="${h}">\n  <g id="${shape.name || 'group'}">\n  ${childSvgElements}\n  </g>\n</svg>`;
       } else {
         svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBox}" width="${w}" height="${h}"><rect x="0" y="0" width="${w}" height="${h}" fill="${shape.color || '#7d2ae8'}" rx="${shape.cornerRadius || 0}"/></svg>`;
@@ -668,10 +670,8 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({ x, y, layerId, onClose
 
       <MI
         onClick={() => {
-          if (window.confirm('Delete layer?')) {
-            deleteLayer(layerId);
-            addToast?.('Layer deleted', 'info', { label: 'Undo', onClick: undo });
-          }
+          deleteLayer(layerId);
+          addToast?.('Layer deleted', 'info', { label: 'Undo', onClick: undo });
           onClose();
         }}
         icon={Icons.Trash}

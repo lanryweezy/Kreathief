@@ -150,7 +150,7 @@ export const ContrastChecker: React.FC<ContrastCheckerProps> = ({
       {/* Suggestion */}
       {!wcagResult.AA && (
         <div className="pt-2 border-t border-gray-700">
-          <p className="text-[10px] text-gray-500 mb-2">💡 Suggested accessible color:</p>
+          <p className="text-[10px] text-gray-500 mb-2">Suggested accessible color:</p>
           <button
             onClick={() => setForegroundColor(suggestedColor)}
             className="w-full py-2 px-3 bg-surface-dark-4 hover:bg-gray-700 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all flex items-center justify-center gap-2"

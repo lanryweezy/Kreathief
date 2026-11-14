@@ -19,7 +19,7 @@ const TRANSITIONS: { key: SlideTransition; label: string; icon: string | React.R
   { key: 'slide', label: 'Slide', icon: '>' },
   { key: 'zoom', label: 'Zoom', icon: '+' },
   { key: 'flip', label: 'Flip', icon: '|' },
-  { key: 'magic_move', label: 'Magic', icon: <Icons.Wand2 className="w-3 h-3" /> },
+  { key: 'magic_move', label: 'Magic', icon: <Icons.Wand className="w-3 h-3" /> },
 ];
 
 const SLIDE_LAYOUTS = [
@@ -137,22 +137,104 @@ export const SlidesPanel: React.FC = () => {
   // ── Add slide with layout ──
   const addWithLayout = (layoutId: string) => {
     const n = artboards.length + 1;
-    switch (layoutId) {
-      case 'title':
-        addArtboard(`Slide ${n}`, 1920, 1080);
-        break;
-      case 'two-col':
-        addArtboard(`Slide ${n}`, 1920, 1080);
-        break;
-      case 'quote':
-        addArtboard(`Slide ${n}`, 1920, 1080);
-        break;
-      case 'image-full':
-        addArtboard(`Slide ${n}`, 1920, 1080);
-        break;
-      default:
-        addArtboard(`Slide ${n}`, 1920, 1080);
-    }
+    addArtboard(`Slide ${n}`, 1920, 1080);
+
+    setTimeout(() => {
+      const store = useStore.getState();
+      if (layoutId === 'title') {
+        store.addTextLayer({
+          name: 'Slide Title',
+          text: `Slide ${n}: Key Takeaway`,
+          fontSize: 84,
+          fontWeight: '800',
+          color: '#ffffff',
+          x: 160,
+          y: 380,
+          width: 1600,
+        });
+        store.addTextLayer({
+          name: 'Subtitle',
+          text: 'Supporting thesis statement and key metrics',
+          fontSize: 36,
+          fontWeight: '500',
+          color: '#a1a1aa',
+          x: 160,
+          y: 520,
+          width: 1200,
+        });
+      } else if (layoutId === 'two-col') {
+        store.addTextLayer({
+          name: 'Section Header',
+          text: 'Comparative Breakdown',
+          fontSize: 64,
+          fontWeight: '700',
+          color: '#ffffff',
+          x: 140,
+          y: 120,
+          width: 1640,
+        });
+        store.addShapeLayer('rectangle', {
+          name: 'Column 1 Card',
+          x: 140,
+          y: 260,
+          width: 780,
+          height: 680,
+          color: '#18181b',
+          cornerRadius: 24,
+        });
+        store.addShapeLayer('rectangle', {
+          name: 'Column 2 Card',
+          x: 1000,
+          y: 260,
+          width: 780,
+          height: 680,
+          color: '#18181b',
+          cornerRadius: 24,
+        });
+      } else if (layoutId === 'quote') {
+        store.addTextLayer({
+          name: 'Pull Quote',
+          text: '"Design is not just what it looks like and feels like. Design is how it works."',
+          fontSize: 68,
+          fontWeight: '700',
+          color: '#ffffff',
+          x: 200,
+          y: 340,
+          width: 1520,
+        });
+        store.addTextLayer({
+          name: 'Attribution',
+          text: '— Executive Summary',
+          fontSize: 32,
+          fontWeight: '600',
+          color: '#a855f7',
+          x: 200,
+          y: 620,
+          width: 800,
+        });
+      } else if (layoutId === 'image-full') {
+        store.addShapeLayer('rectangle', {
+          name: 'Media Frame',
+          x: 100,
+          y: 100,
+          width: 1720,
+          height: 880,
+          color: '#18181b',
+          cornerRadius: 32,
+        });
+        store.addTextLayer({
+          name: 'Caption Overlay',
+          text: 'Full-Bleed Visual Showcase',
+          fontSize: 56,
+          fontWeight: '800',
+          color: '#ffffff',
+          x: 180,
+          y: 820,
+          width: 1200,
+        });
+      }
+    }, 30);
+
     setShowLayoutPicker(false);
   };
 

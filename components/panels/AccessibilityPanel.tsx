@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Icons } from '../../constants';
 import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -8,7 +8,20 @@ import { PanelHeader } from './PanelHeader';
 
 export const AccessibilityPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'linter' | 'vision'>('linter');
-  const [simulatedVision, setSimulatedVision] = useState<'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia'>('normal');
+  const [simulatedVision, setSimulatedVision] = useState<
+    'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia'
+  >('normal');
+
+  useEffect(() => {
+    const stage = document.querySelector('[data-testid="canvas-stage"]') as HTMLElement | null;
+    if (!stage) {
+      return;
+    }
+    stage.style.filter = simulatedVision === 'normal' ? '' : `url(#sim-${simulatedVision})`;
+    return () => {
+      stage.style.filter = '';
+    };
+  }, [simulatedVision]);
 
   const { artboards, activeArtboardId, selectLayer, updateLayer, canvasBackgroundColor } = useStore(
     useShallow((state) => ({
@@ -26,11 +39,15 @@ export const AccessibilityPanel: React.FC = () => {
   );
 
   const lintReport = useMemo(() => {
-    if (!activeArtboard) return null;
+    if (!activeArtboard) {
+      return null;
+    }
     return lintArtboardDesign(activeArtboard, canvasBackgroundColor);
   }, [activeArtboard, canvasBackgroundColor]);
 
-  if (!lintReport) return null;
+  if (!lintReport) {
+    return null;
+  }
 
   const { score, issues, metrics } = lintReport;
   const fixableIssues = issues.filter((i) => !!i.autoFix);
@@ -45,17 +62,18 @@ export const AccessibilityPanel: React.FC = () => {
   };
 
   const handleFixAll = () => {
-    if (fixableIssues.length === 0) return;
+    if (fixableIssues.length === 0) {
+      return;
+    }
     useStore.getState().saveToHistory?.();
     for (const issue of fixableIssues) {
       if (issue.autoFix) {
         updateLayer(issue.layerId, issue.autoFix.patch);
       }
     }
-    useStore.getState().addToast?.(
-      `Applied ${fixableIssues.length} design auto-fixes! Canvas health restored.`,
-      'success'
-    );
+    useStore
+      .getState()
+      .addToast?.(`Applied ${fixableIssues.length} design auto-fixes! Canvas health restored.`, 'success');
   };
 
   const getSeverityBadge = (severity: 'error' | 'warning' | 'info') => {
@@ -127,25 +145,33 @@ export const AccessibilityPanel: React.FC = () => {
           <div className="grid grid-cols-4 gap-1.5 p-2 bg-black/40 rounded-xl border border-white/5 text-center">
             <div>
               <span className="block text-[8px] font-black text-gray-500 uppercase">Contrast</span>
-              <span className={`text-[11px] font-black ${metrics.contrastIssues > 0 ? 'text-red-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-[11px] font-black ${metrics.contrastIssues > 0 ? 'text-red-400' : 'text-gray-300'}`}
+              >
                 {metrics.contrastIssues}
               </span>
             </div>
             <div>
               <span className="block text-[8px] font-black text-gray-500 uppercase">Safe Zone</span>
-              <span className={`text-[11px] font-black ${metrics.safeZoneIssues > 0 ? 'text-amber-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-[11px] font-black ${metrics.safeZoneIssues > 0 ? 'text-amber-400' : 'text-gray-300'}`}
+              >
                 {metrics.safeZoneIssues}
               </span>
             </div>
             <div>
               <span className="block text-[8px] font-black text-gray-500 uppercase">Align</span>
-              <span className={`text-[11px] font-black ${metrics.alignmentIssues > 0 ? 'text-blue-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-[11px] font-black ${metrics.alignmentIssues > 0 ? 'text-blue-400' : 'text-gray-300'}`}
+              >
                 {metrics.alignmentIssues}
               </span>
             </div>
             <div>
               <span className="block text-[8px] font-black text-gray-500 uppercase">Hierarchy</span>
-              <span className={`text-[11px] font-black ${metrics.hierarchyIssues > 0 ? 'text-purple-400' : 'text-gray-300'}`}>
+              <span
+                className={`text-[11px] font-black ${metrics.hierarchyIssues > 0 ? 'text-purple-400' : 'text-gray-300'}`}
+              >
                 {metrics.hierarchyIssues}
               </span>
             </div>
@@ -180,17 +206,15 @@ export const AccessibilityPanel: React.FC = () => {
                   onClick={() => selectLayer(issue.layerId)}
                 >
                   <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <span className="text-[10px] font-black text-white truncate max-w-[150px]">
-                      {issue.layerName}
-                    </span>
-                    <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${getSeverityBadge(issue.severity)}`}>
+                    <span className="text-[10px] font-black text-white truncate max-w-[150px]">{issue.layerName}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider border ${getSeverityBadge(issue.severity)}`}
+                    >
                       {issue.category}
                     </span>
                   </div>
 
-                  <p className="text-[11px] text-gray-300 font-medium leading-relaxed mb-2.5">
-                    {issue.message}
-                  </p>
+                  <p className="text-[11px] text-gray-300 font-medium leading-relaxed mb-2.5">{issue.message}</p>
 
                   {issue.autoFix && (
                     <button
@@ -280,7 +304,8 @@ export const AccessibilityPanel: React.FC = () => {
                 Active Simulation
               </span>
               <p className="text-[10px] text-amber-200/80 leading-relaxed">
-                Viewing design under {simulatedVision}. Switch back to &quot;Normal Vision&quot; to restore full fidelity.
+                Viewing design under {simulatedVision}. Switch back to &quot;Normal Vision&quot; to restore full
+                fidelity.
               </p>
             </div>
           )}
@@ -302,4 +327,3 @@ export default function AccessibilityPanelWrapped() {
     </PanelErrorBoundary>
   );
 }
-

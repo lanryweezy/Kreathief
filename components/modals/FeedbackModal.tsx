@@ -8,11 +8,12 @@ import { analyticsService } from '../../services/analyticsService';
 import { ModalWrapper } from './ModalWrapper';
 
 export const FeedbackModal: React.FC = () => {
-  const { showFeedbackModal, setShowFeedbackModal, addToast } = useStore(
+  const { showFeedbackModal, setShowFeedbackModal, addToast, user } = useStore(
     useShallow((state) => ({
       showFeedbackModal: state.showFeedbackModal,
       setShowFeedbackModal: state.setShowFeedbackModal,
       addToast: state.addToast,
+      user: state.user,
     }))
   );
   const [type, setType] = useState<'bug' | 'feature' | 'other'>('feature');
@@ -21,47 +22,59 @@ export const FeedbackModal: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) {
+    const trimmed = message.trim();
+    if (!trimmed) {
       return;
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    analyticsService.track('feedback_submitted', { type, message_length: message.length });
-    addToast('Feedback submitted! Thank you for helping us improve.', 'success');
-    setIsSubmitting(false);
-    setMessage('');
-    setShowFeedbackModal(false);
+    try {
+      const entry = {
+        id: crypto.randomUUID(),
+        type,
+        message: trimmed,
+        userId: user?.id || 'anonymous',
+        userEmail: user?.email || null,
+        route: window.location.pathname,
+        createdAt: new Date().toISOString(),
+      };
+      const existing = JSON.parse(localStorage.getItem('kreathief_feedback_log') || '[]');
+      localStorage.setItem('kreathief_feedback_log', JSON.stringify([entry, ...existing].slice(0, 100)));
+      analyticsService.track('feedback_submitted', { type, message_length: trimmed.length, route: entry.route });
+      addToast('Feedback recorded. Thank you for helping improve Kreathief.', 'success');
+      setMessage('');
+      setShowFeedbackModal(false);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <ModalWrapper isOpen={showFeedbackModal} onClose={() => setShowFeedbackModal(false)} maxWidth="max-w-md">
       <div className="p-8">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-accent/20 flex items-center justify-center shadow-lg shadow-cyan-900/10">
-            <Icons.MessageSquare className="w-6 h-6 text-accent" />
+        <div className="flex items-center gap-4 mb-6">
+          <div className="w-11 h-11 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center">
+            <Icons.MessageSquare className="w-5 h-5 text-accent" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">Send Feedback</h2>
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Help us evolve</p>
+            <h2 className="text-xl font-bold text-white tracking-tight">Send Feedback</h2>
+            <p className="text-xs text-gray-400">Report an issue or request a capability</p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 block">
-              Feedback Type
-            </label>
+            <label className="text-xs font-semibold text-gray-400 mb-2 block">Category</label>
             <div className="flex gap-2">
               {(['bug', 'feature', 'other'] as const).map((t) => (
                 <button
                   key={t}
                   type="button"
                   onClick={() => setType(t)}
-                  className={`flex-1 py-3 rounded-xl text-xs font-black transition-all border uppercase tracking-widest ${
+                  className={`flex-1 py-2.5 rounded-xl text-xs font-semibold capitalize transition-all border ${
                     type === t
-                      ? 'bg-accent border-accent text-white shadow-lg shadow-cyan-500/20'
-                      : 'bg-white/5 border-white/5 text-gray-500 hover:border-white/10 hover:text-gray-300'
+                      ? 'bg-accent/20 border-accent text-white shadow-sm'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-gray-200'
                   }`}
                 >
                   {t}
@@ -71,41 +84,39 @@ export const FeedbackModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 block">
-              Your Message
-            </label>
+            <label className="text-xs font-semibold text-gray-400 mb-2 block">Details</label>
             <textarea
               autoFocus
-              className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-sm text-white placeholder-gray-700 focus:border-accent outline-none transition-all resize-none font-medium leading-relaxed"
+              className="w-full h-36 bg-black/40 border border-white/10 rounded-xl p-3.5 text-sm text-white placeholder-gray-500 focus:border-accent outline-none transition-all resize-none leading-relaxed"
               placeholder={
                 type === 'bug'
-                  ? 'Describe the issue in detail...'
+                  ? 'Describe what happened and steps to reproduce...'
                   : type === 'feature'
-                    ? "What's your dream feature?"
-                    : 'Tell us anything...'
+                    ? 'Describe the workflow or tool you would like to see...'
+                    : 'Share your thoughts with the product team...'
               }
               value={message}
               onChange={(e) => setMessage(e.target.value)}
             />
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               variant="primary"
-              className="w-full py-5 bg-gradient-to-r from-accent to-brand-600 border-none text-white rounded-2xl font-black uppercase tracking-[0.2em] shadow-2xl disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+              className="w-full py-3.5 bg-gradient-to-r from-accent to-brand-600 border-none text-white rounded-xl font-semibold text-sm shadow-lg disabled:opacity-50 transition-all"
               type="submit"
               loading={isSubmitting}
               disabled={!message.trim()}
             >
-              Dispatch Feedback
+              Submit Feedback
             </Button>
           </div>
         </form>
       </div>
 
-      <div className="bg-white/5 p-6 border-t border-white/5 text-center">
-        <p className="text-[10px] text-gray-600 font-bold leading-relaxed uppercase tracking-wider">
-          Every submission is reviewed by our core designers. 🚀
+      <div className="bg-white/[0.03] px-6 py-4 border-t border-white/5 text-center">
+        <p className="text-xs text-gray-400">
+          Submissions include your active route ({window.location.pathname}) for diagnostic context.
         </p>
       </div>
     </ModalWrapper>

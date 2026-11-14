@@ -201,7 +201,10 @@ const LayerItem = React.memo(
                   onClick={(e) => e.stopPropagation()}
                 />
               ) : (
-                <span data-testid="layer-name" className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}>
+                <span
+                  data-testid="layer-name"
+                  className={`text-xs truncate ${isSelected ? 'text-white font-bold' : 'text-gray-400'}`}
+                >
                   {String(layer.name || getLayerNameFallback(layer))}
                 </span>
               )}
@@ -363,6 +366,7 @@ export const LayersPanel = () => {
 
   const [layerSearch, setLayerSearch] = useState('');
   const [showOverlapping, setShowOverlapping] = useState(false);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [expandedLayerId, setExpandedLayerId] = useState<string | null>(null);
 
   // Compute bounding box intersection for "Overlapping" filter mode
@@ -475,18 +479,37 @@ export const LayersPanel = () => {
         onTabChange={(id) => setActiveTab(id)}
         action={
           layers.length > 0 ? (
-            <button
-              onClick={() => {
-                if (window.confirm('Clear all layers? This action cannot be undone easily.')) {
-                  layers.forEach((l) => deleteLayer(l.id));
-                }
-              }}
-              title="Clear Canvas"
-              aria-label="Clear Canvas"
-              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
-            >
-              <Icons.Trash className="w-3.5 h-3.5" />
-            </button>
+            confirmClear ? (
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    layers.forEach((l) => deleteLayer(l.id));
+                    setConfirmClear(false);
+                  }}
+                  className="px-2 py-1 text-[10px] font-semibold bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-md transition-colors"
+                >
+                  Clear all
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  className="px-1.5 py-1 text-[10px] text-gray-400 hover:text-white rounded-md transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setConfirmClear(true)}
+                title="Clear Canvas"
+                aria-label="Clear Canvas"
+                className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+              >
+                <Icons.Trash className="w-3.5 h-3.5" />
+              </button>
+            )
           ) : null
         }
       >

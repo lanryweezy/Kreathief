@@ -28,10 +28,7 @@ export const FeatureLandingPage: React.FC = () => {
         <p className="text-gray-400 mb-8 max-w-md">
           Explore our suite of agentic creative tools or head back to the editor.
         </p>
-        <Link
-          to="/tools"
-          className="px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-bold transition-all"
-        >
+        <Link to="/tools" className="px-6 py-3 bg-brand-600 hover:bg-brand-500 rounded-xl font-bold transition-all">
           View All Creative Tools
         </Link>
       </div>
@@ -82,9 +79,7 @@ export const FeatureLandingPage: React.FC = () => {
           </div>
           <span className="font-extrabold tracking-tight text-lg text-white">Kreathief</span>
           <span className="text-gray-500 text-sm hidden sm:inline">/</span>
-          <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider hidden sm:inline">
-            Tools
-          </span>
+          <span className="text-gray-400 text-xs font-semibold uppercase tracking-wider hidden sm:inline">Tools</span>
         </Link>
 
         <div className="flex items-center gap-4">
@@ -116,9 +111,7 @@ export const FeatureLandingPage: React.FC = () => {
             {feature.headline}
           </h1>
 
-          <p className="text-base sm:text-lg text-gray-400 leading-relaxed mb-8">
-            {feature.subheadline}
-          </p>
+          <p className="text-base sm:text-lg text-gray-400 leading-relaxed mb-8">{feature.subheadline}</p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <button
@@ -136,7 +129,7 @@ export const FeatureLandingPage: React.FC = () => {
             </Link>
           </div>
           <p className="text-[11px] text-gray-500 mt-3">
-            ✨ 100% Free to use in browser • No credit card required • Instant export
+            Free to use in browser • No credit card required • Instant high-res export
           </p>
         </div>
 
@@ -148,7 +141,7 @@ export const FeatureLandingPage: React.FC = () => {
               <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
               <div className="w-3 h-3 rounded-full bg-green-500/80" />
               <span className="text-xs text-gray-400 font-mono ml-2">
-                kreathief.app/canvas?tool={feature.slug}
+                kreathief.app/editor?tool={feature.editorToolParam || feature.slug}
               </span>
             </div>
             <span className="text-[11px] bg-brand-500/20 text-brand-300 font-bold px-2 py-0.5 rounded">
@@ -157,29 +150,17 @@ export const FeatureLandingPage: React.FC = () => {
           </div>
 
           {/* Deeply Interactive Custom Feature Demos */}
-          {feature.demoType === 'eraser' && (
-            <EraserDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'eraser' && <EraserDemo onLaunchEditor={handleLaunchEditor} />}
 
-          {feature.demoType === 'bg_remove' && (
-            <BgRemoveDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'bg_remove' && <BgRemoveDemo onLaunchEditor={handleLaunchEditor} />}
 
-          {feature.demoType === 'mockup' && (
-            <MockupDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'mockup' && <MockupDemo onLaunchEditor={handleLaunchEditor} />}
 
-          {feature.demoType === 'vector' && (
-            <VectorizerDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'vector' && <VectorizerDemo onLaunchEditor={handleLaunchEditor} />}
 
-          {feature.demoType === 'resize' && (
-            <SmartResizeDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'resize' && <SmartResizeDemo onLaunchEditor={handleLaunchEditor} />}
 
-          {feature.demoType === 'styles' && (
-            <DesignStylesDemo onLaunchEditor={handleLaunchEditor} />
-          )}
+          {feature.demoType === 'styles' && <DesignStylesDemo onLaunchEditor={handleLaunchEditor} />}
         </div>
 
         {/* Core Value Proposition Grid */}
@@ -212,12 +193,8 @@ export const FeatureLandingPage: React.FC = () => {
         {/* 3-Step Walkthrough */}
         <section className="mb-24 bg-surface-dark-2/40 border border-white/5 rounded-3xl p-8 sm:p-12">
           <div className="text-center mb-12">
-            <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">
-              Simple 3-Step Process
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mt-2">
-              How to use the {feature.title}
-            </h2>
+            <span className="text-xs font-bold text-brand-400 uppercase tracking-widest">Simple 3-Step Process</span>
+            <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight mt-2">How to use the {feature.title}</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -234,9 +211,7 @@ export const FeatureLandingPage: React.FC = () => {
         {/* FAQ Accordion Section (Schema.org Microdata Backed) */}
         <section className="max-w-3xl mx-auto mb-24">
           <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-              Frequently Asked Questions
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">Frequently Asked Questions</h2>
             <p className="text-gray-400 text-sm">Everything you need to know about {feature.title}.</p>
           </div>
 
@@ -281,7 +256,9 @@ export const FeatureLandingPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {feature.relatedSlugs.map((relSlug) => {
               const rel = FEATURES_DATA[relSlug];
-              if (!rel) return null;
+              if (!rel) {
+                return null;
+              }
               return (
                 <Link
                   key={relSlug}
@@ -294,9 +271,7 @@ export const FeatureLandingPage: React.FC = () => {
                   <h3 className="font-bold text-white group-hover:text-brand-300 transition-colors mb-1.5 text-sm">
                     {rel.title}
                   </h3>
-                  <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
-                    {rel.headline}
-                  </p>
+                  <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">{rel.headline}</p>
                 </Link>
               );
             })}
@@ -308,11 +283,21 @@ export const FeatureLandingPage: React.FC = () => {
       <footer className="border-t border-white/10 py-10 px-6 sm:px-12 bg-surface-dark-2 text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div>© {new Date().getFullYear()} Kreathief AI Inc. All rights reserved.</div>
         <div className="flex items-center gap-6">
-          <Link to="/" className="hover:text-gray-300">Home</Link>
-          <Link to="/tools" className="hover:text-gray-300">Creative Tools</Link>
-          <Link to="/blog" className="hover:text-gray-300">Blog & Insights</Link>
-          <Link to="/privacy" className="hover:text-gray-300">Privacy Policy</Link>
-          <Link to="/terms" className="hover:text-gray-300">Terms of Service</Link>
+          <Link to="/" className="hover:text-gray-300">
+            Home
+          </Link>
+          <Link to="/tools" className="hover:text-gray-300">
+            Creative Tools
+          </Link>
+          <Link to="/blog" className="hover:text-gray-300">
+            Blog & Insights
+          </Link>
+          <Link to="/privacy" className="hover:text-gray-300">
+            Privacy Policy
+          </Link>
+          <Link to="/terms" className="hover:text-gray-300">
+            Terms of Service
+          </Link>
         </div>
       </footer>
     </div>

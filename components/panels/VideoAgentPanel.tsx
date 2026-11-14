@@ -1,9 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../store/useStore';
 import { Icons } from '../../constants';
 import { Button } from '../Button';
 import { PanelHeader } from './PanelHeader';
 import { aiModelsService } from '../../services/aiModelsService';
+
+const PRESENTERS = [
+  {
+    id: 'amina',
+    name: 'Amina',
+    style: 'Warm Lagos Creative',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=240&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'tunde',
+    name: 'Tunde',
+    style: 'Tech Founder',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=240&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'zainab',
+    name: 'Zainab',
+    style: 'Editorial Director',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=240&auto=format&fit=crop&q=80',
+  },
+  {
+    id: 'kofi',
+    name: 'Kofi',
+    style: 'Streetwear Host',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=240&auto=format&fit=crop&q=80',
+  },
+];
 
 const CAMERA_MOTIONS = [
   { id: 'pan-right', label: 'Pan Right', icon: <Icons.ArrowRight className="w-3 h-3" /> },
@@ -15,10 +42,30 @@ const CAMERA_MOTIONS = [
 ];
 
 const VIDEO_MODELS = [
-  { id: 'jev-auto', name: 'Jev AI Auto-Route', tag: 'Fastest', description: 'Automatically routes to the best model based on prompt.' },
-  { id: 'runway-gen3', name: 'Runway Gen-3 Alpha', tag: 'Cinematic', description: 'High-fidelity cinematic generation.' },
-  { id: 'luma-dream', name: 'Luma Dream Machine', tag: 'Creative', description: 'Fast and imaginative video synthesis.' },
-  { id: 'kling-v3', name: 'Kling AI 3.0', tag: 'Realistic', description: 'Photorealistic character and motion generation.' }
+  {
+    id: 'jev-auto',
+    name: 'Jev AI Auto-Route',
+    tag: 'Fastest',
+    description: 'Automatically routes to the best model based on prompt.',
+  },
+  {
+    id: 'runway-gen3',
+    name: 'Runway Gen-3 Alpha',
+    tag: 'Cinematic',
+    description: 'High-fidelity cinematic generation.',
+  },
+  {
+    id: 'luma-dream',
+    name: 'Luma Dream Machine',
+    tag: 'Creative',
+    description: 'Fast and imaginative video synthesis.',
+  },
+  {
+    id: 'kling-v3',
+    name: 'Kling AI 3.0',
+    tag: 'Realistic',
+    description: 'Photorealistic character and motion generation.',
+  },
 ];
 
 export const VideoAgentPanel: React.FC = () => {
@@ -30,11 +77,31 @@ export const VideoAgentPanel: React.FC = () => {
   const [videoResult, setVideoResult] = useState<string | null>(null);
   const [activeMotion, setActiveMotion] = useState<string>('pan-right');
   const [activeModel, setActiveModel] = useState<string>('jev-auto');
+  const [selectedPresenterId, setSelectedPresenterId] = useState<string>('amina');
+  const [selectedVoice, setSelectedVoice] = useState<string>('en-NG-expressive');
+  const [selectedTone, setSelectedTone] = useState<string>('enthusiastic');
+  const scriptFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleScriptUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPrompt(reader.result.slice(0, 1500));
+        useStore.getState().addToast?.(`Loaded script from ${file.name}`, 'success');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // Wire into the Universal Router: pick up intent from Dashboard/Assistant
   const currentStoreTab = useStore((state) => state.activeTab);
   const globalIntent = useStore((state) => state.agentIntent);
-  
+
   useEffect(() => {
     if (currentStoreTab === 'VIDEO_AGENT' && globalIntent && globalIntent !== prompt) {
       setPrompt(globalIntent);
@@ -56,7 +123,9 @@ export const VideoAgentPanel: React.FC = () => {
   };
 
   const handleGenerate = async () => {
-    if (!prompt.trim() || isGenerating) return;
+    if (!prompt.trim() || isGenerating) {
+      return;
+    }
     const deductCredit = (useStore.getState() as any).deductCredit;
     if (typeof deductCredit === 'function' && !deductCredit(5)) {
       return;
@@ -68,10 +137,11 @@ export const VideoAgentPanel: React.FC = () => {
     setStatusMessage('Submitting to Fal video queue...');
 
     const motionLabel = CAMERA_MOTIONS.find((m) => m.id === activeMotion)?.label || activeMotion;
+    const presenter = PRESENTERS.find((p) => p.id === selectedPresenterId) || PRESENTERS[0];
     const fullPrompt =
       activeTab === 'cinematic'
         ? `${prompt.trim()}. Camera motion: ${motionLabel}, cinematic lighting, high detail.`
-        : `UGC presenter speaking directly to camera: ${prompt.trim()}`;
+        : `UGC presenter (${presenter.name}, ${presenter.style}) speaking directly to camera with ${selectedTone} delivery (${selectedVoice}): ${prompt.trim()}`;
 
     try {
       const videoUrl = await aiModelsService.generateVideoFromQueue(
@@ -101,7 +171,9 @@ export const VideoAgentPanel: React.FC = () => {
         <button
           onClick={() => setActiveTab('cinematic')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            activeTab === 'cinematic' ? 'bg-gradient-to-r from-brand-600/20 to-purple-600/20 text-brand-300 border border-brand-500/30' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
+            activeTab === 'cinematic'
+              ? 'bg-gradient-to-r from-brand-600/20 to-purple-600/20 text-brand-300 border border-brand-500/30'
+              : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
           }`}
         >
           <Icons.Film className="w-3.5 h-3.5" />
@@ -110,7 +182,9 @@ export const VideoAgentPanel: React.FC = () => {
         <button
           onClick={() => setActiveTab('avatar')}
           className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
-            activeTab === 'avatar' ? 'bg-gradient-to-r from-brand-600/20 to-purple-600/20 text-brand-300 border border-brand-500/30' : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
+            activeTab === 'avatar'
+              ? 'bg-gradient-to-r from-brand-600/20 to-purple-600/20 text-brand-300 border border-brand-500/30'
+              : 'text-gray-500 hover:text-white hover:bg-white/5 border border-transparent'
           }`}
         >
           <Icons.UserCircle className="w-3.5 h-3.5" />
@@ -121,7 +195,6 @@ export const VideoAgentPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar">
         {activeTab === 'cinematic' ? (
           <div className="space-y-5 animate-in fade-in slide-in-from-right-2 duration-300">
-            
             {/* Prompt Input */}
             <div className="space-y-2">
               <label className="text-[10px] font-black text-brand-400 uppercase tracking-widest flex items-center gap-1">
@@ -147,8 +220,8 @@ export const VideoAgentPanel: React.FC = () => {
                     key={motion.id}
                     onClick={() => setActiveMotion(motion.id)}
                     className={`py-2 px-2 flex flex-col items-center gap-1.5 border rounded-lg text-[10px] font-medium transition-all ${
-                      activeMotion === motion.id 
-                        ? 'bg-brand-600/20 border-brand-500 text-white shadow-[0_0_10px_rgba(125,42,232,0.3)]' 
+                      activeMotion === motion.id
+                        ? 'bg-brand-600/20 border-brand-500 text-white shadow-[0_0_10px_rgba(125,42,232,0.3)]'
                         : 'bg-surface-dark-2 border-white/5 text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                   >
@@ -158,18 +231,20 @@ export const VideoAgentPanel: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             {/* Model Engine Selection */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Intelligence Engine</label>
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                Intelligence Engine
+              </label>
               <div className="space-y-2">
                 {VIDEO_MODELS.map((model) => (
-                  <div 
+                  <div
                     key={model.id}
                     onClick={() => setActiveModel(model.id)}
                     className={`flex flex-col p-3 rounded-xl border cursor-pointer transition-all ${
-                      activeModel === model.id 
-                        ? 'bg-brand-900/30 border-brand-500' 
+                      activeModel === model.id
+                        ? 'bg-brand-900/30 border-brand-500'
                         : 'bg-surface-dark-2 border-white/5 hover:border-white/20'
                     }`}
                   >
@@ -197,22 +272,52 @@ export const VideoAgentPanel: React.FC = () => {
                 Select Presenter
               </label>
               <div className="grid grid-cols-4 gap-2 mb-4">
-                {[1, 2, 3, 4].map((id) => (
-                  <div key={id} className="aspect-square bg-surface-dark-4 rounded-xl border border-white/10 hover:border-brand-500 cursor-pointer overflow-hidden group relative shadow-md">
-                    <img src={`https://i.pravatar.cc/150?img=${id * 10}`} alt={`Avatar ${id}`} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-2">
-                      <span className="text-[9px] font-bold text-white">Select</span>
-                    </div>
-                  </div>
-                ))}
+                {PRESENTERS.map((presenter) => {
+                  const isSelected = selectedPresenterId === presenter.id;
+                  return (
+                    <button
+                      type="button"
+                      key={presenter.id}
+                      onClick={() => setSelectedPresenterId(presenter.id)}
+                      className={`aspect-square bg-surface-dark-4 rounded-xl border cursor-pointer overflow-hidden group relative shadow-md transition-all ${
+                        isSelected
+                          ? 'border-brand-500 ring-2 ring-brand-500/40'
+                          : 'border-white/10 hover:border-brand-500/60'
+                      }`}
+                    >
+                      <img
+                        src={presenter.avatar}
+                        alt={presenter.name}
+                        className={`w-full h-full object-cover transition-all duration-500 ${
+                          isSelected
+                            ? 'opacity-100 scale-105'
+                            : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'
+                        }`}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent flex items-end p-1.5">
+                        <span className="text-[9px] font-bold text-white truncate">{presenter.name}</span>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Script Input */}
               <div className="relative group p-1 bg-surface-dark-4 rounded-xl border border-white/10 focus-within:border-brand-500 transition-colors shadow-inner">
+                <input
+                  ref={scriptFileInputRef}
+                  type="file"
+                  accept=".txt,.md,text/plain"
+                  onChange={handleScriptUpload}
+                  className="hidden"
+                />
                 <div className="flex items-start gap-2">
-                  <button 
+                  <button
+                    type="button"
+                    onClick={() => scriptFileInputRef.current?.click()}
                     className="mt-2 ml-2 p-2 bg-white/5 hover:bg-brand-500/20 rounded-xl text-gray-400 hover:text-brand-400 border border-white/5 hover:border-brand-500/50 transition-all shrink-0 group"
-                    title="Upload Script or Audio Reference"
+                    title="Upload Script (.txt / .md)"
+                    aria-label="Upload script file"
                   >
                     <Icons.Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
                   </button>
@@ -232,7 +337,11 @@ export const VideoAgentPanel: React.FC = () => {
               <div className="grid grid-cols-1 gap-2">
                 <div className="relative">
                   <Icons.Mic className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <select className="w-full appearance-none bg-surface-dark-2 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-brand-500 transition-colors">
+                  <select
+                    value={selectedVoice}
+                    onChange={(e) => setSelectedVoice(e.target.value)}
+                    className="w-full appearance-none bg-surface-dark-2 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-brand-500 transition-colors"
+                  >
                     <option value="en-NG-expressive">Nigerian (Expressive)</option>
                     <option value="en-GH-creator">Ghanaian (Creator)</option>
                     <option value="en-KE-smooth">Kenyan (Smooth)</option>
@@ -243,7 +352,11 @@ export const VideoAgentPanel: React.FC = () => {
                 </div>
                 <div className="relative">
                   <Icons.Activity className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <select className="w-full appearance-none bg-surface-dark-2 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-brand-500 transition-colors">
+                  <select
+                    value={selectedTone}
+                    onChange={(e) => setSelectedTone(e.target.value)}
+                    className="w-full appearance-none bg-surface-dark-2 border border-white/10 rounded-lg py-2.5 pl-9 pr-3 text-xs text-white outline-none focus:border-brand-500 transition-colors"
+                  >
                     <option value="enthusiastic">Enthusiastic UGC</option>
                     <option value="authoritative">Corporate & Tech</option>
                     <option value="chill">Chill Storyteller</option>
@@ -292,7 +405,7 @@ export const VideoAgentPanel: React.FC = () => {
               </label>
               <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-1.5 py-0.5 rounded">1080p MP4</span>
             </div>
-            
+
             <div className="rounded-xl overflow-hidden border border-white/10 bg-black aspect-video relative group shadow-2xl">
               <video src={videoResult} autoPlay loop muted controls className="w-full h-full object-cover" />
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

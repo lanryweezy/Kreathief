@@ -179,7 +179,9 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
     const exists = graph.wires.some(
       (w) => w.fromNode === fromNode && w.fromPort === fromPort && w.toNode === toNode && w.toPort === toPort
     );
-    if (exists || fromNode === toNode) return;
+    if (exists || fromNode === toNode) {
+      return;
+    }
 
     const dominated = graph.wires.some((w) => w.toNode === toNode && w.toPort === toPort);
 
@@ -233,7 +235,9 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
   executeGraph: async () => {
     const { graph } = get();
-    if (graph.nodes.length === 0) return;
+    if (graph.nodes.length === 0) {
+      return;
+    }
 
     set({ isExecuting: true, executingNodeId: null, nodeProgress: {}, nodeProgressStep: {} });
 
@@ -244,10 +248,14 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
       const executeNode = async (nodeId: string) => {
         const node = graph.nodes.find((n) => n.id === nodeId);
-        if (!node) return;
+        if (!node) {
+          return;
+        }
 
         const def = getNodeDefinition(node.type);
-        if (!def) return;
+        if (!def) {
+          return;
+        }
 
         // Wait for all incoming dependencies to finish first
         const incomingWires = graph.wires.filter((w) => w.toNode === nodeId);
@@ -256,49 +264,11 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
         const inputs = collectInputs(nodeId, graph.wires, outputs);
 
-        set({ executingNodeId: nodeId });
-
-        if (def.category === 'ai') {
-          const maxSteps = 20;
-          for (let step = 1; step <= maxSteps; step++) {
-            set((state) => ({
-              nodeProgress: { ...state.nodeProgress, [nodeId]: Math.round((step / maxSteps) * 100) },
-              nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: `Step ${step} / ${maxSteps}` },
-            }));
-
-            // Set progressive blurry low-res previews at milestones!
-            if (step === 5) {
-              set((state) => ({
-                nodeOutputs: {
-                  ...state.nodeOutputs,
-                  [nodeId]: {
-                    image: {
-                      src: `https://placehold.co/512x512/1a1a2e/7d2ae8?text=Generating+Step+5...`,
-                      width: 512,
-                      height: 512,
-                      isBlur: true,
-                    },
-                  },
-                },
-              }));
-            } else if (step === 12) {
-              set((state) => ({
-                nodeOutputs: {
-                  ...state.nodeOutputs,
-                  [nodeId]: {
-                    image: {
-                      src: `https://placehold.co/512x512/1a1a2e/00c4cc?text=Generating+Step+12...`,
-                      width: 512,
-                      height: 512,
-                      isBlur: true,
-                    },
-                  },
-                },
-              }));
-            }
-            await new Promise((resolve) => setTimeout(resolve, 60));
-          }
-        }
+        set((state) => ({
+          executingNodeId: nodeId,
+          nodeProgress: { ...state.nodeProgress, [nodeId]: 25 },
+          nodeProgressStep: { ...state.nodeProgressStep, [nodeId]: 'Running node...' },
+        }));
 
         try {
           const result = await def.execute(inputs, node.settings);
@@ -335,7 +305,9 @@ export const useNodeGraph = create<NodeGraphStore>((set, get) => ({
 
   loadPreset: (presetId) => {
     const preset = WORKFLOW_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {
+      return;
+    }
 
     const maxNodeId = preset.graph.nodes.reduce((max, n) => {
       const num = parseInt(n.id.replace(/\D/g, ''), 10);

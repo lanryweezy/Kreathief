@@ -169,11 +169,46 @@ export const PresentationModal: React.FC = () => {
         <div className="bg-[#0f1216] rounded-2xl p-6 border border-white/10 shadow-2xl relative">
           <div
             style={{ width: (ab.width || 1080) * scale, height: (ab.height || 1080) * scale }}
-            className={`overflow-hidden transition-opacity duration-300 ${
+            className={`relative overflow-hidden transition-opacity duration-300 ${
               isTransitioning && smartAnimateEnabled ? 'animate-fadeIn' : ''
             }`}
           >
             <StaticLayerRenderer layers={ab.layers} scale={scale} width={ab.width || 1080} height={ab.height || 1080} />
+            {/* Interactive Prototype Hotspots */}
+            {(ab.layers || []).map((layer: any) => {
+              const rules = layer.prototypeInteractions as
+                | Array<{ id: string; trigger: string; targetArtboardId: string }>
+                | undefined;
+              if (!rules || rules.length === 0) {
+                return null;
+              }
+              const clickRule = rules.find((r) => r.trigger === 'on_click') || rules[0];
+              const hoverRule = rules.find((r) => r.trigger === 'on_hover');
+              const navigateTo = (targetId: string) => {
+                const targetIdx = artboards.findIndex((a: any) => a.id === targetId);
+                if (targetIdx >= 0) {
+                  setIndex(targetIdx);
+                  setActiveArtboardId(artboards[targetIdx].id);
+                }
+              };
+              return (
+                <button
+                  key={layer.id}
+                  type="button"
+                  onClick={() => clickRule && navigateTo(clickRule.targetArtboardId)}
+                  onMouseEnter={() => hoverRule && navigateTo(hoverRule.targetArtboardId)}
+                  style={{
+                    position: 'absolute',
+                    left: (layer.x || 0) * scale,
+                    top: (layer.y || 0) * scale,
+                    width: Math.max(24, (layer.width || 100) * scale),
+                    height: Math.max(24, (layer.height || 40) * scale),
+                  }}
+                  title={`Navigate to ${artboards.find((a: any) => a.id === clickRule.targetArtboardId)?.name || 'Target Artboard'}`}
+                  className="cursor-pointer rounded border border-transparent hover:border-brand-400/60 hover:bg-brand-500/10 transition-all z-20"
+                />
+              );
+            })}
           </div>
         </div>
       </div>

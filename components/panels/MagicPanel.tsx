@@ -859,9 +859,9 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
 
           <div className="flex items-center justify-between mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
             <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1">
-              ✨ Anti-AI-Slop & Quality Control
+              Quality & Layout Guardrails
             </span>
-            <Toggle checked={antiAiSlop} onChange={setAntiAiSlop} size="sm" ariaLabel="Anti-AI-Slop quality control" />
+            <Toggle checked={antiAiSlop} onChange={setAntiAiSlop} size="sm" ariaLabel="Quality and layout guardrails" />
           </div>
 
           <Button
@@ -961,7 +961,7 @@ export const MagicPanel: React.FC<MagicPanelProps> = ({ onGenerate, uploadedImag
                       isGenerating: false,
                     }));
                     addToast(
-                      `✨ Multi-Layer Artboard Created: ${design.layers.length} editable layers — fully replaces old design!`,
+                      `Multi-Layer Artboard Created: ${design.layers.length} editable layers — fully replaces old design.`,
                       'success'
                     );
                   } else {

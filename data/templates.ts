@@ -524,7 +524,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ],
     },
   },
-    {
+  {
     id: 'social_instagram_post',
     name: 'Luxury Streetwear Drop Post',
     category: 'Social',
@@ -1870,7 +1870,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ],
     },
   },
-{
+  {
     id: 'business_linkedin_banner',
     name: 'Executive Tech LinkedIn Banner',
     category: 'Business',
@@ -3532,7 +3532,7 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
       ],
     },
   },
-{
+  {
     id: 'accra_food_festival_post',
     name: 'Accra Food Festival Post',
     category: 'African Market',
@@ -4183,7 +4183,11 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           opacity: 0.6,
           locked: false,
           visible: true,
-          src: 'https://images.unsplash.com/photo-1493225457224-eda0e6fdc7bc?w=800&q=80',
+          src:
+            'data:image/svg+xml;utf8,' +
+            encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920"><defs><radialGradient id="g1" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f97316"/><stop offset="55%" stop-color="#7c2d12"/><stop offset="100%" stop-color="#09090b"/></radialGradient></defs><rect width="1080" height="1920" fill="url(#g1)"/><circle cx="540" cy="680" r="280" fill="#fb923c" opacity="0.22"/></svg>'
+            ),
           flipX: false,
           flipY: false,
           altText: 'Artist photo',
@@ -4824,7 +4828,11 @@ export const STARTER_TEMPLATES: StarterTemplate[] = [
           opacity: 1,
           locked: false,
           visible: true,
-          src: 'https://images.unsplash.com/photo-1438032005730-c779502fac39?w=800&q=80',
+          src:
+            'data:image/svg+xml;utf8,' +
+            encodeURIComponent(
+              '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="420" viewBox="0 0 800 420"><defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e1b4b"/><stop offset="50%" stop-color="#4338ca"/><stop offset="100%" stop-color="#c4b5fd"/></linearGradient></defs><rect width="800" height="420" fill="url(#g2)"/><circle cx="620" cy="110" r="140" fill="#f5f3ff" opacity="0.16"/></svg>'
+            ),
           flipX: false,
           flipY: false,
           altText: 'Worship photo',

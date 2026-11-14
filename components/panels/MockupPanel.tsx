@@ -779,7 +779,9 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
   const [isGeneratingPack, setIsGeneratingPack] = useState(false);
 
   const handleSocialPack = async () => {
-    if (!previewImage || !currentMockup) return;
+    if (!previewImage || !currentMockup) {
+      return;
+    }
     setIsGeneratingPack(true);
     try {
       const { generateScenePack } = await import('../../services/mockupScenePack');
@@ -815,7 +817,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
             },
           });
         });
-        addToast(`📦 Social Pack added — ${result.slides.length} slides for ${result.mockupName}!`, 'success');
+        addToast(`Social Pack added — ${result.slides.length} slides for ${result.mockupName}.`, 'success');
       }
     } catch (e) {
       addToast('Social Pack generation failed.', 'error');
@@ -1092,7 +1094,7 @@ export const MockupPanel: React.FC<MockupPanelProps> = ({ onExportForMockup, var
           ) : (
             <Icons.Layers className="w-3.5 h-3.5" />
           )}
-          {isGeneratingPack ? 'Generating Pack...' : '📦 Social Pack (3 slides)'}
+          {isGeneratingPack ? 'Generating Pack...' : 'Social Pack (3 slides)'}
         </button>
       </div>
 

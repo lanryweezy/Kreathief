@@ -12,11 +12,39 @@ interface SEOProps {
 export const SEO: React.FC<SEOProps> = ({
   title = 'Kreathief | Your AI Creative Director',
   description = 'Create scalable vector graphics, 3D mockups, and AI designs in your browser. Professional creative studio with privacy-first tools and instant export.',
-  image = 'https://www.kreathief.com/og-image.png',
-  url = 'https://www.kreathief.com',
+  image = 'https://kreathief.com/og-image.png',
+  url = 'https://kreathief.com/',
   type = 'website',
 }) => {
   const siteTitle = title.includes('Kreathief') ? title : `${title} | Kreathief`;
+  const schemaGraph = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': 'https://kreathief.com/#organization',
+        name: 'Kreathief',
+        url: 'https://kreathief.com/',
+        logo: 'https://kreathief.com/logo.svg',
+        sameAs: ['https://twitter.com/kreathief'],
+      },
+      {
+        '@type': 'SoftwareApplication',
+        '@id': 'https://kreathief.com/#software',
+        name: 'Kreathief',
+        operatingSystem: 'Web browser, Windows, macOS',
+        applicationCategory: 'DesignApplication',
+        publisher: { '@id': 'https://kreathief.com/#organization' },
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        description,
+        screenshot: image,
+      },
+    ],
+  };
 
   return (
     <Helmet>
@@ -40,24 +68,7 @@ export const SEO: React.FC<SEOProps> = ({
       <meta name="twitter:image" content={image} />
 
       {/* Structured Data (Schema.org) */}
-      <script type="application/ld+json">
-        {`
-                {
-                    "@context": "https://schema.org",
-                    "@type": "SoftwareApplication",
-                    "name": "Kreathief",
-                    "operatingSystem": "Web browser, Windows, macOS",
-                    "applicationCategory": "DesignApplication",
-                    "offers": {
-                        "@type": "Offer",
-                        "price": "0",
-                        "priceCurrency": "USD"
-                    },
-                    "description": "${description}",
-                    "screenshot": "${image}"
-                }
-                `}
-      </script>
+      <script type="application/ld+json">{JSON.stringify(schemaGraph)}</script>
     </Helmet>
   );
 };

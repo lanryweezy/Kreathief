@@ -10,18 +10,23 @@ interface FinalCTAProps {
 export const FinalCTA: React.FC<FinalCTAProps> = ({ onGetStarted }) => {
   return (
     <section className="py-44 relative bg-[#08080d] overflow-hidden flex flex-col items-center justify-center text-center">
-      <div className="absolute inset-0 pointer-events-none">
-        <img
-          src="/images/hero_ai_cinematic.webp"
-          alt="Cinematic Creative Canvas"
-          width="1920"
-          height="1080"
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover filter brightness-[0.25] contrast-125"
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <video
+          src="/videos/cta-bg.mp4"
+          poster="/images/hero_ai_cinematic.webp"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="w-full h-full object-cover opacity-55 brightness-[0.48] contrast-115 saturate-110 scale-[1.03]"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#08080d] via-[#08080d]/70 to-[#08080d]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_50%_at_50%_50%,rgba(168,85,247,0.22),transparent)]" />
+        {/* Tinted atmospheric wash & edge feathering so video melts into surrounding dark sections */}
+        <div className="absolute inset-0 bg-[#4c1d95]/20 mix-blend-color" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#08080d] via-[#08080d]/35 to-[#08080d]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#08080d] via-transparent to-[#08080d]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_50%,rgba(139,92,246,0.18)_0%,rgba(8,8,13,0.65)_65%,rgba(8,8,13,0.96)_100%)]" />
       </div>
 
       <div className="max-w-5xl mx-auto px-6 relative z-10 flex flex-col items-center">

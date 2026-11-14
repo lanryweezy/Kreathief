@@ -11,6 +11,7 @@ import { Layer, TextLayer, ShapeLayer, Artboard, ImageLayer, AutoLayoutSettings 
 import { smartResizeArtboard } from '../../../services/smartResizeEngine';
 import { LayerSlice } from './baseSlice';
 import { DEFAULT_LAYER_FILTERS, findLayerById, applyAutoLayout } from './utils';
+import { estimateWrappedTextDimensions } from '../../../layout/autoLayout';
 import { DEFAULT_CORNER_RADIUS } from '../../../constants';
 import { buildSceneGraph } from '../../../types/sceneGraph';
 import { duplicateSubtree, collectSubtreeIds } from '../../../utils/sceneGraph';
@@ -220,9 +221,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       { width: 1200, height: 630, name: 'Web Banner (16:9)' },
     ];
 
-    const targets = packFormats.filter(
-      (f) => f.width !== currentArtboard.width || f.height !== currentArtboard.height
-    );
+    const targets = packFormats.filter((f) => f.width !== currentArtboard.width || f.height !== currentArtboard.height);
     if (targets.length === 0) {
       return;
     }
@@ -262,10 +261,10 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
   setLayerAutoLayout: (id: string, autoLayout: AutoLayoutSettings | undefined) =>
     set((state) => ({
       artboards: state.artboards.map((a: Artboard) => {
-        if (a.id !== state.activeArtboardId) return a;
-        const updatedLayers = a.layers.map((l: Layer) =>
-          l.id === id ? { ...l, autoLayout } : l
-        );
+        if (a.id !== state.activeArtboardId) {
+          return a;
+        }
+        const updatedLayers = a.layers.map((l: Layer) => (l.id === id ? { ...l, autoLayout } : l));
         return {
           ...a,
           layers: applyAutoLayout(updatedLayers as Layer[]),
@@ -607,16 +606,21 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
               let autoHeight = l.height;
               if (l.type === 'text') {
                 const nextText = (sanitizedPartial as Partial<TextLayer>).text ?? (l as TextLayer).text ?? '';
-                const nextFontSize = (sanitizedPartial as Partial<TextLayer>).fontSize ?? (l as TextLayer).fontSize ?? 16;
-                const nextLineHeight = (sanitizedPartial as Partial<TextLayer>).lineHeight ?? (l as TextLayer).lineHeight ?? 1.25;
-                if (sanitizedPartial.width === undefined) {
-                  const lines = nextText.split('\n');
-                  const maxLineLen = Math.max(...lines.map((ln) => ln.length), 1);
-                  autoWidth = Math.max(l.width || 0, Math.round(maxLineLen * nextFontSize * 0.58));
+                const nextFontSize =
+                  (sanitizedPartial as Partial<TextLayer>).fontSize ?? (l as TextLayer).fontSize ?? 16;
+                const nextLineHeight =
+                  (sanitizedPartial as Partial<TextLayer>).lineHeight ?? (l as TextLayer).lineHeight ?? 1.25;
+                const dims = estimateWrappedTextDimensions(
+                  nextText,
+                  nextFontSize,
+                  nextLineHeight,
+                  sanitizedPartial.width ?? l.width
+                );
+                if (sanitizedPartial.width === undefined && !l.width) {
+                  autoWidth = dims.width;
                 }
                 if (sanitizedPartial.height === undefined) {
-                  const lines = nextText.split('\n');
-                  autoHeight = Math.max(l.height || 0, Math.round(lines.length * nextFontSize * nextLineHeight));
+                  autoHeight = l.groupId ? dims.height : Math.max(l.height || 0, dims.height);
                 }
               }
 
@@ -643,11 +647,17 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
             return l;
           });
           let processedLayers = applyAutoLayout(updatedLayers as Layer[]);
-          
+
           // --- FIX: GROUP PROPORTIONAL SCALING ---
-          const groupMarker = processedLayers.find(l => l.id === id && l.isGroup);
-          if (groupMarker && (partial.width !== undefined || partial.height !== undefined || partial.x !== undefined || partial.y !== undefined)) {
-            const oldMarker = a.layers.find(l => l.id === id);
+          const groupMarker = processedLayers.find((l) => l.id === id && l.isGroup);
+          if (
+            groupMarker &&
+            (partial.width !== undefined ||
+              partial.height !== undefined ||
+              partial.x !== undefined ||
+              partial.y !== undefined)
+          ) {
+            const oldMarker = a.layers.find((l) => l.id === id);
             if (oldMarker) {
               const oldX = oldMarker.x;
               const oldY = oldMarker.y;
@@ -662,7 +672,7 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
               const dx = newX - oldX;
               const dy = newY - oldY;
 
-              processedLayers = processedLayers.map(child => {
+              processedLayers = processedLayers.map((child) => {
                 if (child.groupId === id) {
                   const updatedChild = { ...child };
                   if (scaleX !== 1 || scaleY !== 1) {
@@ -701,22 +711,24 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
         const idsToDelete = new Set(node ? collectSubtreeIds(node) : [id]);
         return {
           ...a,
-          layers: applyAutoLayout(a.layers
-            .filter((l: Layer) => !idsToDelete.has(l.id))
-            .map((l: Layer) => {
-              const cleaned = { ...l };
-              if (cleaned.maskLayerId && idsToDelete.has(cleaned.maskLayerId)) {
-                cleaned.maskLayerId = undefined;
-              }
-              if (cleaned.groupId && idsToDelete.has(cleaned.groupId)) {
-                cleaned.groupId = undefined;
-              }
-              if (cleaned.masterId && idsToDelete.has(cleaned.masterId)) {
-                cleaned.masterId = undefined;
-                cleaned.overrides = [];
-              }
-              return cleaned;
-            })),
+          layers: applyAutoLayout(
+            a.layers
+              .filter((l: Layer) => !idsToDelete.has(l.id))
+              .map((l: Layer) => {
+                const cleaned = { ...l };
+                if (cleaned.maskLayerId && idsToDelete.has(cleaned.maskLayerId)) {
+                  cleaned.maskLayerId = undefined;
+                }
+                if (cleaned.groupId && idsToDelete.has(cleaned.groupId)) {
+                  cleaned.groupId = undefined;
+                }
+                if (cleaned.masterId && idsToDelete.has(cleaned.masterId)) {
+                  cleaned.masterId = undefined;
+                  cleaned.overrides = [];
+                }
+                return cleaned;
+              })
+          ),
         };
       }),
       selectedLayerIds: state.selectedLayerIds.filter((sid: string) => sid !== id),
@@ -740,22 +752,24 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
         }
         return {
           ...a,
-          layers: applyAutoLayout(a.layers
-            .filter((l: Layer) => !deletedIds.has(l.id))
-            .map((l: Layer) => {
-              const cleaned = { ...l };
-              if (cleaned.maskLayerId && deletedIds.has(cleaned.maskLayerId)) {
-                cleaned.maskLayerId = undefined;
-              }
-              if (cleaned.groupId && deletedIds.has(cleaned.groupId)) {
-                cleaned.groupId = undefined;
-              }
-              if (cleaned.masterId && deletedIds.has(cleaned.masterId)) {
-                cleaned.masterId = undefined;
-                cleaned.overrides = [];
-              }
-              return cleaned;
-            })),
+          layers: applyAutoLayout(
+            a.layers
+              .filter((l: Layer) => !deletedIds.has(l.id))
+              .map((l: Layer) => {
+                const cleaned = { ...l };
+                if (cleaned.maskLayerId && deletedIds.has(cleaned.maskLayerId)) {
+                  cleaned.maskLayerId = undefined;
+                }
+                if (cleaned.groupId && deletedIds.has(cleaned.groupId)) {
+                  cleaned.groupId = undefined;
+                }
+                if (cleaned.masterId && deletedIds.has(cleaned.masterId)) {
+                  cleaned.masterId = undefined;
+                  cleaned.overrides = [];
+                }
+                return cleaned;
+              })
+          ),
         };
       }),
       selectedLayerIds: [],
@@ -798,13 +812,15 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with O(N) Set lookup
       const selectedSet = new Set(state.selectedLayerIds);
       const newArtboards = state.artboards.map((a: Artboard) => {
-        if (a.id !== state.activeArtboardId) return a;
-        
+        if (a.id !== state.activeArtboardId) {
+          return a;
+        }
+
         // Determine if we should lock or unlock based on the first selected layer's state
-        const firstSelected = a.layers.find(l => selectedSet.has(l.id));
+        const firstSelected = a.layers.find((l) => selectedSet.has(l.id));
         const shouldLock = firstSelected ? !firstSelected.locked : true;
 
-        const newLayers = a.layers.map(l => {
+        const newLayers = a.layers.map((l) => {
           if (selectedSet.has(l.id)) {
             return { ...l, locked: shouldLock };
           }
@@ -822,12 +838,14 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
       // ⚡ Bolt Optimization: Replace O(N*M) double-array traversal with O(N) Set lookup
       const selectedSet = new Set(state.selectedLayerIds);
       const newArtboards = state.artboards.map((a: Artboard) => {
-        if (a.id !== state.activeArtboardId) return a;
-        
-        const firstSelected = a.layers.find(l => selectedSet.has(l.id));
+        if (a.id !== state.activeArtboardId) {
+          return a;
+        }
+
+        const firstSelected = a.layers.find((l) => selectedSet.has(l.id));
         const shouldBeVisible = firstSelected ? !firstSelected.visible : true;
 
-        const newLayers = a.layers.map(l => {
+        const newLayers = a.layers.map((l) => {
           if (selectedSet.has(l.id)) {
             return { ...l, visible: shouldBeVisible };
           }
@@ -859,7 +877,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
 
         for (const sid of selectedLayerIds) {
           const node = graph.nodeMap.get(sid);
-          if (!node) continue;
+          if (!node) {
+            continue;
+          }
 
           let ancestorInSelection = false;
           let ancestor = node.parent;
@@ -902,7 +922,9 @@ export const createCRUDSlice: StateCreator<StoreState, [], [], Partial<LayerSlic
     artboards.forEach((a: Artboard) => {
       const layer = a.layers.find((l) => l.id === id);
       if (layer) {
-        const cloned = structuredClone(layer); set({ clipboardLayer: cloned }); copyLayerToSystemClipboard(cloned).catch(() => {});
+        const cloned = structuredClone(layer);
+        set({ clipboardLayer: cloned });
+        copyLayerToSystemClipboard(cloned).catch(() => {});
       }
     });
   },

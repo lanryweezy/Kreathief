@@ -474,59 +474,59 @@ A logo must be designed as a system of motion. How does it enter the screen? How
     content: `
 # The Ultimate Guide to Typography in UI Design
 
-Typography is 90% of user interface design.Think about it: when you strip away the drop shadows, the border radiuses, and the gradient backgrounds, a modern app is essentially just organized text.
+Typography is 90% of user interface design. Think about it: when you strip away the drop shadows, the border radiuses, and the gradient backgrounds, a modern app is essentially just organized text.
 
-If your typography fails, your entire UI collapses.You can have the most beautiful color palette in the world, but if your body text is illegible, users will abandon your product.
+If your typography fails, your entire UI collapses. You can have the most beautiful color palette in the world, but if your body text is illegible, users will abandon your product.
 
-Here is a comprehensive guide to mastering UI typography in 2026, separating the amateur dashboards from world- class enterprise software.
+Here is a comprehensive guide to mastering UI typography in 2026, separating amateur dashboards from world-class enterprise software.
 
-## 1. Establishing a Rigid Hierarchy
-A screen without hierarchy is just a wall of noise.A user should instinctively know where to look first, second, and third without consciously thinking about it.
+## 1. Establishing a Clear Hierarchy
+A screen without hierarchy is just a wall of noise. A user should instinctively know where to look first, second, and third without consciously thinking about it.
 
-    Don't just bold everything. Use a combination of **Size**, **Weight**, and **Color**.
+Do not just bold everything. Use a combination of **Size**, **Weight**, and **Color**:
 
-  * ** Primary Heading(H1):** 32px - 48px, Bold(700), Pure Black(#111827). 
-* ** Secondary Heading(H2 / H3):** 20px - 24px, Semi - Bold(600), Dark Gray(#374151).
-* ** Body Text(p):** 16px, Regular(400), Medium Gray(#4B5563).
-* ** Meta / Helper Text:** 12px - 14px, Regular(400), Light Gray(#6B7280).
+* **Primary Heading (H1):** 32px - 48px, Bold (700), High-Contrast Foreground (#111827).
+* **Secondary Heading (H2 / H3):** 20px - 24px, Semi-Bold (600), Dark Neutral (#374151).
+* **Body Text (p):** 16px, Regular (400), Medium Neutral (#4B5563).
+* **Meta / Helper Text:** 12px - 14px, Regular (400), Muted Neutral (#6B7280).
 
-Notice how the color lightens as the text becomes less important.Contrast is just as crucial as font size for establishing dominance.
+Notice how the contrast softens as the text becomes secondary. Value contrast is just as crucial as font size for establishing dominance.
 
 ## 2. The Golden Rules of Legibility
 
-### Line Height(Leading)
-Text needs room to breathe.The most common mistake junior designers make is leaving the line height at 100 % or 1.2. 
-* For body text(paragraphs): Aim for ** 1.5 to 1.6 ** (150 % - 160 %). 
-* For large headings: Tighten it up to ** 1.1 to 1.2 **.Large text with too much line height looks disconnected.
+### Line Height (Leading)
+Text needs room to breathe. The most common mistake junior designers make is leaving the line height at 100% or 1.2.
+* For body text (paragraphs): Aim for **1.5 to 1.6** (150% - 160%).
+* For large headings: Tighten it up to **1.1 to 1.2**. Large text with too much line height looks disconnected.
 
 ![Typography Example](/images/blog_post_content_1_1772656090318.webp)
 
-### Line Length(Measure)
-A string of text that spans the entire width of a 27 - inch monitor is physically tiring to read.The eye loses its place when tracking back to the start of the next line.
-Always constrain your text blocks to an optimal line length of ** 60 - 80 characters ** (usually about 600px - 700px wide). 
+### Line Length (Measure)
+A string of text that spans the entire width of a 27-inch monitor is physically tiring to read. The eye loses its place when tracking back to the start of the next line.
+Always constrain your text blocks to an optimal line length of **60 - 80 characters** (usually about 600px - 700px wide).
 
-### Letter Spacing(Tracking)
-  * ** Uppercase text:** Needs * increased * letter spacing(tracking).It prevents the blocky letters from blurring together. (e.g., +0.05em).
-* ** Large headings:** Needs * decreased * letter spacing.As fonts get larger, the natural space between letters appears wider.Tighten large headers(e.g., -0.02em) to make them look cohesive and punchy.
+### Letter Spacing (Tracking)
+* **Uppercase text:** Needs *increased* letter spacing (tracking). It prevents blocky letters from blurring together (e.g., +0.05em).
+* **Large headings:** Needs *decreased* letter spacing. As fonts get larger, the natural space between letters appears wider. Tighten large headers (e.g., -0.02em) to make them look cohesive and balanced.
 
 ## 3. Picking the Right Typeface for UI
-Not all beautiful fonts belong in a UI.A gorgeous display serif might look incredible on a wine bottle label but will be unreadable at 12px on a mobile screen.
+Not all beautiful fonts belong in a UI. A gorgeous display serif might look incredible on a wine bottle label but will be unreadable at 12px on a mobile screen.
 
-** For Data and Dashboards:**
-  You need a workhorse sans - serif with tabular numbers(where every number takes up the exact same width, so financial columns align perfectly) and highly distinguishable characters(an uppercase 'I', lowercase 'l', and the number '1' must look different).
-* Top picks for 2026: Inter, Roboto Flex, SF Pro, and Geist.*
+**For Data and Dashboards:**
+You need a workhorse sans-serif with tabular numbers (where every number takes up the exact same width, so financial columns align perfectly) and highly distinguishable characters (an uppercase 'I', lowercase 'l', and the number '1' must look distinct).
+*Top picks for 2026: Inter, Roboto Flex, SF Pro, and Geist.*
 
-** For Marketing & Editorial:**
-  You have more freedom here.You can pair a high - contrast serif for the H1 with a clean sans - serif for the body.The goal is personality and brand expression.
+**For Marketing & Editorial:**
+You have more freedom here. You can pair a high-contrast display face for the H1 with a clean sans-serif for the body. The goal is personality and brand expression.
 
-## 4. Accessibility is Non - Negotiable
-Beautiful typography is worthless if it's inaccessible.
-Always check your contrast ratios.Your text color and background color must have a contrast ratio of at least ** 4.5: 1 ** for normal text to pass WCAG AA standards.
+## 4. Accessibility is Non-Negotiable
+Beautiful typography is worthless if it is inaccessible.
+Always check your contrast ratios. Your text color and background color must have a contrast ratio of at least **4.5:1** for normal text to pass WCAG AA standards.
 
-  Don't use #999999 gray text on a white background. It might look "sleek and minimal" on your 5K Retina display with brightness at 100%, but it is completely invisible to a user on a cheap android phone in bright sunlight.
+Avoid using low-contrast gray text on a white background. It might look minimal on a 5K studio display at 100% brightness, but it becomes unreadable on mobile screens in bright daylight.
 
 ## Conclusion
-Good UI typography is invisible.The user shouldn't look at an app and think "wow, what a nice font." They should simply consume the raw information effortlessly, guided silently by your meticulous choices in scale, weight, and spacing.
+Good UI typography is invisible. The user should not look at an app and think about the font file; they should simply consume the information effortlessly, guided silently by meticulous choices in scale, weight, and spacing.
 `,
   },
   {
@@ -542,26 +542,26 @@ Good UI typography is invisible.The user shouldn't look at an app and think "wow
     content: `
 # The Designer's Guide to AI Generative Art in 2026
 
-In 2023, AI art was like playing a slot machine.You typed a prompt, crossed your fingers, and hoped the output was usable.It rarely had the exact composition or lighting you needed.
+In 2023, AI art was like playing a slot machine. You typed a prompt, crossed your fingers, and hoped the output was usable. It rarely had the exact composition or lighting you needed.
 
-  By 2026, the paradigm has shifted.AI is no longer a slot machine; it is a smart paintbrush.
+By 2026, the paradigm has shifted. AI is no longer a slot machine; it is a precision instrument.
 
-## From Prompts to ControlNets
-Professional designers don't guess anymore. Using Kreathief's integrated AI engine, you can sketch a rough wireframe or stick figure, apply it as a "Structure Guide"(our native integration of ControlNet technology), and tell the AI to generate an image * exactly * matching that composition.
+## From Prompts to Structure Conditioning
+Professional designers do not guess anymore. Using Kreathief's integrated AI engine, you can attach a visual reference or layout wireframe and instruct the model to generate compositions that respect your exact spatial hierarchy and palette.
 
 ## The Power of Inpainting
-Generative fill(inpainting) is where the real magic happens.Got a perfect photo of a model but need her holding a coffee cup instead of a phone ?
+Generative fill (inpainting) is where targeted editing happens. Have a product photograph that needs a different prop or surface texture?
 
-  1. Use Kreathief's Lasso tool to circle the phone.
-2. Type "holding a sleek black coffee cup".
-3. The AI replaces the object, perfectly matching the lighting, shadows, and depth of field of the original photograph.
+1. Use Kreathief's brush mask to isolate the region.
+2. Describe the replacement object or material.
+3. The model synthesizes the new detail while matching the ambient lighting, shadows, and depth of field of the original layer.
 
 ![AI Tools](/images/template_thumb_6_1772615671327.webp)
 
-## Consistency
-The biggest hurdle has always been brand consistency.Kreathief allows you to upload your brand's specific style—be it minimalist 3D illustrations or gritty vintage photography—and standardizes all AI outputs to match that exact aesthetic fingerprint.
+## Brand Consistency
+The biggest hurdle has always been brand consistency. Kreathief allows you to lock your Brand Kit—palettes, typography pairings, and style references—so every generated variation aligns with your visual identity.
 
-Stop fighting the machine and start directing it.
+Stop fighting the model and start directing it.
         `,
   },
   {
@@ -577,27 +577,25 @@ Stop fighting the machine and start directing it.
     content: `
 # Building a Brand Kit: From Zero to Professional in Minutes
 
-The difference between an amateur business and a premium brand isn't always the quality of their individual posts—it's their consistency.If your Instagram uses neon green today and pastel pink tomorrow, your audience will never recognize you in their feed.
+The difference between an amateur business and a cohesive brand is rarely a single post—it is consistency across every touchpoint. If your social graphics use neon green today and pastel pink tomorrow, your audience never builds visual recognition.
 
-A Brand Kit enforces visual discipline.Here is how to set one up in Kreathief in under 5 minutes.
+A Brand Kit enforces visual discipline. Here is how to set one up in Kreathief in under five minutes.
 
 ## 1. Upload Your Logos
-Drag and drop your primary logo, secondary logo, and icon marks into the Brand Kit panel.Kreathief automatically extracts the dominant colors from your logo to suggest a palette.Ensure you upload SVG formats so they scale perfectly on any canvas without pixelation.
+Drag and drop your primary logo, secondary mark, and monochrome icon into the Brand Kit panel. Ensure you upload SVG vectors so they scale cleanly across any artboard dimension without pixelation.
 
 ## 2. Define the Color Palette
-Don't just pick "Red" and "Blue". Define your primary action colors, secondary background colors, and neutral text colors (like a soft charcoal instead of pure black). 
+Define your primary action colors, secondary surface colors, and neutral text tones (such as a deep charcoal instead of harsh pure black).
 
-Kreathief allows you to generate harmonic combinations.If you only have one brand color, our tool will instantly generate perfect complementary, triadic, and analogous palettes.
+Kreathief also lets you generate harmonic combinations—complementary, triadic, and analogous palettes—directly from your primary brand hex code.
 
 ![Color Palette Engine](/images/hero_floating_palette_1772559659004.webp)
 
 ## 3. Set Typography Rules
-Select a Heading font(something bold with high personality) and a Body font(highly legible sans - serif like Inter or Roboto).Kreathief lets you lock these choices. 
+Select a Heading font (distinctive and high-impact) and a Body font (a legible sans-serif like Inter or Plus Jakarta Sans). Locking these in your Brand Kit ensures that new layouts and AI-generated designs automatically apply your typographic system.
 
-When a junior marketer creates a new flyer layout, the text automatically defaults to your brand fonts.
-
-## Automation is Key
-Once your Brand Kit is active, Kreathief's "Magic Brand" button will instantly apply your specific colors and fonts to *any* template in our 100,000+ library. You can take a generic poster template and make it look like *your* brand in exactly one click.
+## One-Click Brand Application
+Once your Brand Kit is active, you can apply your saved colors and typography pairings to any template or multi-artboard campaign in a single click.
   `,
   },
 ];

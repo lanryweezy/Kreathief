@@ -144,23 +144,29 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
           <div className="relative z-10">
             <div className="flex items-center gap-4 mb-8">
               <div className="flex -space-x-3">
-                {[1, 2, 3].map((i) => (
-                  <div
+                {[
+                  '/images/avatar_1_1772614969136.webp',
+                  '/images/avatar_2_1772614992003.webp',
+                  '/images/avatar_3_1772615019487.webp',
+                ].map((src, i) => (
+                  <img
                     key={i}
-                    className="w-10 h-10 rounded-full border-2 border-surface-dark-1 bg-gray-800 flex items-center justify-center text-[10px] font-black"
-                  >
-                    {i}
-                  </div>
+                    src={src}
+                    alt={`Creator ${i + 1}`}
+                    className="w-10 h-10 rounded-full border-2 border-surface-dark-1 object-cover bg-neutral-900"
+                  />
                 ))}
               </div>
-              <p className="text-xs font-bold text-gray-500 uppercase tracking-widest">Trusted by 50k+ Creators</p>
+              <p className="text-xs font-semibold text-gray-400 tracking-wide">
+                Trusted by 10,000+ Designers & Studios
+              </p>
             </div>
 
             <div className="flex items-center gap-6">
-              {['Design', 'AI', 'Export'].map((f) => (
+              {['Vector Engine', 'Multi-Model AI', 'Print & SVG Export'].map((f) => (
                 <div key={f} className="flex items-center gap-2">
                   <Icons.Check className="w-3.5 h-3.5 text-brand-500" />
-                  <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{f}</span>
+                  <span className="text-xs font-medium text-gray-400">{f}</span>
                 </div>
               ))}
             </div>
@@ -178,17 +184,17 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             </div>
 
             <div className="mb-10">
-              <h3 className="text-3xl font-black text-white tracking-tighter mb-2">
+              <h3 className="text-3xl font-bold text-white tracking-tight mb-2">
                 {isForgotPassword ? 'Reset Password' : isSignUp ? 'Create your account' : 'Welcome back'}
               </h3>
-              <p className="text-gray-500 font-medium leading-relaxed">
+              <p className="text-gray-400 text-sm font-medium leading-relaxed">
                 {resetEmailSent
                   ? 'Check your inbox for a recovery link.'
                   : isForgotPassword
                     ? 'Enter your email to receive a password reset link.'
                     : isSignUp
-                      ? 'Start your 14-day free trial of Pro.'
-                      : ''}
+                      ? 'Start creating free with 50 monthly AI generations and full vector tools.'
+                      : 'Sign in to access your workspace and cloud projects.'}
               </p>
             </div>
 

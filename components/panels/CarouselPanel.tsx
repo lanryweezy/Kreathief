@@ -3,13 +3,14 @@ import { useStore } from '../../store/useStore';
 import { useShallow } from 'zustand/react/shallow';
 import { Icons } from '../../constants';
 const AnyIcons = Icons as any;
-import { Artboard } from '../../types';
+import { Artboard, Layer } from '../../types';
 import { PanelErrorBoundary } from './PanelErrorBoundary';
 import { PanelHeader } from './PanelHeader';
 import { SlideThumbnail } from '../common/SlideThumbnail';
 import { generateCarouselDesign } from '../../services/geminiService';
 import { resolveHeroPhoto } from '../../services/visualAssetDirector';
-import JSZip from 'jszip';
+import { batchExportArtboardsZip } from '../../services/exportService';
+import { downloadFile } from '../../services/campaignExportService';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
 
@@ -244,18 +245,25 @@ export const CarouselPanel: React.FC = () => {
       }, 100);
     } catch (error) {
       log.error('Generation failed', error);
-      // 🌸 Bloom: Closed quality gap where carousel generation errors showed generic, blocking alerts
-      // Improvement: Replaced native alert with non-blocking toast UI using specific AI error formatters
       useStore.getState().addToast(getAIErrorMessage(error), 'error');
     } finally {
       setIsGeneratingAI(false);
     }
   };
 
-  const handleExportZIP = () => {
-    // 🌸 Bloom: Closed quality gap where info alerts blocked the user
-    // Improvement: Replaced native alert with non-blocking info toast
-    useStore.getState().addToast('Export to ZIP functionality will use the global export engine.', 'info');
+  const handleExportZIP = async () => {
+    if (carouselSlides.length === 0) {
+      return;
+    }
+    try {
+      useStore.getState().addToast(`Rendering ${carouselSlides.length} carousel slides to ZIP...`, 'info');
+      const zipBlob = await batchExportArtboardsZip(carouselSlides, { format: 'png', quality: 0.95 });
+      downloadFile(zipBlob, `kreathief-carousel-${Date.now()}.zip`);
+      useStore.getState().addToast('Carousel ZIP exported successfully', 'success');
+    } catch (error) {
+      log.error('[CarouselPanel] ZIP export failed', error);
+      useStore.getState().addToast('Failed to export carousel ZIP', 'error');
+    }
   };
 
   const handleExportSliced = async () => {
@@ -263,31 +271,32 @@ export const CarouselPanel: React.FC = () => {
       return;
     }
 
-    // We render the continuous canvas onto a hidden canvas, then slice it.
     const W = 1080;
     const H = carouselFormat === 'portrait' ? 1350 : 1080;
-    const numSlides = Math.floor(activeArtboard.width / W);
+    const numSlides = Math.max(1, Math.floor(activeArtboard.width / W));
 
-    // In a real implementation we would render the actual canvas elements via html2canvas
-    // or draw them manually like in DocumentThumbnail. Since we're demonstrating the concept:
-    // 🌸 Bloom: Closed quality gap where info alerts blocked the user
-    // Improvement: Replaced native alert with non-blocking info toast
-    useStore.getState().addToast(`Slicing continuous canvas into ${numSlides} images of ${W}x${H}...`, 'info');
+    try {
+      useStore.getState().addToast(`Slicing continuous canvas into ${numSlides} PNG slides (${W}x${H})...`, 'info');
 
-    // Simulate ZIP download
-    const zip = new JSZip();
-    for (let i = 0; i < numSlides; i++) {
-      zip.file(`slide_${i + 1}.txt`, `This is a slice of the canvas from x=${i * W} to x=${(i + 1) * W}`);
+      const slicedArtboards: Artboard[] = Array.from({ length: numSlides }, (_, idx) => ({
+        ...activeArtboard,
+        id: `${activeArtboard.id}_slice_${idx + 1}`,
+        name: `Slide_${idx + 1}`,
+        width: W,
+        height: H,
+        layers: activeArtboard.layers.map((layer: Layer) => ({
+          ...layer,
+          x: (layer.x || 0) - idx * W,
+        })),
+      }));
+
+      const zipBlob = await batchExportArtboardsZip(slicedArtboards, { format: 'png', quality: 0.95 });
+      downloadFile(zipBlob, `carousel-slices-${Date.now()}.zip`);
+      useStore.getState().addToast(`Exported ${numSlides} sliced PNG slides`, 'success');
+    } catch (error) {
+      log.error('[CarouselPanel] Sliced ZIP export failed', error);
+      useStore.getState().addToast('Failed to slice and export carousel', 'error');
     }
-    const content = await zip.generateAsync({ type: 'blob' });
-    const url = URL.createObjectURL(content);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `carousel-slices.zip`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   };
 
   return (
@@ -295,13 +304,13 @@ export const CarouselPanel: React.FC = () => {
       <div className="flex flex-col h-full bg-surface-dark-2 overflow-hidden">
         <PanelHeader
           title="Carousel Builder"
-          icon={<AnyIcons.Images className="w-5 h-5 text-brand-400" />}
+          icon={<Icons.Image className="w-5 h-5 text-brand-400" />}
           action={
             <button
               onClick={() => setShowAIModal(true)}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-brand-600 hover:bg-brand-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all shadow-glow-brand"
             >
-              <AnyIcons.Sparkles className="w-3.5 h-3.5" />
+              <Icons.Sparkles className="w-3.5 h-3.5" />
               Auto-Build
             </button>
           }
@@ -338,7 +347,7 @@ export const CarouselPanel: React.FC = () => {
               }`}
               title="Continuous Canvas Mode"
             >
-              <AnyIcons.Layout className="w-3.5 h-3.5" />
+              <Icons.Layout className="w-3.5 h-3.5" />
               Continuous
             </button>
           </div>
@@ -349,7 +358,7 @@ export const CarouselPanel: React.FC = () => {
           {carouselSlides.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6">
               <div className="w-16 h-16 bg-surface-dark-1 rounded-full flex items-center justify-center mb-4">
-                <AnyIcons.Images className="w-8 h-8 text-gray-600" />
+                <Icons.Image className="w-8 h-8 text-gray-600" />
               </div>
               <h3 className="text-sm font-semibold text-white mb-2">No Slides Yet</h3>
               <p className="text-xs text-gray-400 mb-6">
@@ -387,7 +396,12 @@ export const CarouselPanel: React.FC = () => {
                       {idx + 1}
                     </div>
 
-                    <SlideThumbnail artboard={slide} isActive={isActive} width={180} height={carouselFormat === 'portrait' ? 225 : 180} />
+                    <SlideThumbnail
+                      artboard={slide}
+                      isActive={isActive}
+                      width={180}
+                      height={carouselFormat === 'portrait' ? 225 : 180}
+                    />
 
                     <div className="mt-2 flex items-center justify-between px-1">
                       <span className="text-xs font-medium text-white truncate pr-2">{slide.name}</span>
@@ -399,7 +413,7 @@ export const CarouselPanel: React.FC = () => {
                         className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 transition-all rounded hover:bg-surface-dark-1"
                         title="Delete Slide"
                       >
-                        <Icons.Trash2 className="w-3.5 h-3.5" />
+                        <Icons.Trash className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>

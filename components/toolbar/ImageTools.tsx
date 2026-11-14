@@ -88,71 +88,72 @@ export const ImageTools = React.memo(
       setShowMockupQuickSelect(false);
     };
 
-    return (
-      <div className="flex items-center gap-3 flex-nowrap">
-        <div className="flex bg-surface-dark-4 rounded-lg border border-brand-600/30 p-1 shadow-lg shadow-purple-900/10 gap-1">
-          <IconButton
-            onClick={handleRemoveBackground}
-            loading={isRemovingBg}
-            title="Remove Background (AI)"
-            className="px-3 py-1.5 rounded bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/20"
-          >
-            <div className="flex items-center gap-1.5">
-              <Icons.Scissors className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Remove BG</span>
-            </div>
-            {!isPro && (
-              <div className="absolute -top-1 -right-1 bg-amber-500 rounded-full p-0.5">
-                <Icons.Lock className="w-2 h-2 text-white" />
-              </div>
-            )}
-          </IconButton>
+    const pillBase =
+      'relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold border transition-all whitespace-nowrap';
+    const pillIdle =
+      'bg-black/20 border-white/10 text-gray-300 hover:border-white/20 hover:bg-black/30 hover:text-white';
+    const pillActive = 'bg-brand-600 border-brand-600 text-white shadow-lg shadow-brand-600/30';
 
-          <IconButton
+    return (
+      <div className="flex items-center gap-2 flex-nowrap">
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={handleRemoveBackground}
+            disabled={isRemovingBg}
+            title="Remove Background (AI)"
+            className={`${pillBase} ${pillIdle} disabled:opacity-50`}
+          >
+            {isRemovingBg ? (
+              <Icons.RefreshCw className="w-3.5 h-3.5 animate-spin text-purple-400" />
+            ) : (
+              <Icons.Scissors className="w-3.5 h-3.5 text-purple-400" />
+            )}
+            <span>Remove BG</span>
+            {!isPro && <Icons.Lock className="w-2.5 h-2.5 text-amber-400 ml-0.5" />}
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab(NavTab.MAGIC_IMAGE)}
             title="Magic Image AI (Generative Fill, Upscale)"
-            className="px-3 py-1.5 rounded bg-gradient-to-r from-purple-500/10 to-indigo-500/10 hover:from-purple-500/20 hover:to-indigo-500/20 border border-purple-500/20"
+            className={`${pillBase} ${pillIdle}`}
           >
-            <div className="flex items-center gap-1.5">
-              <Icons.Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span className="text-[10px] font-bold text-purple-100 uppercase tracking-wider">Magic AI</span>
-            </div>
-          </IconButton>
+            <Icons.Sparkles className="w-3.5 h-3.5 text-purple-400" />
+            <span>Magic AI</span>
+          </button>
 
-          <IconButton
+          <button
+            type="button"
             onClick={() => setIsSmartMaskMode(!isSmartMaskMode)}
-            active={isSmartMaskMode}
+            aria-pressed={isSmartMaskMode}
             title="Smart Mask (Hover & Click)"
-            className={`px-3 py-1.5 rounded border ${isSmartMaskMode ? 'bg-pink-500/20 border-pink-500/40 text-white' : 'bg-gradient-to-r from-pink-500/10 to-rose-500/10 hover:from-pink-500/20 hover:to-rose-500/20 border-pink-500/20'}`}
+            className={`${pillBase} ${isSmartMaskMode ? pillActive : pillIdle}`}
           >
-            <div className="flex items-center gap-1.5">
-              <Icons.Target className="w-3.5 h-3.5 text-pink-400" />
-              <span className="text-[10px] font-bold text-pink-100 uppercase tracking-wider">Smart Mask</span>
-            </div>
-          </IconButton>
+            <Icons.Target className={`w-3.5 h-3.5 ${isSmartMaskMode ? 'text-white' : 'text-pink-400'}`} />
+            <span>Smart Mask</span>
+          </button>
 
-          <IconButton
+          <button
+            type="button"
             onClick={() => setIsLassoMode(!isLassoMode)}
-            active={isLassoMode}
+            aria-pressed={isLassoMode}
             title="Lasso Cut Out"
-            className={`px-3 py-1.5 rounded border ${isLassoMode ? 'bg-brand-600/20 border-brand-500/40 text-white' : 'bg-surface-dark-3 hover:bg-surface-dark-2 border-white/5'}`}
+            className={`${pillBase} ${isLassoMode ? pillActive : pillIdle}`}
           >
-            <div className="flex items-center gap-1.5">
-              <Icons.Brush className={`w-3.5 h-3.5 ${isLassoMode ? 'text-brand-400' : 'text-gray-400'}`} />
-              <span className="text-[10px] font-bold text-gray-300 uppercase tracking-wider">Lasso</span>
-            </div>
-          </IconButton>
+            <Icons.Brush className={`w-3.5 h-3.5 ${isLassoMode ? 'text-white' : 'text-gray-400'}`} />
+            <span>Lasso</span>
+          </button>
 
-          <IconButton
+          <button
+            type="button"
             onClick={() => _onVectorize && _onVectorize(layer.id)}
             title="Vectorize Image (AI)"
-            className="px-3 py-1.5 rounded bg-gradient-to-r from-indigo-500/10 to-blue-500/10 hover:from-indigo-500/20 hover:to-blue-500/20 border border-indigo-500/20"
+            className={`${pillBase} ${pillIdle}`}
           >
-            <div className="flex items-center gap-1.5">
-              <Icons.Zap className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[10px] font-bold text-indigo-100 uppercase tracking-wider">Vectorize</span>
-            </div>
-          </IconButton>
+            <Icons.Zap className="w-3.5 h-3.5 text-indigo-400" />
+            <span>Vectorize</span>
+          </button>
         </div>
 
         {layer.maskPath && (
@@ -585,17 +586,14 @@ export const ImageTools = React.memo(
                 />
               )}
             </button>
-            <Dropdown
-              anchorRef={tintButtonRef}
-              isOpen={showTint}
-              onClose={() => setShowTint(false)}
-              align="left"
-            >
+            <Dropdown anchorRef={tintButtonRef} isOpen={showTint} onClose={() => setShowTint(false)} align="left">
               <div className="w-72 bg-surface-dark-3 rounded-xl shadow-2xl border border-white/10 p-3.5 animate-fadeIn backdrop-blur-xl flex flex-col gap-3">
                 <div className="flex items-center justify-between pb-2 border-b border-white/10">
                   <div className="flex items-center gap-2">
                     <Icons.Palette className="w-4 h-4 text-pink-400" />
-                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">Photo Filter / Tint</span>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider">
+                      Photo Filter / Tint
+                    </span>
                   </div>
                   {layer.colorTint?.enabled && (
                     <button
@@ -685,9 +683,7 @@ export const ImageTools = React.memo(
                 {/* Blend Mode */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
-                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-                      Blend Mode
-                    </label>
+                    <label className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Blend Mode</label>
                     <span className="text-[9px] font-mono text-pink-400 capitalize">
                       {layer.colorTint?.blendMode || 'color'}
                     </span>

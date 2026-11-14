@@ -3,63 +3,55 @@ import { motion } from 'framer-motion';
 
 const TESTIMONIALS_ROW_1 = [
   {
-    quote: "Kreathief completely retired our 5-tool design stack. From prompt generation to vector curves and team review, everything happens in seconds.",
-    author: "Sarah Chen",
-    role: "Head of Product Design",
-    company: "Stripe",
-    avatar: "/images/avatar_1_1772614969136.webp",
+    quote:
+      'Kreathief consolidated our entire concept-to-vector workflow. Going from prompt exploration to editable Bezier curves and print-ready layouts happens in one tab.',
+    author: 'Elena Rostova',
+    role: 'Principal Brand Designer',
+    company: 'Atelier North',
+    avatar: '/images/avatar_1_1772614969136.webp',
   },
   {
-    quote: "The vector engine handles 100k nodes without lagging a millisecond. We threw complex architectural diagrams at it and it never blinked.",
-    author: "Marcus Rodriguez",
-    role: "VP Creative",
-    company: "R/GA",
-    avatar: "/images/avatar_2_1772614992003.webp",
+    quote:
+      'The vector engine handles dense multi-artboard packaging layouts without frame drops. Having live CMYK and SVG inspection directly in the browser is a game changer.',
+    author: 'Marcus Vance',
+    role: 'Creative Director',
+    company: 'Vance & Co. Studio',
+    avatar: '/images/avatar_2_1772614992003.webp',
   },
   {
-    quote: "I thought browser-based creative suites couldn't touch native apps. Kreathief proved me delightfully wrong. It's actually twice as fast.",
-    author: "Emily Watson",
-    role: "Lead Brand Identity",
-    company: "Airbnb",
-    avatar: "/images/avatar_3_1772615019487.webp",
-  },
-  {
-    quote: "The generative fill inpainting preserves shadows and ambient light better than any dedicated generative tool I've tested.",
-    author: "James Park",
-    role: "Design Director",
-    company: "Shopify",
-    avatar: "/images/avatar_4_1772615076735.webp",
+    quote:
+      'Most browser design tools treat typography as an afterthought. Kreathief gives us real kerning, path text, and brand kit locks right alongside generative fill.',
+    author: 'Claire Sterling',
+    role: 'Lead Identity Designer',
+    company: 'Form & Signal',
+    avatar: '/images/avatar_3_1772615019487.webp',
   },
 ];
 
 const TESTIMONIALS_ROW_2 = [
   {
-    quote: "As a solo creative director, having multi-model synthesis and vector editing in one place makes me feel like a 20-person agency.",
-    author: "Priya Nair",
-    role: "Independent Art Director",
-    company: "Studio Noir",
-    avatar: "/images/avatar_5_1772615099721.webp",
+    quote:
+      'Inpainting and background isolation preserve edge lighting accurately enough for commercial product key visuals without round-tripping to desktop raster editors.',
+    author: 'David Kwon',
+    role: 'Founder & Art Director',
+    company: 'Kwon Visual Lab',
+    avatar: '/images/avatar_4_1772615076735.webp',
   },
   {
-    quote: "We switched our entire 40-designer branding department from Photoshop + Figma over to Kreathief. We shipped our rebranding 3 weeks early.",
-    author: "Tom Okafor",
-    role: "Design Systems Lead",
-    company: "Meta",
-    avatar: "/images/avatar_6_1772615117433.webp",
+    quote:
+      'As an independent creative director, having multi-model synthesis, smart mockups, and precision layer controls in one workspace lets me deliver agency-grade pitches solo.',
+    author: 'Priya Nair',
+    role: 'Independent Art Director',
+    company: 'Studio Noir',
+    avatar: '/images/avatar_5_1772615099721.webp',
   },
   {
-    quote: "CMYK proofing right in the browser saved us from 3 expensive print mistakes already. The color management is pristine.",
-    author: "Helena Lindqvist",
-    role: "Print & Packaging Architect",
-    company: "Acne Studios",
-    avatar: "/images/avatar_1_1772614969136.webp",
-  },
-  {
-    quote: "Multiplayer with zero sync lag. Our client presentations happen directly inside the active artboard now.",
-    author: "Alex Vane",
-    role: "Creative Partner",
-    company: "Pentagram Alumni",
-    avatar: "/images/avatar_2_1772614992003.webp",
+    quote:
+      'Our design systems team uses the node graph and batch export pipelines to generate localized campaign assets across six aspect ratios in minutes instead of days.',
+    author: 'Tunde Okafor',
+    role: 'Design Systems Architect',
+    company: 'Apex Digital Collective',
+    avatar: '/images/avatar_6_1772615117433.webp',
   },
 ];
 
@@ -93,7 +85,10 @@ export const Testimonials: React.FC = () => {
         </motion.p>
       </div>
 
-      <div className="relative w-full space-y-6 select-none" style={{ maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)' }}>
+      <div
+        className="relative w-full space-y-6 select-none"
+        style={{ maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)' }}
+      >
         <div className="flex gap-6 animate-marquee-row hover:[animation-play-state:paused]">
           {[...TESTIMONIALS_ROW_1, ...TESTIMONIALS_ROW_1].map((item, idx) => (
             <div
@@ -103,7 +98,9 @@ export const Testimonials: React.FC = () => {
               <div>
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-amber-400 text-sm">★</span>
+                    <span key={i} className="text-amber-400 text-sm">
+                      ★
+                    </span>
                   ))}
                 </div>
                 <p className="text-neutral-300 font-normal leading-relaxed text-sm sm:text-base italic mb-6">
@@ -141,7 +138,9 @@ export const Testimonials: React.FC = () => {
               <div>
                 <div className="flex gap-1 mb-4">
                   {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-amber-400 text-sm">★</span>
+                    <span key={i} className="text-amber-400 text-sm">
+                      ★
+                    </span>
                   ))}
                 </div>
                 <p className="text-neutral-300 font-normal leading-relaxed text-sm sm:text-base italic mb-6">

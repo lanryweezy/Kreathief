@@ -129,7 +129,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
 
   applyPresetStyleReference: (presetId) => {
     const preset = CURATED_STYLE_PRESETS.find((p) => p.id === presetId);
-    if (!preset) return;
+    if (!preset) {
+      return;
+    }
     const ref = presetToStyleReference(preset);
     ref.strength = get().referenceStrength;
     set({ styleReference: ref });
@@ -300,10 +302,7 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
           selectedLayerIds: design.layers.length > 0 ? [design.layers[design.layers.length - 1].id] : [],
         }));
 
-        get().addToast?.(
-          `✨ Generated editable design with ${design.layers.length} vector & text layers!`,
-          'success'
-        );
+        get().addToast?.(`Generated editable design with ${design.layers.length} vector & text layers.`, 'success');
       } else {
         get().addToast?.('Could not generate editable design layers.', 'warning');
       }
@@ -419,8 +418,9 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
   },
 
   onRemix: async (id, promptOverride) => {
-    const prompt = promptOverride || window.prompt('Enter a style or description to remix this image:');
+    const prompt = promptOverride?.trim();
     if (!prompt) {
+      get().addToast?.('Enter a remix style prompt in the AI panel to remix this image', 'info');
       return;
     }
 
@@ -613,12 +613,14 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
     const { updateLayer, artboards, activeArtboardId } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === id);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
       const currentText = (layer as TextLayer).text;
-      
+
       const systemPrompt = `You are a world-class Brand Voice Copywriter for a design tool. 
 Your job is to rewrite the user's text based on their instruction.
 If the instruction involves "African Context", "Nigerian Context", or "Localized", you must use culturally resonant terms, subtle slang (e.g. "Naija", "Wahala", "Oya"), and speak directly to that specific demographic while remaining highly professional and engaging for a premium brand.
@@ -627,7 +629,7 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
 
       const fullInstruction = `System: ${systemPrompt}\n\nInstruction: ${instruction}`;
       const response = await geminiService.generateText(currentText, fullInstruction);
-      
+
       updateLayer(id, { text: response.trim() });
       get().addToast?.('Magic Rewrite applied!', 'success');
     } catch (error) {
@@ -643,12 +645,14 @@ Return ONLY the rewritten text, with no markdown formatting or quotes. Keep it c
     const { updateLayer, artboards, activeArtboardId, saveToHistory } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
     const layer = artboard?.layers.find((l: Layer) => l.id === textLayerId);
-    if (!layer || layer.type !== 'text') return;
+    if (!layer || layer.type !== 'text') {
+      return;
+    }
 
     set({ isGenerating: true });
     try {
       const currentText = (layer as TextLayer).text;
-      
+
       const systemPrompt = `You are an expert Typography Director. Analyze the following text and suggest a single Google Font that perfectly matches its emotional intent, industry, and hierarchy.
       
 Choose ONLY ONE from this curated list of premium Google Fonts:
@@ -659,7 +663,7 @@ Return ONLY the exact font name. Nothing else.`;
       const fullInstruction = `${systemPrompt}\n\nInstruction: Suggest a font for this text`;
       const suggestedFont = await geminiService.generateText(currentText, fullInstruction);
       const cleanFont = suggestedFont.replace(/["']/g, '').trim();
-      
+
       saveToHistory?.();
       updateLayer(textLayerId, { fontFamily: cleanFont });
       get().addToast?.(`Font updated to ${cleanFont}`, 'success');
@@ -675,7 +679,9 @@ Return ONLY the exact font name. Nothing else.`;
   harmonizeArtboardTypography: async (customPairing?: any) => {
     const { artboards, activeArtboardId, updateLayer, saveToHistory, addToast } = get();
     const artboard = artboards.find((a: any) => a.id === activeArtboardId);
-    if (!artboard || !artboard.layers) return;
+    if (!artboard || !artboard.layers) {
+      return;
+    }
 
     const textLayers = artboard.layers.filter((l: Layer) => l.type === 'text') as TextLayer[];
     if (textLayers.length === 0) {
@@ -712,7 +718,12 @@ Return ONLY the exact font name. Nothing else.`;
             fontFamily: pairing.body,
             fontWeight: '500',
           });
-        } else if ((role as string) === 'cta' || (role as string) === 'eyebrow' || role === 'cta_label' || role === 'hero_badge') {
+        } else if (
+          (role as string) === 'cta' ||
+          (role as string) === 'eyebrow' ||
+          role === 'cta_label' ||
+          role === 'hero_badge'
+        ) {
           updateLayer(txt.id, {
             fontFamily: pairing.accent || pairing.heading,
             fontWeight: '700',
@@ -727,7 +738,7 @@ Return ONLY the exact font name. Nothing else.`;
       }
 
       addToast?.(
-        `✨ Harmonized ${textLayers.length} text layers: ${pairing.heading} + ${pairing.body} (${pairing.mood})`,
+        `Harmonized ${textLayers.length} text layers: ${pairing.heading} + ${pairing.body} (${pairing.mood})`,
         'success'
       );
     } catch (err) {

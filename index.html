@@ -52,10 +52,121 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+  <!-- Structured Data (JSON-LD) for Search & Answer Engines -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://kreathief.com/#organization",
+          "name": "Kreathief",
+          "url": "https://kreathief.com/",
+          "logo": "https://kreathief.com/logo.svg",
+          "sameAs": ["https://twitter.com/kreathief"]
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://kreathief.com/#software",
+          "name": "Kreathief",
+          "operatingSystem": "Web browser, Windows, macOS",
+          "applicationCategory": "DesignApplication",
+          "publisher": { "@id": "https://kreathief.com/#organization" },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          },
+          "description": "Browser-based AI creative studio for vector graphics, multi-format marketing campaigns, 3D product mockups, and print-ready CMYK and SVG exports.",
+          "screenshot": "https://kreathief.com/og-image.png"
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://kreathief.com/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Is Kreathief really free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. The free plan includes 100 AI generations per month, core vector editing tools, and standard PNG, JPG, and SVG exports with no credit card required."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I use Kreathief for commercial projects?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes. All designs, exports, and AI-generated assets created in Kreathief belong 100% to you with full commercial rights for client work, products, and marketing."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What export formats do you support?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Kreathief supports SVG, PNG, JPG, WEBP, and print-ready PDF exports, including high-resolution 8K output and CMYK proofing on Pro."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How does real-time collaboration work?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Teams can collaborate in shared workspaces with live cursors, spatial comments, and instant cloud sync."
+              }
+            }
+          ]
+        }
+      ]
+    }
+  </script>
 </head>
 
 <body>
-  <div id="root"></div>
+  <div id="root">
+    <main>
+      <h1>AI Creative Studio for Vector Graphics, Brand Campaigns, and Print Design</h1>
+      <p>
+        Kreathief is a browser-based creative production studio that combines precision vector editing, auto-layout
+        containers, 3D product mockups, and an AI design director in one workspace. Designers, founders, and marketing
+        teams use Kreathief to produce social campaigns, pitch decks, print flyers, and scalable brand assets without
+        heavy desktop software.
+      </p>
+      <h2>Core Creative Production Capabilities</h2>
+      <p>
+        Unlike single-image generators that flatten artwork into uneditable pixels, Kreathief builds structured,
+        multi-layer artboards with editable typography, vector paths, and non-destructive image masks. Explore our
+        specialized <a href="/tools">creative tools directory</a>, build automated pipelines in the
+        <a href="/node">Kreathief Node Engine</a>, or compare <a href="/#pricing">Free and Pro plans</a>.
+      </p>
+      <h3>Built on Open Web &amp; Accessibility Standards</h3>
+      <p>
+        Every artboard is audited in real time against <a href="https://www.w3.org/WAI/standards-guidelines/wcag/"
+        rel="noopener noreferrer">W3C WCAG accessibility contrast guidelines</a>, rendered with standard
+        <a href="https://www.w3.org/Graphics/SVG/" rel="noopener noreferrer">W3C Scalable Vector Graphics (SVG)</a>, and
+        composited via the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API"
+        rel="noopener noreferrer">HTML5 Canvas API</a> for pixel-accurate PNG, WebP, SVG, and print PDF exports. Read
+        engineering notes on the <a href="/blog">Kreathief Blog</a> or launch the <a href="/auth">Studio workspace</a>.
+      </p>
+      <h2>Frequently Asked Questions</h2>
+      <h3>Is Kreathief really free to use?</h3>
+      <p>
+        Yes. Our free plan includes 100 AI generations per month, vector and typography tools, and standard exports with
+        no credit card required.
+      </p>
+      <h3>Can I use Kreathief for commercial projects?</h3>
+      <p>
+        Yes. All designs, brand kits, and exports created in Kreathief include full commercial rights for client and
+        marketing use.
+      </p>
+      <h3>What export formats do you support?</h3>
+      <p>
+        Kreathief exports to SVG, PNG, JPG, WEBP, and print-ready PDF with CMYK proofing and high-resolution scaling.
+      </p>
+    </main>
+  </div>
   <script type="module" src="/index.tsx"></script>
 </body>
 

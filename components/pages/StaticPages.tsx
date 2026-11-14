@@ -16,22 +16,22 @@ export const AboutPage = () => (
 
       <p>
         By deeply embedding state-of-the-art <strong>Generative AI models</strong> directly into a high-performance
-        WebGL canvas, we have created the world&apos;s most responsive AI-Native design platform. Kreathief isn&apos;t
-        just a vector editor with &quot;AI features&quot; bolted on—it&apos;s an engine where the artificial
-        intelligence *is* the canvas.
+        vector and layer canvas, we have created a responsive AI-native design workspace. Kreathief is not just a vector
+        editor with AI features bolted on—it is an environment where generative synthesis and manual typographic
+        craftsmanship operate on the same layer stack.
       </p>
 
-      <h3 className="text-xl font-bold text-white mt-8 mb-4">Our Commitment to Answer Engine Optimization (AEO)</h3>
+      <h3 className="text-xl font-bold text-white mt-8 mb-4">Precision Vector Architecture & Open Standards</h3>
       <p>
-        As search paradigms shift toward LLM-driven Answer Engines (like ChatGPT and Google Gemini), we are dedicated to
-        structuring our generative outputs, semantic layouts, and export codes to be perfectly optimized for AI
-        ingestion. When you build UI layouts or SVG icons in Kreathief, you are generating code that machines and human
-        developers can parse flawlessly.
+        Creative professionals require deterministic control over their deliverables. Every layout generated in
+        Kreathief decomposes into editable Bezier paths, live Google Fonts typography layers, and non-destructive blend
+        modes. Whether you are exporting clean SVG code for production web interfaces, multi-layer Photoshop (.PSD)
+        files, or CMYK-ready PDF/X documents for print, your assets remain portable and standards-compliant.
       </p>
 
       <p>
-        Join thousands of marketers, UI/UX developers, and enterprise studios who have already abandoned legacy tools.
-        With Kreathief, you orchestrate limitless layouts and hand off client-ready assets in infinite 8K resolution.
+        Today, independent art directors, brand studios, and product teams use Kreathief to compress multi-day concept
+        and production cycles into minutes—without sacrificing typographic or structural rigor.
       </p>
     </div>
   </ContentPage>
@@ -220,55 +220,75 @@ export const HelpCenterPage = () => (
 export const ChangelogPage = () => (
   <ContentPage title="Product Changelog">
     <p className="text-lg text-gray-400 mb-12">
-      We ship aggressive updates to the core generative model and canvas engine weekly. Here is what has been recently
-      deployed to production.
+      New capabilities, model integrations, and canvas performance improvements shipped to the Kreathief studio.
     </p>
 
     <div className="space-y-12 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-white/10 before:to-transparent">
       <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-black text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
-          <svg className="fill-current" width="14" height="14" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12.457 2.166a1 1 0 0 0-1.414-.049L5.42 7.373 3 5.432A1 1 0 0 0 1.765 6.99l3 2.4a.998.998 0 0 0 1.258-.02l6.4-6a1 1 0 0 0 .034-1.204Z" />
-          </svg>
+        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-black text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 text-xs font-bold">
+          2.2
         </div>
         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-white/5 border border-purple-500/30 shadow-lg">
           <div className="flex items-center justify-between mb-1">
-            <div className="font-bold text-white text-xl">v2.1.0 - The Genesis Update & SEO Pass</div>
-            <time className="font-mono text-purple-400 text-xs">Today</time>
+            <div className="font-bold text-white text-xl">v2.2.0 — Multi-Model Node Graph & Brand Conditioning</div>
+            <time className="font-mono text-purple-400 text-xs">Latest Release</time>
           </div>
           <ul className="text-gray-400 mt-4 space-y-2 list-disc pl-4 text-sm">
             <li>
-              <strong>Epic:</strong> Massively upgraded 8 distinct SEO-optimized static pages (About, Privacy, APIs,
-              etc).
+              <strong>Node Workspace 2.0:</strong> Chain prompt, style transfer, upscaling, and background removal nodes
+              and send rendered outputs directly to new artboards.
             </li>
             <li>
-              <strong>Feature:</strong> Swapped out generic placeholder brands with verified top-tier brand SVGs
-              (Netflix, Stripe, Street Heart).
+              <strong>Brand Kit Conditioning:</strong> Automatically lock generative outputs to your saved brand
+              palettes and headline/body font pairings.
             </li>
             <li>
-              <strong>Fix:</strong> Corrected overlapping layout z-index issues inside the ScrollShowcase component.
-            </li>
-            <li>
-              <strong>Content:</strong> Deployed 7+ brand new high-resolution template galleries specifically tailored
-              to business, corporate, and music contexts.
+              <strong>Visual Reference Remixing:</strong> Attach reference imagery directly in the Design Agent panel to
+              reverse-engineer composition and lighting into editable layers.
             </li>
           </ul>
         </div>
       </div>
 
       <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
-        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-surface-dark-1 text-gray-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-surface-dark-1 text-gray-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 text-xs font-bold">
+          2.1
+        </div>
+        <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
+          <div className="flex items-center justify-between mb-1">
+            <div className="font-bold text-white text-xl">v2.1.0 — Multi-Layer PSD Support & Print Proofing</div>
+            <time className="font-mono text-gray-500 text-xs">Q2 2026</time>
+          </div>
+          <ul className="text-gray-400 mt-4 space-y-2 list-disc pl-4 text-sm">
+            <li>
+              <strong>Native PSD Import & Export:</strong> Drag-and-drop Photoshop files onto the canvas with full layer
+              hierarchy preservation, and export multi-layer PSDs.
+            </li>
+            <li>
+              <strong>Print & CMYK Export Pipeline:</strong> Added PDF/X-4 export with customizable bleed marks, crop
+              marks, and 300 DPI rasterization options.
+            </li>
+            <li>
+              <strong>WCAG Contrast Linter:</strong> Real-time accessibility auditing across text layers with one-click
+              contrast remediation.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+        <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white/20 bg-surface-dark-1 text-gray-400 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 text-xs font-bold">
           2.0
         </div>
         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-2xl bg-white/5 border border-white/10 shadow-lg">
           <div className="flex items-center justify-between mb-1">
-            <div className="font-bold text-white text-xl">v2.0.0 - The AI Core Pipeline</div>
-            <time className="font-mono text-gray-500 text-xs">March 14, 2026</time>
+            <div className="font-bold text-white text-xl">v2.0.0 — 3-Stage Agentic Layout Engine</div>
+            <time className="font-mono text-gray-500 text-xs">Q1 2026</time>
           </div>
-          <p className="text-gray-400 mt-4 text-sm">
-            Completely ripped out the old HTML5 canvas manipulation logic and introduced a hardware-accelerated WebGL
-            pipeline natively hooked into our proprietary diffusion APIs. Performance increased by over 400% on heavy
-            layout files.
+          <p className="text-gray-400 mt-4 text-sm leading-relaxed">
+            Introduced our 3-stage Design Agent architecture combining structural layout planning, multi-model asset
+            synthesis (Flux, Imagen, Ideogram, Recraft), and automated typographic hierarchy on a unified multi-artboard
+            canvas.
           </p>
         </div>
       </div>

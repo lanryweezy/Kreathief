@@ -747,19 +747,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
           <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center mb-8 shadow-2xl shadow-purple-900/40 relative z-10">
             <Icons.Download className="w-8 h-8 text-white" />
           </div>
-          <h2
-            id="export-modal-title"
-            className="text-2xl font-black text-white mb-4 tracking-tighter italic relative z-10 uppercase"
-          >
+          <h2 id="export-modal-title" className="text-2xl font-bold text-white mb-3 tracking-tight relative z-10">
             Export Design
           </h2>
-          <p className="text-muted-light text-[11px] leading-relaxed mb-10 font-medium relative z-10">
+          <p className="text-muted-light text-xs leading-relaxed mb-8 font-normal relative z-10">
             Download your creation in professional formats. Choose a preset or maintain your native canvas coordinates.
           </p>
 
           {activeArtboard && activeArtboard.layers?.length > 0 && (
             <div className="relative z-10 mb-6">
-              <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">Preview</h4>
+              <h4 className="text-[10px] font-bold text-brand-400 uppercase tracking-wider mb-2">Preview</h4>
               <div className="rounded-xl border border-white/10 bg-black/30 p-2 checkerboard-bg flex items-center justify-center">
                 <div
                   style={{
@@ -782,12 +779,11 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
             </div>
           )}
 
-          <div className="mt-auto p-6 bg-white/5 border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
-            <h4 className="text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] mb-2">
-              Neural Optimization
-            </h4>
-            <p className="text-[10px] text-muted-light font-medium leading-relaxed">
-              Our export engine automatically optimizes PNG buffers for maximum compatibility with Adobe Creative Cloud.
+          <div className="mt-auto p-5 bg-white/[0.04] border border-white/5 rounded-2xl relative z-10 backdrop-blur-md">
+            <h4 className="text-[11px] font-bold text-brand-400 mb-1.5">Color & Buffer Optimization</h4>
+            <p className="text-[11px] text-muted-light leading-relaxed">
+              Exports preserve lossless alpha channels, vector paths, and layer hierarchies for seamless handoff to
+              print and desktop suites.
             </p>
           </div>
         </div>
@@ -795,7 +791,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ onClose, onExport, onG
         {/* Controls Side */}
         <div
           data-testid="export-modal"
-          className="flex-1 p-10 overflow-y-auto max-h-[80vh] custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"
+          className="flex-1 p-10 overflow-y-auto max-h-[80vh] custom-scrollbar bg-surface-dark-3"
         >
           <div className="space-y-10">
             {/* Format Selection */}

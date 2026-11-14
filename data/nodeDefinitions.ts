@@ -1,6 +1,35 @@
 import { NodeDefinition, NodeCategory } from '../types/nodes';
 import { log } from '../utils/log';
 
+function buildNodePreviewSvg(
+  label: string,
+  width = 512,
+  height = 512,
+  accent = '#7c3aed',
+  subtitle = 'Kreathief Studio'
+): string {
+  const safeLabel = String(label || 'Preview').replace(/[<>&"']/g, '');
+  const safeSub = String(subtitle || '').replace(/[<>&"']/g, '');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 512 512">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#0d1017"/>
+        <stop offset="100%" stop-color="#171b26"/>
+      </linearGradient>
+      <radialGradient id="glow" cx="50%" cy="42%" r="45%">
+        <stop offset="0%" stop-color="${accent}" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="${accent}" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <rect width="512" height="512" fill="url(#bg)"/>
+    <circle cx="256" cy="215" r="180" fill="url(#glow)"/>
+    <rect x="96" y="120" width="320" height="220" rx="20" fill="#131722" stroke="${accent}" stroke-opacity="0.45" stroke-width="2"/>
+    <text x="256" y="225" text-anchor="middle" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="24">${safeLabel}</text>
+    <text x="256" y="258" text-anchor="middle" fill="#94a3b8" font-family="Inter, system-ui, sans-serif" font-weight="600" font-size="13">${safeSub}</text>
+  </svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg.trim())}`;
+}
+
 export const NODE_DEFINITIONS: NodeDefinition[] = [
   // ═══════════════════════════════════════════════════════════════════
   // INPUT NODES
@@ -79,7 +108,7 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     icon: 'Palette',
     inputs: [],
     outputs: [{ id: 'colors', label: 'Colors', dataType: 'color' }],
-    defaults: { colors: ['#7D2AE8', '#00C4CC', '#FFFFFF'] },
+    defaults: { colors: ['#7C3AED', '#00C4CC', '#FFFFFF'] },
     execute: async (inputs, settings) => ({
       colors: settings.colors,
     }),
@@ -117,25 +146,39 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     defaults: { model: 'flux-schnell', steps: 20, cfg: 7, width: 1024, height: 1024, seed: -1 },
     execute: async (inputs, settings) => {
       try {
+        const endpoint =
+          settings.model === 'flux-dev' ? 'https://fal.run/fal-ai/flux/dev' : 'https://fal.run/fal-ai/flux/schnell';
         const response = await fetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: `fal-ai/${settings.model}`,
-            prompt: inputs.prompt?.prompt || settings.prompt || '',
-            image_size: { width: settings.width, height: settings.height },
-            num_inference_steps: settings.steps,
-            guidance_scale: settings.cfg,
-            seed: settings.seed === -1 ? undefined : settings.seed,
+            endpoint,
+            body: {
+              prompt: inputs.prompt?.prompt || settings.prompt || '',
+              image_size: { width: settings.width, height: settings.height },
+              num_inference_steps: settings.steps,
+              guidance_scale: settings.cfg,
+              seed: settings.seed === -1 ? undefined : settings.seed,
+            },
           }),
         });
         const data = await response.json();
-        return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
+        const url = data.images?.[0]?.url || data.url;
+        if (!url) {
+          throw new Error('No image URL returned');
+        }
+        return { image: { src: url, width: settings.width, height: settings.height } };
       } catch (err) {
-        log.warn('[FLUX] API unavailable, using placeholder');
+        log.warn('[FLUX] API unavailable, using studio preview');
         return {
           image: {
-            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/7d2ae8?text=FLUX+Generated`,
+            src: buildNodePreviewSvg(
+              'FLUX.1 Output',
+              settings.width,
+              settings.height,
+              '#7c3aed',
+              inputs.prompt?.prompt || 'Black Forest Labs'
+            ),
             width: settings.width,
             height: settings.height,
           },
@@ -158,27 +201,27 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     defaults: { sceneStyle: 'studio-minimal', borderPadding: 5 },
     execute: async (inputs, settings) => {
       const products = [
-        { id: 'tshirt', name: 'Premium Tee', color: '1a1a2e', textCol: '7d2ae8' },
-        { id: 'mug', name: 'Ceramic Mug', color: '151515', textCol: '00c4cc' },
-        { id: 'tote', name: 'Canvas Tote', color: '2a2a2a', textCol: 'ff6b35' },
-        { id: 'hat', name: 'Trucker Hat', color: '1a3a2e', textCol: 'ffb800' },
-        { id: 'billboard', name: 'City Billboard', color: '0a0a1a', textCol: '00e5ff' },
-        { id: 'hoodie', name: 'Streetwear Hoodie', color: '1f1a3a', textCol: 'e040fb' },
-        { id: 'poster', name: 'Framed Poster', color: '1a2a1a', textCol: '00e676' },
-        { id: 'cup', name: 'Coffee Cup', color: '3a1a1a', textCol: 'ff5252' },
-        { id: 'phone', name: 'Matte Phone Case', color: '1a3a3a', textCol: '18ffff' },
-        { id: 'sticker', name: 'Die-Cut Sticker', color: '2a1a2a', textCol: 'ff4081' },
+        { id: 'tshirt', name: 'Premium Tee', accent: '#7c3aed' },
+        { id: 'mug', name: 'Ceramic Mug', accent: '#00c4cc' },
+        { id: 'tote', name: 'Canvas Tote', accent: '#ff6b35' },
+        { id: 'hat', name: 'Trucker Hat', accent: '#ffb800' },
+        { id: 'billboard', name: 'City Billboard', accent: '#00e5ff' },
+        { id: 'hoodie', name: 'Streetwear Hoodie', accent: '#e040fb' },
+        { id: 'poster', name: 'Framed Poster', accent: '#00e676' },
+        { id: 'cup', name: 'Coffee Cup', accent: '#ff5252' },
+        { id: 'phone', name: 'Matte Phone Case', accent: '#18ffff' },
+        { id: 'sticker', name: 'Die-Cut Sticker', accent: '#ff4081' },
       ];
 
       const renders = products.map((p) => ({
         id: p.id,
         name: p.name,
-        src: `https://placehold.co/512x512/${p.color}/${p.textCol}?text=${encodeURIComponent(p.name)}+Mockup`,
+        src: buildNodePreviewSvg(p.name, 512, 512, p.accent, `Scene: ${settings.sceneStyle || 'studio-minimal'}`),
       }));
 
       return {
         images: renders,
-        image: { src: renders[0].src, width: 512, height: 512 },
+        image: { src: inputs.image?.src || renders[0].src, width: 512, height: 512 },
       };
     },
   },
@@ -201,25 +244,34 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            endpoint: 'fal-ai/flux/dev',
-            input: {
+            endpoint: 'https://fal.run/fal-ai/nano-banana-2',
+            body: {
               prompt: inputs.prompt?.prompt || '',
               image_url: inputs.image
                 ? Array.isArray(inputs.image)
                   ? inputs.image[0]?.src
                   : inputs.image?.src
                 : undefined,
-              image_size: { width: settings.width, height: settings.height },
             },
           }),
         });
         const data = await response.json();
-        return { image: { src: data.images?.[0]?.url || data.url, width: settings.width, height: settings.height } };
+        const url = data.images?.[0]?.url || data.url;
+        if (!url) {
+          throw new Error('No image URL returned');
+        }
+        return { image: { src: url, width: settings.width, height: settings.height } };
       } catch (err) {
-        log.warn('[NodeDef] Fal image gen unavailable, using placeholder');
+        log.warn('[NodeDef] Fal image gen unavailable, using studio preview');
         return {
           image: {
-            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/00c4cc?text=AI+Generated`,
+            src: buildNodePreviewSvg(
+              'Gemini Output',
+              settings.width,
+              settings.height,
+              '#00c4cc',
+              inputs.prompt?.prompt || 'Google Nano Banana'
+            ),
             width: settings.width,
             height: settings.height,
           },
@@ -243,19 +295,31 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'fal-ai/recraft-v3',
-            prompt: inputs.prompt?.prompt || '',
-            style: settings.style,
-            image_size: { width: settings.width, height: settings.height },
+            endpoint: 'https://fal.run/fal-ai/recraft-v3',
+            body: {
+              prompt: inputs.prompt?.prompt || '',
+              style: settings.style,
+              image_size: { width: settings.width, height: settings.height },
+            },
           }),
         });
         const data = await response.json();
-        return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+        const url = data.images?.[0]?.url || data.url;
+        if (!url) {
+          throw new Error('No vector URL returned');
+        }
+        return { image: { src: url, width: settings.width, height: settings.height } };
       } catch (err) {
-        log.warn('[Recraft] API unavailable, using placeholder');
+        log.warn('[Recraft] API unavailable, using studio preview');
         return {
           image: {
-            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ff6b35?text=Recraft+Vector`,
+            src: buildNodePreviewSvg(
+              'Recraft Vector',
+              settings.width,
+              settings.height,
+              '#ff6b35',
+              inputs.prompt?.prompt || 'SVG Vector Output'
+            ),
             width: settings.width,
             height: settings.height,
           },
@@ -279,18 +343,30 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: `fal-ai/${settings.model}`,
-            prompt: inputs.prompt?.prompt || '',
-            image_size: { width: settings.width, height: settings.height },
+            endpoint: 'https://fal.run/fal-ai/bytedance/seedream/v4.5/text-to-image',
+            body: {
+              prompt: inputs.prompt?.prompt || '',
+              image_size: { width: settings.width, height: settings.height },
+            },
           }),
         });
         const data = await response.json();
-        return { image: { src: data.images?.[0]?.url, width: settings.width, height: settings.height } };
+        const url = data.images?.[0]?.url || data.url;
+        if (!url) {
+          throw new Error('No image URL returned');
+        }
+        return { image: { src: url, width: settings.width, height: settings.height } };
       } catch (err) {
-        log.warn('[Seedream] API unavailable, using placeholder');
+        log.warn('[Seedream] API unavailable, using studio preview');
         return {
           image: {
-            src: `https://placehold.co/${settings.width}x${settings.height}/1a1a2e/ffd700?text=Seedream+Generated`,
+            src: buildNodePreviewSvg(
+              'Seedream 4.5',
+              settings.width,
+              settings.height,
+              '#ffd700',
+              inputs.prompt?.prompt || 'ByteDance Seedream'
+            ),
             width: settings.width,
             height: settings.height,
           },
@@ -349,10 +425,14 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const response = await fetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'fal-ai/background-removal', image_url: inputs.image?.src }),
+          body: JSON.stringify({
+            endpoint: 'https://fal.run/fal-ai/birefnet/v2',
+            body: { image_url: inputs.image?.src },
+          }),
         });
         const data = await response.json();
-        return { image: { ...inputs.image, src: data.image?.url || data.images?.[0]?.url } };
+        const url = data.image?.url || data.images?.[0]?.url || inputs.image?.src;
+        return { image: { ...inputs.image, src: url } };
       } catch (err) {
         log.warn('[BG Remove] API unavailable, passing through');
         return { image: inputs.image };
@@ -509,10 +589,13 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
         const response = await fetch('/api/fal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'fal-ai/recraft-v3', image_url: inputs.image?.src, mode: 'vector' }),
+          body: JSON.stringify({
+            endpoint: 'https://fal.run/fal-ai/recraft-v3',
+            body: { image_url: inputs.image?.src, mode: 'vector' },
+          }),
         });
         const data = await response.json();
-        return { image: { ...inputs.image, src: data.images?.[0]?.url, isVector: true } };
+        return { image: { ...inputs.image, src: data.images?.[0]?.url || inputs.image?.src, isVector: true } };
       } catch (err) {
         log.warn('[Vectorize] API unavailable, passing through');
         return { image: { ...inputs.image, isVector: true } };
@@ -528,10 +611,10 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
     icon: 'Text',
     inputs: [{ id: 'text', label: 'Text', dataType: 'text' }],
     outputs: [{ id: 'image', label: 'SVG', dataType: 'image' }],
-    defaults: { text: 'CREATIVE', fontFamily: 'Inter', color: '#7D2AE8', curvature: 50 },
+    defaults: { text: 'CREATIVE', fontFamily: 'Inter', color: '#7C3AED', curvature: 50 },
     execute: async (inputs, settings) => {
       const txt = inputs.text?.text || settings.text || 'CREATIVE';
-      const col = settings.color || '#7D2AE8';
+      const col = settings.color || '#7C3AED';
       const curveVal = settings.curvature ?? 50;
 
       const pathD = `M 10 90 Q 100 ${90 - curveVal} 190 90`;
@@ -573,12 +656,15 @@ export const NODE_DEFINITIONS: NodeDefinition[] = [
           }),
         });
         const data = await response.json();
+        if (!data.url) {
+          throw new Error('No mockup URL returned');
+        }
         return { image: { src: data.url, width: 3000, height: 3000 } };
       } catch (err) {
         log.warn('[Mockup] API unavailable, using design as-is');
         return {
           image: inputs.image || {
-            src: `https://placehold.co/3000x3000/1a1a2e/7d2ae8?text=Mockup`,
+            src: buildNodePreviewSvg('Product Mockup', 1024, 1024, '#7c3aed', settings.product || 'Studio Mockup'),
             width: 3000,
             height: 3000,
           },

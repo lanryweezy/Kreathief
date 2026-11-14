@@ -765,6 +765,7 @@ const CanvasComponent: React.FC<CanvasProps> = (props) => {
             />
           )}
           <div
+            data-testid="canvas-stage"
             className="absolute inset-0 pointer-events-none"
             style={{
               transform: `translate(var(--pan-x, ${panOffset.x}px), var(--pan-y, ${panOffset.y}px)) scale(var(--zoom, ${zoom}))`,

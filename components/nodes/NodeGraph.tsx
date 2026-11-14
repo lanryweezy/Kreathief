@@ -65,7 +65,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      return;
+    }
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
@@ -99,9 +101,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
       await executeGraph();
       // Need to fetch fresh state since React state hasn't updated in this closure yet
       const state = useNodeGraph.getState();
-      
+
       // Check for errors in ANY node
-      const hasErrors = Object.values(state.nodeOutputs).some(output => output?.error);
+      const hasErrors = Object.values(state.nodeOutputs).some((output) => output?.error);
       if (hasErrors) {
         // We will need to import useStore at the top of the file to use addToast, handled in another replacement chunk
         import('../../store/useStore').then(({ useStore }) => {
@@ -109,14 +111,16 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
         });
         return;
       }
-      
+
       const exportNodes = state.graph.nodes.filter((n: any) => n.type === 'export-canvas' || n.type.includes('export'));
       let result = null;
       if (exportNodes.length > 0) {
         result = state.nodeOutputs[exportNodes[exportNodes.length - 1].id];
       } else {
         const allOutputs = Object.values(state.nodeOutputs);
-        if (allOutputs.length > 0) result = allOutputs[allOutputs.length - 1];
+        if (allOutputs.length > 0) {
+          result = allOutputs[allOutputs.length - 1];
+        }
       }
 
       if (result && !result.error) {
@@ -199,7 +203,7 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
     },
     [handlers.onCanvasMouseDown]
   );
-  const inspectedNode = inspectingNodeId ? graph.nodes.find(n => n.id === inspectingNodeId) : null;
+  const inspectedNode = inspectingNodeId ? graph.nodes.find((n) => n.id === inspectingNodeId) : null;
   const inspectedOutputs = inspectingNodeId ? nodeOutputs[inspectingNodeId] : null;
   const inspectedImage = inspectedOutputs?.image?.src || inspectedOutputs?.image || inspectedOutputs?.imageUrl;
 
@@ -429,7 +433,11 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                     alt="Node output"
                     className="w-40 h-40 object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = 'https://placehold.co/128x128/1a1a2e/7d2ae8?text=Preview';
+                      (e.target as HTMLImageElement).src =
+                        'data:image/svg+xml;utf8,' +
+                        encodeURIComponent(
+                          '<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" fill="#09090b"/><rect x="12" y="12" width="104" height="104" rx="12" fill="#18181b" stroke="#7c3aed" stroke-opacity="0.4"/><text x="64" y="68" text-anchor="middle" fill="#a1a1aa" font-family="Inter, sans-serif" font-size="11" font-weight="600">Preview</text></svg>'
+                        );
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
@@ -612,7 +620,9 @@ export const NodeGraph: React.FC<{ onClose: () => void; onExportToCanvas: (resul
                     <div className="bg-surface-dark-3/30 border border-white/5 rounded-xl p-3 flex flex-wrap gap-1.5">
                       {inspectedNode.settings.prompt.split(' ').map((word: string, idx: number) => {
                         const cleanWord = word.replace(/[^\w]/g, '');
-                        if (!cleanWord) return null;
+                        if (!cleanWord) {
+                          return null;
+                        }
                         const weight = (1.0 + Math.sin(idx * 0.4) * 0.5).toFixed(1);
                         return (
                           <div

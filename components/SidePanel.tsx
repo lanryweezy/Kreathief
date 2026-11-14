@@ -28,11 +28,17 @@ const WebsitePanel = React.lazy(() => import('./panels/WebsitePanel'));
 const SlidesPanel = React.lazy(() => import('./panels/SlidesPanel'));
 const CarouselPanel = React.lazy(() => import('./panels/CarouselPanel').then((m) => ({ default: m.CarouselPanel })));
 const DocumentPanel = React.lazy(() => import('./panels/DocumentPanel').then((m) => ({ default: m.DocumentPanel })));
-const MagicImagePanel = React.lazy(() => import('./panels/MagicImagePanel').then((m) => ({ default: m.MagicImagePanel })));
+const MagicImagePanel = React.lazy(() =>
+  import('./panels/MagicImagePanel').then((m) => ({ default: m.MagicImagePanel }))
+);
 const TextAgentPanel = React.lazy(() => import('./panels/TextAgentPanel').then((m) => ({ default: m.TextAgentPanel })));
-const VideoAgentPanel = React.lazy(() => import('./panels/VideoAgentPanel').then((m) => ({ default: m.VideoAgentPanel })));
+const VideoAgentPanel = React.lazy(() =>
+  import('./panels/VideoAgentPanel').then((m) => ({ default: m.VideoAgentPanel }))
+);
 const CampaignPanel = React.lazy(() => import('./panels/CampaignPanel').then((m) => ({ default: m.CampaignPanel })));
-const PrototypingPanel = React.lazy(() => import('./panels/PrototypingPanel').then((m) => ({ default: m.PrototypingPanel })));
+const PrototypingPanel = React.lazy(() =>
+  import('./panels/PrototypingPanel').then((m) => ({ default: m.PrototypingPanel }))
+);
 
 import { ListSkeleton, GridSkeleton, CardSkeleton } from './Skeleton';
 
@@ -231,7 +237,7 @@ export const SidePanel = React.memo(
 
               {activeTab === NavTab.BRAND && <BrandPanel />}
               {activeTab === NavTab.PROTOTYPE && <PrototypingPanel />}
-              
+              {activeTab === NavTab.COMPONENTS && <ComponentsPanel />}
 
               {activeTab === NavTab.DRAW && (
                 <DrawPanel
@@ -271,13 +277,16 @@ export const SidePanel = React.memo(
 
               {activeTab === NavTab.DOCUMENT && <DocumentPanel />}
 
-              {activeTab === NavTab.MAGIC_IMAGE && <MagicImagePanel selectedLayer={selectedLayer?.type === 'image' ? (selectedLayer as any) : undefined} />}
+              {(activeTab === NavTab.MAGIC_IMAGE || activeTab === NavTab.VECTORIZER) && (
+                <MagicImagePanel selectedLayer={selectedLayer?.type === 'image' ? (selectedLayer as any) : undefined} />
+              )}
 
               {activeTab === NavTab.VIDEO_AGENT && <VideoAgentPanel />}
               {activeTab === NavTab.CAMPAIGN && <CampaignPanel />}
 
-
-              {activeTab === NavTab.TEXT_AGENT && <TextAgentPanel selectedLayer={selectedLayer?.type === 'text' ? (selectedLayer as any) : undefined} />}
+              {activeTab === NavTab.TEXT_AGENT && (
+                <TextAgentPanel selectedLayer={selectedLayer?.type === 'text' ? (selectedLayer as any) : undefined} />
+              )}
             </React.Suspense>
           </motion.div>
         </motion.div>

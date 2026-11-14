@@ -39,7 +39,17 @@ const saveRecentShape = (name: string) => {
   localStorage.setItem(RECENT_SHAPES_KEY, JSON.stringify(recent.slice(0, MAX_RECENT)));
 };
 
-type ShapeCategory = 'all' | 'basic' | 'frames' | 'blobs' | 'badges' | 'geometric' | 'decorative' | 'ui' | 'arrows' | 'stars';
+type ShapeCategory =
+  | 'all'
+  | 'basic'
+  | 'frames'
+  | 'blobs'
+  | 'badges'
+  | 'geometric'
+  | 'decorative'
+  | 'ui'
+  | 'arrows'
+  | 'stars';
 type FilterCategory = 'all' | 'shapes' | 'stickers' | '3d' | 'illustrations' | 'icons' | 'logos';
 
 interface ShapePreset {
@@ -180,7 +190,7 @@ export const ElementsPanel = () => {
       flipX: false,
       flipY: false,
       blendMode: 'normal',
-      color: '#7d2ae8',
+      color: '#7c3aed',
       cornerRadius: 0,
       ...style,
       filters: {
@@ -440,7 +450,7 @@ export const ElementsPanel = () => {
                         : shape.category === 'badges'
                           ? '#f43f5e'
                           : shape.category === 'geometric'
-                            ? '#7d2ae8'
+                            ? '#7c3aed'
                             : shape.category === 'stars'
                               ? '#f59e0b'
                               : shape.category === 'decorative'
@@ -452,7 +462,7 @@ export const ElementsPanel = () => {
             : shape.type === 'rectangle'
               ? { width: 100, height: 100, color: '#00c4cc' }
               : shape.type === 'circle'
-                ? { width: 100, height: 100, color: '#7d2ae8' }
+                ? { width: 100, height: 100, color: '#7c3aed' }
                 : { width: 100, height: 100, color: '#ff00ff' },
         category: shape.category as ShapeCategory,
         keywords: [shape.name.toLowerCase()],
@@ -595,21 +605,32 @@ export const ElementsPanel = () => {
             {/* Shape Sub-category Pills if Shapes is active */}
             {activeFilter === 'shapes' && (
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                {(['all', 'basic', 'frames', 'blobs', 'badges', 'geometric', 'stars', 'arrows', 'decorative', 'ui'] as ShapeCategory[]).map(
-                  (cat) => (
-                    <button
-                      key={cat}
-                      onClick={() => setSelectedCategory(cat)}
-                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
-                        selectedCategory === cat
-                          ? 'bg-white/20 text-white border border-white/30'
-                          : 'bg-white/5 text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      {cat}
-                    </button>
-                  )
-                )}
+                {(
+                  [
+                    'all',
+                    'basic',
+                    'frames',
+                    'blobs',
+                    'badges',
+                    'geometric',
+                    'stars',
+                    'arrows',
+                    'decorative',
+                    'ui',
+                  ] as ShapeCategory[]
+                ).map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                      selectedCategory === cat
+                        ? 'bg-white/20 text-white border border-white/30'
+                        : 'bg-white/5 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
             )}
 

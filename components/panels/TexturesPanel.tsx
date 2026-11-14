@@ -26,7 +26,9 @@ export const TexturesPanel: React.FC = () => {
 
   // ⚡ Bolt Optimization: Replace O(N*M) array.find(includes) with O(N) Set lookup
   const selectedLayer = useMemo(() => {
-    if (!activeArtboard || !selectedLayerIds || selectedLayerIds.length === 0) return undefined;
+    if (!activeArtboard || !selectedLayerIds || selectedLayerIds.length === 0) {
+      return undefined;
+    }
     const selectedSet = new Set(selectedLayerIds);
     for (let i = 0; i < activeArtboard.layers.length; i++) {
       if (selectedSet.has(activeArtboard.layers[i].id)) {
@@ -59,7 +61,9 @@ export const TexturesPanel: React.FC = () => {
       invert,
     });
 
-    if (!config) return;
+    if (!config) {
+      return;
+    }
 
     if (target === 'artboard' && activeArtboard) {
       updateArtboard(activeArtboard.id, {
@@ -84,10 +88,18 @@ export const TexturesPanel: React.FC = () => {
     scale?: number;
     invert?: boolean;
   }) => {
-    if (updates.opacity !== undefined) setOpacity(updates.opacity);
-    if (updates.blendMode !== undefined) setBlendMode(updates.blendMode);
-    if (updates.scale !== undefined) setScale(updates.scale);
-    if (updates.invert !== undefined) setInvert(updates.invert);
+    if (updates.opacity !== undefined) {
+      setOpacity(updates.opacity);
+    }
+    if (updates.blendMode !== undefined) {
+      setBlendMode(updates.blendMode);
+    }
+    if (updates.scale !== undefined) {
+      setScale(updates.scale);
+    }
+    if (updates.invert !== undefined) {
+      setInvert(updates.invert);
+    }
 
     if (selectedTextureId && activeArtboard && target === 'artboard') {
       const config = createTextureOverlayConfig(selectedTextureId, {
@@ -143,7 +155,7 @@ export const TexturesPanel: React.FC = () => {
                 target === 'artboard' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
               }`}
             >
-              🖼️ Canvas Artboard
+              Canvas Artboard
             </button>
             <button
               type="button"
@@ -153,7 +165,7 @@ export const TexturesPanel: React.FC = () => {
                 target === 'layer' ? 'bg-purple-600 text-white shadow-sm' : 'text-gray-400 hover:text-white'
               }`}
             >
-              🔤 Selected Layer
+              Selected Layer
             </button>
           </div>
           {target === 'layer' && !selectedLayer && (
@@ -236,7 +248,7 @@ export const TexturesPanel: React.FC = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block">
-              10 Vector Textures
+              {ALL_TEXTURE_DEFINITIONS.length} Vector Textures
             </label>
             <span className="text-[9px] font-mono text-purple-400">100% SVG Vector</span>
           </div>
@@ -268,8 +280,10 @@ export const TexturesPanel: React.FC = () => {
                   />
 
                   <div className="flex items-center justify-between w-full">
-                    <span className="text-[10px] font-black text-white flex items-center gap-1 truncate">
-                      <span>{texture.icon}</span>
+                    <span className="text-[10px] font-black text-white flex items-center gap-1.5 truncate">
+                      <span className="px-1 py-0.5 rounded bg-white/10 text-[7px] font-mono text-purple-300 shrink-0">
+                        {texture.icon}
+                      </span>
                       <span className="truncate">{texture.name}</span>
                     </span>
                   </div>

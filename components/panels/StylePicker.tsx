@@ -16,7 +16,19 @@ interface StylePickerProps {
   onClose?: () => void;
 }
 
-const ALL_CATEGORIES: StyleCategory[] = ['trending', 'classical', 'modernist', 'retro', 'raw', 'dark', 'organic', 'playful', 'typography', 'digital', 'fantasy'];
+const ALL_CATEGORIES: StyleCategory[] = [
+  'trending',
+  'classical',
+  'modernist',
+  'retro',
+  'raw',
+  'dark',
+  'organic',
+  'playful',
+  'typography',
+  'digital',
+  'fantasy',
+];
 
 export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, currentStyleId, onClose }) => {
   const [search, setSearch] = useState('');
@@ -33,9 +45,12 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
     return getStylesByCategory(activeCategory);
   }, [search, activeCategory]);
 
-  const handleSelect = useCallback((style: DesignStyleEntry) => {
-    onSelectStyle(style);
-  }, [onSelectStyle]);
+  const handleSelect = useCallback(
+    (style: DesignStyleEntry) => {
+      onSelectStyle(style);
+    },
+    [onSelectStyle]
+  );
 
   return (
     <div className="flex flex-col h-full bg-surface-dark-1 text-white">
@@ -49,7 +64,11 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
           </span>
         </div>
         {onClose && (
-          <button aria-label="Close style picker" onClick={onClose} className="p-1 hover:bg-white/10 rounded-lg transition-colors">
+          <button
+            aria-label="Close style picker"
+            onClick={onClose}
+            className="p-1 hover:bg-white/10 rounded-lg transition-colors"
+          >
             <Icons.X className="w-4 h-4" />
           </button>
         )}
@@ -97,14 +116,13 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   activeCategory === cat
                     ? 'bg-brand-600 text-white'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                 }`}
               >
-                <span>{meta.icon}</span>
-                <span>{meta.name.split(' ')[0]}</span>
+                {meta.name.split(' ')[0]}
               </button>
             );
           })}
@@ -120,10 +138,16 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
 
       {/* Style Grid */}
       <div className="flex-1 overflow-y-auto px-4 pb-4 custom-scrollbar">
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           {filteredStyles.map((style) => {
             const isSelected = currentStyleId === style.id;
             const isHovered = hoveredStyle === style.id;
+            const swatches = [
+              style.palette.background,
+              style.palette.primary,
+              style.palette.secondary,
+              style.palette.accent,
+            ];
 
             return (
               <button
@@ -131,39 +155,82 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
                 onClick={() => handleSelect(style)}
                 onMouseEnter={() => setHoveredStyle(style.id)}
                 onMouseLeave={() => setHoveredStyle(null)}
-                className={`group relative flex flex-col items-start p-3 rounded-2xl border transition-all duration-200 text-left ${
+                className={`group relative flex flex-col items-start p-2.5 rounded-2xl border transition-all duration-200 text-left ${
                   isSelected
                     ? 'border-brand-500 bg-brand-600/10 ring-1 ring-brand-500/50'
-                    : 'border-white/5 bg-surface-dark-3 hover:border-white/20 hover:bg-surface-dark-2'
+                    : 'border-white/10 bg-surface-dark-3 hover:border-white/25 hover:bg-surface-dark-2'
                 }`}
               >
-                {/* Color preview */}
-                <div className="w-full h-14 rounded-xl mb-2 overflow-hidden relative">
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: `linear-gradient(135deg, ${style.palette.primary} 0%, ${style.palette.secondary} 50%, ${style.palette.accent} 100%)`,
-                    }}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/40 to-transparent" />
-                  <span className="absolute bottom-1.5 left-2 text-[9px] font-bold text-white/80 uppercase tracking-wider">
-                    {style.badge}
-                  </span>
+                {/* Live Visual Style Specimen */}
+                <div
+                  className="w-full h-24 rounded-xl mb-2.5 overflow-hidden relative p-2.5 flex flex-col justify-between transition-transform duration-200 group-hover:scale-[1.01]"
+                  style={{
+                    backgroundColor: style.palette.background,
+                    border: `1px solid ${style.palette.border}`,
+                  }}
+                >
+                  {/* Top accent bar + surface pill */}
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span
+                      className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider truncate max-w-[70%]"
+                      style={{
+                        backgroundColor: style.palette.surface,
+                        color: style.palette.accent,
+                        border: `1px solid ${style.palette.border}`,
+                      }}
+                    >
+                      {style.badge}
+                    </span>
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0"
+                      style={{ backgroundColor: style.palette.accent }}
+                    />
+                  </div>
+
+                  {/* Live Typography Specimen */}
+                  <div className="my-auto">
+                    <div
+                      className="text-sm leading-tight truncate"
+                      style={{
+                        color: style.palette.text,
+                        fontFamily: `${style.typography.headlineFont}, sans-serif`,
+                        fontWeight: style.typography.headlineWeight,
+                        letterSpacing: `${style.typography.letterSpacing}px`,
+                        textTransform: style.typography.textTransform,
+                      }}
+                    >
+                      {style.name}
+                    </div>
+                    <div
+                      className="text-[9px] truncate mt-0.5"
+                      style={{
+                        color: style.palette.textMuted,
+                        fontFamily: `${style.typography.bodyFont}, sans-serif`,
+                      }}
+                    >
+                      {style.typography.headlineFont} · {style.era || style.category}
+                    </div>
+                  </div>
+
+                  {/* Bottom Palette Swatch Strip */}
+                  <div className="flex items-center gap-1">
+                    {swatches.map((hex, i) => (
+                      <span
+                        key={`${style.id}-sw-${i}`}
+                        className="h-1.5 flex-1 rounded-full"
+                        style={{ backgroundColor: hex }}
+                      />
+                    ))}
+                  </div>
                 </div>
 
                 {/* Style info */}
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-sm">{style.icon}</span>
+                <div className="flex items-center justify-between w-full gap-1 mb-0.5">
                   <span className="text-xs font-bold text-white truncate">{style.name}</span>
+                  {style.era && <span className="text-[9px] text-gray-500 shrink-0">{style.era}</span>}
                 </div>
 
-                {style.era && (
-                  <span className="text-[10px] text-gray-500 mb-1">{style.era}</span>
-                )}
-
-                <p className="text-[10px] text-gray-400 leading-tight line-clamp-2">
-                  {style.tagline}
-                </p>
+                <p className="text-[10px] text-gray-400 leading-tight line-clamp-2">{style.tagline}</p>
 
                 {/* Mood tags */}
                 {isHovered && style.mood.length > 0 && (
@@ -181,7 +248,7 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
 
                 {/* Selected indicator */}
                 {isSelected && (
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center">
+                  <div className="absolute top-3.5 right-3.5 w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center shadow-md">
                     <Icons.Check className="w-3 h-3 text-white" />
                   </div>
                 )}
@@ -194,10 +261,7 @@ export const StylePicker: React.FC<StylePickerProps> = ({ onSelectStyle, current
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
             <Icons.Search className="w-8 h-8 mb-3 opacity-30" />
             <p className="text-sm">No styles match "{search}"</p>
-            <button
-              onClick={() => setSearch('')}
-              className="text-xs text-brand-400 mt-2 hover:underline"
-            >
+            <button onClick={() => setSearch('')} className="text-xs text-brand-400 mt-2 hover:underline">
               Clear search
             </button>
           </div>
@@ -229,11 +293,14 @@ export const StyleChip: React.FC<{
           background: `linear-gradient(135deg, ${style.palette.primary}, ${style.palette.accent})`,
         }}
       />
-      <span className="font-medium text-white">{style.icon} {style.name}</span>
+      <span className="font-medium text-white">{style.name}</span>
       {onRemove && (
         <button
           aria-label="Remove style"
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
           className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
         >
           <Icons.X className="w-3 h-3 text-gray-400 hover:text-white" />

@@ -12,7 +12,6 @@ interface SidebarProps {
 }
 
 const PRIMARY_TABS = [
-
   { id: NavTab.TEMPLATES, icon: Icons.Templates, label: 'Templates' },
   { id: NavTab.TEXT, icon: Icons.Text, label: 'Text' },
   { id: NavTab.ELEMENTS, icon: Icons.Shapes, label: 'Elements' },
@@ -23,7 +22,19 @@ const PRIMARY_TABS = [
   { id: NavTab.LAYERS, icon: Icons.Layers, label: 'Layers' },
   { id: NavTab.MOCKUP, icon: Icons.Mockup, label: 'Mockups' },
   { id: NavTab.MOTION, icon: Icons.Play, label: 'Motion' },
-  { id: NavTab.ACCESSIBILITY, icon: Icons.Help, label: 'Accessibility' },
+  { id: NavTab.ACCESSIBILITY, icon: Icons.Help, label: 'Linter' },
+];
+
+const STUDIO_SUITE_TABS = [
+  { id: NavTab.CAMPAIGN, icon: Icons.Zap, label: 'Campaign' },
+  { id: NavTab.CAROUSEL, icon: Icons.LayoutCol, label: 'Carousel' },
+  { id: NavTab.SLIDES, icon: Icons.Monitor, label: 'Slides' },
+  { id: NavTab.MAGIC_IMAGE, icon: Icons.Wand, label: 'Image AI' },
+  { id: NavTab.VIDEO_AGENT, icon: Icons.Film, label: 'Video AI' },
+  { id: NavTab.WEBSITE, icon: Icons.Globe, label: 'Website' },
+  { id: NavTab.DOCUMENT, icon: Icons.FileText, label: 'Docs' },
+  { id: NavTab.PROTOTYPE, icon: Icons.Pointer, label: 'Prototype' },
+  { id: NavTab.COMPONENTS, icon: Icons.LayoutGrid, label: 'Assets' },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = React.memo(
@@ -99,9 +110,11 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-brand-600/5 to-transparent pointer-events-none" />
 
         <ErrorBoundary fallback={<div className="text-xs text-red-400 p-2">Sidebar error</div>}>
-          {/* Primary tools */}
+          {/* Primary tools & Studio suites */}
           <div className="flex flex-col items-center w-full gap-0.5 px-1.5 pt-4 pb-2 flex-1 overflow-y-auto no-scrollbar">
             {PRIMARY_TABS.map(renderTool)}
+            <div className="w-6 h-px bg-white/10 my-2 shrink-0" />
+            {STUDIO_SUITE_TABS.map(renderTool)}
           </div>
         </ErrorBoundary>
 

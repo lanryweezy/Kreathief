@@ -384,28 +384,6 @@ export const LayerEffectsPanel = React.memo(({ selectedLayer }: LayerEffectsPane
         )}
       </div>
 
-      {/* Coming Soon Effects */}
-      <div className="border border-gray-700 rounded-lg p-3 opacity-50">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-[10px] text-gray-400 font-bold">Inner Shadow</label>
-          <span className="text-[9px] text-gray-600">Coming Soon</span>
-        </div>
-      </div>
-
-      <div className="border border-gray-700 rounded-lg p-3 opacity-50">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-[10px] text-gray-400 font-bold">Outer Glow</label>
-          <span className="text-[9px] text-gray-600">Coming Soon</span>
-        </div>
-      </div>
-
-      <div className="border border-gray-700 rounded-lg p-3 opacity-50">
-        <div className="flex items-center justify-between mb-2">
-          <label className="text-[10px] text-gray-400 font-bold">Inner Glow</label>
-          <span className="text-[9px] text-gray-600">Coming Soon</span>
-        </div>
-      </div>
-
       {/* Preview */}
       <div className="pt-3 border-t border-gray-700">
         <div

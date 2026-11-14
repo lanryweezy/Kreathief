@@ -54,17 +54,17 @@ export type StyleCategory =
   | 'trending';
 
 export const STYLE_CATEGORIES: Record<StyleCategory, { name: string; icon: string; description: string }> = {
-  classical: { name: 'Classical & Heritage', icon: '🏛️', description: 'Timeless styles rooted in art history' },
-  modernist: { name: 'Modernist & Functional', icon: '📐', description: 'Clean, purposeful, grid-based design' },
-  retro: { name: 'Retro & Nostalgic', icon: '📼', description: 'Vintage vibes and throwback aesthetics' },
-  raw: { name: 'Raw & Rebellious', icon: '🔥', description: 'Unpolished, authentic, rule-breaking' },
-  dark: { name: 'Dark & Dramatic', icon: '🌑', description: 'Moody, intense, high-contrast visuals' },
-  organic: { name: 'Organic & Natural', icon: '🌿', description: 'Nature-inspired, warm, grounded' },
-  playful: { name: 'Cute & Playful', icon: '🎀', description: 'Fun, charming, approachable' },
-  typography: { name: 'Typography-Focused', icon: '🔤', description: 'Type as the hero element' },
-  digital: { name: 'Digital & Contemporary', icon: '💎', description: 'Modern, tech-forward, current' },
-  fantasy: { name: 'Fantasy & Storytelling', icon: '⚔️', description: 'Narrative, mythical, atmospheric' },
-  trending: { name: '2026 Trending', icon: '📈', description: "What's hot right now" },
+  classical: { name: 'Classical & Heritage', icon: 'HERITAGE', description: 'Timeless styles rooted in art history' },
+  modernist: { name: 'Modernist & Functional', icon: 'GRID', description: 'Clean, purposeful, grid-based design' },
+  retro: { name: 'Retro & Nostalgic', icon: 'RETRO', description: 'Vintage vibes and throwback aesthetics' },
+  raw: { name: 'Raw & Rebellious', icon: 'RAW', description: 'Unpolished, authentic, rule-breaking' },
+  dark: { name: 'Dark & Dramatic', icon: 'DARK', description: 'Moody, intense, high-contrast visuals' },
+  organic: { name: 'Organic & Natural', icon: 'ORGANIC', description: 'Nature-inspired, warm, grounded' },
+  playful: { name: 'Cute & Playful', icon: 'PLAY', description: 'Fun, charming, approachable' },
+  typography: { name: 'Typography-Focused', icon: 'TYPE', description: 'Type as the hero element' },
+  digital: { name: 'Digital & Contemporary', icon: 'DIGITAL', description: 'Modern, tech-forward, current' },
+  fantasy: { name: 'Fantasy & Storytelling', icon: 'STORY', description: 'Narrative, mythical, atmospheric' },
+  trending: { name: '2026 Trending', icon: 'TREND', description: 'Current high-demand aesthetics' },
 };
 
 // Helper to create a style entry with defaults

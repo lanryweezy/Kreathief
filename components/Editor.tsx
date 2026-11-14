@@ -205,12 +205,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
   useShakeToUndo({
     onShake: () => {
       useStore.getState().undo();
-      const toast = document.createElement('div');
-      toast.className =
-        'fixed top-24 left-1/2 -translate-x-1/2 bg-brand-500 text-white px-6 py-3 rounded-2xl shadow-lg z-[500] font-semibold';
-      toast.textContent = 'Undo';
-      document.body.appendChild(toast);
-      setTimeout(() => toast.remove(), 1500);
+      useStore.getState().addToast('Undo', 'info');
     },
     enabled: isMobile,
   });
@@ -234,6 +229,67 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
           useStore.getState().initializeProject(project);
         }
       });
+    }
+
+    const tool = params.get('tool')?.toLowerCase();
+    if (tool) {
+      const store = useStore.getState();
+      const toolTabMap: Record<string, NavTab> = {
+        templates: NavTab.TEMPLATES,
+        text: NavTab.TEXT,
+        'text-effects': NavTab.TEXT,
+        'font-pairing': NavTab.TEXT,
+        elements: NavTab.ELEMENTS,
+        shapes: NavTab.ELEMENTS,
+        icons: NavTab.ELEMENTS,
+        media: NavTab.MEDIA,
+        uploads: NavTab.MEDIA,
+        photos: NavTab.MEDIA,
+        textures: NavTab.TEXTURES,
+        texture: NavTab.TEXTURES,
+        draw: NavTab.DRAW,
+        vector: NavTab.DRAW,
+        pen: NavTab.DRAW,
+        brand: NavTab.BRAND,
+        'brand-kit': NavTab.BRAND,
+        layers: NavTab.LAYERS,
+        mockup: NavTab.MOCKUP,
+        mockups: NavTab.MOCKUP,
+        motion: NavTab.MOTION,
+        animate: NavTab.MOTION,
+        accessibility: NavTab.ACCESSIBILITY,
+        linter: NavTab.ACCESSIBILITY,
+        slides: NavTab.SLIDES,
+        presentation: NavTab.SLIDES,
+        carousel: NavTab.CAROUSEL,
+        document: NavTab.DOCUMENT,
+        docs: NavTab.DOCUMENT,
+        website: NavTab.WEBSITE,
+        web: NavTab.WEBSITE,
+        campaign: NavTab.CAMPAIGN,
+        prototype: NavTab.PROTOTYPE,
+        prototyping: NavTab.PROTOTYPE,
+        components: NavTab.COMPONENTS,
+        'magic-eraser': NavTab.MAGIC_IMAGE,
+        'bg-remover': NavTab.MAGIC_IMAGE,
+        upscaler: NavTab.MAGIC_IMAGE,
+        'magic-image': NavTab.MAGIC_IMAGE,
+        vectorizer: NavTab.MAGIC_IMAGE,
+        video: NavTab.VIDEO_AGENT,
+        'video-agent': NavTab.VIDEO_AGENT,
+        'text-agent': NavTab.TEXT_AGENT,
+      };
+
+      if (tool === 'ai' || tool === 'generate' || tool === 'image-generator') {
+        store.setShowAIOverlay(true, 'generate');
+      } else if (tool === 'assistant' || tool === 'agent') {
+        store.setShowAIOverlay(true, 'assistant');
+      } else if (toolTabMap[tool]) {
+        store.setActiveTab(toolTabMap[tool]);
+        if (tool === 'pen') {
+          store.setPenMode(true);
+        }
+      }
     }
   }, [projectId]);
 
@@ -555,8 +611,14 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         {!isMobile && <ComponentPropertiesPanel />}
 
         {/* Right Panel (AI Overlay / Agent) */}
-        {showAIOverlay && !isMobile && (
-          <div className="hidden xl:flex flex-col w-[320px] bg-surface-dark-2 border-l border-surface-dark-3 shrink-0">
+        {showAIOverlay && (
+          <div
+            className={
+              isMobile
+                ? 'fixed inset-0 z-[150] bg-surface-dark-2 flex flex-col'
+                : 'flex flex-col w-[320px] bg-surface-dark-2 border-l border-surface-dark-3 shrink-0 z-30'
+            }
+          >
             {/* Panel content (Unified Agent Interface) */}
             <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col relative">
               <React.Suspense
@@ -601,6 +663,8 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             haptics.success();
           }}
           onAddImage={() => {
+            useStore.getState().setActiveTab(NavTab.MEDIA);
+            setIsBottomSheetOpen(true);
             haptics.light();
           }}
           onDraw={() => {

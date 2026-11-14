@@ -18,6 +18,7 @@ import { exportCampaignToZip, downloadFile } from '../../services/campaignExport
 import { CampaignArchetype, CampaignFormatId, Artboard } from '../../types';
 import { log } from '../../utils/log';
 import { getAIErrorMessage } from '../../utils/errorMessages';
+import { Icons } from '../../constants';
 
 const SAMPLE_INSPIRATIONS = [
   {
@@ -161,8 +162,10 @@ export const CampaignPanel: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-6">
           {/* Hero Banner */}
           <div className="p-3.5 rounded-2xl bg-gradient-to-br from-cyan-950/40 via-purple-950/30 to-black/40 border border-cyan-500/30 shadow-[0_0_24px_rgba(0,240,255,0.08)] space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-cyan-400 text-lg">📢</span>
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+                <Icons.Sparkles className="w-3.5 h-3.5" />
+              </div>
               <div>
                 <h3 className="text-xs font-black uppercase tracking-wider text-white">
                   1-Click Multi-Format Campaign
@@ -362,7 +365,7 @@ export const CampaignPanel: React.FC = () => {
               </>
             ) : (
               <>
-                <span>⚡</span>
+                <Icons.Zap className="w-3.5 h-3.5" />
                 <span>Generate Omnichannel Campaign</span>
               </>
             )}
@@ -433,7 +436,7 @@ export const CampaignPanel: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    <span>📦</span>
+                    <Icons.Download className="w-3.5 h-3.5" />
                     <span>Download Full Campaign (.ZIP)</span>
                   </>
                 )}

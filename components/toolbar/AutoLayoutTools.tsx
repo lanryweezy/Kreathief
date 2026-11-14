@@ -13,7 +13,7 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
   const [showDropdown, setShowDropdown] = React.useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
-  if (selectedLayer.type !== 'group') {
+  if (selectedLayer.type !== 'group' && !selectedLayer.isGroup) {
     return null;
   }
 
@@ -25,10 +25,10 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
     } else {
       handleUpdateLayer({
         autoLayout: {
-          direction: 'row',
+          direction: 'col',
           padding: 20,
-          spacing: 10,
-          alignment: 'center',
+          spacing: 16,
+          alignment: 'start',
         },
       });
     }
@@ -117,7 +117,9 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Width</span>
                   <select
                     value={selectedLayer.autoLayout?.sizing?.width || 'fixed'}
-                    onChange={(e) => updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, width: e.target.value })}
+                    onChange={(e) =>
+                      updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, width: e.target.value })
+                    }
                     className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50"
                   >
                     <option value="fixed">Fixed</option>
@@ -129,7 +131,9 @@ export const AutoLayoutTools = React.memo(({ selectedLayer, handleUpdateLayer }:
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Height</span>
                   <select
                     value={selectedLayer.autoLayout?.sizing?.height || 'fixed'}
-                    onChange={(e) => updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, height: e.target.value })}
+                    onChange={(e) =>
+                      updateSetting('sizing', { ...selectedLayer.autoLayout?.sizing, height: e.target.value })
+                    }
                     className="w-full bg-black/40 border border-white/10 rounded-lg text-xs text-white p-2 outline-none focus:border-indigo-500/50"
                   >
                     <option value="fixed">Fixed</option>

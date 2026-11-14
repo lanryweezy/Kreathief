@@ -10,19 +10,19 @@ interface DesignCritiquePanelProps {
   onClose?: () => void;
 }
 
-const DIMENSION_ICONS: Record<string, string> = {
-  visual_hierarchy: '👁️',
-  color_harmony: '🎨',
-  typography: '🔤',
-  whitespace: '⬜',
-  composition: '⚖️',
-  brand_consistency: '🏷️',
-  emotional_impact: '💫',
-  trend_alignment: '📈',
-  commercial_viability: '💰',
-  accessibility: '♿',
-  technical_execution: '🔧',
-  originality: '✨',
+const DIMENSION_TAGS: Record<string, string> = {
+  visual_hierarchy: 'HIER',
+  color_harmony: 'COLOR',
+  typography: 'TYPE',
+  whitespace: 'SPACE',
+  composition: 'COMP',
+  brand_consistency: 'BRAND',
+  emotional_impact: 'MOOD',
+  trend_alignment: 'TREND',
+  commercial_viability: 'COMM',
+  accessibility: 'A11Y',
+  technical_execution: 'TECH',
+  originality: 'ORIG',
 };
 
 function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
@@ -57,16 +57,27 @@ function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
 }
 
 function DimensionBar({ dimension }: { dimension: CritiqueDimension }) {
-  const color = dimension.score >= 80 ? 'bg-green-500' : dimension.score >= 60 ? 'bg-yellow-500' : dimension.score >= 40 ? 'bg-orange-500' : 'bg-red-500';
+  const color =
+    dimension.score >= 80
+      ? 'bg-green-500'
+      : dimension.score >= 60
+        ? 'bg-yellow-500'
+        : dimension.score >= 40
+          ? 'bg-orange-500'
+          : 'bg-red-500';
 
   return (
     <div className="group">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs">{DIMENSION_ICONS[dimension.id] || '📊'}</span>
+          <span className="px-1 py-0.5 rounded bg-white/5 text-[9px] font-mono text-gray-400">
+            {DIMENSION_TAGS[dimension.id] || 'DIM'}
+          </span>
           <span className="text-xs font-bold text-gray-300">{dimension.name}</span>
         </div>
-        <span className={`text-xs font-black ${dimension.score >= 80 ? 'text-green-400' : dimension.score >= 60 ? 'text-yellow-400' : dimension.score >= 40 ? 'text-orange-400' : 'text-red-400'}`}>
+        <span
+          className={`text-xs font-black ${dimension.score >= 80 ? 'text-green-400' : dimension.score >= 60 ? 'text-yellow-400' : dimension.score >= 40 ? 'text-orange-400' : 'text-red-400'}`}
+        >
           {dimension.score}
         </span>
       </div>
@@ -82,9 +93,7 @@ function DimensionBar({ dimension }: { dimension: CritiqueDimension }) {
         {dimension.feedback}
       </p>
       {dimension.fixSuggestion && (
-        <p className="text-[10px] text-brand-400 mt-0.5 leading-tight">
-          Fix: {dimension.fixSuggestion}
-        </p>
+        <p className="text-[10px] text-brand-400 mt-0.5 leading-tight">Fix: {dimension.fixSuggestion}</p>
       )}
     </div>
   );
@@ -92,7 +101,13 @@ function DimensionBar({ dimension }: { dimension: CritiqueDimension }) {
 
 export const DesignCritiquePanel: React.FC<DesignCritiquePanelProps> = ({ result, isLoading, onAnalyze, onClose }) => {
   const gradeColor = result
-    ? result.overallScore >= 80 ? 'text-green-400' : result.overallScore >= 60 ? 'text-yellow-400' : result.overallScore >= 40 ? 'text-orange-400' : 'text-red-400'
+    ? result.overallScore >= 80
+      ? 'text-green-400'
+      : result.overallScore >= 60
+        ? 'text-yellow-400'
+        : result.overallScore >= 40
+          ? 'text-orange-400'
+          : 'text-red-400'
     : 'text-gray-400';
 
   return (
@@ -156,7 +171,7 @@ export const DesignCritiquePanel: React.FC<DesignCritiquePanelProps> = ({ result
             {result.quickWins.length > 0 && (
               <div className="p-3 rounded-xl bg-green-500/5 border border-green-500/20">
                 <h4 className="text-xs font-bold text-green-400 mb-2 flex items-center gap-1.5">
-                  <span>⚡</span> Quick Wins
+                  <Icons.Zap className="w-3.5 h-3.5" /> Quick Wins
                 </h4>
                 <ul className="space-y-1.5">
                   {result.quickWins.map((w, i) => (
@@ -173,7 +188,7 @@ export const DesignCritiquePanel: React.FC<DesignCritiquePanelProps> = ({ result
             {result.criticalIssues.length > 0 && (
               <div className="p-3 rounded-xl bg-red-500/5 border border-red-500/20">
                 <h4 className="text-xs font-bold text-red-400 mb-2 flex items-center gap-1.5">
-                  <span>🚨</span> Critical Issues
+                  <Icons.AlertTriangle className="w-3.5 h-3.5" /> Critical Issues
                 </h4>
                 <ul className="space-y-1.5">
                   {result.criticalIssues.map((issue, i) => (
@@ -190,7 +205,7 @@ export const DesignCritiquePanel: React.FC<DesignCritiquePanelProps> = ({ result
             {result.strengths.length > 0 && (
               <div className="p-3 rounded-xl bg-blue-500/5 border border-blue-500/20">
                 <h4 className="text-xs font-bold text-blue-400 mb-2 flex items-center gap-1.5">
-                  <span>✨</span> Strengths
+                  <Icons.Sparkles className="w-3.5 h-3.5" /> Strengths
                 </h4>
                 <ul className="space-y-1.5">
                   {result.strengths.map((s, i) => (

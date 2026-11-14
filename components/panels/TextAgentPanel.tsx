@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { Icons } from '../../constants';
 import { TextLayer } from '../../types';
 import { useStore } from '../../store/useStore';
@@ -22,17 +22,36 @@ const MODELS_BY_CATEGORY: Record<string, typeof AI_MODELS> = (() => {
 })();
 
 export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps) => {
-  const { handleToneRewrite, suggestFontPairing, isGenerating, selectedAiModel, setSelectedAiModel } = useStore(
-    useShallow((state) => ({
-      handleToneRewrite: state.handleToneRewrite,
-      suggestFontPairing: state.suggestFontPairing,
-      isGenerating: state.isGenerating,
-      selectedAiModel: state.selectedAiModel,
-      setSelectedAiModel: state.setSelectedAiModel,
-    }))
-  );
+  const { handleToneRewrite, suggestFontPairing, isGenerating, selectedAiModel, setSelectedAiModel, addToast } =
+    useStore(
+      useShallow((state) => ({
+        handleToneRewrite: state.handleToneRewrite,
+        suggestFontPairing: state.suggestFontPairing,
+        isGenerating: state.isGenerating,
+        selectedAiModel: state.selectedAiModel,
+        setSelectedAiModel: state.setSelectedAiModel,
+        addToast: state.addToast,
+      }))
+    );
 
   const [customPrompt, setCustomPrompt] = useState('');
+  const refFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleReferenceFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setCustomPrompt(`Rewrite using this reference context: ${reader.result.slice(0, 600).trim()}`);
+        addToast?.(`Loaded reference from ${file.name}`, 'success');
+      }
+    };
+    reader.readAsText(file);
+  };
 
   if (!selectedLayer) {
     return (
@@ -78,14 +97,18 @@ export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps
                       : 'border-gray-600 bg-surface-dark-4 text-gray-400 hover:border-gray-400 hover:text-gray-200'
                   }`}
                 >
-                  <span className="mr-1">{m.icon}</span>{m.name}
+                  <span className="mr-1">{m.icon}</span>
+                  {m.name}
                 </button>
               ))}
             </div>
           ))}
         </div>
         <p className="text-[9px] text-gray-600 text-center">
-          Active: <span className="text-purple-400 font-mono">{AI_MODELS.find(m => m.id === selectedAiModel)?.name ?? selectedAiModel}</span>
+          Active:{' '}
+          <span className="text-purple-400 font-mono">
+            {AI_MODELS.find((m) => m.id === selectedAiModel)?.name ?? selectedAiModel}
+          </span>
         </p>
       </div>
 
@@ -193,10 +216,20 @@ export const TextAgentPanel = React.memo(({ selectedLayer }: TextAgentPanelProps
 
       <div className="space-y-2 pt-2 border-t border-gray-700">
         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Custom Prompt</h4>
+        <input
+          ref={refFileInputRef}
+          type="file"
+          accept=".txt,.md,text/plain"
+          onChange={handleReferenceFile}
+          className="hidden"
+        />
         <div className="flex gap-2">
-          <button 
+          <button
+            type="button"
+            onClick={() => refFileInputRef.current?.click()}
             className="p-1.5 bg-surface-dark-4 hover:bg-purple-500/20 rounded-lg border border-gray-600 hover:border-purple-500/50 text-gray-400 hover:text-purple-400 transition-colors flex items-center justify-center shrink-0"
-            title="Upload Reference"
+            title="Upload Reference Copy (.txt / .md)"
+            aria-label="Upload reference copy"
           >
             <Icons.Plus className="w-3 h-3" />
           </button>

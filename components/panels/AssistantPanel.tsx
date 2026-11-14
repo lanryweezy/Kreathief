@@ -31,8 +31,11 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
     runAgenticRefine,
     applyAgentVariant,
     resetAgentState,
-    selectedLayerIds, styleReference, setStyleReference, clearStyleReference,
-    
+    selectedLayerIds,
+    styleReference,
+    setStyleReference,
+    clearStyleReference,
+
     // AI Assistant (Chat/Critique) state
     conversationHistory,
     isAnalyzing,
@@ -65,7 +68,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
       setStyleReference: state.setStyleReference,
       clearStyleReference: state.clearStyleReference,
       answerClarification: state.answerClarification,
-      
+
       conversationHistory: state.conversationHistory,
       isAnalyzing: state.isAnalyzing,
       currentCritique: state.currentCritique,
@@ -93,7 +96,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleReferenceUpload = async (file: File) => {
-    if (!file.type.startsWith('image/')) return;
+    if (!file.type.startsWith('image/')) {
+      return;
+    }
     const reader = new FileReader();
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string;
@@ -126,9 +131,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
       return;
     }
 
-    const finalPrompt = selectedStyleId
-      ? `${input} style: ${selectedStyleId} movement`
-      : input;
+    const finalPrompt = selectedStyleId ? `${input} style: ${selectedStyleId} movement` : input;
     if (isRefining) {
       runAgenticRefine(finalPrompt, selectedLayerIds);
     } else {
@@ -139,7 +142,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
 
   const handleSendChat = () => {
     const message = input.trim();
-    if (!message || isAnalyzing) return;
+    if (!message || isAnalyzing) {
+      return;
+    }
     sendMessage(message);
     setInput('');
   };
@@ -166,7 +171,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
             {current ? current.label : 'Working…'}
           </span>
           {idx >= 0 && (
-            <span className="text-[9px] font-mono text-gray-500">{idx + 1}/{STAGES.length}</span>
+            <span className="text-[9px] font-mono text-gray-500">
+              {idx + 1}/{STAGES.length}
+            </span>
           )}
         </div>
         <div className="flex gap-1">
@@ -183,10 +190,23 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {/* Premium Logic Trace */}
         <div className="relative rounded-2xl overflow-hidden bg-[#0A0A0A] border border-white/10 shadow-2xl group mt-4">
           <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 via-transparent to-purple-800/10 opacity-50" />
-          
+
           <div className="px-4 py-2 border-b border-white/5 bg-black/60 flex items-center justify-between z-10 relative">
             <span className="text-[9px] font-medium text-gray-400 flex items-center gap-1.5 uppercase tracking-widest">
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-brand-400"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-brand-400"
+              >
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
               Neural Trace
             </span>
             <div className="flex gap-1.5">
@@ -203,12 +223,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   {new Date().toLocaleTimeString('en-US', { hour12: false, minute: '2-digit', second: '2-digit' })}
                 </span>
                 <div>
-                  <span className={`uppercase tracking-tighter mr-2 ${i === arr.length - 1 ? 'text-brand-400 font-bold' : 'text-gray-500'}`}>
+                  <span
+                    className={`uppercase tracking-tighter mr-2 ${i === arr.length - 1 ? 'text-brand-400 font-bold' : 'text-gray-500'}`}
+                  >
                     [{event.agent}]
                   </span>
-                  <span className={i === arr.length - 1 ? 'text-white' : 'text-gray-400'}>
-                    {event.message}
-                  </span>
+                  <span className={i === arr.length - 1 ? 'text-white' : 'text-gray-400'}>{event.message}</span>
                 </div>
               </div>
             ))}
@@ -223,9 +243,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
     <div className="flex flex-col h-full bg-surface-dark-3 border-l border-white/5 shadow-[-20px_0_40px_rgba(0,0,0,0.4)] z-[110]">
       {/* Header */}
       <div className="px-6 py-4 border-b border-white/5 bg-surface-dark-3 flex items-center justify-between">
-        <h3 className="font-medium text-white flex items-center gap-2 text-sm tracking-wide">
-          Agent
-        </h3>
+        <h3 className="font-medium text-white flex items-center gap-2 text-sm tracking-wide">Agent</h3>
         <div className="flex items-center gap-4">
           {agentStatus !== 'idle' && (
             <button
@@ -252,8 +270,6 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {/* Splash screen if nothing is active */}
         {agentStatus === 'idle' && conversationHistory.length === 0 && !isAnalyzing && (
           <div className="space-y-6 pt-6 text-center">
-
-
             {/* Magic Tools Hub (Unified UI) */}
             <div className="pt-2 text-left space-y-3">
               <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest block px-1">
@@ -268,7 +284,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   <AgentIcons.Image className="w-5 h-5 text-blue-400 group-hover:scale-110 transition-transform duration-300" />
                   <div className="flex flex-col items-center z-10">
                     <span className="text-[10px] font-medium text-gray-200 mt-1">Image</span>
-                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Generate & Edit</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Generate & Edit
+                    </span>
                   </div>
                 </button>
                 <button
@@ -279,7 +297,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   <AgentIcons.Wand className="w-5 h-5 text-orange-400 group-hover:scale-110 transition-transform duration-300" />
                   <div className="flex flex-col items-center z-10">
                     <span className="text-[10px] font-medium text-gray-200 mt-1">Writer</span>
-                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Brand Copy</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Brand Copy
+                    </span>
                   </div>
                 </button>
                 <button
@@ -290,7 +310,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   <AgentIcons.Play className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform duration-300" />
                   <div className="flex flex-col items-center z-10">
                     <span className="text-[10px] font-medium text-gray-200 mt-1">Video</span>
-                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">Animate</span>
+                    <span className="text-[8px] text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      Animate
+                    </span>
                   </div>
                 </button>
               </div>
@@ -298,26 +320,30 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
 
             {/* Quick Inspiration Pills */}
             <div className="pt-2 text-left space-y-2">
-              <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest block px-1 mt-4">
+              <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest block px-1 mt-4">
                 Campaign Generators
               </span>
               <div className="grid grid-cols-1 gap-1.5">
                 {[
                   {
-                    label: '✨ Tech Summit Launch Poster',
-                    prompt: 'Futuristic African AI Summit poster in Lagos, deep violet with electric cyan nodes, gigantic bold headline and 3 feature cards',
+                    label: 'Tech Summit Launch Poster',
+                    prompt:
+                      'Futuristic African AI Summit poster in Lagos, deep violet with electric cyan nodes, gigantic bold headline and 3 feature cards',
                   },
                   {
-                    label: '🎵 Afrobeats Concert Story',
-                    prompt: 'High-energy Afrobeats live concert Instagram story, bold typography, warm neon orange highlights, ticket CTA',
+                    label: 'Afrobeats Concert Story',
+                    prompt:
+                      'High-energy Afrobeats live concert Instagram story, bold typography, warm neon orange highlights, ticket CTA',
                   },
                   {
-                    label: '💎 Luxury Real Estate Listing',
-                    prompt: 'Minimalist editorial real estate flyer for luxury duplex in Abuja, price badge, clean feature list, schedule viewing CTA',
+                    label: 'Luxury Real Estate Listing',
+                    prompt:
+                      'Minimalist editorial real estate flyer for luxury duplex in Abuja, price badge, clean feature list, schedule viewing CTA',
                   },
                   {
-                    label: '💼 SaaS Product Feature Banner',
-                    prompt: 'Clean modern Stripe-style feature announcement banner, 60/40 layout, dark mode, high-contrast register button',
+                    label: 'SaaS Product Feature Banner',
+                    prompt:
+                      'Clean modern Stripe-style feature announcement banner, 60/40 layout, dark mode, high-contrast register button',
                   },
                 ].map((preset, idx) => (
                   <button
@@ -328,9 +354,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                     <span className="text-[10px] font-bold text-gray-300 group-hover:text-brand-300 block">
                       {preset.label}
                     </span>
-                    <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">
-                      {preset.prompt}
-                    </span>
+                    <span className="text-[9px] text-gray-500 line-clamp-1 mt-0.5">{preset.prompt}</span>
                   </button>
                 ))}
               </div>
@@ -339,20 +363,39 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
             {/* Global Style Transfer Pills */}
             {hasLayers && !isRefining && (
               <div className="pt-4 text-left space-y-2 border-t border-white/5 mt-4">
-                <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest block px-1">
+                <span className="text-[9px] font-bold text-purple-400 uppercase tracking-widest block px-1">
                   Visual Style Transfer
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
-                    { label: 'Brutalist', prompt: 'Redesign with a Brutalist aesthetic: raw edges, bold typography, high contrast, neo-grotesque fonts.' },
-                    { label: 'Swiss Minimalist', prompt: 'Redesign with a Swiss Minimalist aesthetic: strict grid, ample negative space, clean sans-serif typography, restrained palette.' },
-                    { label: 'Cyberpunk', prompt: 'Redesign with a Neon Cyberpunk style: dark mode, glowing neon accents, futuristic glitch effects, tech typography.' },
-                    { label: 'Editorial', prompt: 'Redesign with an Elegant Editorial style: refined serif fonts, muted warm tones, sophisticated magazine layout, classic hierarchy.' },
+                    {
+                      label: 'Brutalist',
+                      prompt:
+                        'Redesign with a Brutalist aesthetic: raw edges, bold typography, high contrast, neo-grotesque fonts.',
+                    },
+                    {
+                      label: 'Swiss Minimalist',
+                      prompt:
+                        'Redesign with a Swiss Minimalist aesthetic: strict grid, ample negative space, clean sans-serif typography, restrained palette.',
+                    },
+                    {
+                      label: 'Cyberpunk',
+                      prompt:
+                        'Redesign with a Neon Cyberpunk style: dark mode, glowing neon accents, futuristic glitch effects, tech typography.',
+                    },
+                    {
+                      label: 'Editorial',
+                      prompt:
+                        'Redesign with an Elegant Editorial style: refined serif fonts, muted warm tones, sophisticated magazine layout, classic hierarchy.',
+                    },
                   ].map((style, idx) => (
                     <button
                       key={idx}
                       onClick={() => {
-                        runAgenticRefine(style.prompt, activeArtboard.layers.map((l: any) => l.id));
+                        runAgenticRefine(
+                          style.prompt,
+                          activeArtboard.layers.map((l: any) => l.id)
+                        );
                       }}
                       className="text-left px-2 py-1.5 bg-brand-500/10 hover:bg-brand-500/25 border border-brand-500/20 hover:border-brand-500/40 rounded-xl transition-all group flex flex-col justify-center"
                     >
@@ -368,8 +411,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
             {/* Motion Director AI Pills */}
             {hasLayers && !isRefining && (
               <div className="pt-4 text-left space-y-2 border-t border-white/5 mt-4">
-                <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest block px-1">
-                  Magic Animate ✨
+                <span className="text-[9px] font-bold text-amber-400 uppercase tracking-widest block px-1">
+                  Motion Presets
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
                   {[
@@ -431,32 +474,49 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {conversationHistory.length > 0 && (
           <div className="space-y-6 pt-2">
             {conversationHistory.map((msg) => (
-              <div key={msg.id} className="flex gap-4 items-start animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div
+                key={msg.id}
+                className="flex gap-4 items-start animate-in fade-in slide-in-from-bottom-2 duration-500"
+              >
                 {/* Avatar */}
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
-                  msg.role === 'user' 
-                    ? 'bg-gradient-to-br from-gray-700 to-gray-900 border border-white/10'
-                    : 'bg-gradient-to-br from-brand-600 to-brand-400 border border-brand-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-md ${
+                    msg.role === 'user'
+                      ? 'bg-gradient-to-br from-gray-700 to-gray-900 border border-white/10'
+                      : 'bg-gradient-to-br from-brand-600 to-brand-400 border border-brand-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
+                  }`}
+                >
                   {msg.role === 'user' ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-gray-300"
+                    >
+                      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
                   ) : (
                     <AgentIcons.Sparkles className="w-4 h-4 text-white" />
                   )}
                 </div>
-                
+
                 {/* Message Content */}
                 <div className="flex-1 min-w-0 mt-0.5">
                   <div className="text-[10px] font-bold text-gray-400 mb-1 flex items-center gap-2 uppercase tracking-widest">
                     {msg.role === 'user' ? 'You' : 'Agent'}
                   </div>
-                  <div className="text-[12px] text-gray-200 leading-relaxed whitespace-pre-wrap">
-                    {msg.content}
-                  </div>
+                  <div className="text-[12px] text-gray-200 leading-relaxed whitespace-pre-wrap">{msg.content}</div>
                 </div>
               </div>
             ))}
-            
+
             {/* Analyzing/Loading State */}
             {isAnalyzing && (
               <div className="flex gap-4 items-start animate-in fade-in duration-300">
@@ -479,8 +539,8 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {currentCritique && currentCritique.suggestions.length > 0 && (
           <div className="mt-6 border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent rounded-2xl overflow-hidden backdrop-blur-md shadow-2xl">
             <div className="px-4 py-3 border-b border-white/5 bg-black/20 flex items-center gap-2">
-               <AgentIcons.Check className="w-4 h-4 text-emerald-400" />
-               <h4 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Intelligent Suggestions</h4>
+              <AgentIcons.Check className="w-4 h-4 text-emerald-400" />
+              <h4 className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">Intelligent Suggestions</h4>
             </div>
             <div className="p-2 space-y-1">
               {currentCritique.suggestions.slice(0, 4).map((s: any) => (
@@ -488,8 +548,24 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   key={s.id}
                   className="group flex items-start gap-3 rounded-xl p-3 hover:bg-white/5 transition-all duration-300"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-brand-400 mt-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                  <p className="flex-1 text-[11px] text-gray-300 leading-relaxed font-medium">{s.message || s.description}</p>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-brand-400 mt-0.5 shrink-0 opacity-60 group-hover:opacity-100 transition-opacity"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                  <p className="flex-1 text-[11px] text-gray-300 leading-relaxed font-medium">
+                    {s.message || s.description}
+                  </p>
                   <div className="flex items-center gap-2 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
                     {s.autoFix && (
                       <button
@@ -518,11 +594,17 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           <div className="space-y-3 mt-4">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">12-Dimension Analysis</h4>
-              <span className={`text-lg font-black ${
-                enhancedCritique.overallScore >= 80 ? 'text-green-400' :
-                enhancedCritique.overallScore >= 60 ? 'text-yellow-400' :
-                enhancedCritique.overallScore >= 40 ? 'text-orange-400' : 'text-red-400'
-              }`}>
+              <span
+                className={`text-lg font-black ${
+                  enhancedCritique.overallScore >= 80
+                    ? 'text-green-400'
+                    : enhancedCritique.overallScore >= 60
+                      ? 'text-yellow-400'
+                      : enhancedCritique.overallScore >= 40
+                        ? 'text-orange-400'
+                        : 'text-red-400'
+                }`}
+              >
                 {enhancedCritique.letterGrade}
               </span>
             </div>
@@ -532,7 +614,9 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
               <div className="p-2.5 rounded-lg bg-green-500/5 border border-green-500/20">
                 <p className="text-[9px] font-bold text-green-400 mb-1.5 uppercase tracking-wider">Quick Wins</p>
                 {enhancedCritique.quickWins.map((w, i) => (
-                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">→ {w}</p>
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">
+                    → {w}
+                  </p>
                 ))}
               </div>
             )}
@@ -542,14 +626,16 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
               <div className="p-2.5 rounded-lg bg-red-500/5 border border-red-500/20">
                 <p className="text-[9px] font-bold text-red-400 mb-1.5 uppercase tracking-wider">Critical Issues</p>
                 {enhancedCritique.criticalIssues.map((issue, i) => (
-                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">! {issue}</p>
+                  <p key={i} className="text-[10px] text-gray-300 leading-tight mb-1">
+                    ! {issue}
+                  </p>
                 ))}
               </div>
             )}
 
             {/* Dimension scores (compact) */}
             <div className="grid grid-cols-2 gap-1.5">
-              {enhancedCritique.dimensions.map(dim => (
+              {enhancedCritique.dimensions.map((dim) => (
                 <div key={dim.id} className="flex items-center gap-1.5">
                   <div className="w-8 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
                     <div
@@ -566,7 +652,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         )}
 
         {/* Workflow Status */}
-        {(agentStatus === 'strategy' || agentStatus === 'creative' || agentStatus === 'searching' || agentStatus === 'rendering' || agentStatus === 'critic' || agentStatus === 'performance') && (
+        {(agentStatus === 'strategy' ||
+          agentStatus === 'creative' ||
+          agentStatus === 'searching' ||
+          agentStatus === 'rendering' ||
+          agentStatus === 'critic' ||
+          agentStatus === 'performance') && (
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-4">
               <span className="text-[10px] font-black text-purple-400 uppercase">Orchestration in progress</span>
@@ -609,24 +700,39 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
         {/* Pre-populated Prompt Chips */}
         {agentStatus === 'idle' && !input && (
           <div className="flex gap-2 mb-1 overflow-x-auto no-scrollbar pb-1">
-            <button onClick={() => setInput('A 5-slide pitch deck for Nova Africa AI')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ 5-Slide Pitch Deck</button>
-            <button onClick={() => setInput('A minimalist Instagram Ad Campaign for a sneaker drop')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Instagram Ad Campaign</button>
-            <button onClick={() => setInput('A cinematic event flyer for a Tech Summit')} className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors">✨ Tech Summit Flyer</button>
+            <button
+              onClick={() => setInput('A 5-slide pitch deck for Nova Africa AI')}
+              className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors"
+            >
+              5-Slide Pitch Deck
+            </button>
+            <button
+              onClick={() => setInput('A minimalist Instagram Ad Campaign for a sneaker drop')}
+              className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors"
+            >
+              Instagram Ad Campaign
+            </button>
+            <button
+              onClick={() => setInput('A cinematic event flyer for a Tech Summit')}
+              className="shrink-0 px-3 py-1.5 bg-white/5 hover:bg-purple-500/20 border border-white/10 rounded-full text-[10px] text-gray-300 hover:text-purple-300 transition-colors"
+            >
+              Tech Summit Flyer
+            </button>
           </div>
         )}
 
         {/* Style Selector Section */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-              <span>🎨</span> Graphic Styles & 2026 Trends
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+              Graphic Styles & 2026 Trends
             </span>
             {selectedStyleId && (
               <button
                 onClick={() => setSelectedStyleId(null)}
                 className="text-[9px] font-bold text-gray-400 hover:text-red-400 transition-colors uppercase tracking-wider flex items-center gap-1"
               >
-                <span>✕</span> Clear Style
+                <AgentIcons.Close className="w-2.5 h-2.5" /> Clear Style
               </button>
             )}
           </div>
@@ -634,10 +740,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
           {/* Category Tabs */}
           <div className="flex gap-1 overflow-x-auto custom-scrollbar pb-1 text-[10px] font-bold">
             {[
-              { id: 'trends2026', label: '🔥 2026 Trends' },
-              { id: 'movements', label: '🏛️ Movements' },
-              { id: 'retroSubculture', label: '📼 Retro' },
-              { id: 'minimalDigital', label: '🌿 Minimal' },
+              { id: 'trends2026', label: '2026 Trends' },
+              { id: 'movements', label: 'Movements' },
+              { id: 'retroSubculture', label: 'Retro' },
+              { id: 'minimalDigital', label: 'Minimal' },
               { id: 'all', label: 'All (25)' },
             ].map((cat) => (
               <button
@@ -656,70 +762,108 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
 
           {/* Horizontal Chips Bar */}
           <div className="flex gap-1.5 overflow-x-auto custom-scrollbar pb-1.5 pt-0.5">
-            {GRAPHIC_DESIGN_STYLE_LIST.filter(
-              (s) => activeCategory === 'all' || s.category === activeCategory
-            ).map((style) => {
-              const isSelected = selectedStyleId === style.id;
-              return (
-                <button
-                  key={style.id}
-                  onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
-                  title={`${style.name} (${style.era}): ${style.tagline}`}
-                  className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
-                    isSelected
-                      ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
-                      : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
-                  }`}
-                >
-                  <span className="text-xs">{style.icon}</span>
-                  <span>{style.name}</span>
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0 shadow-xs"
-                    style={{ backgroundColor: style.palette.primary }}
-                  />
-                </button>
-              );
-            })}
+            {GRAPHIC_DESIGN_STYLE_LIST.filter((s) => activeCategory === 'all' || s.category === activeCategory).map(
+              (style) => {
+                const isSelected = selectedStyleId === style.id;
+                return (
+                  <button
+                    key={style.id}
+                    onClick={() => setSelectedStyleId(isSelected ? null : style.id)}
+                    title={`${style.name} (${style.era}): ${style.tagline}`}
+                    className={`px-2.5 py-1.5 rounded-xl shrink-0 flex items-center gap-2 border text-[10px] font-bold transition-all ${
+                      isSelected
+                        ? 'bg-brand-600/30 border-brand-400 text-white shadow-md shadow-brand-500/20 scale-[1.02]'
+                        : 'bg-white/5 border-white/5 text-gray-300 hover:bg-white/10 hover:border-white/10'
+                    }`}
+                  >
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0 shadow-xs"
+                      style={{ backgroundColor: style.palette.primary }}
+                    />
+                    <span>{style.name}</span>
+                  </button>
+                );
+              }
+            )}
           </div>
 
           {/* Selected Style Indicator Pill */}
-          {selectedStyleId && (() => {
-            const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
-            if (!activeMeta) return null;
-            return (
-              <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
-                <span className="text-brand-300 font-bold truncate">
-                  Locked: <span className="text-white">{activeMeta.icon} {activeMeta.name}</span> — <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
-                </span>
-                <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
-                  {activeMeta.era}
-                </span>
-              </div>
-            );
-          })()}
+          {selectedStyleId &&
+            (() => {
+              const activeMeta = GRAPHIC_DESIGN_STYLES[selectedStyleId];
+              if (!activeMeta) {
+                return null;
+              }
+              return (
+                <div className="flex items-center justify-between px-3 py-1.5 bg-brand-500/10 border border-brand-500/20 rounded-lg text-[10px]">
+                  <span className="text-brand-300 font-bold truncate">
+                    Locked: <span className="text-white">{activeMeta.name}</span> —{' '}
+                    <span className="text-gray-400 font-normal">{activeMeta.badge}</span>
+                  </span>
+                  <span className="text-[9px] font-mono text-brand-400 uppercase tracking-widest pl-2 shrink-0">
+                    {activeMeta.era}
+                  </span>
+                </div>
+              );
+            })()}
         </div>
         <div className="relative group p-1 bg-surface-dark-2 rounded-xl border border-white/10 shadow-2xl overflow-hidden focus-within:border-brand-500 transition-colors">
-          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                handleReferenceUpload(file);
+              }
+              e.target.value = '';
+            }}
+          />
           {styleReference && (
             <div className="flex items-center gap-2 mb-2 p-2 bg-black/40 rounded-lg mx-2 mt-2">
-              <img src={styleReference.image} alt="Reference" className="w-8 h-8 rounded-md object-cover border border-white/10" />
+              <img
+                src={styleReference.image}
+                alt="Reference"
+                className="w-8 h-8 rounded-md object-cover border border-white/10"
+              />
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-medium text-white truncate">{styleReference.name || 'Visual Reference'}</div>
+                <div className="text-[10px] font-medium text-white truncate">
+                  {styleReference.name || 'Visual Reference'}
+                </div>
                 <div className="text-[9px] text-brand-400">Remix Mode Active</div>
               </div>
-              <button onClick={clearStyleReference} className="p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10">
+              <button
+                onClick={clearStyleReference}
+                className="p-1 text-gray-500 hover:text-white rounded-full hover:bg-white/10"
+              >
                 <AgentIcons.Close className="w-3 h-3" />
               </button>
             </div>
           )}
 
           <div className="flex items-start gap-2">
-            <button 
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
               className="mt-2 ml-2 p-2 bg-white/5 hover:bg-brand-500/20 rounded-xl text-gray-400 hover:text-brand-400 border border-white/5 hover:border-brand-500/50 transition-all shrink-0 group"
-              title="Add Context or Brand Assets"
+              title="Add Visual Reference or Brand Asset"
             >
-              {/* Replaced Plus with Paperclip SVG */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 group-hover:scale-110 transition-transform"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="w-4 h-4 group-hover:scale-110 transition-transform"
+              >
+                <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+              </svg>
             </button>
             <textarea
               value={input}
@@ -736,7 +880,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
                   : "Describe what you want to create (e.g. 'A 5-slide pitch deck for Nova Africa AI')..."
               }
               className="w-full h-24 bg-transparent resize-none py-3 pr-3 text-sm text-white placeholder-gray-500 focus:outline-none custom-scrollbar"
-              disabled={agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'clarifying' && agentStatus !== 'error'}
+              disabled={
+                agentStatus !== 'idle' &&
+                agentStatus !== 'done' &&
+                agentStatus !== 'clarifying' &&
+                agentStatus !== 'error'
+              }
             />
           </div>
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5 px-1 pb-1">
@@ -761,7 +910,13 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose }) => {
               </button>
               <button
                 onClick={handleStartWorkflow}
-                disabled={!input.trim() || (agentStatus !== 'idle' && agentStatus !== 'done' && agentStatus !== 'error' && agentStatus !== 'clarifying')}
+                disabled={
+                  !input.trim() ||
+                  (agentStatus !== 'idle' &&
+                    agentStatus !== 'done' &&
+                    agentStatus !== 'error' &&
+                    agentStatus !== 'clarifying')
+                }
                 aria-label={agentStatus === 'clarifying' ? 'Answer the agent' : 'Start AI Design Workflow'}
                 className="px-4 py-1.5 bg-brand-500 hover:bg-brand-400 rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(168,85,247,0.4)] hover:shadow-[0_0_20px_rgba(168,85,247,0.6)] font-bold text-[10px] gap-1.5 transition-all disabled:opacity-30 disabled:grayscale"
               >
