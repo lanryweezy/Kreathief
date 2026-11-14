@@ -12,6 +12,7 @@ import { createCollaborationSlice, CollaborationSlice } from './slices/collabora
 import { createAIAssistantSlice, AIAssistantSlice } from './slices/aiAssistantSlice';
 import { createIntentSlice, IntentSlice } from './slices/intentSlice';
 import { DEFAULT_CANVAS_FILTERS, DEFAULT_CANVAS_SIZE } from './slices/canvasSlice';
+import { DEFAULT_BRAND_KITS } from '../config/defaultBrandKits';
 import { v4 as uuidv4 } from 'uuid';
 import type { NavTab } from '../types';
 
@@ -123,7 +124,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
       __lastStateSnapshot: null,
 
       // Brand Slice
-      brandKits: [],
+      brandKits: DEFAULT_BRAND_KITS,
       activeBrandKitId: null,
 
       // Agent Slice
@@ -149,3 +150,7 @@ export const useStore = create<StoreState>()((set, get, store) => ({
 }));
 
 export const useKreathiefStore = useStore;
+
+if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.VITE_QA_BYPASS === 'true')) {
+  (window as any).__KREATHIEF_STORE__ = useStore;
+}

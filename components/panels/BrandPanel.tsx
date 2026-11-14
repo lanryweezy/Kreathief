@@ -91,7 +91,25 @@ export const BrandPanel = () => {
   const [newLogos, setNewLogos] = useState<string[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [confirmDeleteKitId, setConfirmDeleteKitId] = useState<string | null>(null);
+  const [kitFilter, setKitFilter] = useState<'all' | 'custom' | 'Fortune 50' | 'Top Startups'>('all');
+  const [kitSearch, setKitSearch] = useState('');
   const importInputRef = useRef<HTMLInputElement>(null);
+
+  const handleDuplicateKit = (kit: BrandKit) => {
+    const copy: BrandKit = {
+      ...kit,
+      id: `brand_${Date.now()}`,
+      name: `${kit.name} (Copy)`,
+      category: 'Custom',
+      isDefault: false,
+      colors: [...kit.colors],
+      fonts: [...kit.fonts],
+      logos: kit.logos ? [...kit.logos] : [],
+    };
+    onAddBrandKit(copy);
+    setActiveBrandKit(copy.id);
+    addToast?.(`Duplicated ${kit.name} as a custom brand kit!`, 'success');
+  };
 
   const handleCreate = () => {
     if (!newKitName.trim()) {
@@ -583,6 +601,41 @@ export const BrandPanel = () => {
           </div>
         )}
 
+        {/* Filter & Search Bar for Brand Kits */}
+        {brandKits.length > 0 && !isCreating && (
+          <div className="mb-3 space-y-2 shrink-0">
+            <input
+              type="text"
+              placeholder="Search Fortune 50, startups, or my kits..."
+              value={kitSearch}
+              onChange={(e) => setKitSearch(e.target.value)}
+              className="w-full bg-surface-dark-3 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-brand-600"
+            />
+            <div className="flex gap-1 flex-wrap">
+              {(
+                [
+                  { id: 'all', label: 'All' },
+                  { id: 'custom', label: 'My Kits' },
+                  { id: 'Fortune 50', label: 'Fortune 50' },
+                  { id: 'Top Startups', label: 'Top Startups' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setKitFilter(tab.id)}
+                  className={`px-2 py-1 rounded-md text-[10px] font-bold transition-colors ${
+                    kitFilter === tab.id
+                      ? 'bg-brand-600 text-white'
+                      : 'bg-surface-dark-3 text-gray-400 hover:text-white border border-white/5'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar pb-10">
           {brandKits.length === 0 && !isCreating ? (
             <div className="text-center text-gray-500 mt-10">
@@ -603,15 +656,47 @@ export const BrandPanel = () => {
               </Button>
             </div>
           ) : (
-            brandKits.map((kit) => (
+            brandKits
+              .filter((kit) => {
+                if (kitFilter === 'custom') {
+                  if (kit.isDefault) return false;
+                } else if (kitFilter !== 'all') {
+                  if (kit.category !== kitFilter) return false;
+                }
+                if (kitSearch.trim()) {
+                  const q = kitSearch.toLowerCase();
+                  return (
+                    kit.name.toLowerCase().includes(q) ||
+                    (kit.domain && kit.domain.toLowerCase().includes(q)) ||
+                    (kit.category && kit.category.toLowerCase().includes(q))
+                  );
+                }
+                return true;
+              })
+              .map((kit) => (
               <div
                 key={kit.id}
                 data-testid={`brand-kit-item-${kit.name.toLowerCase().replace(/\s+/g, '-')}`}
                 className="bg-surface-dark-3 border border-gray-700 rounded-xl p-3 group relative hover:border-gray-600 transition-colors"
               >
-                <div className="flex justify-between items-start mb-3">
-                  <h4 className="font-bold text-sm text-white">{kit.name}</h4>
-                  <div className="flex gap-1">
+                <div className="flex justify-between items-start mb-3 gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h4 className="font-bold text-sm text-white truncate">{kit.name}</h4>
+                    {kit.category && (
+                      <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-white/5 text-gray-400 border border-white/10 shrink-0">
+                        {kit.category}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-1 shrink-0">
+                    <button
+                      onClick={() => handleDuplicateKit(kit)}
+                      className="text-gray-500 hover:text-brand-400 p-1"
+                      title="Duplicate as Custom Kit"
+                      aria-label="Duplicate Brand Kit"
+                    >
+                      <Icons.Copy className="w-3 h-3" />
+                    </button>
                     <button
                       data-testid="export-brand-kit-btn"
                       onClick={() => handleExportKit(kit)}

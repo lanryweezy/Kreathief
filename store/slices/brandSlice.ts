@@ -1,5 +1,6 @@
 import { StateCreator } from 'zustand';
 import { BrandKit, Layer, Artboard } from '../../types';
+import { DEFAULT_BRAND_KITS } from '../../config/defaultBrandKits';
 import type { StoreState } from '../useStore';
 
 // Get perceived brightness of a hex color (0-255)
@@ -24,16 +25,8 @@ export interface BrandSlice {
 }
 
 export const createBrandSlice: StateCreator<StoreState, [], [], BrandSlice> = (set, get) => ({
-  brandKits: [
-    {
-      id: 'automotive_procurement',
-      name: 'Automotive Procurement (SAP Ariba, Coupa)',
-      colors: ['#0b1a30', '#008080', '#ff5722', '#e0e6ed'],
-      fonts: ['Space Grotesk', 'Inter'],
-      logos: ['https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=100&q=80'],
-    },
-  ],
-  activeBrandKitId: 'automotive_procurement',
+  brandKits: DEFAULT_BRAND_KITS,
+  activeBrandKitId: null,
 
   setActiveBrandKit: (id) => set({ activeBrandKitId: id }),
 

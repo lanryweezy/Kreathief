@@ -686,6 +686,9 @@ export interface BrandKit {
   logos?: string[];
   primaryLogo?: string;
   secondaryLogo?: string;
+  category?: 'Fortune 50' | 'Top Startups' | 'Custom' | string;
+  domain?: string;
+  isDefault?: boolean;
 }
 
 /**
