@@ -146,36 +146,30 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
     }
   });
 
-  // 3. Logo.dev Search API (if token provided)
-  if (token) {
-    try {
-      const response = await fetch(`https://api.logo.dev/search?q=${encodeURIComponent(trimmed)}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  // 3. Logo.dev Search API via secure server-side proxy (/api/logo-search)
+  try {
+    const response = await fetch(`/api/logo-search?q=${encodeURIComponent(trimmed)}`);
 
-      if (response.ok) {
-        const apiData = await response.json();
-        if (Array.isArray(apiData)) {
-          apiData.forEach((item: any) => {
-            const domain = item.domain || item.name;
-            if (domain && !seenDomains.has(domain)) {
-              results.push({
-                id: `logodev-${domain}`,
-                name: item.name || domain,
-                domain: domain,
-                logoUrl: item.logo_url || getLogoUrl(domain, { size: 256, token }),
-                primaryColor: item.colors?.[0] || undefined,
-              });
-              seenDomains.add(domain);
-            }
-          });
-        }
+    if (response.ok) {
+      const apiData = await response.json();
+      if (Array.isArray(apiData)) {
+        apiData.forEach((item: any) => {
+          const domain = item.domain || item.name;
+          if (domain && !seenDomains.has(domain)) {
+            results.push({
+              id: `logodev-${domain}`,
+              name: item.name || domain,
+              domain: domain,
+              logoUrl: item.logo_url || getLogoUrl(domain, { size: 256, token }),
+              primaryColor: item.colors?.[0] || undefined,
+            });
+            seenDomains.add(domain);
+          }
+        });
       }
-    } catch (apiErr) {
-      log.warn('[logoDevService] API search failed, falling back to local search', apiErr);
     }
+  } catch (apiErr) {
+    log.warn('[logoDevService] API search failed, falling back to local search', apiErr);
   }
 
   // 4. If query doesn't match a top brand and isn't an explicit domain, synthesize a likely domain
