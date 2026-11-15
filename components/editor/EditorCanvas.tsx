@@ -112,6 +112,7 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
         if (!isNaN(val)) {
           setZoom(Math.max(0.1, Math.min(10, val / 100)));
         }
+        e.currentTarget.blur();
       }
     };
 
@@ -162,10 +163,11 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = React.memo(
             >
               <Icons.Minus className="w-3.5 h-3.5" />
             </button>
+            {/* Stitch: Complete zoom input editing by using defaultValue + key instead of locked value with empty onChange, matching Editor.tsx pattern */}
             <input
+              key={zoom}
               type="text"
-              value={Math.round(zoom * 100) + '%'}
-              onChange={() => {}}
+              defaultValue={Math.round(zoom * 100) + '%'}
               onKeyDown={handleZoomInput}
               onBlur={handleZoomBlur}
               className="px-1 w-[42px] text-center text-[10px] font-black text-gray-300 font-mono bg-transparent border border-white/10 rounded outline-none focus:border-brand/50"
