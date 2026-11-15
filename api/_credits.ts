@@ -7,6 +7,8 @@
  * dev/preview environments and newly registered accounts continue working cleanly.
  */
 
+import { log } from '../utils/log';
+
 export interface CreditCheckResult {
   allowed: boolean;
   remaining: number | null;
@@ -15,10 +17,7 @@ export interface CreditCheckResult {
 
 const CREDIT_TIMEOUT_MS = 2500;
 
-export async function checkAndDeductCredits(
-  userId: string | undefined,
-  cost: number = 1
-): Promise<CreditCheckResult> {
+export async function checkAndDeductCredits(userId: string | undefined, cost: number = 1): Promise<CreditCheckResult> {
   if (!userId || userId === 'qa-bypass-user' || cost <= 0) {
     return { allowed: true, remaining: null };
   }
@@ -55,6 +54,11 @@ export async function checkAndDeductCredits(
 
     if (!getRes.ok) {
       clearTimeout(timer);
+      log.warn('[api/_credits] Subscription lookup failed, failing open', {
+        event: 'credits.lookup.failed_open',
+        userId,
+        status: getRes.status,
+      });
       return { allowed: true, remaining: null };
     }
 
@@ -92,8 +96,17 @@ export async function checkAndDeductCredits(
 
     clearTimeout(timer);
     return { allowed: true, remaining: nextBalance, plan: row.plan_id };
-  } catch {
+  } catch (err) {
     clearTimeout(timer);
+    // Observability: this path fails open (request allowed, no deduction). Without a log, credit
+    // leakage from Supabase timeouts/outages is invisible. Log ids and error type only, no keys.
+    log.warn('[api/_credits] Credit check failed open', {
+      event: 'credits.check.failed_open',
+      userId,
+      cost,
+      timeoutMs: CREDIT_TIMEOUT_MS,
+      errorName: err instanceof Error ? err.name : typeof err,
+    });
     return { allowed: true, remaining: null };
   }
 }
