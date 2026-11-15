@@ -48,7 +48,9 @@ export default async function handler(req: Request) {
   try {
     authUser = await requireAuth(req);
   } catch (error) {
-    if (error instanceof Response) {return error;}
+    if (error instanceof Response) {
+      return error;
+    }
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -137,22 +139,34 @@ export default async function handler(req: Request) {
       });
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-        'HTTP-Referer': origin,
-        'X-Title': 'Kreathief',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens,
-        ...(typeof temperature === 'number' && temperature >= 0 && temperature <= 2 && { temperature }),
-        ...(body.response_format && { response_format: body.response_format }),
-      }),
-    });
+    // Flora: Bound upstream OpenRouter calls with a 30s AbortController timeout so a
+    // stalled model endpoint fails cleanly with 504 instead of hanging the Edge worker.
+    const OPENROUTER_TIMEOUT_MS = 30_000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+          'HTTP-Referer': origin,
+          'X-Title': 'Kreathief',
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens,
+          ...(typeof temperature === 'number' && temperature >= 0 && temperature <= 2 && { temperature }),
+          ...(body.response_format && { response_format: body.response_format }),
+        }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -175,6 +189,17 @@ export default async function handler(req: Request) {
       },
     });
   } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      log.warn('[OpenRouter API] Upstream request timed out');
+      return new Response(JSON.stringify({ error: 'OpenRouter API timeout' }), {
+        status: 504,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          ...noStoreHeaders(),
+        },
+      });
+    }
     log.error('[OpenRouter API] Handler failed', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
