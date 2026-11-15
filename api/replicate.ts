@@ -6,6 +6,18 @@ export const config = {
   runtime: 'edge',
 };
 
+const REPLICATE_TIMEOUT_MS = 30_000;
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REPLICATE_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 30;
@@ -111,7 +123,7 @@ export default async function handler(req: Request) {
 
       const { image, scale, face_enhance } = payload;
 
-      const response = await fetch(`${BASE_URL}/predictions`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/predictions`, {
         method: 'POST',
         headers: {
           Authorization: `Token ${apiKey}`,
@@ -153,7 +165,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/predictions/${encodeURIComponent(id)}`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/predictions/${encodeURIComponent(id)}`, {
         headers: {
           Authorization: `Token ${apiKey}`,
           Accept: 'application/json',
@@ -182,7 +194,18 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      log.warn('[Replicate API] Upstream request timed out', { url: req.url });
+      return new Response(JSON.stringify({ error: 'Replicate API timeout' }), {
+        status: 504,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+          ...noStoreHeaders(),
+        },
+      });
+    }
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
