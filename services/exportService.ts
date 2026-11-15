@@ -12,7 +12,7 @@ import { log } from '../utils/log';
 import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
-import { resolveTextLines } from '../utils/textRendering';
+import { resolveTextLines, resolveTextShadow, applyTextShadow } from '../utils/textRendering';
 import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 import { buildVariableStrokeOutline, profileWidthFn } from '../utils/variableStroke';
 import { cleanPathData, type CleanOptions } from '../geometry/simplify';
@@ -214,7 +214,21 @@ function resolveNodeStroke(layer: any): { stroke?: string; strokeWidth?: number 
 
 function resolveNodeEffects(layer: any): Effect[] {
   const effects: Effect[] = [];
-  if (layer.shadow) {
+  const textShadow = layer.type === 'text' ? resolveTextShadow(layer) : null;
+  if (textShadow) {
+    effects.push({
+      id: `shadow-${layer.id || '1'}`,
+      type: 'shadow',
+      enabled: true,
+      params: {
+        x: textShadow.offsetX,
+        y: textShadow.offsetY,
+        blur: textShadow.blur,
+        color: textShadow.color,
+        opacity: 1,
+      },
+    } as any);
+  } else if (layer.shadow) {
     effects.push({
       id: `shadow-${layer.id || '1'}`,
       type: 'shadow',
@@ -1327,20 +1341,8 @@ export async function exportToCanvas(
           // ctx.textAlign anchors at the given x, so shift it to the box center/right edge.
           const tx = node.textAlign === 'center' ? x + node.width / 2 : node.textAlign === 'right' ? x + node.width : x;
 
-          if (node.neonGlow?.enabled) {
-            ctx.shadowColor = node.neonGlow.color || '#00ffff';
-            ctx.shadowBlur = (node.neonGlow.blur || 10) * (node.neonGlow.intensity || 1);
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 0;
-          } else {
-            const tShadow = (node as any).textShadow;
-            if (tShadow) {
-              ctx.shadowOffsetX = tShadow.offsetX ?? 0;
-              ctx.shadowOffsetY = tShadow.offsetY ?? 0;
-              ctx.shadowBlur = tShadow.blur ?? 0;
-              ctx.shadowColor = tShadow.color ?? 'rgba(0,0,0,0.5)';
-            }
-          }
+          // Shared resolver: text shadow, neon glow, and styleType presets matching the editor
+          applyTextShadow(ctx, node as any);
 
           const isHollow = (node as any).styleType === 'hollow';
           const tStroke =

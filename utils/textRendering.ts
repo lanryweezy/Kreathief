@@ -6,17 +6,103 @@
 import { TextLayer } from '../types';
 import { GeometryOracle } from './geometryOracle';
 import { warpRegistry } from './layers/warpRegistry';
+import { hexToRgba } from '../lib/utils';
+
+export interface ResolvedTextShadow {
+  offsetX: number;
+  offsetY: number;
+  blur: number;
+  color: string;
+}
+
+/**
+ * Shared Text Shadow Resolver (Mirror consistency fix)
+ * Surfaces diverging: Canvas Editor (CSS text-shadow in LayerItems.tsx) vs Export Engine (Canvas & SVG in exportService.ts)
+ * Property: Text shadow, neon glow, and styleType presets (lift, echo, emboss, deboss)
+ * Cause: Canvas Editor rendered styleType presets and neon glow using specific spread/color fallbacks, while
+ * Export completely omitted styleType shadows and used diverging neon glow parameters.
+ * Fix: Consolidate text shadow calculation into a shared resolver so editor, canvas export, and SVG export derive
+ * identical shadow metrics from the same layer state.
+ */
+export function resolveTextShadow(layer: any): ResolvedTextShadow | null {
+  if (!layer) {
+    return null;
+  }
+
+  if (layer.neonGlow?.enabled) {
+    const alpha = Math.max(0.15, Math.min(1, (layer.neonGlow.intensity ?? 50) / 100));
+    const spread = Math.max(1, layer.neonGlow.spread ?? 30);
+    const color = layer.neonGlow.color || '#7d2ae8';
+    return {
+      offsetX: 0,
+      offsetY: 0,
+      blur: spread,
+      color: hexToRgba(color, alpha),
+    };
+  }
+
+  const tShadow = layer.textShadow || layer.shadow;
+  if (tShadow && typeof tShadow === 'object') {
+    return {
+      offsetX: tShadow.offsetX ?? 0,
+      offsetY: tShadow.offsetY ?? 0,
+      blur: tShadow.blur ?? 0,
+      color: tShadow.color || 'rgba(0,0,0,0.5)',
+    };
+  }
+
+  const depth = layer.depth || 4;
+  switch (layer.styleType) {
+    case 'lift':
+      return {
+        offsetX: 0,
+        offsetY: depth,
+        blur: depth * 2,
+        color: 'rgba(0,0,0,0.45)',
+      };
+    case 'echo': {
+      const echoColor = layer.depthColor || layer.color || '#000000';
+      return {
+        offsetX: depth,
+        offsetY: depth,
+        blur: 0,
+        color: hexToRgba(echoColor, 0.4),
+      };
+    }
+    case 'emboss':
+      return {
+        offsetX: -1,
+        offsetY: -1,
+        blur: 1,
+        color: 'rgba(255,255,255,0.8)',
+      };
+    case 'deboss':
+      return {
+        offsetX: 1,
+        offsetY: 1,
+        blur: 1,
+        color: 'rgba(255,255,255,0.8)',
+      };
+    default:
+      return null;
+  }
+}
 
 /**
  * Apply text shadow from layer to canvas context
  */
-function applyTextShadow(ctx: CanvasRenderingContext2D, layer: TextLayer): void {
-  const shadow = layer.shadow;
+export function applyTextShadow(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, layer: any): void {
+  const shadow = resolveTextShadow(layer);
   if (shadow) {
-    ctx.shadowColor = shadow.color || 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = shadow.blur || 0;
-    ctx.shadowOffsetX = shadow.offsetX || 0;
-    ctx.shadowOffsetY = shadow.offsetY || 0;
+    ctx.shadowOffsetX = shadow.offsetX;
+    ctx.shadowOffsetY = shadow.offsetY;
+    ctx.shadowBlur = shadow.blur;
+    ctx.shadowColor = shadow.color;
+  } else {
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
   }
 }
 
@@ -47,9 +133,15 @@ function applyTextStroke(ctx: CanvasRenderingContext2D, text: string, x: number,
  * Apply CSS-like text transformations (uppercase, lowercase) to a string
  */
 export function applyTextTransform(text: string, transform?: 'none' | 'uppercase' | 'lowercase'): string {
-  if (!text) return text;
-  if (transform === 'uppercase') return text.toUpperCase();
-  if (transform === 'lowercase') return text.toLowerCase();
+  if (!text) {
+    return text;
+  }
+  if (transform === 'uppercase') {
+    return text.toUpperCase();
+  }
+  if (transform === 'lowercase') {
+    return text.toLowerCase();
+  }
   return text;
 }
 
@@ -239,7 +331,9 @@ export const resolveTextLines = (layer: TextLayer, measureTextFn?: (text: string
   const text = applyTextTransform(originalText, textTransform) || '';
   const manualLines = text.split('\n');
 
-  if (!width) return manualLines;
+  if (!width) {
+    return manualLines;
+  }
 
   let measure = measureTextFn;
   if (!measure) {
@@ -404,7 +498,9 @@ export async function convertTextToOutlines(layer: TextLayer, options?: { scale?
 
   const tempCanvas = document.createElement('canvas');
   const tempCtx = tempCanvas.getContext('2d');
-  if (!tempCtx) throw new Error('Could not create canvas context');
+  if (!tempCtx) {
+    throw new Error('Could not create canvas context');
+  }
 
   tempCtx.font = font;
   const lines = text.split('\n');
@@ -413,7 +509,9 @@ export async function convertTextToOutlines(layer: TextLayer, options?: { scale?
   let maxWidth = 0;
   for (const line of lines) {
     const metrics = tempCtx.measureText(line);
-    if (metrics.width > maxWidth) maxWidth = metrics.width;
+    if (metrics.width > maxWidth) {
+      maxWidth = metrics.width;
+    }
   }
 
   const padding = fontSize * scale;
@@ -425,8 +523,11 @@ export async function convertTextToOutlines(layer: TextLayer, options?: { scale?
   tempCtx.textBaseline = 'top';
 
   let charX = padding;
-  if (textAlign === 'center') charX = (tempCanvas.width - maxWidth) / 2;
-  else if (textAlign === 'right') charX = tempCanvas.width - maxWidth - padding;
+  if (textAlign === 'center') {
+    charX = (tempCanvas.width - maxWidth) / 2;
+  } else if (textAlign === 'right') {
+    charX = tempCanvas.width - maxWidth - padding;
+  }
 
   for (let lineIdx = 0; lineIdx < lines.length; lineIdx++) {
     const line = lines[lineIdx];
