@@ -88,7 +88,33 @@ export const Header: React.FC<HeaderProps> = ({
   const setAiTab = s.setAIOverlayTab;
 
   const zoomButtonRef = React.useRef<HTMLButtonElement>(null);
+  const zoomMenuRef = React.useRef<HTMLDivElement>(null);
   const titleSnapshotRef = React.useRef<string>(String(projectTitle || ''));
+
+  // Close the zoom menu on Escape (returning focus to trigger) or outside click
+  React.useEffect(() => {
+    if (!showZoomMenu) {
+      return;
+    }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowZoomMenu(false);
+        zoomButtonRef.current?.focus();
+      }
+    };
+    const handlePointerDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (!zoomMenuRef.current?.contains(target) && !zoomButtonRef.current?.contains(target)) {
+        setShowZoomMenu(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handlePointerDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handlePointerDown);
+    };
+  }, [showZoomMenu]);
 
   const onShare = () => setShowShareModal(true);
 
@@ -212,7 +238,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 data-testid="project-title-display"
                 onClick={() => setIsEditingTitle(true)}
-                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-full text-center"
+                className="text-sm font-medium text-white hover:text-brand-400 transition-colors px-2 py-0.5 rounded hover:bg-white/5 truncate max-w-full text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
                 title="Click to rename"
               >
                 {String(projectTitle || 'Untitled')}
@@ -220,7 +246,12 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          <div className="flex items-center justify-center w-5 h-5 ml-1 select-none shrink-0" title={getSaveStatus()}>
+          <div
+            role="status"
+            aria-label={getSaveStatus()}
+            className="flex items-center justify-center w-5 h-5 ml-1 select-none shrink-0"
+            title={getSaveStatus()}
+          >
             {isSaving ? (
               <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></div>
             ) : hasUnsavedChanges ? (
@@ -237,9 +268,11 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           ref={zoomButtonRef}
           onClick={() => setShowZoomMenu(!showZoomMenu)}
-          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-mono font-bold text-gray-300 hover:text-white transition-colors"
+          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-mono font-bold text-gray-300 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           title="Canvas Zoom Level"
-          aria-label="Canvas zoom level"
+          aria-label={`Canvas zoom level: ${Math.round(zoom * 100)}%`}
+          aria-haspopup="menu"
+          aria-expanded={showZoomMenu}
         >
           <span>{Math.round(zoom * 100)}%</span>
           <Icons.ChevronDown className="w-3 h-3 text-gray-500" />
@@ -249,6 +282,7 @@ export const Header: React.FC<HeaderProps> = ({
         <Button
           onClick={() => setShowAIOverlay(!showAIOverlay)}
           aria-label="Open AI tools"
+          aria-pressed={showAIOverlay}
           title="AI Tools (Image Gen + Design Agent)"
           variant={showAIOverlay ? 'secondary' : 'ghost'}
           size="sm"
@@ -304,7 +338,7 @@ export const Header: React.FC<HeaderProps> = ({
         {user && (
           <button
             onClick={() => useStore.getState().setShowProfileModal(true)}
-            className="w-7 h-7 rounded-full border border-surface-dark-5 flex items-center justify-center overflow-hidden shadow-sm hover:border-brand-600 transition-colors cursor-pointer relative"
+            className="w-7 h-7 rounded-full border border-surface-dark-5 flex items-center justify-center overflow-hidden shadow-sm hover:border-brand-600 transition-colors cursor-pointer relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             title="Click to open Account Hub & Profile"
             aria-label="Open Account Hub"
           >
@@ -316,6 +350,9 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Zoom Dropdown */}
       {showZoomMenu && (
         <div
+          ref={zoomMenuRef}
+          role="menu"
+          aria-label="Zoom levels"
           className="fixed z-[100] mt-2 bg-surface-dark-3 border border-white/10 rounded-xl shadow-2xl overflow-hidden p-1.5 w-32"
           style={{
             top: zoomButtonRef.current?.getBoundingClientRect().bottom,
@@ -325,30 +362,31 @@ export const Header: React.FC<HeaderProps> = ({
           {[0.25, 0.5, 0.75, 1, 1.5, 2, 3, 5].map((z) => (
             <button
               key={z}
+              role="menuitem"
+              aria-current={zoom === z ? 'true' : undefined}
               onClick={() => {
                 onZoomChange(z);
                 setShowZoomMenu(false);
               }}
-              className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors rounded-lg ${zoom === z ? 'bg-brand-600 text-white' : 'text-gray-300 hover:bg-white/10'}`}
+              className={`w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${zoom === z ? 'bg-brand-600 text-white' : 'text-gray-300 hover:bg-white/10'}`}
             >
               {z * 100}%
             </button>
           ))}
           <div className="h-px bg-white/5 my-1" />
           <button
+            role="menuitem"
             onClick={() => {
               onZoomChange(1);
               setShowZoomMenu(false);
             }}
-            className="w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-white hover:bg-white/10 rounded-lg"
+            className="w-full text-left px-3 py-2 text-[10px] uppercase tracking-wider font-bold text-gray-400 hover:text-white hover:bg-white/10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
           >
             Fit Screen
           </button>
         </div>
       )}
-      {showPricingModal && (
-        <PricingModal onClose={() => setShowPricingModal(false)} />
-      )}
+      {showPricingModal && <PricingModal onClose={() => setShowPricingModal(false)} />}
     </header>
   );
 };
