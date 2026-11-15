@@ -598,12 +598,19 @@ export const createAISlice: StateCreator<StoreState, [], [], AISlice> = (set, ge
       return;
     }
 
+    // Stitch: ImageTools.tsx wires "Face Retouch" to onRetouch, and geminiService.retouchImage
+    // already implements the retouch call; complete the stub to match onEnhance's history/layer flow.
     set({ isGenerating: true });
-    // Basic stub - would map to Inpainting or Face Retouch model
-    set({ isGenerating: true });
+    updateLayer(id, { isProcessing: true });
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const newSrc = await geminiService.retouchImage(layer.src);
+      saveToHistory();
+      updateLayer(id, { src: newSrc, isProcessing: false });
       get().addToast?.('Retouch applied', 'success');
+    } catch (error) {
+      log.error('Retouch failed', error, { layerId: id });
+      updateLayer(id, { isProcessing: false });
+      get().addToast?.(`Retouch failed: ${getErrorDetails(error).message}`, 'error');
     } finally {
       set({ isGenerating: false });
     }
