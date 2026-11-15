@@ -17,6 +17,7 @@ import {
 import { getLayerClipPath, getAnimationStyle } from '../../utils/layerRendering';
 import { buildVariableStrokeOutline, profileWidthFn } from '../../utils/variableStroke';
 import { buildFilterString, getLayerStyle } from '../../utils/layers';
+import { resolveTextLineHeight } from '../../utils/textRendering';
 import { hexToRgba } from '../../lib/utils';
 import { SelectionHandles } from './SelectionHandles';
 
@@ -208,7 +209,7 @@ export const GroupLayerItem = React.memo(
         maskPath,
         zoom,
         isInteracting,
-        children
+        children,
       },
       ref
     ) => {
@@ -233,15 +234,9 @@ export const GroupLayerItem = React.memo(
           data-type="group"
         >
           {/* Render nested children */}
-          <div className="relative w-full h-full pointer-events-none">
-            {children}
-          </div>
+          <div className="relative w-full h-full pointer-events-none">{children}</div>
 
-          <SelectionHandles
-            layer={layer}
-            onResize={onResize}
-            onRotate={onRotate}
-          />
+          <SelectionHandles layer={layer} onResize={onResize} onRotate={onRotate} />
         </div>
       );
     }
@@ -987,7 +982,7 @@ export const TextLayerItem = React.memo(
                 textLayer.letterSpacing !== null && textLayer.letterSpacing !== undefined
                   ? `${textLayer.letterSpacing}px`
                   : undefined,
-              lineHeight: textLayer.lineHeight || 1.35,
+              lineHeight: resolveTextLineHeight(textLayer.lineHeight),
               fontKerning: textLayer.kerning && textLayer.kerning > 0 ? 'normal' : 'none',
               fontFeatureSettings: textLayer.ligatures !== false ? '"liga" 1, "kern" 1' : '"liga" 0, "kern" 0',
               textDecoration: textLayer.textDecoration,

@@ -8,6 +8,17 @@ import { GeometryOracle } from './geometryOracle';
 import { warpRegistry } from './layers/warpRegistry';
 
 /**
+ * Canonical default line-height multiplier shared between the Canvas Editor
+ * (LayerItems) and the SVG / Canvas2D Export Engine (exportService).
+ * Prevents multi-line text from compressing (1.2 vs 1.35) on export.
+ */
+export const DEFAULT_TEXT_LINE_HEIGHT = 1.35;
+
+export function resolveTextLineHeight(lineHeight?: number | null): number {
+  return typeof lineHeight === 'number' && lineHeight > 0 ? lineHeight : DEFAULT_TEXT_LINE_HEIGHT;
+}
+
+/**
  * Apply text shadow from layer to canvas context
  */
 function applyTextShadow(ctx: CanvasRenderingContext2D, layer: TextLayer): void {

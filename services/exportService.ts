@@ -12,7 +12,7 @@ import { log } from '../utils/log';
 import { DesignNode, GradientFill, Effect, VectorPoint } from '../types/design';
 import { canvas as canvasTokens, content, surface } from '../lib/tokens';
 import { hexToRgba } from '../lib/utils';
-import { resolveTextLines } from '../utils/textRendering';
+import { resolveTextLines, resolveTextLineHeight } from '../utils/textRendering';
 import { getShapeDefinition } from '../utils/layers/shapeRegistry';
 import { buildVariableStrokeOutline, profileWidthFn } from '../utils/variableStroke';
 import { cleanPathData, type CleanOptions } from '../geometry/simplify';
@@ -610,7 +610,7 @@ function renderNodeToSvg(
               : node.fill && typeof node.fill === 'string'
                 ? node.fill
                 : content.inverse;
-      const lineHeight = (node as any).lineHeight || 1.2;
+      const lineHeight = resolveTextLineHeight((node as any).lineHeight);
       const letterSpacing = (node as any).letterSpacing || 0;
       const textAnchor = node.textAlign === 'center' ? 'middle' : node.textAlign === 'right' ? 'end' : 'start';
       const tx = node.textAlign === 'center' ? x + node.width / 2 : node.textAlign === 'right' ? x + node.width : x;
@@ -1286,7 +1286,7 @@ export async function exportToCanvas(
 
         case 'text': {
           const fontSize = node.fontSize || 16;
-          const lineHeight = (node as any).lineHeight || 1.2;
+          const lineHeight = resolveTextLineHeight((node as any).lineHeight);
           const letterSpacing = (node as any).letterSpacing || 0;
           ctx.font = `${(node as any).fontStyle || 'normal'} ${node.fontWeight || 400} ${fontSize}px ${node.fontFamily || 'system-ui'}`;
           ctx.textAlign = (node.textAlign as CanvasTextAlign) || 'left';
