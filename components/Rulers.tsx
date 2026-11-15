@@ -364,7 +364,7 @@ export const Rulers: React.FC<RulersProps> = React.memo(({
             }}
           />
           <div
-            className="fixed pointer-events-none z-[10000] bg-[#00e5ff] text-gray-950 text-[10px] font-mono font-bold px-2 py-0.5 rounded shadow-xl whitespace-nowrap"
+            className="fixed pointer-events-none z-[10000] bg-[#00e5ff] text-gray-950 text-meta font-mono tabular-nums font-bold px-2 py-0.5 rounded shadow-xl whitespace-nowrap"
             style={{
               ...(dragGuide.type === 'horizontal'
                 ? {

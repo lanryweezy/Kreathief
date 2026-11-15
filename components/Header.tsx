@@ -237,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
         <button
           ref={zoomButtonRef}
           onClick={() => setShowZoomMenu(!showZoomMenu)}
-          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-[11px] font-mono font-bold text-gray-300 hover:text-white transition-colors"
+          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/5 text-meta font-mono tabular-nums font-bold text-gray-300 hover:text-white transition-colors"
           title="Canvas Zoom Level"
           aria-label="Canvas zoom level"
         >

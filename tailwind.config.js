@@ -14,9 +14,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Outfit', 'Space Grotesk', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        outfit: ['Outfit', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        sans: ['Inter', 'Inter Fallback', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Outfit', 'Outfit Fallback', 'Space Grotesk', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        outfit: ['Outfit', 'Outfit Fallback', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+      },
+      fontSize: {
+        meta: ['12px', { lineHeight: '16px', letterSpacing: '0.01em' }],
+        caption: ['13px', { lineHeight: '20px', letterSpacing: '0.005em' }],
+        'body-sm': ['14px', { lineHeight: '20px' }],
+        body: ['16px', { lineHeight: '24px' }],
+        lead: ['18px', { lineHeight: '28px' }],
+        title: ['20px', { lineHeight: '28px', letterSpacing: '-0.01em' }],
+        h2: ['24px', { lineHeight: '32px', letterSpacing: '-0.02em' }],
+        h1: ['32px', { lineHeight: '40px', letterSpacing: '-0.02em' }],
+        display: ['40px', { lineHeight: '48px', letterSpacing: '-0.03em' }],
       },
       colors: {
         brand: {

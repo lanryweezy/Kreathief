@@ -475,7 +475,7 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
                       useStore.getState().setZoom(Math.max(0.1, Math.min(10, val / 100)));
                     }
                   }}
-                  className="px-1 py-1 w-[46px] text-center text-[11px] font-bold text-gray-300 font-mono bg-transparent border border-transparent rounded outline-none focus:border-brand-500 focus-bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 hover:bg-white/5 transition-colors"
+                  className="px-1 py-1 w-[46px] text-center text-meta font-bold text-gray-300 font-mono tabular-nums bg-transparent border border-transparent rounded outline-none focus:border-brand-500 focus-bg-white/5 focus-visible:ring-2 focus-visible:ring-brand-500 hover:bg-white/5 transition-colors"
                   title="Zoom Level"
                 />
                 <button
