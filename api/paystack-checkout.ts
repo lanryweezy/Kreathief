@@ -20,7 +20,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       authUser = await requireAuth(req);
     } catch (error) {
       if (error instanceof Response) {
-        return res.status(error.status).json({ error: await error.clone().json().catch(() => 'Authentication required') });
+        return res.status(error.status).json({
+          error: await error
+            .clone()
+            .json()
+            .catch(() => 'Authentication required'),
+        });
       }
       return res.status(500).json({ error: 'Internal server error' });
     }
@@ -53,9 +58,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               display_name: 'User ID',
               variable_name: 'user_id',
               value: userId,
-            }
-          ]
-        }
+            },
+          ],
+        },
       }),
     });
 
@@ -67,8 +72,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // Return the checkout URL to the frontend
     return res.status(200).json({ url: data.data.authorization_url });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Sentinel: Log full error server-side only; never return raw provider/internal error messages to clients.
     console.error('Paystack Checkout Error:', error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Checkout session creation failed' });
   }
 }

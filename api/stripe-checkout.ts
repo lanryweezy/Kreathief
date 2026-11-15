@@ -24,7 +24,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       authUser = await requireAuth(req);
     } catch (error) {
       if (error instanceof Response) {
-        return res.status(error.status).json({ error: await error.clone().json().catch(() => 'Authentication required') });
+        return res.status(error.status).json({
+          error: await error
+            .clone()
+            .json()
+            .catch(() => 'Authentication required'),
+        });
       }
       return res.status(500).json({ error: 'Internal server error' });
     }
@@ -53,12 +58,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         metadata: { supabase_user_id: userId },
       });
       customerId = customer.id;
-      
+
       // Save it to Supabase
-      await supabase
-        .from('user_subscriptions')
-        .update({ stripe_customer_id: customerId })
-        .eq('user_id', userId);
+      await supabase.from('user_subscriptions').update({ stripe_customer_id: customerId }).eq('user_id', userId);
     }
 
     // 4. Create the Stripe Checkout Session
@@ -81,8 +83,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     return res.status(200).json({ url: session.url });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Sentinel: Log full error server-side only; never return raw provider/internal error messages to clients.
     console.error('Stripe Checkout Error:', error);
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: 'Checkout session creation failed' });
   }
 }
