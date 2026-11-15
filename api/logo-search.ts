@@ -50,12 +50,18 @@ export default async function handler(req: Request) {
     });
   }
 
+  const LOGO_DEV_TIMEOUT_MS = 6000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), LOGO_DEV_TIMEOUT_MS);
+
   try {
     const response = await fetch(`https://api.logo.dev/search?q=${encodeURIComponent(query)}`, {
       headers: {
         Authorization: `Bearer ${secretKey}`,
       },
+      signal: controller.signal,
     });
+    clearTimeout(timer);
 
     if (!response.ok) {
       log.warn('[api/logo-search] Logo.dev upstream error', { status: response.status });
@@ -77,7 +83,23 @@ export default async function handler(req: Request) {
         'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
       },
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    clearTimeout(timer);
+    const isAbort = (err as { name?: string })?.name === 'AbortError' || controller.signal.aborted;
+    // Resilience: prevent hanging Logo.dev network requests from blocking Edge execution or client UI
+    if (isAbort) {
+      log.warn('[api/logo-search] Logo.dev upstream query timed out', {
+        event: 'logodev.search.timeout',
+        timeoutMs: LOGO_DEV_TIMEOUT_MS,
+      });
+      return new Response(JSON.stringify({ error: 'Logo search timed out' }), {
+        status: 504,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': origin,
+        },
+      });
+    }
     log.error('[api/logo-search] Failed to query Logo.dev', err);
     return new Response(JSON.stringify({ error: 'Failed to search brands' }), {
       status: 500,
