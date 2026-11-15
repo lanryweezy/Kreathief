@@ -22,43 +22,204 @@ export const CURATED_BRANDS: LogoDevBrand[] = [
   // Tech Giants
   { id: 'brand-apple', name: 'Apple', domain: 'apple.com', logoUrl: '', primaryColor: '#000000', category: 'Tech' },
   { id: 'brand-google', name: 'Google', domain: 'google.com', logoUrl: '', primaryColor: '#4285f4', category: 'Tech' },
-  { id: 'brand-microsoft', name: 'Microsoft', domain: 'microsoft.com', logoUrl: '', primaryColor: '#00a4ef', category: 'Tech' },
+  {
+    id: 'brand-microsoft',
+    name: 'Microsoft',
+    domain: 'microsoft.com',
+    logoUrl: '',
+    primaryColor: '#00a4ef',
+    category: 'Tech',
+  },
   { id: 'brand-meta', name: 'Meta', domain: 'meta.com', logoUrl: '', primaryColor: '#0668e1', category: 'Tech' },
   { id: 'brand-amazon', name: 'Amazon', domain: 'amazon.com', logoUrl: '', primaryColor: '#ff9900', category: 'Tech' },
   { id: 'brand-openai', name: 'OpenAI', domain: 'openai.com', logoUrl: '', primaryColor: '#10a37f', category: 'Tech' },
-  { id: 'brand-github', name: 'GitHub', domain: 'github.com', logoUrl: '', primaryColor: '#181717', category: 'Developer' },
-  { id: 'brand-vercel', name: 'Vercel', domain: 'vercel.com', logoUrl: '', primaryColor: '#000000', category: 'Developer' },
-  { id: 'brand-stripe', name: 'Stripe', domain: 'stripe.com', logoUrl: '', primaryColor: '#635bff', category: 'Finance' },
+  {
+    id: 'brand-github',
+    name: 'GitHub',
+    domain: 'github.com',
+    logoUrl: '',
+    primaryColor: '#181717',
+    category: 'Developer',
+  },
+  {
+    id: 'brand-vercel',
+    name: 'Vercel',
+    domain: 'vercel.com',
+    logoUrl: '',
+    primaryColor: '#000000',
+    category: 'Developer',
+  },
+  {
+    id: 'brand-stripe',
+    name: 'Stripe',
+    domain: 'stripe.com',
+    logoUrl: '',
+    primaryColor: '#635bff',
+    category: 'Finance',
+  },
   { id: 'brand-figma', name: 'Figma', domain: 'figma.com', logoUrl: '', primaryColor: '#f24e1e', category: 'Design' },
   { id: 'brand-adobe', name: 'Adobe', domain: 'adobe.com', logoUrl: '', primaryColor: '#ff0000', category: 'Design' },
   { id: 'brand-canva', name: 'Canva', domain: 'canva.com', logoUrl: '', primaryColor: '#00c4cc', category: 'Design' },
-  { id: 'brand-notion', name: 'Notion', domain: 'notion.so', logoUrl: '', primaryColor: '#000000', category: 'Productivity' },
-  { id: 'brand-slack', name: 'Slack', domain: 'slack.com', logoUrl: '', primaryColor: '#4a154b', category: 'Productivity' },
-  { id: 'brand-discord', name: 'Discord', domain: 'discord.com', logoUrl: '', primaryColor: '#5865f2', category: 'Social' },
-  { id: 'brand-spotify', name: 'Spotify', domain: 'spotify.com', logoUrl: '', primaryColor: '#1ed760', category: 'Media' },
-  { id: 'brand-netflix', name: 'Netflix', domain: 'netflix.com', logoUrl: '', primaryColor: '#e50914', category: 'Media' },
-  { id: 'brand-youtube', name: 'YouTube', domain: 'youtube.com', logoUrl: '', primaryColor: '#ff0000', category: 'Media' },
-  { id: 'brand-tiktok', name: 'TikTok', domain: 'tiktok.com', logoUrl: '', primaryColor: '#000000', category: 'Social' },
-  { id: 'brand-twitter', name: 'X / Twitter', domain: 'x.com', logoUrl: '', primaryColor: '#000000', category: 'Social' },
-  { id: 'brand-linkedin', name: 'LinkedIn', domain: 'linkedin.com', logoUrl: '', primaryColor: '#0a66c2', category: 'Social' },
+  {
+    id: 'brand-notion',
+    name: 'Notion',
+    domain: 'notion.so',
+    logoUrl: '',
+    primaryColor: '#000000',
+    category: 'Productivity',
+  },
+  {
+    id: 'brand-slack',
+    name: 'Slack',
+    domain: 'slack.com',
+    logoUrl: '',
+    primaryColor: '#4a154b',
+    category: 'Productivity',
+  },
+  {
+    id: 'brand-discord',
+    name: 'Discord',
+    domain: 'discord.com',
+    logoUrl: '',
+    primaryColor: '#5865f2',
+    category: 'Social',
+  },
+  {
+    id: 'brand-spotify',
+    name: 'Spotify',
+    domain: 'spotify.com',
+    logoUrl: '',
+    primaryColor: '#1ed760',
+    category: 'Media',
+  },
+  {
+    id: 'brand-netflix',
+    name: 'Netflix',
+    domain: 'netflix.com',
+    logoUrl: '',
+    primaryColor: '#e50914',
+    category: 'Media',
+  },
+  {
+    id: 'brand-youtube',
+    name: 'YouTube',
+    domain: 'youtube.com',
+    logoUrl: '',
+    primaryColor: '#ff0000',
+    category: 'Media',
+  },
+  {
+    id: 'brand-tiktok',
+    name: 'TikTok',
+    domain: 'tiktok.com',
+    logoUrl: '',
+    primaryColor: '#000000',
+    category: 'Social',
+  },
+  {
+    id: 'brand-twitter',
+    name: 'X / Twitter',
+    domain: 'x.com',
+    logoUrl: '',
+    primaryColor: '#000000',
+    category: 'Social',
+  },
+  {
+    id: 'brand-linkedin',
+    name: 'LinkedIn',
+    domain: 'linkedin.com',
+    logoUrl: '',
+    primaryColor: '#0a66c2',
+    category: 'Social',
+  },
   { id: 'brand-uber', name: 'Uber', domain: 'uber.com', logoUrl: '', primaryColor: '#000000', category: 'Tech' },
-  { id: 'brand-airbnb', name: 'Airbnb', domain: 'airbnb.com', logoUrl: '', primaryColor: '#ff5a5f', category: 'Travel' },
-  { id: 'brand-shopify', name: 'Shopify', domain: 'shopify.com', logoUrl: '', primaryColor: '#96bf48', category: 'Commerce' },
+  {
+    id: 'brand-airbnb',
+    name: 'Airbnb',
+    domain: 'airbnb.com',
+    logoUrl: '',
+    primaryColor: '#ff5a5f',
+    category: 'Travel',
+  },
+  {
+    id: 'brand-shopify',
+    name: 'Shopify',
+    domain: 'shopify.com',
+    logoUrl: '',
+    primaryColor: '#96bf48',
+    category: 'Commerce',
+  },
 
   // Payments & Finance
   { id: 'brand-visa', name: 'Visa', domain: 'visa.com', logoUrl: '', primaryColor: '#1a1f71', category: 'Finance' },
-  { id: 'brand-mastercard', name: 'Mastercard', domain: 'mastercard.com', logoUrl: '', primaryColor: '#eb001b', category: 'Finance' },
-  { id: 'brand-paypal', name: 'PayPal', domain: 'paypal.com', logoUrl: '', primaryColor: '#003087', category: 'Finance' },
-  { id: 'brand-amex', name: 'American Express', domain: 'americanexpress.com', logoUrl: '', primaryColor: '#006fcf', category: 'Finance' },
-  { id: 'brand-coinbase', name: 'Coinbase', domain: 'coinbase.com', logoUrl: '', primaryColor: '#0052ff', category: 'Crypto' },
+  {
+    id: 'brand-mastercard',
+    name: 'Mastercard',
+    domain: 'mastercard.com',
+    logoUrl: '',
+    primaryColor: '#eb001b',
+    category: 'Finance',
+  },
+  {
+    id: 'brand-paypal',
+    name: 'PayPal',
+    domain: 'paypal.com',
+    logoUrl: '',
+    primaryColor: '#003087',
+    category: 'Finance',
+  },
+  {
+    id: 'brand-amex',
+    name: 'American Express',
+    domain: 'americanexpress.com',
+    logoUrl: '',
+    primaryColor: '#006fcf',
+    category: 'Finance',
+  },
+  {
+    id: 'brand-coinbase',
+    name: 'Coinbase',
+    domain: 'coinbase.com',
+    logoUrl: '',
+    primaryColor: '#0052ff',
+    category: 'Crypto',
+  },
 
   // Lifestyle & Apparel
   { id: 'brand-nike', name: 'Nike', domain: 'nike.com', logoUrl: '', primaryColor: '#111111', category: 'Apparel' },
-  { id: 'brand-adidas', name: 'Adidas', domain: 'adidas.com', logoUrl: '', primaryColor: '#000000', category: 'Apparel' },
-  { id: 'brand-starbucks', name: 'Starbucks', domain: 'starbucks.com', logoUrl: '', primaryColor: '#00704a', category: 'Food' },
-  { id: 'brand-cocacola', name: 'Coca-Cola', domain: 'coca-cola.com', logoUrl: '', primaryColor: '#f40009', category: 'Food' },
+  {
+    id: 'brand-adidas',
+    name: 'Adidas',
+    domain: 'adidas.com',
+    logoUrl: '',
+    primaryColor: '#000000',
+    category: 'Apparel',
+  },
+  {
+    id: 'brand-starbucks',
+    name: 'Starbucks',
+    domain: 'starbucks.com',
+    logoUrl: '',
+    primaryColor: '#00704a',
+    category: 'Food',
+  },
+  {
+    id: 'brand-cocacola',
+    name: 'Coca-Cola',
+    domain: 'coca-cola.com',
+    logoUrl: '',
+    primaryColor: '#f40009',
+    category: 'Food',
+  },
   { id: 'brand-pepsi', name: 'Pepsi', domain: 'pepsi.com', logoUrl: '', primaryColor: '#004b93', category: 'Food' },
-  { id: 'brand-mcdonalds', name: "McDonald's", domain: 'mcdonalds.com', logoUrl: '', primaryColor: '#ffbc0d', category: 'Food' },
+  {
+    id: 'brand-mcdonalds',
+    name: "McDonald's",
+    domain: 'mcdonalds.com',
+    logoUrl: '',
+    primaryColor: '#ffbc0d',
+    category: 'Food',
+  },
   { id: 'brand-tesla', name: 'Tesla', domain: 'tesla.com', logoUrl: '', primaryColor: '#e82127', category: 'Auto' },
 ];
 
@@ -74,7 +235,11 @@ export function getLogoUrl(
     token?: string;
   } = {}
 ): string {
-  const cleanDomain = domain.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').trim().toLowerCase();
+  const cleanDomain = domain
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .trim()
+    .toLowerCase();
   if (!cleanDomain) {
     return '';
   }
@@ -113,27 +278,36 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
   const results: LogoDevBrand[] = [];
   const seenDomains = new Set<string>();
 
-  // 1. Direct domain match (e.g. user typed "stripe.com" or "uber.co")
-  const isDomainPattern = /^[a-z0-9-]+(\.[a-z]{2,})+$/i.test(trimmed);
+  // Normalize URL inputs so queries with protocols, www, or trailing paths resolve their domain cleanly
+  const normalizedDomain = trimmed
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .replace(/^www\./i, '')
+    .trim()
+    .toLowerCase();
+  const queryTerm = normalizedDomain || trimmed;
+
+  // 1. Direct domain match (e.g. user typed "stripe.com" or pasted "https://linear.app/")
+  const isDomainPattern = /^[a-z0-9-]+(\.[a-z]{2,})+$/i.test(normalizedDomain);
   if (isDomainPattern) {
-    const brandName = trimmed.split('.')[0].replace(/-/g, ' ');
+    const brandName = normalizedDomain.split('.')[0].replace(/-/g, ' ');
     const formattedName = brandName.charAt(0).toUpperCase() + brandName.slice(1);
     const domainBrand: LogoDevBrand = {
-      id: `domain-${trimmed}`,
+      id: `domain-${normalizedDomain}`,
       name: formattedName,
-      domain: trimmed,
-      logoUrl: getLogoUrl(trimmed, { size: 256, token }),
+      domain: normalizedDomain,
+      logoUrl: getLogoUrl(normalizedDomain, { size: 256, token }),
     };
     results.push(domainBrand);
-    seenDomains.add(trimmed);
+    seenDomains.add(normalizedDomain);
   }
 
   // 2. Curated brands match
   const curatedMatches = CURATED_BRANDS.filter(
     (b) =>
-      fuzzyMatch(trimmed, b.name) ||
-      fuzzyMatch(trimmed, b.domain) ||
-      (b.category && fuzzyMatch(trimmed, b.category))
+      fuzzyMatch(queryTerm, b.name) ||
+      fuzzyMatch(queryTerm, b.domain) ||
+      (b.category && fuzzyMatch(queryTerm, b.category))
   );
 
   curatedMatches.forEach((b) => {
@@ -148,7 +322,7 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
 
   // 3. Logo.dev Search API via secure server-side proxy (/api/logo-search)
   try {
-    const response = await fetch(`/api/logo-search?q=${encodeURIComponent(trimmed)}`);
+    const response = await fetch(`/api/logo-search?q=${encodeURIComponent(queryTerm)}`);
 
     if (response.ok) {
       const apiData = await response.json();
@@ -173,11 +347,12 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
   }
 
   // 4. If query doesn't match a top brand and isn't an explicit domain, synthesize a likely domain
-  if (results.length === 0 && trimmed.length >= 2) {
-    const candidateDomain = `${trimmed.replace(/\s+/g, '')}.com`;
+  if (results.length === 0 && queryTerm.length >= 2) {
+    const candidateDomain = isDomainPattern ? normalizedDomain : `${queryTerm.replace(/\s+/g, '')}.com`;
+    const fallbackName = queryTerm.split('.')[0].replace(/-/g, ' ');
     results.push({
       id: `guess-${candidateDomain}`,
-      name: trimmed.charAt(0).toUpperCase() + trimmed.slice(1),
+      name: fallbackName.charAt(0).toUpperCase() + fallbackName.slice(1),
       domain: candidateDomain,
       logoUrl: getLogoUrl(candidateDomain, { size: 256, token }),
     });
@@ -190,7 +365,11 @@ export async function searchBrandLogos(query: string, token = LOGO_DEV_TOKEN): P
  * Extracts a complete Brand Kit profile from a domain (Logo + Palette).
  */
 export async function fetchBrandKitFromDomain(domain: string, token = LOGO_DEV_TOKEN) {
-  const cleanDomain = domain.replace(/^https?:\/\//i, '').replace(/\/.*$/, '').trim().toLowerCase();
+  const cleanDomain = domain
+    .replace(/^https?:\/\//i, '')
+    .replace(/\/.*$/, '')
+    .trim()
+    .toLowerCase();
   const baseName = cleanDomain.split('.')[0].replace(/-/g, ' ');
   const displayName = baseName.charAt(0).toUpperCase() + baseName.slice(1);
   const logoUrl = getLogoUrl(cleanDomain, { size: 512, format: 'png', token });

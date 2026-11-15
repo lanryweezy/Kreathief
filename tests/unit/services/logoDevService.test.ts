@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getLogoUrl, searchBrandLogos, fetchBrandKitFromDomain, CURATED_BRANDS } from '../../../services/logoDevService';
+import { getLogoUrl, searchBrandLogos, fetchBrandKitFromDomain } from '../../../services/logoDevService';
 
 describe('logoDevService', () => {
   beforeEach(() => {
@@ -43,6 +43,17 @@ describe('logoDevService', () => {
     it('creates direct domain brand if domain is typed', async () => {
       const results = await searchBrandLogos('acmecorp.io');
       expect(results.some((b) => b.domain === 'acmecorp.io')).toBe(true);
+    });
+
+    it('sanitizes full URLs and extracts domain for search', async () => {
+      const results = await searchBrandLogos('https://linear.app/features');
+      expect(results.some((b) => b.domain === 'linear.app')).toBe(true);
+      expect(results.some((b) => b.logoUrl.includes('linear.app'))).toBe(true);
+    });
+
+    it('handles www prefixes and matches curated brands', async () => {
+      const results = await searchBrandLogos('www.spotify.com/us');
+      expect(results.some((b) => b.name === 'Spotify')).toBe(true);
     });
   });
 
