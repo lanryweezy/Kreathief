@@ -15,10 +15,7 @@ export interface CreditCheckResult {
 
 const CREDIT_TIMEOUT_MS = 2500;
 
-export async function checkAndDeductCredits(
-  userId: string | undefined,
-  cost: number = 1
-): Promise<CreditCheckResult> {
+export async function checkAndDeductCredits(userId: string | undefined, cost: number = 1): Promise<CreditCheckResult> {
   if (!userId || userId === 'qa-bypass-user' || cost <= 0) {
     return { allowed: true, remaining: null };
   }
@@ -39,59 +36,39 @@ export async function checkAndDeductCredits(
   const timer = setTimeout(() => controller.abort(), CREDIT_TIMEOUT_MS);
 
   try {
-    const queryUrl = `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${encodeURIComponent(
-      userId
-    )}&select=ai_credits_balance,plan_id,status&limit=1`;
-
-    const getRes = await fetch(queryUrl, {
-      method: 'GET',
-      headers: {
-        apikey: serviceKey,
-        Authorization: `Bearer ${serviceKey}`,
-        Accept: 'application/json',
-      },
-      signal: controller.signal,
-    });
-
-    if (!getRes.ok) {
-      clearTimeout(timer);
-      return { allowed: true, remaining: null };
-    }
-
-    const rows = await getRes.json();
-    if (!Array.isArray(rows) || rows.length === 0) {
-      clearTimeout(timer);
-      return { allowed: true, remaining: null };
-    }
-
-    const row = rows[0];
-    const balance = typeof row.ai_credits_balance === 'number' ? row.ai_credits_balance : null;
-    if (balance === null) {
-      clearTimeout(timer);
-      return { allowed: true, remaining: null, plan: row.plan_id };
-    }
-
-    if (balance < cost) {
-      clearTimeout(timer);
-      return { allowed: false, remaining: balance, plan: row.plan_id };
-    }
-
-    const nextBalance = balance - cost;
-    const patchUrl = `${supabaseUrl}/rest/v1/user_subscriptions?user_id=eq.${encodeURIComponent(userId)}`;
-    await fetch(patchUrl, {
-      method: 'PATCH',
+    // Vault: Use atomic DB-side RPC (`deduct_ai_credits`) instead of GET + PATCH to prevent
+    // concurrent Edge requests from double-spending credits or clobbering concurrent top-ups.
+    const rpcUrl = `${supabaseUrl}/rest/v1/rpc/deduct_ai_credits`;
+    const rpcRes = await fetch(rpcUrl, {
+      method: 'POST',
       headers: {
         apikey: serviceKey,
         Authorization: `Bearer ${serviceKey}`,
         'Content-Type': 'application/json',
-        Prefer: 'return=minimal',
+        Accept: 'application/json',
       },
-      body: JSON.stringify({ ai_credits_balance: nextBalance }),
+      body: JSON.stringify({ p_user_id: userId, p_cost: cost }),
       signal: controller.signal,
     });
 
+    if (!rpcRes.ok) {
+      clearTimeout(timer);
+      return { allowed: true, remaining: null };
+    }
+
+    const rows = await rpcRes.json();
+    const row = Array.isArray(rows) ? rows[0] : rows;
+    if (!row || typeof row.allowed !== 'boolean') {
+      clearTimeout(timer);
+      return { allowed: true, remaining: null };
+    }
+
     clearTimeout(timer);
-    return { allowed: true, remaining: nextBalance, plan: row.plan_id };
+    return {
+      allowed: row.allowed,
+      remaining: typeof row.remaining === 'number' ? row.remaining : null,
+      plan: typeof row.plan_id === 'string' ? row.plan_id : undefined,
+    };
   } catch {
     clearTimeout(timer);
     return { allowed: true, remaining: null };
