@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fetchWithTimeout, isAbortError, timeoutResponse } from './_fetchWithTimeout';
 import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
 
@@ -98,7 +99,7 @@ export default async function handler(req: Request) {
       const query = url.searchParams.get('query') || '';
       const page = url.searchParams.get('page') || '1';
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/search?query=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
@@ -131,7 +132,11 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (isAbortError(error)) {
+      log.warn('[Pexels API] Upstream request timed out', { url: req.url });
+      return timeoutResponse(origin, 'Pexels API timeout');
+    }
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

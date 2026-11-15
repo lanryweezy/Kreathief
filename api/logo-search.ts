@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fetchWithTimeout, isAbortError, timeoutResponse } from './_fetchWithTimeout';
 
 export const config = {
   runtime: 'edge',
@@ -51,11 +52,15 @@ export default async function handler(req: Request) {
   }
 
   try {
-    const response = await fetch(`https://api.logo.dev/search?q=${encodeURIComponent(query)}`, {
-      headers: {
-        Authorization: `Bearer ${secretKey}`,
+    const response = await fetchWithTimeout(
+      `https://api.logo.dev/search?q=${encodeURIComponent(query)}`,
+      {
+        headers: {
+          Authorization: `Bearer ${secretKey}`,
+        },
       },
-    });
+      6000
+    );
 
     if (!response.ok) {
       log.warn('[api/logo-search] Logo.dev upstream error', { status: response.status });
@@ -78,6 +83,10 @@ export default async function handler(req: Request) {
       },
     });
   } catch (err) {
+    if (isAbortError(err)) {
+      log.warn('[api/logo-search] Logo.dev upstream request timed out');
+      return timeoutResponse(origin, 'Logo.dev API timeout');
+    }
     log.error('[api/logo-search] Failed to query Logo.dev', err);
     return new Response(JSON.stringify({ error: 'Failed to search brands' }), {
       status: 500,

@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fetchWithTimeout, isAbortError, timeoutResponse } from './_fetchWithTimeout';
 import { cacheHeaders, noStoreHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
 
@@ -135,7 +136,7 @@ export default async function handler(req: Request) {
         }
       }
 
-      const response = await fetch(`${BASE_URL}/generate`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ export default async function handler(req: Request) {
         },
       });
     } else if (action === 'list' && req.method === 'GET') {
-      const response = await fetch(`${BASE_URL}/templates`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/templates`, {
         headers: {
           Authorization: `Bearer ${apiKey}`,
         },
@@ -188,7 +189,11 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (isAbortError(error)) {
+      log.warn('[Dynamic Mockups API] Upstream request timed out', { url: req.url });
+      return timeoutResponse(origin, 'Dynamic Mockups API timeout');
+    }
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

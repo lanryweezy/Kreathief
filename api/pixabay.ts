@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fetchWithTimeout, isAbortError, timeoutResponse } from './_fetchWithTimeout';
 import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
 export const config = {
@@ -95,7 +96,7 @@ export default async function handler(req: Request) {
       const query = url.searchParams.get('query') || '';
       const page = url.searchParams.get('page') || '1';
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/?key=${apiKey}&q=${encodeURIComponent(query)}&page=${encodeURIComponent(page)}&per_page=30`,
         {
           headers: {
@@ -127,7 +128,11 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (isAbortError(error)) {
+      log.warn('[Pixabay API] Upstream request timed out', { url: req.url });
+      return timeoutResponse(origin, 'Pixabay API timeout');
+    }
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,

@@ -1,4 +1,5 @@
 import { log } from '../utils/log';
+import { fetchWithTimeout, isAbortError, timeoutResponse } from './_fetchWithTimeout';
 import { cacheHeaders } from '../utils/cacheHeaders';
 import { requireAuth } from './_auth';
 
@@ -97,7 +98,7 @@ export default async function handler(req: Request) {
       const type = url.searchParams.get('product_type') || 'icon';
       const page = url.searchParams.get('page') || '1';
 
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${BASE_URL}/search?query=${encodeURIComponent(query)}&product_type=${encodeURIComponent(type)}&page=${encodeURIComponent(page)}&per_page=20`,
         {
           headers: {
@@ -134,7 +135,7 @@ export default async function handler(req: Request) {
         });
       }
 
-      const response = await fetch(`${BASE_URL}/items/${encodeURIComponent(uuid)}`, {
+      const response = await fetchWithTimeout(`${BASE_URL}/items/${encodeURIComponent(uuid)}`, {
         headers: {
           'Client-ID': clientId,
           'Client-Secret': secretKey,
@@ -164,7 +165,11 @@ export default async function handler(req: Request) {
         'Access-Control-Allow-Origin': origin,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    if (isAbortError(error)) {
+      log.warn('[Iconscout API] Upstream request timed out', { url: req.url });
+      return timeoutResponse(origin, 'Iconscout API timeout');
+    }
     log.error('API Route Error', error, { url: req.url });
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
