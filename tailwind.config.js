@@ -18,6 +18,9 @@ export default {
         display: ['Outfit', 'Space Grotesk', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         outfit: ['Outfit', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
+      fontSize: {
+        micro: ['11px', { lineHeight: '16px', fontWeight: '500' }],
+      },
       colors: {
         brand: {
           50: '#f3e8ff',

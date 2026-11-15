@@ -62,32 +62,32 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
             aria-label={item.label}
             aria-pressed={isActive}
             className={`
-              w-full flex flex-col items-center justify-center gap-0.5 py-1.5 px-1
+              w-full flex flex-col items-center justify-center gap-1 py-1 px-1
               transition-all duration-150 relative group rounded-lg
               ${isActive ? 'text-white bg-white/5' : 'text-gray-500 hover:text-gray-200 hover:bg-white/[0.02]'}
             `}
           >
             {isActive && (
-              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-500 rounded-r-full shadow-[0_0_8px_rgba(139,92,246,0.8)]" />
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-500 rounded-r-full shadow-glow-brand" />
             )}
             <div
               className={`
-                flex items-center justify-center w-7 h-7 rounded-lg transition-all duration-150
+                flex items-center justify-center w-8 h-8 rounded-lg transition-all duration-150
                 ${
                   isActive
-                    ? 'bg-brand-600/25 text-white border border-brand-600/30 shadow-[0_0_8px_rgba(139,92,246,0.3)]'
+                    ? 'bg-brand-600/25 text-white border border-brand-600/30 shadow-glow-brand'
                     : 'group-hover:bg-white/5'
                 }
               `}
             >
               <item.icon
-                className={`w-[15px] h-[15px] transition-all duration-150 ${
+                className={`w-4 h-4 transition-all duration-150 ${
                   isActive ? 'text-white' : 'group-hover:text-gray-200'
                 }`}
               />
             </div>
             <span
-              className={`text-[8.5px] font-semibold leading-none tracking-wide transition-all duration-150 truncate w-full text-center ${
+              className={`text-micro font-semibold leading-none tracking-wide transition-all duration-150 truncate w-full text-center ${
                 isActive ? 'text-white/90' : 'text-gray-600 group-hover:text-gray-400'
               }`}
             >
@@ -104,14 +104,14 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         id="sidebar"
         role="navigation"
         aria-label="Design tools"
-        className="w-[64px] bg-surface-dark-1/90 backdrop-blur-3xl flex flex-col items-center z-[100] shrink-0 border-r border-white/5 h-full relative shadow-[20px_0_50px_rgba(0,0,0,0.5)]"
+        className="w-16 bg-surface-dark-1/90 backdrop-blur-3xl flex flex-col items-center z-40 shrink-0 border-r border-white/5 h-full relative shadow-elevated-lg"
       >
         {/* Top accent gradient */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-brand-600/5 to-transparent pointer-events-none" />
 
         <ErrorBoundary fallback={<div className="text-xs text-red-400 p-2">Sidebar error</div>}>
           {/* Primary tools & Studio suites */}
-          <div className="flex flex-col items-center w-full gap-0.5 px-1.5 pt-4 pb-2 flex-1 overflow-y-auto no-scrollbar">
+          <div className="flex flex-col items-center w-full gap-1 px-2 pt-4 pb-2 flex-1 overflow-y-auto no-scrollbar">
             {PRIMARY_TABS.map(renderTool)}
             <div className="w-6 h-px bg-white/10 my-2 shrink-0" />
             {STUDIO_SUITE_TABS.map(renderTool)}
@@ -119,15 +119,15 @@ export const Sidebar: React.FC<SidebarProps> = React.memo(
         </ErrorBoundary>
 
         {/* Bottom utilities */}
-        <div className="pb-4 border-t border-white/5 w-full flex flex-col items-center gap-1 px-1.5 pt-2">
+        <div className="pb-4 border-t border-white/5 w-full flex flex-col items-center gap-1 px-2 pt-2">
           <button
             onClick={() => useStore.getState().setShowFeedbackModal(true)}
             aria-label="Send Feedback"
             title="Send Feedback"
-            className="relative w-full flex items-center justify-center h-7 rounded-lg text-gray-500 hover:text-pink-400 hover:bg-pink-500/10 transition-all duration-150"
+            className="relative w-full flex items-center justify-center h-8 rounded-lg text-gray-500 hover:text-pink-400 hover:bg-pink-500/10 transition-all duration-150"
           >
-            <Icons.MessageSquare className="w-3.5 h-3.5" />
-            <span className="absolute top-1 right-2 w-1.5 h-1.5 bg-pink-500 rounded-full" aria-hidden="true" />
+            <Icons.MessageSquare className="w-4 h-4" />
+            <span className="absolute top-1 right-2 w-2 h-2 bg-pink-500 rounded-full" aria-hidden="true" />
           </button>
         </div>
       </div>
