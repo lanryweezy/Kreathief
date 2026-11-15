@@ -128,9 +128,9 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-4 md:px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative gap-2">
-      <div className="flex items-center gap-3 md:gap-4 shrink-0 z-30">
-        <div className="flex items-center gap-2 mr-1">
+    <header className="h-14 bg-surface-dark-1 text-white flex items-center justify-between px-2 md:px-6 z-50 shrink-0 border-b border-white/5 shadow-2xl relative gap-1 md:gap-2 max-w-full overflow-hidden">
+      <div className="flex items-center gap-1 md:gap-4 shrink-0 z-30">
+        <div className={`${onBack ? 'hidden sm:flex' : 'flex'} items-center gap-2 mr-1`}>
           <div className="w-8 h-8 bg-surface-dark-1 border border-white/10 rounded-lg flex items-center justify-center shadow-lg">
             <img src="/logo.svg" alt="Kreathief" className="w-5 h-5 object-contain" />
           </div>
@@ -232,7 +232,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 md:gap-4 shrink-0 z-30">
+      <div className="flex items-center justify-end gap-1 md:gap-4 shrink-0 z-30">
         {/* Zoom Level Selector */}
         <button
           ref={zoomButtonRef}
@@ -252,19 +252,20 @@ export const Header: React.FC<HeaderProps> = ({
           title="AI Tools (Image Gen + Design Agent)"
           variant={showAIOverlay ? 'secondary' : 'ghost'}
           size="sm"
-          className="flex items-center gap-1.5 font-bold"
+          className="flex items-center gap-1.5 font-bold min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
         >
           <Icons.Sparkles className="w-3.5 h-3.5 text-brand-400" />
-          <span className="text-brand-400">Agent</span>
+          <span className="hidden sm:inline text-brand-400">Agent</span>
         </Button>
 
-        <div className="h-4 w-px bg-gray-800"></div>
+        <div className="hidden md:block h-4 w-px bg-gray-800"></div>
 
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="icon"
             onClick={onShowShortcuts}
+            className="hidden md:inline-flex"
             title="Keyboard Shortcuts (?)"
             aria-label="Show keyboard shortcuts"
           >
@@ -282,12 +283,16 @@ export const Header: React.FC<HeaderProps> = ({
             <Icons.Share className="w-4 h-4" />
           </Button>
 
-          <PresenceBar />
+          <div className="hidden sm:flex">
+            <PresenceBar />
+          </div>
         </div>
 
-        <div className="h-4 w-px bg-gray-800"></div>
+        <div className="hidden md:block h-4 w-px bg-gray-800"></div>
 
-        <ConnectionStatus />
+        <div className="hidden sm:flex">
+          <ConnectionStatus />
+        </div>
 
         <Button
           id="export-btn"
@@ -346,9 +351,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       )}
-      {showPricingModal && (
-        <PricingModal onClose={() => setShowPricingModal(false)} />
-      )}
+      {showPricingModal && <PricingModal onClose={() => setShowPricingModal(false)} />}
     </header>
   );
 };
