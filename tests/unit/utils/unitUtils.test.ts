@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { pxToUnit, unitToPx, formatUnitValue, DPI, MM_PER_INCH, CM_PER_INCH } from '../../../utils/unitUtils';
+import {
+  pxToUnit,
+  unitToPx,
+  formatUnitValue,
+  registerUnitConverter,
+  DPI,
+  MM_PER_INCH,
+  CM_PER_INCH,
+} from '../../../utils/unitUtils';
 
 describe('unitUtils', () => {
   describe('pxToUnit', () => {
@@ -59,6 +67,21 @@ describe('unitUtils', () => {
 
     it('formats pixels with unit string', () => {
       expect(formatUnitValue(100, 'px')).toBe('100 px');
+    });
+  });
+
+  describe('registerUnitConverter', () => {
+    it('allows registering a custom unit and converts bidirectionally', () => {
+      const POINTS_PER_INCH = 72;
+      registerUnitConverter('pt', {
+        toUnit: (px) => (px / DPI) * POINTS_PER_INCH,
+        toPx: (pt) => (pt / POINTS_PER_INCH) * DPI,
+      });
+
+      expect(pxToUnit(DPI, 'pt')).toBe(72);
+      expect(pxToUnit(DPI / 2, 'pt')).toBe(36);
+      expect(unitToPx(72, 'pt')).toBe(DPI);
+      expect(formatUnitValue(DPI, 'pt')).toBe('72 pt');
     });
   });
 });
