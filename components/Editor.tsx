@@ -21,8 +21,10 @@ import { generateShareLink } from '../utils/shareUtils';
 import { storageService } from '../services/storageService';
 const ExportModal = React.lazy(() => import('./modals/ExportModal').then((m) => ({ default: m.ExportModal })));
 const ShareModal = React.lazy(() => import('./modals/ShareModal').then((m) => ({ default: m.ShareModal })));
-import { MockupPanel } from './panels/MockupPanel';
-import { ComponentPropertiesPanel } from './panels/ComponentPropertiesPanel';
+const MockupPanel = React.lazy(() => import('./panels/MockupPanel').then((m) => ({ default: m.MockupPanel })));
+const ComponentPropertiesPanel = React.lazy(() =>
+  import('./panels/ComponentPropertiesPanel').then((m) => ({ default: m.ComponentPropertiesPanel }))
+);
 
 const MagicPanel = React.lazy(() => import('./panels/MagicPanel'));
 const AssistantPanel = React.lazy(() => import('./panels/AssistantPanel'));
@@ -596,11 +598,19 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
             {activeTab === NavTab.MOCKUP && !isMobile && (
               <div className="absolute inset-0 z-[100] bg-surface-dark-2 flex animate-in fade-in slide-in-from-right duration-300">
                 <div className="flex-1 relative overflow-hidden flex flex-row">
-                  <MockupPanel
-                    onExportForMockup={handleExportDataUrl}
-                    variant="full"
-                    onClose={() => useStore.getState().setActiveTab(NavTab.TEMPLATES)}
-                  />
+                  <React.Suspense
+                    fallback={
+                      <div className="flex-1 flex items-center justify-center text-gray-400 text-xs">
+                        Loading mockup studio...
+                      </div>
+                    }
+                  >
+                    <MockupPanel
+                      onExportForMockup={handleExportDataUrl}
+                      variant="full"
+                      onClose={() => useStore.getState().setActiveTab(NavTab.TEMPLATES)}
+                    />
+                  </React.Suspense>
                 </div>
               </div>
             )}
@@ -608,7 +618,11 @@ export const Editor: React.FC<EditorProps> = ({ initialProject, onBack, user }) 
         </div>
 
         {/* Floating Panels */}
-        {!isMobile && <ComponentPropertiesPanel />}
+        {!isMobile && (
+          <React.Suspense fallback={null}>
+            <ComponentPropertiesPanel />
+          </React.Suspense>
+        )}
 
         {/* Right Panel (AI Overlay / Agent) */}
         {showAIOverlay && (

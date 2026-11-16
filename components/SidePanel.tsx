@@ -1,4 +1,3 @@
-import { TextEffectsPanel } from './panels/TextEffectsPanel';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { NavTab, TextLayer, AnimationSettings } from '../types';
@@ -7,9 +6,12 @@ import { useShallow } from 'zustand/react/shallow';
 import { ErrorBoundary } from './ErrorBoundary';
 import { Icons } from '../constants';
 
-import TemplatesPanel from './panels/TemplatesPanel';
-import BrandPanel from './panels/BrandPanel';
-import { ElementsPanel } from './panels/ElementsPanel';
+const TextEffectsPanel = React.lazy(() =>
+  import('./panels/TextEffectsPanel').then((m) => ({ default: m.TextEffectsPanel }))
+);
+const TemplatesPanel = React.lazy(() => import('./panels/TemplatesPanel'));
+const BrandPanel = React.lazy(() => import('./panels/BrandPanel'));
+const ElementsPanel = React.lazy(() => import('./panels/ElementsPanel').then((m) => ({ default: m.ElementsPanel })));
 
 const LayersPanel = React.lazy(() => import('./panels/LayersPanel'));
 const DrawPanel = React.lazy(() => import('./panels/DrawPanel'));

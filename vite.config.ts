@@ -187,10 +187,12 @@ export default defineConfig(({ mode }) => {
             'vendor-ai': ['@google/generative-ai'],
             'vendor-pdf': ['jspdf', 'pdf-lib', 'ag-psd'],
             'vendor-ml': ['@xenova/transformers'],
-            'vendor-vector': ['paper', 'imagetracerjs'],
+            'vendor-vector': ['paper', 'paper/dist/paper-core', 'imagetracerjs'],
             'vendor-canvas': ['html2canvas', 'jszip'],
             'vendor-sentry': ['@sentry/react'],
             'vendor-supabase': ['@supabase/supabase-js'],
+            'vendor-math': ['mathjs'],
+            'vendor-font': ['opentype.js'],
           },
         },
         onwarn(warning, warn) {
